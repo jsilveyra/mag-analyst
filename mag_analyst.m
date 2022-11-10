@@ -1,8 +1,6 @@
 clear
 
 [H, M] = Parser('data/MvsH - (nano, AIP advances).txt').get_data;
-disp(H);
-disp(M);
 
 dMdH = transpose(gradient(M(:)) ./ gradient(H(:)));
 
@@ -18,6 +16,12 @@ mcr = 0.78;
 
 a = get_a(Hcr, mcr);
 fprintf('a = %f\n', a);
+
+alphaMs = get_alphaMs(Hcr, mcr, a);
+fprintf('alphaMs = %f\n', alphaMs);
+
+mTip = get_mTip(Hcr, a, alphaMs);
+fprintf('mTip = %f\n', mTip);
 
 Plotter(H, M, dMdH, HdMdH).plot
 
@@ -45,7 +49,20 @@ function a = get_a(Hcr, mcr)
     a = Hcr * P(mcr) * ( Q(mcr) - sqrt( (Q(mcr)^2) - 1 ));
 end
 
+function alphaMs = get_alphaMs(Hcr, mcr, a)
+    L = Langevin();
+    alphaMs = (L.inverse(mcr) * a - Hcr)/mcr;
+end
 
+function mTip = get_mTip(H, a, alphaMs)
+
+    function ret = f_mTip(m)
+        L = Langevin();
+        ret = L.L((H + alphaMs*m)/a) - m;
+    end
+
+    mTip = fzero(@f_mTip, 0.75);
+end
 
 
 
