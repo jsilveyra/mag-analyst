@@ -26,7 +26,7 @@ classdef Parser
 
         function [H, M] = parse_line(~, line)
             line = regexprep(line, '\t', ' ');
-            line = regexprep(line, ',', '.');
+            line = regexprep(line, ',', '');
             line = regexprep(line,' +',' ');
             line = strtrim(line);
             line = string(line);
