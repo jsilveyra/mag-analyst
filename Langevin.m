@@ -19,7 +19,7 @@ classdef Langevin
 
             numerator = 3*m - m*(6*m^2 + m^4 - 2*m^6) / 5;
             denominator = 1 - m^2;
-            
+
             ret = numerator/denominator;
         end
 

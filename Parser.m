@@ -20,8 +20,15 @@ classdef Parser
                 [H(i), M(i)] = obj.parse_line(data(i));
             end
         end
+
+        function [H, M] = get_data_csv(obj)
+            T = readtable(obj.FilePath,"VariableNamingRule","preserve");
+            A = table2array(T);
+            H = transpose(A(:,1));
+            M = transpose(A(:,2));
+        end
     end
-    
+
     methods (Access = private)
 
         function [H, M] = parse_line(~, line)

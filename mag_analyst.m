@@ -1,6 +1,8 @@
 clear
 
-[H, M] = Parser('data/MvsH - (nano, AIP advances).txt').get_data;
+[H, M] = Parser('data/MvsH - (nano, AIP advances).csv').get_data_csv;
+
+%[H, M] = Parser('data/MvsH - (nano, AIP advances).txt').get_data;
 
 dMdH = transpose(gradient(M(:)) ./ gradient(H(:)));
 
@@ -22,6 +24,12 @@ fprintf('alphaMs = %f\n', alphaMs);
 
 mTip = get_mTip(Hcr, a, alphaMs);
 fprintf('mTip = %f\n', mTip);
+
+Ms = get_Ms(MTip, mTip);
+fprintf('Ms = %f\n', Ms);
+
+alpha = get_alpha(alphaMs, Ms);
+fprintf('alpha = %f\n', alpha);
 
 Plotter(H, M, dMdH, HdMdH).plot
 
@@ -64,5 +72,10 @@ function mTip = get_mTip(H, a, alphaMs)
     mTip = fzero(@f_mTip, 0.75);
 end
 
+function Ms = get_Ms(MTip, mTip)
+    Ms = MTip/mTip;
+end
 
-
+function alpha = get_alpha(alphaMs, Ms)
+    alpha = alphaMs/Ms;
+end
