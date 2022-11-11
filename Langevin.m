@@ -6,7 +6,7 @@ classdef Langevin
 
         function ret = L(~, h)
             if(abs(h) <= 0.001)
-                ret = h/3 - (h^3)/45 + (2/945)*h^5;
+                ret = h/3 - (h^3)/45 + (2/945)*(h^5);
             else
                 ret = coth(h) - 1/h;
             end

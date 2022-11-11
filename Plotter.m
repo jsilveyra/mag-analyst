@@ -5,11 +5,12 @@ classdef Plotter
         M
         HdMdH
         dMdH
+        MAnalytic
         MarkerSize
     end
 
     methods (Access = public)
-        function obj = Plotter(H, M, dMdH , HdMdH, varargin)
+        function obj = Plotter(H, M, dMdH , HdMdH, MAnalytic, varargin)
             numvarargs = length(varargin);
             if numvarargs > 1
                 error('Plotter:constructor:TooManyOptionalParameters: requires at most 1 optional parameter');
@@ -23,13 +24,15 @@ classdef Plotter
             obj.M = M;
             obj.dMdH = dMdH;
             obj.HdMdH = HdMdH;
+            obj.MAnalytic = MAnalytic;
             
         end
 
         function plot(obj)
             tiledlayout(2,2);
             nexttile;
-            plot(obj.H,obj.M, '.', 'markersize', obj.MarkerSize);
+            plot(obj.H, obj.M, '.', 'markersize', obj.MarkerSize);
+            plot(obj.H, obj.MAnalytic);
             xlabel('H (A/m)');
             ylabel('M (A/m)');
             nexttile;

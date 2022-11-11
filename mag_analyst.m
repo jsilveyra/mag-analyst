@@ -31,7 +31,9 @@ fprintf('Ms = %f\n', Ms);
 alpha = get_alpha(alphaMs, Ms);
 fprintf('alpha = %f\n', alpha);
 
-Plotter(H, M, dMdH, HdMdH).plot
+MAnalytic = get_MAnalytic(H, a, alphaMs, MTip);
+
+Plotter(H, M, dMdH, HdMdH, MAnalytic).plot
 
 function [HTip, MTip] = find_tip(H, M)
     [MTip, i] = max(M);
@@ -63,12 +65,10 @@ function alphaMs = get_alphaMs(Hcr, mcr, a)
 end
 
 function mTip = get_mTip(H, a, alphaMs)
-
     function ret = f_mTip(m)
         L = Langevin();
         ret = L.L((H + alphaMs*m)/a) - m;
     end
-
     mTip = fzero(@f_mTip, 0.75);
 end
 
@@ -78,4 +78,15 @@ end
 
 function alpha = get_alpha(alphaMs, Ms)
     alpha = alphaMs/Ms;
+end
+
+function MAnalytic = get_MAnalytic(H, a, alphaMs, MTip)
+    MAnalytic = zeros(1, length(H));
+
+    for i = 1:length(H)
+        mTip = get_mTip(H(i), a, alphaMs);
+        Ms = get_Ms(MTip, mTip);
+        MAnalytic(i) = Ms*mTip;
+    end
+
 end
