@@ -37,7 +37,7 @@ dMdHAnalytical = get_dMdHAnalytical(H, alpha, MAnalytical, Ms, a);
 
 HdMdHAnalytical = get_HdMdHAnalytical(H, dMdHAnalytical);
 
-Plotter(H, M, dMdH, HdMdH, MAnalytical, dMdHAnalytical, HdMdHAnalytical).plot
+Plotter(H, M, dMdH, HdMdH, MAnalytical, dMdHAnalytical, HdMdHAnalytical, Hcr).plot
 
 function [HTip, MTip] = find_tip(H, M)
     [MTip, i] = max(M);

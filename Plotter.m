@@ -8,11 +8,12 @@ classdef Plotter
         MAnalytic
         dMdHAnalytical
         HdMdHAnalytical
+        Hcr
         MarkerSize
     end
 
     methods (Access = public)
-        function obj = Plotter(H, M, dMdH , HdMdH, MAnalytic, dMdHAnalytical, HdMdHAnalytical, varargin)
+        function obj = Plotter(H, M, dMdH , HdMdH, MAnalytic, dMdHAnalytical, HdMdHAnalytical, Hcr, varargin)
             numvarargs = length(varargin);
             if numvarargs > 1
                 error('Plotter:constructor:TooManyOptionalParameters: requires at most 1 optional parameter');
@@ -29,44 +30,49 @@ classdef Plotter
             obj.MAnalytic = MAnalytic;
             obj.dMdHAnalytical = dMdHAnalytical;
             obj.HdMdHAnalytical = HdMdHAnalytical;
+            obj.Hcr = Hcr;
         end
 
-        function plot(obj)
-            tiledlayout(2,2);
-            nexttile;
+        function plot_Hcr(obj)
+            xline(obj.Hcr, '--', "Color",[0, 0.4470, 0.7410], "Label", "Hcr");
+        end
+
+        function plot_M(obj, ~)
             hold on;
-            plot(obj.H, obj.M, '.', 'markersize', obj.MarkerSize, "Color",[0, 0.4470, 0.7410]);
+            plot(obj.H, obj.M, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
             plot(obj.H, obj.MAnalytic, "Color",[0,0,0]);
+            obj.plot_Hcr;
             xlabel('H (A/m)');
             ylabel('M (A/m)');
             hold off;
+        end
 
-
-            nexttile;
-            semilogx(obj.H,obj.M, '.', 'markersize', obj.MarkerSize, "Color",[0, 0.4470, 0.7410]);
+        function plot_M_log(obj, ~)
+            semilogx(obj.H,obj.M, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
             hold on;
             semilogx(obj.H,obj.MAnalytic, "Color",[0 0 0]);
+            obj.plot_Hcr;
             hold off;
             xlabel('H (A/m)');
             ylabel('M (A/m)');
+        end
 
-            ax = nexttile;
+        function plot_dMdH(obj, ax)
             hold on;
-            plot(obj.H,obj.dMdH, '.', 'markersize', obj.MarkerSize, "Color",[0, 0.4470, 0.7410]);
+            plot(obj.H,obj.dMdH, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
             plot(obj.H, obj.dMdHAnalytical, "Color",[0 0 0]);
+            obj.plot_Hcr;
             xlabel('H (A/m)');
             ylabel('∂M/∂H');
-            ax.XAxisLocation = 'origin';
+            ax.YLim = [min(obj.dMdH) max(obj.dMdH)*1.1];
             hold off;
+        end
 
-
-            ax = nexttile;
-            colororder([0.8500, 0.3250, 0.0980])
-            semilogx(obj.H,obj.dMdH, '.', 'markersize', obj.MarkerSize, "Color",[0, 0.4470, 0.7410]);
+        function plot_HdMdH(obj, ax)
+            semilogx(obj.H,obj.dMdH, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
             hold on;
+            obj.plot_Hcr;
             semilogx(obj.H,obj.dMdHAnalytical, "Color",[0 0 0]);
-            ax.XAxisLocation = 'origin';
-            
             hold off;
             
             xlabel('H (A/m)');
@@ -77,10 +83,27 @@ classdef Plotter
             semilogx(obj.H, obj.HdMdHAnalytical, "Color",[0.8500, 0.3250, 0.0980]);
             semilogx(obj.H,obj.HdMdH, '.', 'markersize', obj.MarkerSize, "Color",[0.8500, 0.3250, 0.0980]);
             ylabel('∂M/(∂ln(H))=H ∂M/∂H (A/m)', "Color",[0.8500, 0.3250, 0.0980]);
-            ax = gca;
-            align_yyaxis_zero(ax);
-            
             hold off;
+
+            yyaxis left;  ax.YLim = [0 max(obj.dMdH)*1.1];
+            yyaxis right; ax.YLim = [0 max(obj.HdMdHAnalytical)*1.1];
+        end
+
+        function plot(obj)
+            tiledlayout(2,2);
+            colororder([0.8500, 0.3250, 0.0980])
+
+            ax = nexttile;
+            obj.plot_M(ax);
+
+            ax = nexttile;
+            obj.plot_M_log(ax);
+
+            ax = nexttile;
+            obj.plot_dMdH(ax);
+
+            ax = nexttile;
+            obj.plot_HdMdH(ax);
             
         end
     end
