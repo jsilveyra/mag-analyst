@@ -2,8 +2,6 @@ clear
 
 [H, M] = Parser('data/MvsH - (nano, AIP advances).csv').get_data_csv;
 
-%[H, M] = Parser('data/MvsH - (nano, AIP advances).txt').get_data;
-
 dMdH = transpose(gradient(M(:)) ./ gradient(H(:)));
 
 HdMdH = H.*dMdH;
@@ -13,7 +11,9 @@ HdMdH = H.*dMdH;
 fprintf('HTip = %f\n', HTip);
 fprintf('MTip = %f\n', MTip);
 
-Hcr = 180138;
+
+[maxHdMdH, i] = max(HdMdH);
+Hcr = 180.138;
 mcr = 0.78;
 
 a = get_a(Hcr, mcr);
@@ -22,7 +22,7 @@ fprintf('a = %f\n', a);
 alphaMs = get_alphaMs(Hcr, mcr, a);
 fprintf('alphaMs = %f\n', alphaMs);
 
-mTip = get_mTip(Hcr, a, alphaMs);
+mTip = get_mTip(HTip, a, alphaMs);
 fprintf('mTip = %f\n', mTip);
 
 Ms = get_Ms(MTip, mTip);
@@ -31,9 +31,13 @@ fprintf('Ms = %f\n', Ms);
 alpha = get_alpha(alphaMs, Ms);
 fprintf('alpha = %f\n', alpha);
 
-MAnalytic = get_MAnalytic(H, a, alphaMs, MTip);
+MAnalytical = get_MAnalytical(H, a, alphaMs, Ms);
 
-Plotter(H, M, dMdH, HdMdH, MAnalytic).plot
+dMdHAnalytical = get_dMdHAnalytical(H, alpha, MAnalytical, Ms, a);
+
+HdMdHAnalytical = get_HdMdHAnalytical(H, dMdHAnalytical);
+
+Plotter(H, M, dMdH, HdMdH, MAnalytical, dMdHAnalytical, HdMdHAnalytical).plot
 
 function [HTip, MTip] = find_tip(H, M)
     [MTip, i] = max(M);
@@ -41,17 +45,15 @@ function [HTip, MTip] = find_tip(H, M)
 end
 
 function p = P(m)
-    L = Langevin();
-    numerator = L.first_derivative(L.inverse(m));
-    denominator = m - L.inverse(m) * L.first_derivative(L.inverse(m));
+    numerator = Langevin(Langevin(m,-1),1);
+    denominator = m - Langevin(m,-1) * Langevin(Langevin(m,-1),1);
     p = numerator/denominator;
 end
 
 function q = Q(m)
-    L = Langevin();
-    a = m / L.first_derivative(L.inverse(m));
-    b = -L.second_derivative(L.inverse(m));
-    c = 2 * ( m - L.inverse(m) * L.first_derivative(L.inverse(m)) );
+    a = m / Langevin(Langevin(m,-1),1);
+    b = -Langevin(Langevin(m,-1),2);
+    c = 2 * ( m - Langevin(m,-1) * Langevin(Langevin(m,-1),1) );
     q = ((a^2) * b / c) - 1;
 end
 
@@ -60,14 +62,12 @@ function a = get_a(Hcr, mcr)
 end
 
 function alphaMs = get_alphaMs(Hcr, mcr, a)
-    L = Langevin();
-    alphaMs = (L.inverse(mcr) * a - Hcr)/mcr;
+    alphaMs = (Langevin(mcr,-1) * a - Hcr)/mcr;
 end
 
 function mTip = get_mTip(H, a, alphaMs)
     function ret = f_mTip(m)
-        L = Langevin();
-        ret = L.L((H + alphaMs*m)/a) - m;
+        ret = Langevin((H + alphaMs*m)/a,0) - m;
     end
     mTip = fzero(@f_mTip, 0.75);
 end
@@ -80,13 +80,28 @@ function alpha = get_alpha(alphaMs, Ms)
     alpha = alphaMs/Ms;
 end
 
-function MAnalytic = get_MAnalytic(H, a, alphaMs, MTip)
-    MAnalytic = zeros(1, length(H));
+function MAnalytical = get_MAnalytical(H, a, alphaMs, Ms)
+    MAnalytical = zeros(1, length(H));
 
     for i = 1:length(H)
         mTip = get_mTip(H(i), a, alphaMs);
-        Ms = get_Ms(MTip, mTip);
-        MAnalytic(i) = Ms*mTip;
+        MAnalytical(i) = Ms*mTip;
     end
 
+end
+
+function dMdHAnalytical = get_dMdHAnalytical(H, alpha, MAnalytical, Ms, a)
+    dMdHAnalytical = zeros(1, length(H));
+    for i = 1:length(H)
+        h = (H(i)+alpha*MAnalytical(i))/a;
+        numerator = Ms*Langevin(h,1)/a;
+        dMdHAnalytical(i) = numerator/(1-alpha*numerator);
+    end
+end
+
+function HdMdHAnalytical = get_HdMdHAnalytical(H, dMdHAnalytical)
+    HdMdHAnalytical = zeros(1, length(H));
+    for i = 1:length(H)
+        HdMdHAnalytical(i) = H(i)*dMdHAnalytical(i);
+    end
 end

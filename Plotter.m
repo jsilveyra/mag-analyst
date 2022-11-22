@@ -6,11 +6,13 @@ classdef Plotter
         HdMdH
         dMdH
         MAnalytic
+        dMdHAnalytical
+        HdMdHAnalytical
         MarkerSize
     end
 
     methods (Access = public)
-        function obj = Plotter(H, M, dMdH , HdMdH, MAnalytic, varargin)
+        function obj = Plotter(H, M, dMdH , HdMdH, MAnalytic, dMdHAnalytical, HdMdHAnalytical, varargin)
             numvarargs = length(varargin);
             if numvarargs > 1
                 error('Plotter:constructor:TooManyOptionalParameters: requires at most 1 optional parameter');
@@ -25,31 +27,41 @@ classdef Plotter
             obj.dMdH = dMdH;
             obj.HdMdH = HdMdH;
             obj.MAnalytic = MAnalytic;
-            
+            obj.dMdHAnalytical = dMdHAnalytical;
+            obj.HdMdHAnalytical = HdMdHAnalytical;
         end
 
         function plot(obj)
             tiledlayout(2,2);
             nexttile;
+            hold on;
             plot(obj.H, obj.M, '.', 'markersize', obj.MarkerSize);
-            plot(obj.H, obj.MAnalytic);
+            plot(obj.H, obj.MAnalytic, "Color",[0 0 0]);
             xlabel('H (A/m)');
             ylabel('M (A/m)');
+            hold off;
             nexttile;
+            hold on;
             semilogx(obj.H,obj.M, '.', 'markersize', obj.MarkerSize);
+            semilogx(obj.H,obj.MAnalytic, "Color",[0 0 0]);
             xlabel('H (A/m)'); 
-            ylabel('M (A/m)'); 
+            ylabel('M (A/m)');
+            hold off;
             nexttile;
+            hold on;
             plot(obj.H,obj.dMdH, '.', 'markersize', obj.MarkerSize);
+            plot(obj.H, obj.dMdHAnalytical, "Color",[0 0 0]);
             xlabel('H (A/m)');
             ylabel('∂M/∂H');
+            hold off;
             nexttile;
             semilogx(obj.H,obj.dMdH, '.', 'markersize', obj.MarkerSize);
             xlabel('H (A/m)');
             ylabel('∂M/∂H');
-            hold on;
             yyaxis right;
+            hold on;
             semilogx(obj.H,obj.HdMdH, '.', 'markersize', obj.MarkerSize);
+            semilogx(obj.H, obj.HdMdHAnalytical, "Color",[0 0 0]);
             ylabel('H ∂M/∂H (A/m)');
             hold off;
         end
