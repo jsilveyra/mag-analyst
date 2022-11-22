@@ -33,15 +33,15 @@ fprintf('Ms = %f\n', Ms);
 alpha = get_alpha(alphaMs, Ms);
 fprintf('alpha = %f\n', alpha);
 
-HAnalytical = logspace(log10(H(2)),log10(HTip),N);
+Hhat = logspace(log10(H(2)),log10(HTip),N);
 
-MAnalytical = get_MAnalytical(HAnalytical, a, alphaMs, Ms);
+Mhat = get_Mhat(Hhat, a, alphaMs, Ms);
 
-dMdHAnalytical = get_dMdHAnalytical(HAnalytical, alpha, MAnalytical, Ms, a);
+dMdHhat = get_dMdHhat(Hhat, alpha, Mhat, Ms, a);
 
-HdMdHAnalytical = get_HdMdHAnalytical(HAnalytical, dMdHAnalytical);
+HdMdHhat = get_HdMdHhat(Hhat, dMdHhat);
 
-Plotter(H, M, dMdH, HdMdH, HAnalytical, MAnalytical, dMdHAnalytical, HdMdHAnalytical, Hcr).plot
+Plotter(H, M, dMdH, HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr).plot
 
 function [HTip, MTip] = find_tip(H, M)
     [MTip, i] = max(M);
@@ -84,28 +84,28 @@ function alpha = get_alpha(alphaMs, Ms)
     alpha = alphaMs/Ms;
 end
 
-function MAnalytical = get_MAnalytical(H, a, alphaMs, Ms)
-    MAnalytical = zeros(1, length(H));
+function Mhat = get_Mhat(H, a, alphaMs, Ms)
+    Mhat = zeros(1, length(H));
 
     for i = 1:length(H)
         mTip = get_mTip(H(i), a, alphaMs);
-        MAnalytical(i) = Ms*mTip;
+        Mhat(i) = Ms*mTip;
     end
 
 end
 
-function dMdHAnalytical = get_dMdHAnalytical(H, alpha, MAnalytical, Ms, a)
-    dMdHAnalytical = zeros(1, length(H));
+function dMdHhat = get_dMdHhat(H, alpha, Mhat, Ms, a)
+    dMdHhat = zeros(1, length(H));
     for i = 1:length(H)
-        h = (H(i)+alpha*MAnalytical(i))/a;
+        h = (H(i)+alpha*Mhat(i))/a;
         numerator = Ms*Langevin(h,1)/a;
-        dMdHAnalytical(i) = numerator/(1-alpha*numerator);
+        dMdHhat(i) = numerator/(1-alpha*numerator);
     end
 end
 
-function HdMdHAnalytical = get_HdMdHAnalytical(H, dMdHAnalytical)
-    HdMdHAnalytical = zeros(1, length(H));
+function HdMdHhat = get_HdMdHhat(H, dMdHhat)
+    HdMdHhat = zeros(1, length(H));
     for i = 1:length(H)
-        HdMdHAnalytical(i) = H(i)*dMdHAnalytical(i);
+        HdMdHhat(i) = H(i)*dMdHhat(i);
     end
 end

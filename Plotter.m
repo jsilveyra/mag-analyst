@@ -5,16 +5,16 @@ classdef Plotter
         M
         HdMdH
         dMdH
-        HAnalytical
-        MAnalytic
-        dMdHAnalytical
-        HdMdHAnalytical
+        Hhat
+        Mhat
+        dMdHhat
+        HdMdHhat
         Hcr
         MarkerSize
     end
 
     methods (Access = public)
-        function obj = Plotter(H, M, dMdH , HdMdH, HAnalytical, MAnalytic, dMdHAnalytical, HdMdHAnalytical, Hcr, varargin)
+        function obj = Plotter(H, M, dMdH , HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr, varargin)
             numvarargs = length(varargin);
             if numvarargs > 1
                 error('Plotter:constructor:TooManyOptionalParameters: requires at most 1 optional parameter');
@@ -28,10 +28,10 @@ classdef Plotter
             obj.M = M;
             obj.dMdH = dMdH;
             obj.HdMdH = HdMdH;
-            obj.HAnalytical = HAnalytical;
-            obj.MAnalytic = MAnalytic;
-            obj.dMdHAnalytical = dMdHAnalytical;
-            obj.HdMdHAnalytical = HdMdHAnalytical;
+            obj.Hhat = Hhat;
+            obj.Mhat = Mhat;
+            obj.dMdHhat = dMdHhat;
+            obj.HdMdHhat = HdMdHhat;
             obj.Hcr = Hcr;
         end
 
@@ -42,7 +42,7 @@ classdef Plotter
         function plot_M(obj, ~)
             hold on;
             plot(obj.H, obj.M, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
-            plot(obj.HAnalytical, obj.MAnalytic, "Color",[0,0,0]);
+            plot(obj.Hhat, obj.Mhat, "Color",[0,0,0]);
             obj.plot_Hcr;
             xlabel('H (A/m)');
             ylabel('M (A/m)');
@@ -52,7 +52,7 @@ classdef Plotter
         function plot_M_log(obj, ~)
             semilogx(obj.H,obj.M, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
             hold on;
-            semilogx(obj.HAnalytical,obj.MAnalytic, "Color",[0 0 0]);
+            semilogx(obj.Hhat,obj.Mhat, "Color",[0 0 0]);
             obj.plot_Hcr;
             hold off;
             xlabel('H (A/m)');
@@ -62,7 +62,7 @@ classdef Plotter
         function plot_dMdH(obj, ax)
             hold on;
             plot(obj.H,obj.dMdH, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
-            plot(obj.HAnalytical, obj.dMdHAnalytical, "Color",[0 0 0]);
+            plot(obj.Hhat, obj.dMdHhat, "Color",[0 0 0]);
             obj.plot_Hcr;
             xlabel('H (A/m)');
             ylabel('∂M/∂H');
@@ -74,7 +74,7 @@ classdef Plotter
             semilogx(obj.H,obj.dMdH, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
             hold on;
             obj.plot_Hcr;
-            semilogx(obj.HAnalytical,obj.dMdHAnalytical, "Color",[0 0 0]);
+            semilogx(obj.Hhat,obj.dMdHhat, "Color",[0 0 0]);
             hold off;
             
             xlabel('H (A/m)');
@@ -82,13 +82,13 @@ classdef Plotter
             
             yyaxis right;
             hold on;
-            semilogx(obj.HAnalytical, obj.HdMdHAnalytical, "Color",[0.8500, 0.3250, 0.0980]);
+            semilogx(obj.Hhat, obj.HdMdHhat, "Color",[0.8500, 0.3250, 0.0980]);
             semilogx(obj.H,obj.HdMdH, '.', 'markersize', obj.MarkerSize, "Color",[0.8500, 0.3250, 0.0980]);
             ylabel('∂M/∂ln(H) = H ∂M/∂H (A/m)', "Color",[0.8500, 0.3250, 0.0980]);
             hold off;
 
             yyaxis left;  ax.YLim = [0 max(obj.dMdH)*1.1];
-            yyaxis right; ax.YLim = [0 max(obj.HdMdHAnalytical)*1.1];
+            yyaxis right; ax.YLim = [0 max(obj.HdMdHhat)*1.1];
         end
 
         function plot(obj)
