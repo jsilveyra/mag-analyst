@@ -1,5 +1,7 @@
 clear
 
+N = 100;
+
 [H, M] = Parser('data/MvsH - (nano, AIP advances).csv').get_data_csv;
 
 dMdH = transpose(gradient(M(:)) ./ gradient(H(:)));
@@ -31,13 +33,15 @@ fprintf('Ms = %f\n', Ms);
 alpha = get_alpha(alphaMs, Ms);
 fprintf('alpha = %f\n', alpha);
 
-MAnalytical = get_MAnalytical(H, a, alphaMs, Ms);
+HAnalytical = logspace(log10(H(2)),log10(HTip),N);
 
-dMdHAnalytical = get_dMdHAnalytical(H, alpha, MAnalytical, Ms, a);
+MAnalytical = get_MAnalytical(HAnalytical, a, alphaMs, Ms);
 
-HdMdHAnalytical = get_HdMdHAnalytical(H, dMdHAnalytical);
+dMdHAnalytical = get_dMdHAnalytical(HAnalytical, alpha, MAnalytical, Ms, a);
 
-Plotter(H, M, dMdH, HdMdH, MAnalytical, dMdHAnalytical, HdMdHAnalytical, Hcr).plot
+HdMdHAnalytical = get_HdMdHAnalytical(HAnalytical, dMdHAnalytical);
+
+Plotter(H, M, dMdH, HdMdH, HAnalytical, MAnalytical, dMdHAnalytical, HdMdHAnalytical, Hcr).plot
 
 function [HTip, MTip] = find_tip(H, M)
     [MTip, i] = max(M);
