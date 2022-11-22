@@ -50,21 +50,25 @@ classdef Plotter
             xlabel('H (A/m)');
             ylabel('M (A/m)');
 
-            nexttile;
+            ax = nexttile;
             hold on;
             plot(obj.H,obj.dMdH, '.', 'markersize', obj.MarkerSize, "Color",[0, 0.4470, 0.7410]);
             plot(obj.H, obj.dMdHAnalytical, "Color",[0 0 0]);
             xlabel('H (A/m)');
             ylabel('∂M/∂H');
+            ax.XAxisLocation = 'origin';
             hold off;
 
 
-            nexttile;
+            ax = nexttile;
             colororder([0.8500, 0.3250, 0.0980])
             semilogx(obj.H,obj.dMdH, '.', 'markersize', obj.MarkerSize, "Color",[0, 0.4470, 0.7410]);
             hold on;
             semilogx(obj.H,obj.dMdHAnalytical, "Color",[0 0 0]);
+            ax.XAxisLocation = 'origin';
+            
             hold off;
+            
             xlabel('H (A/m)');
             ylabel('∂M/∂H');
             
@@ -73,7 +77,11 @@ classdef Plotter
             semilogx(obj.H, obj.HdMdHAnalytical, "Color",[0.8500, 0.3250, 0.0980]);
             semilogx(obj.H,obj.HdMdH, '.', 'markersize', obj.MarkerSize, "Color",[0.8500, 0.3250, 0.0980]);
             ylabel('∂M/(∂ln(H))=H ∂M/∂H (A/m)', "Color",[0.8500, 0.3250, 0.0980]);
+            ax = gca;
+            align_yyaxis_zero(ax);
+            
             hold off;
+            
         end
     end
 end
