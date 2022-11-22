@@ -62,7 +62,7 @@ classdef Plotter
             hold on;
             semilogx(obj.H,obj.HdMdH, '.', 'markersize', obj.MarkerSize);
             semilogx(obj.H, obj.HdMdHAnalytical, "Color",[0 0 0]);
-            ylabel('H ∂M/∂H (A/m)');
+            ylabel('∂M/(∂ln(H))=H ∂M/∂H (A/m)');
             hold off;
         end
     end
