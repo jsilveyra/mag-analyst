@@ -35,15 +35,15 @@ classdef Plotter
             tiledlayout(2,2);
             nexttile;
             hold on;
-            plot(obj.H, obj.M, '.', 'markersize', obj.MarkerSize);
-            plot(obj.H, obj.MAnalytic, "Color",[0 0 0]);
+            plot(obj.H, obj.M, '.', 'markersize', obj.MarkerSize, "Color",[0, 0.4470, 0.7410]);
+            plot(obj.H, obj.MAnalytic, "Color",[0,0,0]);
             xlabel('H (A/m)');
             ylabel('M (A/m)');
             hold off;
 
 
             nexttile;
-            semilogx(obj.H,obj.M, '.', 'markersize', obj.MarkerSize);
+            semilogx(obj.H,obj.M, '.', 'markersize', obj.MarkerSize, "Color",[0, 0.4470, 0.7410]);
             hold on;
             semilogx(obj.H,obj.MAnalytic, "Color",[0 0 0]);
             hold off;
@@ -52,7 +52,7 @@ classdef Plotter
 
             nexttile;
             hold on;
-            plot(obj.H,obj.dMdH, '.', 'markersize', obj.MarkerSize);
+            plot(obj.H,obj.dMdH, '.', 'markersize', obj.MarkerSize, "Color",[0, 0.4470, 0.7410]);
             plot(obj.H, obj.dMdHAnalytical, "Color",[0 0 0]);
             xlabel('H (A/m)');
             ylabel('∂M/∂H');
@@ -60,17 +60,19 @@ classdef Plotter
 
 
             nexttile;
-            semilogx(obj.H,obj.dMdH, '.', 'markersize', obj.MarkerSize);
-            %semilogx(obj.H,obj.dMdHAnalytical, "Color",[0 0 0]);
+            colororder([0.8500, 0.3250, 0.0980])
+            semilogx(obj.H,obj.dMdH, '.', 'markersize', obj.MarkerSize, "Color",[0, 0.4470, 0.7410]);
+            hold on;
+            semilogx(obj.H,obj.dMdHAnalytical, "Color",[0 0 0]);
+            hold off;
             xlabel('H (A/m)');
             ylabel('∂M/∂H');
             
             yyaxis right;
-
             hold on;
             semilogx(obj.H, obj.HdMdHAnalytical, "Color",[0.8500, 0.3250, 0.0980]);
             semilogx(obj.H,obj.HdMdH, '.', 'markersize', obj.MarkerSize, "Color",[0.8500, 0.3250, 0.0980]);
-            ylabel('∂M/(∂ln(H))=H ∂M/∂H (A/m)');
+            ylabel('∂M/(∂ln(H))=H ∂M/∂H (A/m)', "Color",[0.8500, 0.3250, 0.0980]);
             hold off;
         end
     end
