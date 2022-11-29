@@ -41,8 +41,7 @@ dMdHhat = get_dMdHhat(Hhat, alpha, Mhat, Ms, a);
 
 HdMdHhat = get_HdMdHhat(Hhat, dMdHhat);
 
-Plotter(H, M, dMdH, HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr).plot
-
+Plotter(H, M, dMdH, HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr).plot;
 
 fprintf('\nErrors:\n');
 fprintf('Vertical:\n');
@@ -56,6 +55,7 @@ fprintf('dMdH = %f\n', v_error_dMdH);
 [v_error_HdMdH, residue_HdMdH] = vertical_error(H, HdMdH, Hhat, HdMdHhat);
 fprintf('HdMdH = %f\n', v_error_HdMdH);
 
+ResiduePlotter(H(2:end-1), residue_M, residue_dMdH, residue_HdMdH).plot;
 
 function [HTip, MTip] = find_tip(H, M)
     [MTip, i] = max(M);
