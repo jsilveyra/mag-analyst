@@ -106,7 +106,6 @@ classdef Plotter
 
             ax = nexttile;
             obj.plot_HdMdH(ax);
-            
         end
     end
 end

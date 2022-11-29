@@ -43,6 +43,20 @@ HdMdHhat = get_HdMdHhat(Hhat, dMdHhat);
 
 Plotter(H, M, dMdH, HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr).plot
 
+
+fprintf('\nErrors:\n');
+fprintf('Vertical:\n');
+
+[v_error_M, residue_M] = vertical_error(H, M, Hhat, Mhat);
+fprintf('M = %f\n', v_error_M);
+
+[v_error_dMdH, residue_dMdH] = vertical_error(H, dMdH, Hhat, dMdHhat);
+fprintf('dMdH = %f\n', v_error_dMdH);
+
+[v_error_HdMdH, residue_HdMdH] = vertical_error(H, HdMdH, Hhat, HdMdHhat);
+fprintf('HdMdH = %f\n', v_error_HdMdH);
+
+
 function [HTip, MTip] = find_tip(H, M)
     [MTip, i] = max(M);
     HTip = H(i);
@@ -108,4 +122,17 @@ function HdMdHhat = get_HdMdHhat(H, dMdHhat)
     for i = 1:length(H)
         HdMdHhat(i) = H(i)*dMdHhat(i);
     end
+end
+
+function [v_error, residue] = vertical_error(X, Y, Xhat, Yhat)
+    Yint = interp1(Xhat, Yhat, X);
+    Yint = Yint(2:end-1);
+    Ydat = Y(2:end-1);
+    residue = zeros(1, length(Ydat));
+    v_error = 0;
+    for i = 1:length(Yint)
+        residue(i) = Ydat(i) - Yint(i);
+        v_error = v_error + (residue(i)^2);
+    end
+    v_error = sqrt(v_error)/max(Y);
 end
