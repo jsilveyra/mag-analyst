@@ -60,6 +60,9 @@ fprintf('\nHorizontal:\n');
 h_error_M = horizontal_error(H, M, Hhat, Mhat);
 fprintf('M = %f\n', h_error_M);
 
+h_error_MlnH = horizontal_error(log(H), M, log(Hhat), Mhat);
+fprintf('M vs ln(H) = %f\n', h_error_MlnH);
+
 fprintf('\nDiagonal:\n');
 d_error_M = diagonal_error(H, M, Hhat, Mhat);
 fprintf('M = %f\n', d_error_M);
@@ -156,7 +159,7 @@ function [h_error, residue] = horizontal_error(X, Y, Xhat, Yhat)
         residue(i) = Xdat(i) - Xint(i);
         h_error = h_error + (residue(i)^2);
     end
-    h_error = sqrt(h_error)/max(X);
+    h_error = sqrt(h_error)/max(X)/length(Xdat);
 end
 
 function d_error = diagonal_error(X, Y, Xhat, Yhat)
