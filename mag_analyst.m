@@ -60,6 +60,10 @@ fprintf('\nHorizontal:\n');
 h_error_M = horizontal_error(H, M, Hhat, Mhat);
 fprintf('M = %f\n', h_error_M);
 
+fprintf('\nDiagonal:\n');
+d_error_M = diagonal_error(H, M, Hhat, Mhat);
+fprintf('M = %f\n', d_error_M);
+
 ResiduePlotter(H(2:end-1), residue_M, residue_dMdH, residue_HdMdH).plot;
 
 function [HTip, MTip] = find_tip(H, M)
@@ -153,4 +157,17 @@ function [h_error, residue] = horizontal_error(X, Y, Xhat, Yhat)
         h_error = h_error + (residue(i)^2);
     end
     h_error = sqrt(h_error)/max(X);
+end
+
+function d_error = diagonal_error(X, Y, Xhat, Yhat)
+    Ydat = Y(2:end-1);
+    Xdat = X(2:end-1);
+    d_error = 0;
+    for i = 1:length(Ydat)
+        delta_x = abs(interp1(Yhat, Xhat, Ydat(i)) - Xdat(i))/max(X);
+        delta_y = abs(interp1(Xdat, Ydat, interp1(Yhat, Xhat, Ydat(i))) - Ydat(i))/max(Y);
+        delta_o = delta_y*cos(atan(delta_y/delta_x));
+        d_error = d_error + (delta_o^2);
+    end
+    d_error = sqrt(d_error)/length(Y);
 end
