@@ -15,8 +15,8 @@ fprintf('MTip = %f\n', MTip);
 
 
 [maxHdMdH, i] = max(HdMdH);
-Hcr = 180.138;
-mcr = 0.78;
+Hcr = [180.138];
+mcr = [0.78];
 
 a = get_a(Hcr, mcr);
 fprintf('a = %f\n', a);
@@ -41,7 +41,7 @@ dMdHhat = get_dMdHhat(Hhat, alpha, Mhat, Ms, a);
 
 HdMdHhat = get_HdMdHhat(Hhat, dMdHhat);
 
-Plotter(H, M, dMdH, HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr).plot;
+Plotter(H, M, dMdH, HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr(1)).plot;
 
 fprintf('\nErrors:\n');
 fprintf('Vertical:\n');
@@ -69,6 +69,20 @@ fprintf('M = %f\n', d_error_M);
 
 ResiduePlotter(H(2:end-1), residue_M, residue_dMdH, residue_HdMdH).plot;
 
+
+fprintf('\n\nMultiple params extension:\n');
+
+[H, M] = Parser('data/MvsH - (JNEX-900, AIP advances).csv').get_data_csv;
+
+Hcr = [8.749 6881.3];
+mcr = [0.457 0.49];
+
+a = get_a(Hcr, mcr);
+fprintf('a = %f\n', a);
+
+alphaMs = get_alphaMs(Hcr, mcr, a);
+fprintf('alphaMs = %f\n', alphaMs);
+
 function [HTip, MTip] = find_tip(H, M)
     [MTip, i] = max(M);
     HTip = H(i);
@@ -88,11 +102,17 @@ function q = Q(m)
 end
 
 function a = get_a(Hcr, mcr)
-    a = Hcr * P(mcr) * ( Q(mcr) - sqrt( (Q(mcr)^2) - 1 ));
+    a = zeros(1, length(Hcr));
+    for i = 1:length(Hcr)
+        a(i) = Hcr(i) * P(mcr(i)) * ( Q(mcr(i)) - sqrt( (Q(mcr(i))^2) - 1 ));
+    end
 end
 
 function alphaMs = get_alphaMs(Hcr, mcr, a)
-    alphaMs = (Langevin(mcr,-1) * a - Hcr)/mcr;
+    alphaMs = zeros(1, length(Hcr));
+    for i = 1:length(Hcr)
+        alphaMs(i) = (Langevin(mcr(i),-1) * a(i) - Hcr(i))/mcr(i);
+    end
 end
 
 function mTip = get_mTip(H, a, alphaMs)
