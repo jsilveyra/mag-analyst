@@ -33,6 +33,7 @@ classdef ResiduePlotter
         end
 
         function plot(obj)
+            figure();
             obj.plot_stem(obj.MRes, 'Residue M (A/m)');
             figure();
 

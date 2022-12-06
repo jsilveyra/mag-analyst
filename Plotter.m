@@ -92,6 +92,7 @@ classdef Plotter
         end
 
         function plot(obj)
+            figure();
             tiledlayout(2,2);
             colororder([0.8500, 0.3250, 0.0980])
 
@@ -106,8 +107,6 @@ classdef Plotter
 
             ax = nexttile;
             obj.plot_HdMdH(ax);
-
-            figure();
         end
     end
 end

@@ -41,7 +41,7 @@ dMdHhat = get_dMdHhat(Hhat, alpha, Mhat, Ms, a);
 
 HdMdHhat = get_HdMdHhat(Hhat, dMdHhat);
 
-%Plotter(H, M, dMdH, HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr(1)).plot;
+Plotter(H, M, dMdH, HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr(1)).plot;
 
 fprintf('\nErrors:\n');
 fprintf('Vertical:\n');
@@ -97,9 +97,9 @@ Hhat = logspace(log10(H(2)),log10(HTip),N);
 
 Mhat = get_Mhat(Hhat, a, alphaMs, Ms);
 
-%dMdHhat = get_dMdHhat(Hhat, alpha, Mhat, Ms, a);
+dMdHhat = get_dMdHhat(Hhat, alpha, Mhat, Ms, a);
 
-%HdMdHhat = get_HdMdHhat(Hhat, dMdHhat);
+HdMdHhat = get_HdMdHhat(Hhat, dMdHhat);
 
 Plotter(H, M, dMdH, HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr(1)).plot;
 
@@ -184,9 +184,11 @@ end
 function dMdHhat = get_dMdHhat(H, alpha, Mhat, Ms, a)
     dMdHhat = zeros(1, length(H));
     for i = 1:length(H)
-        h = (H(i)+alpha*Mhat(i))/a;
-        numerator = Ms*Langevin(h,1)/a;
-        dMdHhat(i) = numerator/(1-alpha*numerator);
+        for j = 1:length(a)
+            h = (H(i)+alpha(j)*Mhat(i))/a(j);
+            numerator = Ms(j)*Langevin(h,1)/a(j);
+            dMdHhat(i) = dMdHhat(i) + numerator/(1-alpha(j)*numerator);
+        end  
     end
 end
 
