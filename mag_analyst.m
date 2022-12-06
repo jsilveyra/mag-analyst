@@ -74,6 +74,9 @@ fprintf('\n\nMultiple params extension:\n');
 
 [H, M] = Parser('data/MvsH - (JNEX-900, AIP advances).csv').get_data_csv;
 
+dMdH = transpose(gradient(M(:)) ./ gradient(H(:)));
+HdMdH = H.*dMdH;
+
 [HTip, MTip] = find_tip(H, M);
 Hcr = [8.749 6881.3];
 mcr = [0.457 0.49];
@@ -87,9 +90,16 @@ fprintf('alphaMs = %f\n', alphaMs);
 Ms = get_Ms(H, M, Hcr, alphaMs, a);
 fprintf('Ms = %f\n', Ms);
 
+alpha = get_alpha(alphaMs, Ms);
+fprintf('alpha = %f\n', alpha);
+
 Hhat = logspace(log10(H(2)),log10(HTip),N);
 
 Mhat = get_Mhat(Hhat, a, alphaMs, Ms);
+
+%dMdHhat = get_dMdHhat(Hhat, alpha, Mhat, Ms, a);
+
+%HdMdHhat = get_HdMdHhat(Hhat, dMdHhat);
 
 Plotter(H, M, dMdH, HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr(1)).plot;
 
@@ -154,7 +164,10 @@ function Ms = get_Ms(H, M, Hcr, alphaMs, a)
 end
 
 function alpha = get_alpha(alphaMs, Ms)
-    alpha = alphaMs/Ms;
+    alpha = zeros(1, length(alphaMs));
+    for i = 1:length(alpha)
+        alpha(i) = alphaMs(i)/Ms(i);
+    end
 end
 
 function Mhat = get_Mhat(H, a, alphaMs, Ms)
