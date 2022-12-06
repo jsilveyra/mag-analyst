@@ -24,10 +24,10 @@ fprintf('a = %f\n', a);
 alphaMs = get_alphaMs(Hcr, mcr, a);
 fprintf('alphaMs = %f\n', alphaMs);
 
-mTip = get_mTip(HTip, a, alphaMs);
+mTip = get_m(HTip, a, alphaMs);
 fprintf('mTip = %f\n', mTip);
 
-Ms = get_Ms(MTip, mTip);
+Ms = get_Ms(H, M, Hcr, alphaMs, a);
 fprintf('Ms = %f\n', Ms);
 
 alpha = get_alpha(alphaMs, Ms);
@@ -83,6 +83,9 @@ fprintf('a = %f\n', a);
 alphaMs = get_alphaMs(Hcr, mcr, a);
 fprintf('alphaMs = %f\n', alphaMs);
 
+Ms = get_Ms(H, M, Hcr, alphaMs, a);
+fprintf('Ms = %f\n', Ms);
+
 function [HTip, MTip] = find_tip(H, M)
     [MTip, i] = max(M);
     HTip = H(i);
@@ -115,15 +118,31 @@ function alphaMs = get_alphaMs(Hcr, mcr, a)
     end
 end
 
-function mTip = get_mTip(H, a, alphaMs)
-    function ret = f_mTip(m)
+function m = get_m(H, a, alphaMs)
+    function ret = f_m(m)
         ret = Langevin((H + alphaMs*m)/a,0) - m;
     end
-    mTip = fzero(@f_mTip, 0.75);
+    m = fzero(@f_m, 0.75);
 end
 
-function Ms = get_Ms(MTip, mTip)
-    Ms = MTip/mTip;
+function Ms = get_Ms(H, M, Hcr, alphaMs, a)
+    [HTip, MTip] = find_tip(H, M);
+    H_solve = zeros(1, length(Hcr));
+    M_solve = zeros(1, length(Hcr));
+    H_solve(1) = HTip;
+    M_solve(1) = MTip;
+    for i = 2:length(Hcr)
+        H_solve(i) = (Hcr(i-1)+Hcr(i))/2;
+        M_solve(i) = interp1(H,M, H_solve(i));
+    end
+    A = zeros(length(Hcr), length(Hcr));
+
+    for i = 1:length(Hcr)
+        for j = 1:length(Hcr)
+            A(i,j) = get_m(H_solve(i), a(j), alphaMs(j));
+        end
+    end
+    Ms = linsolve(A, M_solve');
 end
 
 function alpha = get_alpha(alphaMs, Ms)
@@ -134,7 +153,7 @@ function Mhat = get_Mhat(H, a, alphaMs, Ms)
     Mhat = zeros(1, length(H));
 
     for i = 1:length(H)
-        mTip = get_mTip(H(i), a, alphaMs);
+        mTip = get_m(H(i), a, alphaMs);
         Mhat(i) = Ms*mTip;
     end
 
