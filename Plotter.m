@@ -36,7 +36,9 @@ classdef Plotter
         end
 
         function plot_Hcr(obj)
-            xline(obj.Hcr, '--', "Color",[0, 0.4470, 0.7410], "Label", "Hcr");
+            for i = 1:length(obj.Hcr)
+                xline(obj.Hcr(i), '--', "Color",[0, 0.4470, 0.7410], "Label", "Hcr");
+            end
         end
 
         function plot_M(obj, ~)

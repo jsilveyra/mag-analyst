@@ -41,7 +41,7 @@ dMdHhat = get_dMdHhat(Hhat, alpha, Mhat, Ms, a);
 
 HdMdHhat = get_HdMdHhat(Hhat, dMdHhat);
 
-Plotter(H, M, dMdH, HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr(1)).plot;
+Plotter(H, M, dMdH, HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr).plot;
 
 fprintf('\nErrors:\n');
 fprintf('Vertical:\n');
@@ -101,7 +101,7 @@ dMdHhat = get_dMdHhat(Hhat, alpha, Mhat, Ms, a);
 
 HdMdHhat = get_HdMdHhat(Hhat, dMdHhat);
 
-Plotter(H, M, dMdH, HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr(1)).plot;
+Plotter(H, M, dMdH, HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr).plot;
 
 
 function [HTip, MTip] = find_tip(H, M)
