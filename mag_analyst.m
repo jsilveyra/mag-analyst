@@ -93,6 +93,9 @@ fprintf('Ms = %f\n', Ms);
 alpha = get_alpha(alphaMs, Ms);
 fprintf('alpha = %f\n', alpha);
 
+dimensionless_alphaMs = get_dimensionless_alphaMs(alphaMs, a);
+fprintf('dimensionless_alphaMs = %f\n', dimensionless_alphaMs);
+
 Hhat = logspace(log10(H(2)),log10(HTip),N);
 
 Mhat = get_Mhat(Hhat, a, alphaMs, Ms);
@@ -167,6 +170,13 @@ function alpha = get_alpha(alphaMs, Ms)
     alpha = zeros(1, length(alphaMs));
     for i = 1:length(alpha)
         alpha(i) = alphaMs(i)/Ms(i);
+    end
+end
+
+function dimensionless_alphaMs = get_dimensionless_alphaMs(alphaMs, a)
+    dimensionless_alphaMs = zeros(1, length(alphaMs));
+    for i = 1:length(alphaMs)
+        dimensionless_alphaMs(i) = alphaMs(i)/(3*a(i));
     end
 end
 
