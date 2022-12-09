@@ -43,7 +43,7 @@ Hhat = logspace(log10(H(2)),log10(HTip),N);
 
 Mhat = get_Mhat(Hhat, a, alphaMs, Ms);
 
-dMdHhat = get_dMdHhat(Hhat, alpha, Mhat, Ms, a);
+dMdHhat = get_dMdHhat(Hhat, alpha, Ms, a, alphaMs);
 
 HdMdHhat = get_HdMdHhat(Hhat, dMdHhat);
 
@@ -109,7 +109,7 @@ Hhat = logspace(log10(H(2)),log10(HTip),N);
 
 Mhat = get_Mhat(Hhat, a, alphaMs, Ms);
 
-dMdHhat = get_dMdHhat(Hhat, alpha, Mhat, Ms, a);
+dMdHhat = get_dMdHhat(Hhat, alpha, Ms, a, alphaMs);
 
 HdMdHhat = get_HdMdHhat(Hhat, dMdHhat);
 
@@ -207,11 +207,12 @@ function Mhat = get_Mhat(H, a, alphaMs, Ms)
     end
 end
 
-function dMdHhat = get_dMdHhat(H, alpha, Mhat, Ms, a)
+function dMdHhat = get_dMdHhat(H, alpha, Ms, a, alphaMs)
     dMdHhat = zeros(1, length(H));
     for i = 1:length(H)
         for j = 1:length(a)
-            h = (H(i)+alpha(j)*Mhat(i))/a(j);
+            m = get_m(H(i), a(j), alphaMs(j));
+            h = (H(i)+m*alphaMs(j))/a(j);
             numerator = Ms(j)*Langevin(h,1)/a(j);
             dMdHhat(i) = dMdHhat(i) + numerator/(1-alpha(j)*numerator);
         end  
