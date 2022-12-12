@@ -47,23 +47,23 @@ dMdHhat = get_dMdHhat(Hhat, alpha, Ms, a, alphaMs);
 
 HdMdHhat = get_HdMdHhat(Hhat, dMdHhat);
 
-Plotter(H, M, dMdH, HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr).plot;
+%Plotter(H, M, dMdH, HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr).plot;
 
 fprintf('\nErrors:\n');
 fprintf('Vertical:\n');
 
-[v_error_M, residue_M] = vertical_error(H, M, Hhat, Mhat);
+[v_error_M, residue_M] = vertical_error(log(H), M, Hhat, Mhat);
 fprintf('M = %f\n', v_error_M);
 
-[v_error_dMdH, residue_dMdH] = vertical_error(H, dMdH, Hhat, dMdHhat);
+[v_error_dMdH, residue_dMdH] = vertical_error(log(H), dMdH, Hhat, dMdHhat);
 fprintf('dMdH = %f\n', v_error_dMdH);
 
-[v_error_HdMdH, residue_HdMdH] = vertical_error(H, HdMdH, Hhat, HdMdHhat);
+[v_error_HdMdH, residue_HdMdH] = vertical_error(log(H), HdMdH, Hhat, HdMdHhat);
 fprintf('HdMdH = %f\n', v_error_HdMdH);
 
 fprintf('\nHorizontal:\n');
 
-h_error_M = horizontal_error(H, M, Hhat, Mhat);
+h_error_M = horizontal_error(log(H), M, Hhat, Mhat);
 fprintf('M = %f\n', h_error_M);
 
 h_error_MlnH = horizontal_error(log(H), M, log(Hhat), Mhat);
@@ -113,7 +113,35 @@ dMdHhat = get_dMdHhat(Hhat, alpha, Ms, a, alphaMs);
 
 HdMdHhat = get_HdMdHhat(Hhat, dMdHhat);
 
+%Plotter(H, M, dMdH, HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr).plot;
+
+%[H, M] = Parser('data/MvsH - (nano, AIP advances).csv').get_data_csv;
+[H, M] = Parser('data/MvsH - (JNEX-900, AIP advances).csv').get_data_csv;
+
+[HTip, MTip] = find_tip(H, M);
+
+[Hcr, mcr] = fit(H, M);
+disp([Hcr, mcr]);
+
+a = get_a(Hcr, mcr);
+alphaMs = get_alphaMs(Hcr, mcr, a);
+mTip = get_m(HTip, a, alphaMs);
+Ms = get_Ms(H, M, Hcr, alphaMs, a);
+
+Hhat = logspace(log10(H(2)),log10(HTip),N);
+
+Mhat = get_Mhat(Hhat, a, alphaMs, Ms);
+
+dMdHhat = get_dMdHhat(Hhat, alpha, Ms, a, alphaMs);
+
+HdMdHhat = get_HdMdHhat(Hhat, dMdHhat);
+
 Plotter(H, M, dMdH, HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr).plot;
+
+fprintf('\nDiagonal:\n');
+d_error_M = diagonal_error(H, M, Hhat, Mhat);
+fprintf('M = %f\n', d_error_M);
+
 
 
 function [HTip, MTip] = find_tip(H, M)
@@ -152,7 +180,7 @@ function m = get_m(H, a, alphaMs)
     function ret = f_m(m)
         ret = Langevin((H + alphaMs*m)/a,0) - m;
     end
-    m = fzero(@f_m, 0.75);
+    m = fzero(@f_m, 0.5);
 end
 
 function Ms = get_Ms(H, M, Hcr, alphaMs, a)
@@ -227,9 +255,10 @@ function HdMdHhat = get_HdMdHhat(H, dMdHhat)
 end
 
 function [v_error, residue] = vertical_error(X, Y, Xhat, Yhat)
+
     Yint = interp1(Xhat, Yhat, X);
-    Yint = Yint(2:end-1);
-    Ydat = Y(2:end-1);
+    Yint = Yint(3:end);
+    Ydat = Y(3:end);
     residue = zeros(1, length(Ydat));
     v_error = 0;
     for i = 1:length(Yint)
@@ -241,8 +270,8 @@ end
 
 function [h_error, residue] = horizontal_error(X, Y, Xhat, Yhat)
     Xint = interp1(Yhat, Xhat, Y);
-    Xint = Xint(2:end-1);
-    Xdat = X(2:end-1);
+    Xint = Xint(2:end);
+    Xdat = X(2:end);
     residue = zeros(1, length(Xdat));
     h_error = 0;
     for i = 1:length(Xint)
@@ -258,9 +287,42 @@ function d_error = diagonal_error(X, Y, Xhat, Yhat)
     d_error = 0;
     for i = 1:length(Ydat)
         delta_x = abs(interp1(Yhat, Xhat, Ydat(i)) - Xdat(i))/max(X);
-        delta_y = abs(interp1(Xdat, Ydat, interp1(Yhat, Xhat, Ydat(i))) - Ydat(i))/max(Y);
+        delta_y = abs(interp1(X, Y, interp1(Yhat, Xhat, Ydat(i))) - Ydat(i))/max(Y);
         delta_o = delta_y*cos(atan(delta_y/delta_x));
         d_error = d_error + (delta_o^2);
     end
     d_error = sqrt(d_error)/length(Y);
 end
+
+function [Hcr, mcr] = fit(H, M)
+
+    options = optimset('PlotFcns',@optimplotfval);
+    [HTip, ~] = find_tip(H, M);
+    H_log = log(H);
+    N = 100;
+    Hhat = logspace(log10(H(2)),log10(HTip),N);
+    function ret = fit_parameters(x)
+        Hcr_fit = x(1:end/2);
+        mcr_fit = x((end/2)+1:end);
+        disp(x)
+        for i = 1:length(mcr_fit)
+            if mcr_fit(i) < 0.44951
+                ret = 1000;
+                return;
+            end
+        end
+        a = get_a(Hcr_fit, mcr_fit);
+        alphaMs = get_alphaMs(Hcr_fit, mcr_fit, a);
+        Ms = get_Ms(H, M, Hcr_fit, alphaMs, a);
+        Mhat = get_Mhat(Hhat, a, alphaMs, Ms);
+        %[h_error, ~] = horizontal_error(H_log, M, log(Hhat), Mhat);
+        %[h_error, ~] = vertical_error(H_log, M, log(Hhat), Mhat);
+        d_error = diagonal_error(H_log(2:end), M(2:end), log(Hhat), Mhat);
+
+        ret = d_error;
+    end
+    params = fminsearch(@fit_parameters, [10, 8000, 0.5, 0.5], options);
+    Hcr = params(1:end/2);
+    mcr = params((end/2)+1:end);
+end
+
