@@ -21,7 +21,10 @@ fprintf('MTip = %f\n', MTip);
 Hcr = [180.138];
 mcr = [0.78];
 
-[a, alphaMs, Ms] = magnetic_parameters(H, M, Hcr, mcr);
+magnetic_parameters = MagneticParameters(H, M, Hcr, mcr);
+a = magnetic_parameters.get_a();
+alphaMs = magnetic_parameters.get_alphaMs(a);
+Ms = magnetic_parameters.get_Ms(a, alphaMs);
 fprintf('a = %f\n', a);
 fprintf('alphaMs = %f\n', alphaMs);
 fprintf('Ms = %f\n', Ms);
@@ -83,7 +86,10 @@ HdMdH = H.*dMdH;
 Hcr = [8.749 6881.3];
 mcr = [0.457 0.49];
 
-[a, alphaMs, Ms] = magnetic_parameters(H, M, Hcr, mcr);
+magnetic_parameters = MagneticParameters(H, M, Hcr, mcr);
+a = magnetic_parameters.get_a();
+alphaMs = magnetic_parameters.get_alphaMs(a);
+Ms = magnetic_parameters.get_Ms(a, alphaMs);
 fprintf('a = %f\n', a);
 fprintf('alphaMs = %f\n', alphaMs);
 fprintf('Ms = %f\n', Ms);
@@ -114,7 +120,10 @@ Plotter(H, M, dMdH, HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr).plot;
 [Hcr, mcr] = fit(H, M, [10, 8000, 0.5, 0.5]);
 disp([Hcr, mcr]);
 
-[a, alphaMs, Ms] = magnetic_parameters(H, M, Hcr, mcr);
+magnetic_parameters = MagneticParameters(H, M, Hcr, mcr);
+a = magnetic_parameters.get_a();
+alphaMs = magnetic_parameters.get_alphaMs(a);
+Ms = magnetic_parameters.get_Ms(a, alphaMs);
 mTip = Utils().get_m(HTip, a, alphaMs);
 
 Hhat = logspace(log10(H(2)),log10(HTip),N);

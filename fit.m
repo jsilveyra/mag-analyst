@@ -14,7 +14,10 @@ function [Hcr, mcr] = fit(H, M, seed)
                 return;
             end
         end
-        [a, alphaMs, Ms] = magnetic_parameters(H, M, Hcr_fit, mcr_fit);
+        magnetic_parameters = MagneticParameters(H, M, Hcr_fit, mcr_fit);
+        a = magnetic_parameters.get_a();
+        alphaMs = magnetic_parameters.get_alphaMs(a);
+        Ms = magnetic_parameters.get_Ms(a, alphaMs);
         Mhat = get_Mhat(Hhat, a, alphaMs, Ms);
         %[h_error, ~] = horizontal_error(H_log, M, log(Hhat), Mhat);
         %[h_error, ~] = vertical_error(H_log, M, log(Hhat), Mhat);
