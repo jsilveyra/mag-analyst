@@ -32,7 +32,8 @@ function alphaMs = get_alphaMs(Hcr, mcr, a)
 end
 
 function Ms = get_Ms(H, M, Hcr, alphaMs, a)
-    [HTip, MTip] = find_tip(H, M);
+
+    [HTip, MTip] = Utils().find_tip(H, M);
     H_solve = zeros(1, length(Hcr));
     M_solve = zeros(1, length(Hcr));
     H_solve(1) = HTip;
@@ -45,7 +46,7 @@ function Ms = get_Ms(H, M, Hcr, alphaMs, a)
 
     for i = 1:length(Hcr)
         for j = 1:length(Hcr)
-            A(i,j) = get_m(H_solve(i), a(j), alphaMs(j));
+            A(i,j) = Utils().get_m(H_solve(i), a(j), alphaMs(j));
         end
     end
     Ms = linsolve(A, M_solve');

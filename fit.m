@@ -1,7 +1,7 @@
-function [Hcr, mcr] = fit(H, M)
+function [Hcr, mcr] = fit(H, M, seed)
 
     options = optimset('PlotFcns',@optimplotfval);
-    [HTip, ~] = find_tip(H, M);
+    [HTip, ~] = Utils().find_tip(H, M);
     H_log = log(H);
     N = 100;
     Hhat = logspace(log10(H(2)),log10(HTip),N);
@@ -22,7 +22,7 @@ function [Hcr, mcr] = fit(H, M)
 
         ret = d_error;
     end
-    params = fminsearch(@fit_parameters, [10, 8000, 0.5, 0.5], options);
+    params = fminsearch(@fit_parameters, seed, options);
     Hcr = params(1:end/2);
     mcr = params((end/2)+1:end);
 end

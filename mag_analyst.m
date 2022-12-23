@@ -2,13 +2,16 @@ clear
 
 N = 100;
 
+utils = Utils();
+
+
 [H, M] = Parser('data/MvsH - (nano, AIP advances).csv').get_data_csv;
 
 dMdH = transpose(gradient(M(:)) ./ gradient(H(:)));
 
 HdMdH = H.*dMdH;
 
-[HTip, MTip] = find_tip(H, M);
+[HTip, MTip] = utils.find_tip(H, M);
 
 fprintf('HTip = %f\n', HTip);
 fprintf('MTip = %f\n', MTip);
@@ -40,7 +43,7 @@ dMdHhat = get_dMdHhat(Hhat, alpha, Ms, a, alphaMs);
 
 HdMdHhat = get_HdMdHhat(Hhat, dMdHhat);
 
-%Plotter(H, M, dMdH, HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr).plot;
+Plotter(H, M, dMdH, HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr).plot;
 
 fprintf('\nErrors:\n');
 fprintf('Vertical:\n');
@@ -66,7 +69,7 @@ fprintf('\nDiagonal:\n');
 d_error_M = diagonal_error(H, M, Hhat, Mhat);
 fprintf('M = %f\n', d_error_M);
 
-%ResiduePlotter(H(2:end-1), residue_M, residue_dMdH, residue_HdMdH).plot;
+ResiduePlotter(H(2:end-1), residue_M, residue_dMdH, residue_HdMdH).plot;
 
 
 fprintf('\n\nMultiple params extension:\n');
@@ -76,7 +79,7 @@ fprintf('\n\nMultiple params extension:\n');
 dMdH = transpose(gradient(M(:)) ./ gradient(H(:)));
 HdMdH = H.*dMdH;
 
-[HTip, MTip] = find_tip(H, M);
+[HTip, MTip] = Utils().find_tip(H, M);
 Hcr = [8.749 6881.3];
 mcr = [0.457 0.49];
 
@@ -102,18 +105,17 @@ dMdHhat = get_dMdHhat(Hhat, alpha, Ms, a, alphaMs);
 
 HdMdHhat = get_HdMdHhat(Hhat, dMdHhat);
 
-%Plotter(H, M, dMdH, HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr).plot;
+Plotter(H, M, dMdH, HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr).plot;
 
-%[H, M] = Parser('data/MvsH - (nano, AIP advances).csv').get_data_csv;
 [H, M] = Parser('data/MvsH - (JNEX-900, AIP advances).csv').get_data_csv;
 
-[HTip, MTip] = find_tip(H, M);
+[HTip, MTip] = Utils().find_tip(H, M);
 
-[Hcr, mcr] = fit(H, M);
+[Hcr, mcr] = fit(H, M, [10, 8000, 0.5, 0.5]);
 disp([Hcr, mcr]);
 
 [a, alphaMs, Ms] = magnetic_parameters(H, M, Hcr, mcr);
-mTip = get_m(HTip, a, alphaMs);
+mTip = Utils().get_m(HTip, a, alphaMs);
 
 Hhat = logspace(log10(H(2)),log10(HTip),N);
 
@@ -155,7 +157,7 @@ function dMdHhat = get_dMdHhat(H, alpha, Ms, a, alphaMs)
     dMdHhat = zeros(1, length(H));
     for i = 1:length(H)
         for j = 1:length(a)
-            m = get_m(H(i), a(j), alphaMs(j));
+            m = Utils().get_m(H(i), a(j), alphaMs(j));
             h = (H(i)+m*alphaMs(j))/a(j);
             numerator = Ms(j)*Langevin(h,1)/a(j);
             dMdHhat(i) = dMdHhat(i) + numerator/(1-alpha(j)*numerator);
