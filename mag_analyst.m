@@ -18,16 +18,9 @@ fprintf('MTip = %f\n', MTip);
 Hcr = [180.138];
 mcr = [0.78];
 
-a = get_a(Hcr, mcr);
+[a, alphaMs, Ms] = magnetic_parameters(H, M, Hcr, mcr);
 fprintf('a = %f\n', a);
-
-alphaMs = get_alphaMs(Hcr, mcr, a);
 fprintf('alphaMs = %f\n', alphaMs);
-
-mTip = get_m(HTip, a, alphaMs);
-fprintf('mTip = %f\n', mTip);
-
-Ms = get_Ms(H, M, Hcr, alphaMs, a);
 fprintf('Ms = %f\n', Ms);
 
 alpha = get_alpha(alphaMs, Ms);
@@ -87,13 +80,9 @@ HdMdH = H.*dMdH;
 Hcr = [8.749 6881.3];
 mcr = [0.457 0.49];
 
-a = get_a(Hcr, mcr);
+[a, alphaMs, Ms] = magnetic_parameters(H, M, Hcr, mcr);
 fprintf('a = %f\n', a);
-
-alphaMs = get_alphaMs(Hcr, mcr, a);
 fprintf('alphaMs = %f\n', alphaMs);
-
-Ms = get_Ms(H, M, Hcr, alphaMs, a);
 fprintf('Ms = %f\n', Ms);
 
 alpha = get_alpha(alphaMs, Ms);
@@ -123,10 +112,8 @@ HdMdHhat = get_HdMdHhat(Hhat, dMdHhat);
 [Hcr, mcr] = fit(H, M);
 disp([Hcr, mcr]);
 
-a = get_a(Hcr, mcr);
-alphaMs = get_alphaMs(Hcr, mcr, a);
+[a, alphaMs, Ms] = magnetic_parameters(H, M, Hcr, mcr);
 mTip = get_m(HTip, a, alphaMs);
-Ms = get_Ms(H, M, Hcr, alphaMs, a);
 
 Hhat = logspace(log10(H(2)),log10(HTip),N);
 
@@ -142,66 +129,6 @@ fprintf('\nDiagonal:\n');
 d_error_M = diagonal_error(H, M, Hhat, Mhat);
 fprintf('M = %f\n', d_error_M);
 
-
-
-function [HTip, MTip] = find_tip(H, M)
-    [MTip, i] = max(M);
-    HTip = H(i);
-end
-
-function p = P(m)
-    numerator = Langevin(Langevin(m,-1),1);
-    denominator = m - Langevin(m,-1) * Langevin(Langevin(m,-1),1);
-    p = numerator/denominator;
-end
-
-function q = Q(m)
-    a = m / Langevin(Langevin(m,-1),1);
-    b = -Langevin(Langevin(m,-1),2);
-    c = 2 * ( m - Langevin(m,-1) * Langevin(Langevin(m,-1),1) );
-    q = ((a^2) * b / c) - 1;
-end
-
-function a = get_a(Hcr, mcr)
-    a = zeros(1, length(Hcr));
-    for i = 1:length(Hcr)
-        a(i) = Hcr(i) * P(mcr(i)) * ( Q(mcr(i)) - sqrt( (Q(mcr(i))^2) - 1 ));
-    end
-end
-
-function alphaMs = get_alphaMs(Hcr, mcr, a)
-    alphaMs = zeros(1, length(Hcr));
-    for i = 1:length(Hcr)
-        alphaMs(i) = (Langevin(mcr(i),-1) * a(i) - Hcr(i))/mcr(i);
-    end
-end
-
-function m = get_m(H, a, alphaMs)
-    function ret = f_m(m)
-        ret = Langevin((H + alphaMs*m)/a,0) - m;
-    end
-    m = fzero(@f_m, 0.5);
-end
-
-function Ms = get_Ms(H, M, Hcr, alphaMs, a)
-    [HTip, MTip] = find_tip(H, M);
-    H_solve = zeros(1, length(Hcr));
-    M_solve = zeros(1, length(Hcr));
-    H_solve(1) = HTip;
-    M_solve(1) = MTip;
-    for i = 2:length(Hcr)
-        H_solve(i) = (Hcr(i-1)+Hcr(i))/2;
-        M_solve(i) = interp1(H,M, H_solve(i));
-    end
-    A = zeros(length(Hcr), length(Hcr));
-
-    for i = 1:length(Hcr)
-        for j = 1:length(Hcr)
-            A(i,j) = get_m(H_solve(i), a(j), alphaMs(j));
-        end
-    end
-    Ms = linsolve(A, M_solve');
-end
 
 function alpha = get_alpha(alphaMs, Ms)
     alpha = zeros(1, length(alphaMs));
@@ -221,17 +148,6 @@ function Hk = get_Hk(alphaMs, a)
     Hk = zeros(1, length(alphaMs));
     for i = 1:length(alphaMs)
         Hk(i) = 3*a(i)-alphaMs(i);
-    end
-end
-
-function Mhat = get_Mhat(H, a, alphaMs, Ms)
-    Mhat = zeros(1, length(H));
-
-    for i = 1:length(H)
-        for j = 1:length(a)
-            m = get_m(H(i), a(j), alphaMs(j));
-            Mhat(i) = Mhat(i) + Ms(j)*m;
-        end 
     end
 end
 
@@ -280,49 +196,3 @@ function [h_error, residue] = horizontal_error(X, Y, Xhat, Yhat)
     end
     h_error = sqrt(h_error)/max(X)/length(Xdat);
 end
-
-function d_error = diagonal_error(X, Y, Xhat, Yhat)
-    Ydat = Y(2:end-1);
-    Xdat = X(2:end-1);
-    d_error = 0;
-    for i = 1:length(Ydat)
-        delta_x = abs(interp1(Yhat, Xhat, Ydat(i)) - Xdat(i))/max(X);
-        delta_y = abs(interp1(X, Y, interp1(Yhat, Xhat, Ydat(i))) - Ydat(i))/max(Y);
-        delta_o = delta_y*cos(atan(delta_y/delta_x));
-        d_error = d_error + (delta_o^2);
-    end
-    d_error = sqrt(d_error)/length(Y);
-end
-
-function [Hcr, mcr] = fit(H, M)
-
-    options = optimset('PlotFcns',@optimplotfval);
-    [HTip, ~] = find_tip(H, M);
-    H_log = log(H);
-    N = 100;
-    Hhat = logspace(log10(H(2)),log10(HTip),N);
-    function ret = fit_parameters(x)
-        Hcr_fit = x(1:end/2);
-        mcr_fit = x((end/2)+1:end);
-        disp(x)
-        for i = 1:length(mcr_fit)
-            if mcr_fit(i) < 0.44951
-                ret = 1000;
-                return;
-            end
-        end
-        a = get_a(Hcr_fit, mcr_fit);
-        alphaMs = get_alphaMs(Hcr_fit, mcr_fit, a);
-        Ms = get_Ms(H, M, Hcr_fit, alphaMs, a);
-        Mhat = get_Mhat(Hhat, a, alphaMs, Ms);
-        %[h_error, ~] = horizontal_error(H_log, M, log(Hhat), Mhat);
-        %[h_error, ~] = vertical_error(H_log, M, log(Hhat), Mhat);
-        d_error = diagonal_error(H_log(2:end), M(2:end), log(Hhat), Mhat);
-
-        ret = d_error;
-    end
-    params = fminsearch(@fit_parameters, [10, 8000, 0.5, 0.5], options);
-    Hcr = params(1:end/2);
-    mcr = params((end/2)+1:end);
-end
-
