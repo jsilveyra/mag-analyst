@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.apptool" plugin-version="1.0">
-  <configuration build-checksum="347139022" file="C:\ubuntu\mag-analyst\MagAnalyst.prj" location="C:\ubuntu\mag-analyst" name="MagAnalyst" target="target.mlapps" target-name="Package App">
+  <configuration build-checksum="635222950" file="C:\ubuntu\mag-analyst\MagAnalyst.prj" location="C:\ubuntu\mag-analyst" name="MagAnalyst" target="target.mlapps" target-name="Package App">
     <param.appname>MagAnalyst</param.appname>
     <param.authnamewatermark>Matias Gonzalez - Josefina Silveyra</param.authnamewatermark>
     <param.email>maigonzalez@fi.uba.ar</param.email>
@@ -8,7 +8,7 @@
     <param.icons />
     <param.summary />
     <param.description />
-    <param.screenshot>C:\Users\matig\AppData\Local\Temp\tp4789ec56_cd2a_4791_b75a_5b3e3015717b.png</param.screenshot>
+    <param.screenshot>C:\Users\matig\AppData\Local\Temp\tpc79e967f_bffa_4985_b6dc_b3ee46694eae.png</param.screenshot>
     <param.version>1.0</param.version>
     <param.products.name />
     <param.products.id />
