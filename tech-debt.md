@@ -4,3 +4,9 @@
 * Eager compute arrays for m to avoid redundant calls to get_m
 * Plot model curve for each component
 * Make fit Hcr and mcr configurable (choose error type and parameter count)
+
+
+
+## Not techdebt
+
+* Projects: Save Hcr and mcr, description
