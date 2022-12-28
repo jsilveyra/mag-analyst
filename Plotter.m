@@ -41,14 +41,14 @@ classdef Plotter
             end
         end
 
-        function plot_M(obj, ~)
-            hold on;
-            plot(obj.H, obj.M, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
-            plot(obj.Hhat, obj.Mhat, "Color",[0,0,0]);
-            obj.plot_Hcr;
-            xlabel('H (A/m)');
-            ylabel('M (A/m)');
-            hold off;
+        function plot_M(obj, ax)
+            plot(ax, obj.H, obj.M, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
+            %hold on;
+            plot(ax, obj.Hhat, obj.Mhat, "Color",[0,0,0]);
+            %obj.plot_Hcr;
+            xlabel(ax, 'H (A/m)');
+            ylabel(ax, 'M (A/m)');
+            %hold off;
         end
 
         function plot_M_log(obj, ~)
@@ -62,35 +62,36 @@ classdef Plotter
         end
 
         function plot_dMdH(obj, ax)
-            hold on;
-            plot(obj.H,obj.dMdH, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
-            plot(obj.Hhat, obj.dMdHhat, "Color",[0 0 0]);
-            obj.plot_Hcr;
-            xlabel('H (A/m)');
-            ylabel('∂M/∂H');
+            %hold on;
+            plot(ax, obj.H,obj.dMdH, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
+            plot(ax, obj.Hhat, obj.dMdHhat, "Color",[0 0 0]);
+            %obj.plot_Hcr;
+            xlabel(ax, 'H (A/m)');
+            ylabel(ax, '∂M/∂H');
             ax.YLim = [min(obj.dMdH) max(obj.dMdH)*1.1];
-            hold off;
+            %hold off;
         end
 
         function plot_HdMdH(obj, ax)
-            semilogx(obj.H,obj.dMdH, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
-            hold on;
-            obj.plot_Hcr;
-            semilogx(obj.Hhat,obj.dMdHhat, "Color",[0 0 0]);
-            hold off;
+            %semilogx(obj.H,obj.dMdH, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
+            %hold on;
+            %obj.plot_Hcr;
+            %semilogx(obj.Hhat,obj.dMdHhat, "Color",[0 0 0]);
+            %hold off;
             
-            xlabel('H (A/m)');
-            ylabel('∂M/∂H');
+            %xlabel('H (A/m)');
+            %ylabel('∂M/∂H');
             
-            yyaxis right;
-            hold on;
-            semilogx(obj.Hhat, obj.HdMdHhat, "Color",[0.8500, 0.3250, 0.0980]);
-            semilogx(obj.H,obj.HdMdH, '.', 'markersize', obj.MarkerSize, "Color",[0.8500, 0.3250, 0.0980]);
-            ylabel('∂M/∂ln(H) = H ∂M/∂H (A/m)', "Color",[0.8500, 0.3250, 0.0980]);
-            hold off;
+            %yyaxis right;
+            %hold on;
+            semilogx(ax, obj.Hhat, obj.HdMdHhat, "Color",[0, 0, 0]);
+            semilogx(ax, obj.H,obj.HdMdH, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
+            xlabel(ax, 'H (A/m)');
+            ylabel(ax, 'H ∂M/∂H (A/m)', "Color",[0, 0, 0]);
+            %hold off;
 
-            yyaxis left;  ax.YLim = [0 max(obj.dMdH)*1.1];
-            yyaxis right; ax.YLim = [0 max(obj.HdMdHhat)*1.1];
+            %yyaxis left;  ax.YLim = [0 max(obj.dMdH)*1.1];
+            %yyaxis right; ax.YLim = [0 max(obj.HdMdHhat)*1.1];
         end
 
         function plot(obj)

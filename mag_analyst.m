@@ -29,7 +29,7 @@ fprintf('a = %f\n', a);
 fprintf('alphaMs = %f\n', alphaMs);
 fprintf('Ms = %f\n', Ms);
 
-alpha = get_alpha(alphaMs, Ms);
+alpha = magnetic_parameters.get_alpha(alphaMs, Ms);
 fprintf('alpha = %f\n', alpha);
 
 dimensionless_alphaMs = get_dimensionless_alphaMs(alphaMs, a);
@@ -94,7 +94,7 @@ fprintf('a = %f\n', a);
 fprintf('alphaMs = %f\n', alphaMs);
 fprintf('Ms = %f\n', Ms);
 
-alpha = get_alpha(alphaMs, Ms);
+alpha = magnetic_parameters.get_alpha(alphaMs, Ms);
 fprintf('alpha = %f\n', alpha);
 
 dimensionless_alphaMs = get_dimensionless_alphaMs(alphaMs, a);
@@ -140,46 +140,6 @@ fprintf('\nDiagonal:\n');
 d_error_M = diagonal_error(H, M, Hhat, Mhat);
 fprintf('M = %f\n', d_error_M);
 
-
-function alpha = get_alpha(alphaMs, Ms)
-    alpha = zeros(1, length(alphaMs));
-    for i = 1:length(alpha)
-        alpha(i) = alphaMs(i)/Ms(i);
-    end
-end
-
-function dimensionless_alphaMs = get_dimensionless_alphaMs(alphaMs, a)
-    dimensionless_alphaMs = zeros(1, length(alphaMs));
-    for i = 1:length(alphaMs)
-        dimensionless_alphaMs(i) = alphaMs(i)/(3*a(i));
-    end
-end
-
-function Hk = get_Hk(alphaMs, a)
-    Hk = zeros(1, length(alphaMs));
-    for i = 1:length(alphaMs)
-        Hk(i) = 3*a(i)-alphaMs(i);
-    end
-end
-
-function dMdHhat = get_dMdHhat(H, alpha, Ms, a, alphaMs)
-    dMdHhat = zeros(1, length(H));
-    for i = 1:length(H)
-        for j = 1:length(a)
-            m = Utils().get_m(H(i), a(j), alphaMs(j));
-            h = (H(i)+m*alphaMs(j))/a(j);
-            numerator = Ms(j)*Langevin(h,1)/a(j);
-            dMdHhat(i) = dMdHhat(i) + numerator/(1-alpha(j)*numerator);
-        end  
-    end
-end
-
-function HdMdHhat = get_HdMdHhat(H, dMdHhat)
-    HdMdHhat = zeros(1, length(H));
-    for i = 1:length(H)
-        HdMdHhat(i) = H(i)*dMdHhat(i);
-    end
-end
 
 function [v_error, residue] = vertical_error(X, Y, Xhat, Yhat)
 

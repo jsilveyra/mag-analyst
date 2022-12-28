@@ -49,6 +49,28 @@ classdef MagneticParameters
             end
             Ms = linsolve(A, M_solve');
         end
+
+        function alpha = get_alpha(~, alphaMs, Ms)
+            alpha = zeros(1, length(alphaMs));
+            for i = 1:length(alpha)
+                alpha(i) = alphaMs(i)/Ms(i);
+            end
+        end
+
+
+        function dimensionless_alphaMs = get_dimensionless_alphaMs(~, alphaMs, a)
+            dimensionless_alphaMs = zeros(1, length(alphaMs));
+            for i = 1:length(alphaMs)
+                dimensionless_alphaMs(i) = alphaMs(i)/(3*a(i));
+            end
+        end
+
+        function Hk = get_Hk(~, alphaMs, a)
+            Hk = zeros(1, length(alphaMs));
+            for i = 1:length(alphaMs)
+                Hk(i) = 3*a(i)-alphaMs(i);
+            end
+        end
     end
 
     methods (Access = private)
