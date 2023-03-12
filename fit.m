@@ -1,6 +1,4 @@
 function [Hcr, mcr] = fit(H, M, seed)
-
-    %options = optimset('PlotFcns',@optimplotfval);
     [HTip, ~] = Utils().find_tip(H, M);
     H_log = log(H);
     N = 100;
@@ -8,12 +6,7 @@ function [Hcr, mcr] = fit(H, M, seed)
     function ret = fit_parameters(x)
         Hcr_fit = x(1:end/2);
         mcr_fit = x((end/2)+1:end);
-        %for i = 1:length(mcr_fit)
-        %    if mcr_fit(i) < 0.44951
-        %        ret = 1000;
-        %        return;
-        %    end
-        %end
+
         magnetic_parameters = MagneticParameters(H, M, Hcr_fit, mcr_fit);
         a = magnetic_parameters.get_a();
         alphaMs = magnetic_parameters.get_alphaMs(a);
@@ -26,10 +19,11 @@ function [Hcr, mcr] = fit(H, M, seed)
         ret = d_error;
     end
     
-
-    %params = fminsearch(@fit_parameters, seed, options);
-    lb = [0.0001 0.44951];
-    ub = [inf 1];
+    lb = [repmat(0.0001, 1, length(seed)/2) repmat(0.44951, 1, length(seed)/2)];
+    ub = [inf(1, length(seed)/2) ones(1, length(seed)/2)];
+    disp(seed)
+    disp(lb)
+    disp(ub)
     params = minimize(@fit_parameters, seed, [],[], [],[], lb, ub);
 
     Hcr = params(1:end/2);
