@@ -60,10 +60,10 @@ classdef MagneticParameters
         end
 
 
-        function dimensionless_alphaMs = get_dimensionless_alphaMs(~, alphaMs, a)
-            dimensionless_alphaMs = zeros(1, length(alphaMs));
-            for i = 1:length(alphaMs)
-                dimensionless_alphaMs(i) = alphaMs(i)/(3*a(i));
+        function dimensionless_alphaMs = get_dimensionless_alphaMs(~, alpha, Ms, a)
+            dimensionless_alphaMs = zeros(1, length(alpha));
+            for i = 1:length(alpha)
+                dimensionless_alphaMs(i) = alpha(i)*abs(Ms(i))/(3*a(i));
             end
         end
 
@@ -78,6 +78,13 @@ classdef MagneticParameters
             Js = 0;
             for i = 1:length(Ms)
                 Js = Js + obj.VACUUM_PERMEABILITY*Ms(i);
+            end
+        end
+
+        function density_product = get_density_product(obj, Ms, a)
+            density_product = zeros(1, length(Ms));
+            for i = 1:length(Ms)
+                density_product(i) = obj.VACUUM_PERMEABILITY*abs(Ms(i))*a(i);
             end
         end
     end
