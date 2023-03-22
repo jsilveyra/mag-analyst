@@ -5,6 +5,7 @@ classdef MagneticParameters
         M
         Hcr
         mcr
+        VACUUM_PERMEABILITY
     end
 
     methods (Access = public)
@@ -13,6 +14,7 @@ classdef MagneticParameters
             obj.M = M;
             obj.Hcr = Hcr;
             obj.mcr = mcr;
+            obj.VACUUM_PERMEABILITY = 4 * pi * (10^-7);
         end
 
         function a = get_a(obj)
@@ -69,6 +71,13 @@ classdef MagneticParameters
             Hk = zeros(1, length(alphaMs));
             for i = 1:length(alphaMs)
                 Hk(i) = 3*a(i)-alphaMs(i);
+            end
+        end
+
+        function Js = get_Js(obj, Ms)
+            Js = 0;
+            for i = 1:length(Ms)
+                Js = Js + obj.VACUUM_PERMEABILITY*Ms(i);
             end
         end
     end
