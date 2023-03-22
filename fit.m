@@ -8,7 +8,7 @@ function [Hcr, mcr] = fit(H, M, seed)
         mcr_fit = x((end/2)+1:end);
 
         magnetic_parameters = MagneticParameters(H, M, Hcr_fit, mcr_fit);
-        a = magnetic_parameters.get_a();
+        a = magnetic_parameters.get_a("low");
         alphaMs = magnetic_parameters.get_alphaMs(a);
         Ms = magnetic_parameters.get_Ms(a, alphaMs);
         Mhat = get_Mhat(Hhat, a, alphaMs, Ms);
