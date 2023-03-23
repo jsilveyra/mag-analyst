@@ -17,14 +17,18 @@ classdef MagneticParameters
             obj.VACUUM_PERMEABILITY = 4 * pi * (10^-7);
         end
 
-        function a = get_a(obj, mode)
-            factor = 1;
-            if mode == "low"
-                factor = -1;
+        function a = get_a(obj, select_a)
+            factors = ones(length(select_a));
+            select_a = select_a == 'low';
+            for i = 1:length(select_a)
+                if select_a(i)
+                    factors(i) = -1;
+                end
             end
+            
             a = zeros(1, length(obj.Hcr));
             for i = 1:length(obj.Hcr)
-                a(i) = obj.Hcr(i) * obj.P(obj.mcr(i)) * ( obj.Q(obj.mcr(i)) + factor*sqrt( (obj.Q(obj.mcr(i))^2) - 1 ));
+                a(i) = obj.Hcr(i) * obj.P(obj.mcr(i)) * ( obj.Q(obj.mcr(i)) + factors(i)*sqrt( (obj.Q(obj.mcr(i))^2) - 1 ));
             end
         end
 
