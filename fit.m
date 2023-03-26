@@ -3,6 +3,7 @@ function [Hcr, mcr] = fit(H, M, seed, select_a)
     H_log = log(H);
     N = 100;
     Hhat = logspace(log10(H(2)),log10(HTip),N);
+    error = ErrorCalculator();
     function ret = fit_parameters(x)
         Hcr_fit = x(1:end/2);
         mcr_fit = x((end/2)+1:end);
@@ -14,7 +15,7 @@ function [Hcr, mcr] = fit(H, M, seed, select_a)
         Mhat = get_Mhat(Hhat, a, alphaMs, Ms);
         %[h_error, ~] = horizontal_error(H_log, M, log(Hhat), Mhat);
         %[h_error, ~] = vertical_error(H_log, M, log(Hhat), Mhat);
-        d_error = diagonal_error(H_log(2:end), M(2:end), log(Hhat), Mhat);
+        d_error = error.diagonal_error(H_log(2:end), M(2:end), log(Hhat), Mhat);
 
         ret = d_error;
     end
