@@ -15,5 +15,16 @@ classdef ErrorCalculator
             end
             d_error = sqrt(d_error)/length(Y);
         end
+
+        function d_residue = diagonal_residue(~, X, Y, Xhat, Yhat)
+            Ydat = Y(2:end-1);
+            Xdat = X(2:end-1);
+            d_residue = zeros(1, length(Xdat));
+            for i = 1:length(Ydat)
+                delta_x = abs(interp1(Yhat, Xhat, Ydat(i)) - Xdat(i))/max(X);
+                delta_y = abs(interp1(X, Y, interp1(Yhat, Xhat, Ydat(i))) - Ydat(i))/max(Y);
+                d_residue(i) = delta_y*cos(atan(delta_y/delta_x));
+            end
+        end
     end
 end
