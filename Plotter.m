@@ -42,7 +42,6 @@ classdef Plotter
         end
 
         function plot_M(obj, ax)
-
             hold( ax, 'on' )
             plot(ax, obj.H, obj.M, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
             plot(ax, obj.Hhat, obj.Mhat, "Color",[0,0,0]);

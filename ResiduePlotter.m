@@ -3,14 +3,17 @@ classdef ResiduePlotter
     properties
         X
         Y
+        Xhat
+        Yhat
         Residue
         Log
+        Label
 
         MarkerSize
     end
 
     methods (Access = public)
-        function obj = ResiduePlotter(X, Y, Residue, Log, varargin)
+        function obj = ResiduePlotter(X, Y, Xhat, Yhat, Residue, Log, Label, varargin)
             numvarargs = length(varargin);
             if numvarargs > 1
                 error('ResiduePlotter:constructor:TooManyOptionalParameters: requires at most 1 optional parameter');
@@ -22,40 +25,46 @@ classdef ResiduePlotter
           
             obj.X = X;
             obj.Y = Y;
+            obj.Xhat = Xhat;
+            obj.Yhat = Yhat;
             obj.Residue = Residue;
             obj.Log = (Log ~= 0);
+            obj.Label = Label;
         end
 
-        function plot_stem(obj, ax, Y, YLabel)
-            stem(ax, obj.X, Y, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
+        function plot_stem(obj, ax)
+            stem(ax, obj.X, obj.Residue, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
             xlabel(ax, 'H (A/m)');
-            ylabel(ax, YLabel);
+            ylabel(ax, "Residue " + obj.Label);
             if obj.Log
                 set(gca,'xscal','log');
             end
             
         end
 
-        function plot_dots(obj, ax, Y, Ylabel)
-            plot(ax, obj.X, Y, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
+        function plot_dots(obj, ax)
+            hold( ax, 'on' );
+            plot(ax, obj.X, obj.Y, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
+            plot(ax, obj.Xhat, obj.Yhat, "Color",[0,0,0]);
             xlabel(ax, 'H (A/m)');
-            ylabel(ax, Ylabel);
+            ylabel(ax, obj.Label);
+            hold( ax, 'off' );
             if obj.Log
                 set(gca,'xscal','log');
             end
         end
 
         function plot(obj)
-            figure();
+            figure('Name',"Residue plot: " + obj.Label,'NumberTitle','off');
             tiledlayout(4,1)
 
             % Top plot
             ax1 = nexttile([3 1]);
-            obj.plot_dots(ax1, obj.Y, 'M (A/m)');
+            obj.plot_dots(ax1);
 
             % Bottom plot
             ax2 = nexttile;
-            obj.plot_stem(ax2, obj.Residue, 'Residue M (A/m)');
+            obj.plot_stem(ax2);
         end
     end
 end
