@@ -1,4 +1,4 @@
-function [Hcr, mcr] = fit(H, M, seed, select_a, error_type)
+function [Hcr, mcr] = fit(H, M, seed, select_a, error_type, lb, ub)
     [HTip, ~] = Utils().find_tip(H, M);
     H_log = log(H);
     N = 100;
@@ -15,10 +15,8 @@ function [Hcr, mcr] = fit(H, M, seed, select_a, error_type)
         Mhat = get_Mhat(Hhat, a, alphaMs, Ms);
         ret = error.get_error(H_log, M, log(Hhat), Mhat, error_type);
     end
-    
-    lb = [repmat(0.0001, 1, length(seed)/2) repmat(0.44951, 1, length(seed)/2)];
-    ub = [inf(1, length(seed)/2) ones(1, length(seed)/2)];
-    params = minimize(@fit_parameters, seed, [],[], [],[], lb, ub);
+
+    params = minimize(@fit_parameters, seed, [],[], [],[], lb , ub);
 
     Hcr = params(1:end/2);
     mcr = params((end/2)+1:end);
