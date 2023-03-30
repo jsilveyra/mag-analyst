@@ -46,8 +46,8 @@ classdef Plotter
             plot(ax, obj.H, obj.M, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
             plot(ax, obj.Hhat, obj.Mhat, "Color",[0,0,0]);
             obj.plot_Hcr(ax)
-            xlabel(ax, 'H (A/m)');
-            ylabel(ax, 'M (A/m)');
+            xlabel(ax, 'H [A/m]');
+            ylabel(ax, 'M [A/m]');
             hold( ax, 'off' )     
         end
 
@@ -55,8 +55,8 @@ classdef Plotter
             semilogx(ax, obj.H,obj.M, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
             hold( ax, 'on' )
             semilogx(ax, obj.Hhat,obj.Mhat, "Color",[0 0 0]);
-            xlabel(ax, 'H (A/m)');
-            ylabel(ax, 'M (A/m)');
+            xlabel(ax, 'H [A/m]');
+            ylabel(ax, 'M [A/m]');
             obj.plot_Hcr(ax);
             hold( ax, 'off' )
         end
@@ -66,7 +66,7 @@ classdef Plotter
             plot(ax, obj.H,obj.dMdH, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
             plot(ax, obj.Hhat, obj.dMdHhat, "Color",[0 0 0]);
             obj.plot_Hcr(ax);
-            xlabel(ax, 'H (A/m)');
+            xlabel(ax, 'H [A/m]');
             ylabel(ax, '∂M/∂H');
             ax.YLim = [min(obj.dMdH) max(obj.dMdH)*1.1];
             hold( ax, 'off' )
@@ -77,7 +77,7 @@ classdef Plotter
             hold( ax, 'on' );
             semilogx(ax, obj.Hhat, obj.dMdHhat, "Color",[0 0 0]);
             obj.plot_Hcr(ax);
-            xlabel(ax, 'H (A/m)');
+            xlabel(ax, 'H [A/m]');
             ylabel(ax, '∂M/∂H');
             %ax.YLim = [min(obj.dMdH) max(obj.dMdH)*1.1];
             hold( ax, 'off' )
@@ -98,8 +98,8 @@ classdef Plotter
             hold( ax, 'on' );
             semilogx(ax, obj.H,obj.HdMdH, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
             obj.plot_Hcr(ax);
-            xlabel(ax, 'H (A/m)');
-            ylabel(ax, 'H ∂M/∂H (A/m)', "Color",[0, 0, 0]);
+            xlabel(ax, 'H [A/m]');
+            ylabel(ax, '∂M/∂(logH) [A/m]', "Color",[0, 0, 0]);
             hold( ax, 'off' );
 
             %yyaxis left;  ax.YLim = [0 max(obj.dMdH)*1.1];
@@ -111,8 +111,8 @@ classdef Plotter
             plot(ax, obj.Hhat, obj.HdMdHhat, "Color",[0, 0, 0]);
             plot(ax, obj.H,obj.HdMdH, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
             obj.plot_Hcr(ax);
-            xlabel(ax, 'H (A/m)');
-            ylabel(ax, 'H ∂M/∂H (A/m)', "Color",[0, 0, 0]);
+            xlabel(ax, 'H [A/m]');
+            ylabel(ax, '∂M/∂(logH) [A/m]', "Color",[0, 0, 0]);
             hold( ax, 'off' );
         end
 
