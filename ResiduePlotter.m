@@ -35,7 +35,6 @@ classdef ResiduePlotter
         function plot_stem(obj, ax)
             stem(ax, obj.X, obj.Residue, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
             xlabel(ax, 'H (A/m)');
-            ylabel(ax, "Residue " + obj.Label);
             if obj.Log
                 set(gca,'xscal','log');
             end
