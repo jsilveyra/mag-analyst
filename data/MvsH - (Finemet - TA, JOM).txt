@@ -1,0 +1,5 @@
+﻿Fe73.5Si13.5B9Nb3Cu1 alloy nanocrystallized under transverse field annealing and measured along the longitudinal direction of the ribbon.
+
+Silveyra, Josefina M., and Juan M. Conde Garrido. "A Physically Based Model for Soft Magnets’ Anhysteretic Curve." JOM (2023): 1-14.
+
+https://doi.org/10.1007/s11837-023-05704-x
