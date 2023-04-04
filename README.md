@@ -2,28 +2,28 @@
 ![Image](https://github.com/matias-gonz/mag-analyst/blob/main/logo_maganalyst.png)
 # *<div dir="rtl"> a Matlab toolbox for magnetization analysis </div>*
 
-# Table of contents
-- [Authors](#Authors)
-- [Statement of need](#StatementOfNeed)
-- [Installation instructions](#InstallationInstructions)
-- [External libraries included](#ExternalLibraries)
-- [Examples](#Examples)
-- [Citing MagAnalyst](#Cite)
-- [Contact us](#ContactUs)  
-- [License](#License)
+## Table of contents
+1. [Authors](#authors)
+2. [Statement of need](#statement-of-need)
+3. [Installation instructions](#installation-instructions)
+4. [External libraries](#external-libraries)
+5. [Examples](#examples)
+6. [Cite as](#cite-as)
+7. [Contact us](#contact-us)
+8. [License](#license)
  
- # Authors <a name="Authors"></a>
+ ## Authors
   - Matías Ignacio González
   - Josefina María Silveyra
   - Juan Manuel Conde Garrido
 	
 University of Buenos Aires – CONICET, Buenos Aires, Argentina.
    
-# Statement of need <a name="StatementOfNeed"></a>
+## Statement of need
 
 The design of devices with soft magnetic cores depends on the simple and accurate description of their magnetization. MagAnalyst is an easy-to-use Matlab toolbox to model the magnetization of soft magnetic materials. It implements the physically based approach recently proposed by Silveyra and Conde Garrido to describe the ideal anhysteretic curve. The equation of state is simple and yet accurate for a variety of materials’ scenarios. MagAnalyst first plots a set of curves to help to identify the number of component magnetizations to model. Then, it retrieves the model parameters without requiring programming or optimization skills. As a result, noisy data of the most challenging scenarios can accurately be described by a single analytic function, with both the magnetization and susceptibility continuous and differentiable. We believe that our toolbox can be a valuable resource to the magnetic materials community.
 
-# Installation instructions <a name="InstallationInstructions"></a>
+## Installation instructions
 
 You need to create a copy on a local directory on your machine to use MagAnalyst. Obtain a copy by downloading and unzipping the latest zip file or clone MagAanalyst instead e.g. using: git clone https://github.com/matias-gonz/mag-analyst. You can place the MagAnalyst folder anywhere on your machine.
 
@@ -33,10 +33,12 @@ After downloading the main folder and placing it in a relevant location, the ins
  
 MagAnalyst was implemented and tested with the Matlab 2022b version on Windows 10. Authors can not guarantee that the code could be run on previous versions.
 
-### External libraries included <a name="ExternalLibraries"></a>
+## External libraries
+
+MagAnalyst currently uses the following libraries:
 * [minimize](https://www.mathworks.com/matlabcentral/fileexchange/24298-minimize) to find the constrained minimum of the objective function starting at the user’s initial estimates.
 
-# Examples <a name="Examples"></a>
+## Examples
 
 These are the examples provided with the current release:
 
@@ -44,7 +46,7 @@ These are the examples provided with the current release:
 The materials' details were described in [JOM article](https://doi.org/10.1007/s11837-023-05704-x)
 The example is illustrated by a video available in [YouTube](https://www.youtube.com/channel/xxx).
 
-# Citing MagAnalyst <a name="Cite"></a>
+## Cite as
 
 If you use MagAnalyst in your work, please cite the publication that introduced the toolbox: 
 * XXX
@@ -54,10 +56,10 @@ We would also be grateful if you cited the publications of the underlying theory
 * J. M. Silveyra and J. M. Conde Garrido, "On the modelling of the anhysteretic magnetization of homogeneous soft magnetic materials," Journal of Magnetism and Magnetic Materials, vol. 540, p. 168430, 2021. https://doi.org/10.1016/j.jmmm.2021.168430
 * J. M. Silveyra and J. M. Conde Garrido, "On the anhysteretic magnetization of soft magnetic materials," AIP Advances, vol. 12, p. 035019, 2022. https://doi.org/10.1063/9.0000328
 
-# Contact us <a name="ContactUs"></a>
+## Contact us
 
 If you encounter bugs or problems using MagAnalyst, have any suggestions for improving the software, or are interested in receiving email updates about MagAnalyst, please write us to jsilveyra@fi.uba.ar.
 
-# License <a name="License"></a>
+## License
 
 MagAnalyst is provided under the [MIT License](https://github.com/matias-gonz/mag-analyst/blob/main/License.txt).
