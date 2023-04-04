@@ -1,6 +1,6 @@
 
 ![Image](https://github.com/matias-gonz/mag-analyst/blob/main/logo_maganalyst.png)
-# *<div style="text-align: right"> a Matlab toolbox for magnetization analysis </div>*
+# *<div dir="rtl"> a Matlab toolbox for magnetization analysis </div>*
 
 # Table of contents
 - [Authors](#Authors)
