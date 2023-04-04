@@ -11,6 +11,7 @@
 6. [Cite as](#cite-as)
 7. [Contact us](#contact-us)
 8. [License](#license)
+9. [Acknowledgement](#acknowledgment)
  
  ## Authors
   - Matías Ignacio González
@@ -63,3 +64,8 @@ If you encounter bugs or problems using MagAnalyst, have any suggestions for imp
 ## License
 
 MagAnalyst is provided under the [MIT License](https://github.com/matias-gonz/mag-analyst/blob/main/License.txt).
+
+## Acknowledgment
+
+The University of Buenos Aires (UBA) and CONICET provided financial support for this project.
+Any opinions, findings, conclusions, or recommendations expressed in this website are those of the author(s) and do not necessarily reflect the views of UBA or CONICET.
