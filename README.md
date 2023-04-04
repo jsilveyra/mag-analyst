@@ -1,6 +1,6 @@
-## MagAnalyst: a Matlab toolbox for magnetization analysis
 
 ![Image](https://github.com/matias-gonz/mag-analyst/blob/main/logo_maganalyst.png)
+# *<div style="text-align: right"> a Matlab toolbox for magnetization analysis </div>*
 
 # Table of contents
 - [Authors](#Authors)
@@ -40,7 +40,7 @@ MagAnalyst was implemented and tested with the Matlab 2022b version on Windows 1
 
 These are the examples provided with the current release:
 
-* Fe73.5Si13.5B9Nb3Cu1 alloy nanocrystallized under transverse field annealing and measured along the longitudinal direction of the ribbon.
+* Fe<sub>73.5</sub>Si<sub>13.5</sub>B<sub>9</sub>Nb<sub>3</sub>Cu<sub>1</sub> alloy nanocrystallized under transverse field annealing and measured along the longitudinal direction of the ribbon.
 The materials' details were described in [JOM article](https://doi.org/10.1007/s11837-023-05704-x)
 The example is illustrated by a video available in [YouTube](https://www.youtube.com/channel/xxx).
 
