@@ -1,0 +1,16 @@
+﻿Curve type:
+* Anhysteretic curve
+
+Material:
+* A grain-oriented silicon steel (M130-27 s) measured parallel to the rolling direction
+
+Details of the measurement:
+* Acquired by the fluxmetric method on an Epstein test frame. Measurements were carried out with a magnetizing field frequency of 0.5 Hz at room temperature using a digitally controlled hysteresisgraph.
+
+References:
+* Silveyra, Josefina M., and Juan M. Conde Garrido. "On the modelling of the anhysteretic magnetization of homogeneous soft magnetic materials" JMMM (2021): 168430. https://doi.org/10.1016/j.jmmm.2021.168430
+* Silveyra, Josefina M., and Juan M. Conde Garrido. "On the anhysteretic magnetization of soft magnetic materials" AIP Advances (2022): 035019. https://doi.org/10.1063/9.0000328
+
+Original references of the hysteresis loop (as B vs H):
+* R. Szewczyk, P. Cheng, "Open source implementation of different variants of Jiles-Atherton model of magnetic hysteresis loops", Acta Phys. Pol. A 133 (3) (2018) 654–656, https://doi.org/10.12693/APhysPolA.133.654
+* R. Szewczyk, “Jiles–Atherton model for Octave/MATLAB”, https://www.github.com/romanszewczyk/JAmodel/. Access date: 01-01-2021.

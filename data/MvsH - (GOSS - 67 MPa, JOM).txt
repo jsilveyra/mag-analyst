@@ -1,0 +1,14 @@
+﻿Curve type: 
+* Anhysteretic curve
+
+Material: 
+* A grain-oriented silicon steel sheet, cut parallel to the rolling direction, longitudinally compressed up to 67 MPa.
+
+Details of the material's preparation and measurement:
+* The quasistatic loop was measured along the rolling direction of the steel sheets, which corresponds to the surface-parallel easy axis.
+
+Reference: 
+* Silveyra, Josefina M., and Juan M. Conde Garrido. "A Physically Based Model for Soft Magnets’ Anhysteretic Curve." JOM (2023): 1-14. https://doi.org/10.1007/s11837-023-05704-x
+
+Original reference of the hysteresis loop (as J vs H):
+* O. Perevertov, R. Schaefer, and O. Stupakov, IEEE Trans. Magn. 50, 1 https://doi.org/10.1109/TMAG.2014.2325211 (2014).
