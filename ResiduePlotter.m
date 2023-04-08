@@ -38,7 +38,7 @@ classdef ResiduePlotter
             if obj.Log
                 set(gca,'xscal','log');
             end
-            
+            set(ax,'yticklabels',[]);
         end
 
         function plot_dots(obj, ax)
