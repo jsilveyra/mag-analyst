@@ -32,7 +32,7 @@ We recommend using [GitHub Desktop](https://desktop.github.com/), which allows u
 
 After downloading the main folder and placing it in a relevant location, the installation only consists in running the Installation file.
  
-MagAnalyst was implemented and tested with the Matlab 2022b version on Windows 10. Authors can not guarantee that the code could be run on previous versions.
+MagAnalyst was implemented and tested with the Matlab 2022b version on Windows 10. Authors cannot guarantee that the code can run on previous versions.
 
 ## External libraries
 
