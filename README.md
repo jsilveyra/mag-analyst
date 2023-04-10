@@ -36,7 +36,7 @@ MagAnalyst was implemented and tested with the Matlab 2022b version on Windows 1
 
 ## External libraries
 
-MagAnalyst currently uses the following libraries:
+MagAnalyst currently uses the following third-party libraries:
 * [minimize](https://www.mathworks.com/matlabcentral/fileexchange/24298-minimize) to find the constrained minimum of the objective function starting at the user’s initial estimates.
 
 ## Examples
