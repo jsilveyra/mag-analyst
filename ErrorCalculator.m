@@ -15,7 +15,7 @@ classdef ErrorCalculator
         end
 
         function residue = residue(~, X, Y, Xhat, Yhat)
-            Yint = interp1(Xhat, Yhat, X);
+            Yint = interp1(Xhat, Yhat, X, 'linear', 'extrap');
             Yint = Yint(3:end);
             Ydat = Y(3:end);
             residue = zeros(1, length(Ydat));
@@ -33,8 +33,8 @@ classdef ErrorCalculator
             Xdat = X(2:end-1);
             d_error = 0;
             for i = 1:length(Ydat)
-                delta_x = abs(interp1(Yhat, Xhat, Ydat(i)) - Xdat(i))/max(X);
-                delta_y = abs(interp1(X, Y, interp1(Yhat, Xhat, Ydat(i))) - Ydat(i))/max(Y);
+                delta_x = abs(interp1(Yhat, Xhat, Ydat(i), 'linear', 'extrap') - Xdat(i))/max(X);
+                delta_y = abs(interp1(X, Y, interp1(Yhat, Xhat, Ydat(i), 'linear', 'extrap'), 'linear', 'extrap') - Ydat(i))/max(Y);
                 delta_o = delta_y*cos(atan(delta_y/delta_x));
                 d_error = d_error + (delta_o^2);
             end
@@ -42,7 +42,7 @@ classdef ErrorCalculator
         end
 
         function v_error = vertical_error(~, X, Y, Xhat, Yhat)
-            Yint = interp1(Xhat, Yhat, X);
+            Yint = interp1(Xhat, Yhat, X, 'linear', 'extrap');
             Yint = Yint(3:end);
             Ydat = Y(3:end);
             v_error = 0;
@@ -54,14 +54,16 @@ classdef ErrorCalculator
         end
 
         function h_error = horizontal_error(~, X, Y, Xhat, Yhat)
-            Xint = interp1(Yhat, Xhat, Y);
+            Xint = interp1(Yhat, Xhat, Y, 'linear', 'extrap');
             Xint = Xint(2:end);
             Xdat = X(2:end);
             h_error = 0;
             for i = 1:length(Xint)
                 e = Xdat(i) - Xint(i);
+                disp(e);
                 h_error = h_error + (e^2);
             end
+            disp(h_error)
             h_error = sqrt(h_error)/max(X)/length(Xdat);
         end
     end
