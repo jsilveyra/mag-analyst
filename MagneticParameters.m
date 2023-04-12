@@ -5,15 +5,17 @@ classdef MagneticParameters
         M
         Hcr
         mcr
+        Hx
         VACUUM_PERMEABILITY
     end
 
     methods (Access = public)
-        function obj = MagneticParameters(H, M, Hcr, mcr)
+        function obj = MagneticParameters(H, M, Hcr, mcr, Hx)
             obj.H = H;
             obj.M = M;
             obj.Hcr = Hcr;
             obj.mcr = mcr;
+            obj.Hx = Hx;
             obj.VACUUM_PERMEABILITY = 4 * pi * (10^-7);
         end
 
@@ -47,7 +49,7 @@ classdef MagneticParameters
             H_solve(1) = HTip;
             M_solve(1) = MTip;
             for i = 2:length(obj.Hcr)
-                H_solve(i) = (obj.Hcr(i-1)+obj.Hcr(i))/2;
+                H_solve(i) = obj.Hx(i-1);
                 M_solve(i) = interp1(obj.H,obj.M, H_solve(i));
             end
             A = zeros(length(obj.Hcr), length(obj.Hcr));

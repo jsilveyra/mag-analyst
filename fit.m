@@ -1,14 +1,23 @@
-function [Hcr, mcr] = fit(H, M, seed, select_a, error_type, lb, ub)
+function [Hcr, mcr, Hx] = fit(H, M, seed, select_a, error_type, lb, ub)
     [HTip, ~] = Utils().find_tip(H, M);
     H_log = log(H);
     N = 100;
     Hhat = logspace(log10(H(2)),log10(HTip),N);
     error = ErrorCalculator();
-    function ret = fit_parameters(x)
-        Hcr_fit = x(1:end/2);
-        mcr_fit = x((end/2)+1:end); 
+    number_components = (length(seed)+1)/3;
+    disp("seed")
+    disp(seed)
+    disp("lb")
+    disp(lb)
+    disp("ub")
+    disp(ub)
 
-        magnetic_parameters = MagneticParameters(H, M, Hcr_fit, mcr_fit);
+    function ret = fit_parameters(x)
+        Hcr_fit = x(1:number_components);
+        mcr_fit = x(number_components+1:2*number_components);
+        Hx_fit = x(number_components*2 +1:end);
+
+        magnetic_parameters = MagneticParameters(H, M, Hcr_fit, mcr_fit, Hx_fit);
         a = magnetic_parameters.get_a(select_a);
         alphaMs = magnetic_parameters.get_alphaMs(a);
         Ms = magnetic_parameters.get_Ms(a, alphaMs);
@@ -17,7 +26,9 @@ function [Hcr, mcr] = fit(H, M, seed, select_a, error_type, lb, ub)
     end
 
     params = minimize(@fit_parameters, seed, [],[], [],[], lb , ub);
+    disp(params)
 
-    Hcr = params(1:end/2);
-    mcr = params((end/2)+1:end);
+    Hcr = params(1:number_components);
+    mcr = params(number_components+1:2*number_components);
+    Hx = params(number_components*2 +1:end);
 end
