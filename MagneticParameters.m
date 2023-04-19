@@ -97,6 +97,13 @@ classdef MagneticParameters
                 density_product(i) = obj.VACUUM_PERMEABILITY*abs(Ms(i))*a(i);
             end
         end
+
+        function initial_relative_magnetic_permeability = get_initial_relative_magnetic_permeability(obj, Ms, Hk)
+            initial_relative_magnetic_permeability = zeros(1, length(Ms));
+            for i = 1:length(Ms)
+                initial_relative_magnetic_permeability(i) = 1 + Ms(i)/Hk(i);
+            end
+        end
     end
 
     methods (Access = private)
