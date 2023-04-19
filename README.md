@@ -32,30 +32,28 @@ We recommend using [GitHub Desktop](https://desktop.github.com/), which allows u
 
 After downloading the main folder and placing it in a relevant location, the installation only consists in running the Installation file.
  
-MagAnalyst was implemented and tested with the Matlab 2022b version on Windows 10. Authors can not guarantee that the code could be run on previous versions.
+MagAnalyst was implemented and tested with the Matlab 2022b version on Windows 10. Authors cannot guarantee that the code can run on previous versions.
 
 ## External libraries
 
-MagAnalyst currently uses the following libraries:
+MagAnalyst currently uses the following third-party libraries:
 * [minimize](https://www.mathworks.com/matlabcentral/fileexchange/24298-minimize) to find the constrained minimum of the objective function starting at the user’s initial estimates.
 
 ## Examples
 
 These are the examples provided with the current release:
 
-* Fe<sub>73.5</sub>Si<sub>13.5</sub>B<sub>9</sub>Nb<sub>3</sub>Cu<sub>1</sub> alloy nanocrystallized under transverse field annealing and measured along the longitudinal direction of the ribbon.
-The materials' details were described in [JOM article](https://doi.org/10.1007/s11837-023-05704-x)
-The example is illustrated by a video available in [YouTube](https://www.youtube.com/channel/xxx).
+* Mn-Zn ferrite: A soft ferrite (Mn<sub>0.51</sub>Zn<sub>0.44</sub>Fe<sub>2.05</sub>O<sub>4</sub>) with very low anisotropy. Analyzed in [JMMM article](https://doi.org/10.1016/j.jmmm.2021.168430) and in [AIP Advances article](https://doi.org/10.1063/9.0000328).
+* Finemet - TA: Finemet (r) alloy (Fe<sub>73.5</sub>Si<sub>13.5</sub>B<sub>9</sub>Nb<sub>3</sub>Cu<sub>1</sub>) nanocrystallized under transverse field annealing and measured along the longitudinal direction of the ribbon. Analyzed in [JOM article](https://doi.org/10.1007/s11837-023-05704-x). The example is illustrated by a video available in [YouTube](https://www.youtube.com/channel/xxx).
+* JNEX-900: A non-oriented electrical steel. Analyzed in [AIP Advances article](https://doi.org/10.1063/9.0000328). 
+* GOSS - 67 MPa: A grain-oriented silicon steel sheet, cut parallel to the rolling direction, longitudinally compressed up to 67 MPa. Analyzed in [JOM article](https://doi.org/10.1007/s11837-023-05704-x). 
 
 ## Cite as
 
-If you use MagAnalyst in your work, please cite the publication that introduced the toolbox: 
-* XXX
-
-We would also be grateful if you cited the publications of the underlying theory:
+If you use MagAnalyst in your work, please cite the following papers:
 * J. M. Silveyra and J. M. Conde Garrido, "A physically based model for soft magnets’ anhysteretic curve," JOM, pp. 1-14, 2023. https://doi.org/10.1007/s11837-023-05704-x
-* J. M. Silveyra and J. M. Conde Garrido, "On the modelling of the anhysteretic magnetization of homogeneous soft magnetic materials," Journal of Magnetism and Magnetic Materials, vol. 540, p. 168430, 2021. https://doi.org/10.1016/j.jmmm.2021.168430
 * J. M. Silveyra and J. M. Conde Garrido, "On the anhysteretic magnetization of soft magnetic materials," AIP Advances, vol. 12, p. 035019, 2022. https://doi.org/10.1063/9.0000328
+* J. M. Silveyra and J. M. Conde Garrido, "On the modelling of the anhysteretic magnetization of homogeneous soft magnetic materials," Journal of Magnetism and Magnetic Materials, vol. 540, p. 168430, 2021. https://doi.org/10.1016/j.jmmm.2021.168430
 
 ## Contact us
 
