@@ -60,10 +60,8 @@ classdef ErrorCalculator
             h_error = 0;
             for i = 1:length(Xint)
                 e = Xdat(i) - Xint(i);
-                disp(e);
                 h_error = h_error + (e^2);
             end
-            disp(h_error)
             h_error = sqrt(h_error)/max(X)/length(Xdat);
         end
     end
