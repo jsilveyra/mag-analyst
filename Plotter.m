@@ -7,6 +7,7 @@ classdef Plotter
         dMdH
         Hhat
         Mhat
+        Mihat
         dMdHhat
         HdMdHhat
         Hcr
@@ -14,7 +15,7 @@ classdef Plotter
     end
 
     methods (Access = public)
-        function obj = Plotter(H, M, dMdH , HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr, varargin)
+        function obj = Plotter(H, M, dMdH , HdMdH, Hhat, Mhat, Mihat, dMdHhat, HdMdHhat, Hcr, varargin)
             numvarargs = length(varargin);
             if numvarargs > 1
                 error('Plotter:constructor:TooManyOptionalParameters: requires at most 1 optional parameter');
@@ -30,6 +31,7 @@ classdef Plotter
             obj.HdMdH = HdMdH;
             obj.Hhat = Hhat;
             obj.Mhat = Mhat;
+            obj.Mihat = Mihat;
             obj.dMdHhat = dMdHhat;
             obj.HdMdHhat = HdMdHhat;
             obj.Hcr = Hcr;
@@ -41,20 +43,35 @@ classdef Plotter
             end
         end
 
-        function plot_M(obj, ax)
+        function plot_M(obj, ax, plot_components)
+
             hold( ax, 'on' )
             plot(ax, obj.H, obj.M, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
             plot(ax, obj.Hhat, obj.Mhat, "Color",[0,0,0]);
+
+            if(plot_components)
+                for i=1:size(obj.Mihat,1)
+                    plot(ax, obj.Hhat,obj.Mihat(i,:), "Color",[0 0 0]);
+                end
+            end
+            
             obj.plot_Hcr(ax)
             xlabel(ax, 'H [A/m]');
             ylabel(ax, 'M [A/m]');
             hold( ax, 'off' )     
         end
 
-        function plot_M_log(obj, ax)
+        function plot_M_log(obj, ax, plot_components)
             semilogx(ax, obj.H,obj.M, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
             hold( ax, 'on' )
             semilogx(ax, obj.Hhat,obj.Mhat, "Color",[0 0 0]);
+
+            if(plot_components)
+                for i=1:size(obj.Mihat,1)
+                    semilogx(ax, obj.Hhat,obj.Mihat(i,:), "Color",[0 0 0]);
+                end
+            end
+
             xlabel(ax, 'H [A/m]');
             ylabel(ax, 'M [A/m]');
             obj.plot_Hcr(ax);
