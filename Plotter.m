@@ -60,10 +60,11 @@ classdef Plotter
             end
 
             yline(ax, 0);
-            
+
             obj.plot_Hcr(ax)
             xlabel(ax, 'H [A/m]');
             ylabel(ax, 'M [A/m]');
+            box(ax,'on');
             hold( ax, 'off' )     
         end
 
@@ -83,6 +84,7 @@ classdef Plotter
             xlabel(ax, 'H [A/m]');
             ylabel(ax, 'M [A/m]');
             obj.plot_Hcr(ax);
+            box(ax,'on');
             hold( ax, 'off' )
         end
 
@@ -103,6 +105,7 @@ classdef Plotter
             xlabel(ax, 'H [A/m]');
             ylabel(ax, '∂M/∂H');
             ax.YLim = [min(obj.dMdH) max(obj.dMdH)*1.1];
+            box(ax,'on');
             hold( ax, 'off' )
         end
 
@@ -123,6 +126,7 @@ classdef Plotter
             xlabel(ax, 'H [A/m]');
             ylabel(ax, '∂M/∂H');
             %ax.YLim = [min(obj.dMdH) max(obj.dMdH)*1.1];
+            box(ax,'on');
             hold( ax, 'off' )
         end
 
@@ -142,10 +146,8 @@ classdef Plotter
 
             xlabel(ax, 'H [A/m]');
             ylabel(ax, '∂M/∂(logH) [A/m]', "Color",[0, 0, 0]);
+            box(ax,'on');
             hold( ax, 'off' );
-
-            %yyaxis left;  ax.YLim = [0 max(obj.dMdH)*1.1];
-            %yyaxis right; ax.YLim = [0 max(obj.HdMdHhat)*1.1];
         end
 
         function plot_HdMdH(obj, ax, plot_components)
@@ -164,6 +166,7 @@ classdef Plotter
 
             xlabel(ax, 'H [A/m]');
             ylabel(ax, '∂M/∂(logH) [A/m]', "Color",[0, 0, 0]);
+            box(ax,'on');
             hold( ax, 'off' );
         end
 
