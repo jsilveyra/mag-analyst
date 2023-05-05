@@ -54,7 +54,7 @@ classdef ResiduePlotter
         end
 
         function plot(obj)
-            figure('Name',"Residue plot: " + obj.Label,'NumberTitle','off');
+            figure('Name',"Residual plot: " + obj.Label,'NumberTitle','off');
             tiledlayout(4,1)
 
             % Top plot
