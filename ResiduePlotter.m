@@ -35,6 +35,7 @@ classdef ResiduePlotter
         function plot_stem(obj, ax)
             stem(ax, obj.X, obj.Residue, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
             xlabel(ax, 'H (A/m)');
+            ylabel(ax, 'Residual');
             if obj.Log
                 set(gca,'xscal','log');
             end
@@ -54,11 +55,12 @@ classdef ResiduePlotter
         end
 
         function plot(obj)
-            figure('Name',"Residue plot: " + obj.Label,'NumberTitle','off');
+            figure('Name',"Residual plot: " + obj.Label,'NumberTitle','off');
             tiledlayout(4,1)
 
             % Top plot
             ax1 = nexttile([3 1]);
+            box(ax1,'on');
             obj.plot_dots(ax1);
 
             % Bottom plot
