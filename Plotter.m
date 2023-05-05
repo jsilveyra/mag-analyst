@@ -47,7 +47,7 @@ classdef Plotter
             end
         end
 
-        function plot_M(obj, ax, plot_components)
+        function plot_M(obj, ax, plot_components, plot_grid)
 
             hold( ax, 'on' )
             plot(ax, obj.H, obj.M, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
@@ -59,6 +59,10 @@ classdef Plotter
                 end
             end
 
+            if(plot_grid)
+                grid(ax,"on");
+            end
+
             yline(ax, 0);
 
             obj.plot_Hcr(ax)
@@ -68,7 +72,7 @@ classdef Plotter
             hold( ax, 'off' )     
         end
 
-        function plot_M_log(obj, ax, plot_components)
+        function plot_M_log(obj, ax, plot_components, plot_grid)
             semilogx(ax, obj.H,obj.M, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
             hold( ax, 'on' )
             semilogx(ax, obj.Hhat,obj.Mhat, "Color",[0 0 0]);
@@ -77,6 +81,10 @@ classdef Plotter
                 for i=1:size(obj.Mihat,1)
                     semilogx(ax, obj.Hhat,obj.Mihat(i,:), "Color",[0 0 0]);
                 end
+            end
+
+            if(plot_grid)
+                grid(ax,"on");
             end
 
             yline(ax, 0);
@@ -88,7 +96,7 @@ classdef Plotter
             hold( ax, 'off' )
         end
 
-        function plot_dMdH(obj, ax, plot_components)
+        function plot_dMdH(obj, ax, plot_components, plot_grid)
             hold( ax, 'on' );
             plot(ax, obj.H,obj.dMdH, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
             plot(ax, obj.Hhat, obj.dMdHhat, "Color",[0 0 0]);
@@ -100,6 +108,10 @@ classdef Plotter
                 end
             end
 
+            if(plot_grid)
+                grid(ax,"on");
+            end
+
             yline(ax, 0);
 
             xlabel(ax, 'H [A/m]');
@@ -109,7 +121,7 @@ classdef Plotter
             hold( ax, 'off' )
         end
 
-        function plot_dMdH_log(obj, ax, plot_components)
+        function plot_dMdH_log(obj, ax, plot_components, plot_grid)
             semilogx(ax, obj.H,obj.dMdH, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
             hold( ax, 'on' );
             semilogx(ax, obj.Hhat, obj.dMdHhat, "Color",[0 0 0]);
@@ -121,6 +133,10 @@ classdef Plotter
                 end
             end
 
+            if(plot_grid)
+                grid(ax,"on");
+            end
+
             yline(ax, 0);
 
             xlabel(ax, 'H [A/m]');
@@ -130,7 +146,7 @@ classdef Plotter
             hold( ax, 'off' )
         end
 
-        function plot_HdMdH_log(obj, ax, plot_components)
+        function plot_HdMdH_log(obj, ax, plot_components, plot_grid)
             semilogx(ax, obj.Hhat, obj.HdMdHhat, "Color",[0, 0, 0]);
             hold( ax, 'on' );
             semilogx(ax, obj.H,obj.HdMdH, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
@@ -142,6 +158,10 @@ classdef Plotter
                 end
             end
 
+            if(plot_grid)
+                grid(ax,"on");
+            end
+
             yline(ax, 0);
 
             xlabel(ax, 'H [A/m]');
@@ -150,7 +170,7 @@ classdef Plotter
             hold( ax, 'off' );
         end
 
-        function plot_HdMdH(obj, ax, plot_components)
+        function plot_HdMdH(obj, ax, plot_components, plot_grid)
             hold( ax, 'on' );
             plot(ax, obj.Hhat, obj.HdMdHhat, "Color",[0, 0, 0]);
             plot(ax, obj.H,obj.HdMdH, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
@@ -160,6 +180,10 @@ classdef Plotter
                 for i=1:size(obj.HdMidHhat,1)
                     plot(ax, obj.Hhat,obj.HdMidHhat(i,:), "Color",[0 0 0]);
                 end
+            end
+
+            if(plot_grid)
+                grid(ax,"on");
             end
 
             yline(ax, 0);
