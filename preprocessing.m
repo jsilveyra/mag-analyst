@@ -330,8 +330,7 @@ kvsM = kvsmpos(k,Mq, Moffset_opt);
 MvsHanh = mvshanhpos(Hanh,Mq,Moffset_opt,Hoffset_opt);
 % plot(MvsHanh(1:end,1),MvsHanh(1:end,2));    % Plot Manh vs Hanh (for positive H)
 
-% Plot the hysteresis loop after both Moffset_opt and Hoffset_opt have been applied and their antisymmetrical loops
-% Also plot the calculated k(M) and M(Hanh) distributions.
+% Plot the hysteresis loop, the anhysteretic magnetization curve and the k(M) distribution.
 
 figure
 subplot(121)
@@ -345,7 +344,7 @@ ylabel('M [A/m]')
 legend ('hysteresis loop','', 'Anhysteretic curve','Location','northwest')
 
 subplot(122)
-plot (kvsM(1:end,1), kvsM(1:end,2),'r-',kvsM(1:end,1), -kvsM(1:end,2), 'b-','LineWidth',2)
+plot (kvsM(1:end,2), kvsM(1:end,1),'r-',kvsM(1:end,2), -kvsM(1:end,1), 'b-','LineWidth',2)
 xline(0,'k-','')
 yline(0,'k-','')
 xlabel('k [A/m]')
