@@ -59,6 +59,7 @@ classdef ResiduePlotter
 
             % Top plot
             ax1 = nexttile([3 1]);
+            box(ax1,'on');
             obj.plot_dots(ax1);
 
             % Bottom plot
