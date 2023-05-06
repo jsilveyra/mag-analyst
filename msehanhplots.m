@@ -41,8 +41,8 @@ function ehanh = msehanhplots(Hanh,Mq,Moffset,Hoffset)
 	    start_Hanhpos = Izero+1;
     end
     
-    MHanhneg = MqShifted(1:end_Hanhneg);                             % array of M(Hanh) with Hanh<0
-    MHanhpos = MqShifted(start_Hanhpos:end);                         % array of M(Hanh) with Hanh>0
+    Manhneg = MqShifted(1:end_Hanhneg);                             % array of M(Hanh) with Hanh<0
+    Manhpos = MqShifted(start_Hanhpos:end);                         % array of M(Hanh) with Hanh>0
     
     [Hanhzero_shifted, Izero_shifted] = min(abs(HanhShifted(Hoffset)));   % Find |Hanh_shifted| minimum (i.e., where Hanh is zero o changes sign) as well as the row index of data in which it appears
     
@@ -57,8 +57,8 @@ function ehanh = msehanhplots(Hanh,Mq,Moffset,Hoffset)
 	    start_Hanhpos_shifted = Izero_shifted + 1;
     end
     
-    absMHanhneg_shifted = abs(flip(MqShifted(1:end_Hanhneg_shifted)));       % array of M(Hanh) with Hanhshifted<0
-    absMHanhpos_shifted = abs(MqShifted(start_Hanhpos_shifted:end));         % array of M(Hanh) with Hanhshifted>0
+    absManhneg_shifted = abs(flip(MqShifted(1:end_Hanhneg_shifted)));       % array of M(Hanh) with Hanhshifted<0
+    absManhpos_shifted = abs(MqShifted(start_Hanhpos_shifted:end));         % array of M(Hanh) with Hanhshifted>0
     
     tmpHanhShifted = HanhShifted(Hoffset);   % temporary variable to store the function of shifted Hanh at Hoffset input. 
                                              % Although Octave does handle a syntaxis such as HanhShifted(Hoffset)(1:end_Hanhneg_shifted)
@@ -67,9 +67,9 @@ function ehanh = msehanhplots(Hanh,Mq,Moffset,Hoffset)
     absHanhpos_shifted = tmpHanhShifted(start_Hanhpos_shifted:end);
     
     figure
-    plot(abs(Hanh(1:end_Hanhneg)),abs(MHanhneg),'k-',abs(Hanh(start_Hanhpos:end)),abs(MHanhpos),'k-','LineWidth',2)
+    plot(abs(Hanh(1:end_Hanhneg)),abs(Manhneg),'k-',abs(Hanh(start_Hanhpos:end)),abs(Manhpos),'k-','LineWidth',2)
     hold
-    plot(absHanhneg_shifted,absMHanhneg_shifted,'r--',absHanhpos_shifted,absMHanhpos_shifted,'b--','LineWidth',2)
+    plot(absHanhneg_shifted,absManhneg_shifted,'r--',absHanhpos_shifted,absManhpos_shifted,'b--','LineWidth',2)
     yline(0,'k-','')
     xline(0,'k-','')
     ylabel('|Manh| [A/m]')
@@ -79,36 +79,11 @@ function ehanh = msehanhplots(Hanh,Mq,Moffset,Hoffset)
     message = input('Press a key to continue');
     close    
 
-    Fneg = griddedInterpolant(absHanhneg_shifted,absMHanhneg_shifted,'linear','none'); % Create griddedInterpolant object
-    Fpos = griddedInterpolant(absHanhpos_shifted,absMHanhpos_shifted,'linear','none'); % Create griddedInterpolant object
-    
-    max_absHanhneg_shifted = max(absHanhneg_shifted);
-    max_absHanhpos_shifted = max(absHanhpos_shifted);
-    max_absHanh = min(max_absHanhneg_shifted,max_absHanhpos_shifted); % Find maximum absolute Hanh from both parts of the curve (positive and negative)
-    
-    min_absHanh = 0; % Define minimum absolute Hanh from both parts of the curve (positive and negative)
-    
-    Ngrid_absHanh = 100; % number of elements from min_absHanh to max_absHanh
-    absHanhq = linspace(min_absHanh,max_absHanh,Ngrid_absHanh); % linearly spaced query points
-    
-    MHanhneg_shiftedq = Fneg(absHanhq); % query the interpolant Fneg at absHanhq points
-    MHanhpos_shiftedq = Fpos(absHanhq); % query the interpolant Fpos at absHanhq points
-    
-    figure % plot original and interpolated shifted data
-    plot(absHanhneg_shifted,absMHanhneg_shifted,'r-',absHanhpos_shifted,absMHanhpos_shifted,'b-')
-    hold
-    plot(absHanhq,MHanhneg_shiftedq,'rx',absHanhq,MHanhpos_shiftedq,'bx')
-    xlabel('|Hanh| [A/m]')
-    ylabel('|Manh| [A/m]')
-    legend ('shifted original data (Hanh<0)','shifted original data (Hanh>0)','shifted interpolated data (Hanh<0)','shifted interpolated data (Hanh>0)','Location','southwest')
-    
-    message = input('Press a key to continue');
-    close
-
-    absManhError = MHanhpos_shiftedq - MHanhneg_shiftedq;   % at constant |Hanh|, i.e., absHanhq (the query points)
+    absManhError = residue2(absHanhpos_shifted, absManhpos_shifted,absHanhneg_shifted, absManhneg_shifted);   % at constant |Hanh|
+    %ACÁ LLAMO A UNA COPY-PASTE FUNCTION DE LA QUE ESTÁ DENTRO DE ERROR CALCULATOR. AVERIGUAR CÓMO LLAMARLA PARA NO DUPLICAR.
   
     figure
-    plot(absHanhq,absManhError,'.')
+    plot(absHanhpos_shifted(3:end),absManhError,'.')
     xlabel('|Hanh| [A/m]')
     ylabel('|Manh| error [A/m]')
     yline(0,'k-','')
@@ -116,7 +91,6 @@ function ehanh = msehanhplots(Hanh,Mq,Moffset,Hoffset)
     message = input('Press a key to continue');
     close
     
-    absManhError_clear = absManhError(~isnan(absManhError)); % removes elements that are NaN
-    
-    ehanh = sum(absManhError_clear.^2); % sum of squared differences 
+    ehanh = diagonal_error2(absHanhpos_shifted, absManhpos_shifted,absHanhneg_shifted, absManhneg_shifted); %ACÁ LLAMO A UNA COPY-PASTE FUNCTION DE LA QUE ESTÁ DENTRO DE ERROR CALCULATOR. AVERIGUAR CÓMO LLAMARLA PARA NO DUPLICAR.
+
 end

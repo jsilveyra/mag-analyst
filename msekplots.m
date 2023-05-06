@@ -99,10 +99,11 @@ function ek = msekplots(k,Mq,Moffset)
     message = input('Press a key to continue');
     close
     
-    kError = kMpos_shiftedq - kMneg_shiftedq;
+    kError = residue2(absMpos_shifted, kMpos_shifted,absMneg_shifted, kMneg_shifted);   % at constant |Hanh|
+    %ACÁ LLAMO A UNA COPY-PASTE FUNCTION DE LA QUE ESTÁ DENTRO DE ERROR CALCULATOR. AVERIGUAR CÓMO LLAMARLA PARA NO DUPLICAR.
     
     figure
-    plot(absMq,kError,'.')
+    plot(absMpos_shifted(3:end),kError,'.')
     xlabel('|M| [A/m]')
     ylabel('kError [A/m]')
     yline(0,'k-','')
@@ -110,7 +111,5 @@ function ek = msekplots(k,Mq,Moffset)
     message = input('Press a key to continue');
     close
     
-    kError_clear = kError(~isnan(kError)); % removes elements that are NaN
-    
-    ek = sum(kError_clear.^2); % sum of squared differences 
+    ek = diagonal_error2(absMpos_shifted, kMpos_shifted,absMneg_shifted, kMneg_shifted); %ACÁ LLAMO A UNA COPY-PASTE FUNCTION DE LA QUE ESTÁ DENTRO DE ERROR CALCULATOR. AVERIGUAR CÓMO LLAMARLA PARA NO DUPLICAR.
 end

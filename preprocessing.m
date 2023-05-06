@@ -4,8 +4,10 @@ clc;				%clear command window
 
 % Parse hysteresis loop data table
 
-%[Xraw, Yraw] = Parser('data/loopData/Core 1 DC 800Am Nico B(T)vsH(Am).csv').get_data_csv;
-[Xraw, Yraw] = Parser('data/loopData/CAHLtest_H_Am_B_T.csv').get_data_csv;
+%[Xraw, Yraw] = Parser('data/loopData/CAHLtest_H_Am_B_T.csv').get_data_csv;
+%[Xraw, Yraw] = Parser('data/loopData/Core 1 DC 800Am Nico B(T)vsH(Am).csv').get_data_csv;   %Error using griddedInterpolant - Sample points must be sorted in ascending order.
+%[Xraw, Yraw] = Parser('data/loopData/Core 1 DC 10000Am Nico B(T)vsH(Am).csv').get_data_csv;
+[Xraw, Yraw] = Parser('data/loopData/Core 1 DC 15000Am Nico B(T)vsH(Am).csv').get_data_csv;
 
 % Convert horizontal axis field into H [A/m]
 
@@ -181,7 +183,8 @@ Mleft = Msorted(Imax:end);
 %It is quicker to evaluate a gridded interpolant object at many different sets of query points than it is
 %to compute the interpolations separately using interp1, interp2, interp3, or interpn.
 
-% First, we need to remove duplicates using 'unique' function
+% First, we need to remove duplicates using 'unique' function.
+% C = unique(A) returns the same data as in A, but with no repetitions. C is in sorted order.
 [MrightUnique, index] = unique(Mright);
 HrightUnique = Hright(index);
 [MleftUnique, index] = unique(Mleft);
@@ -200,27 +203,28 @@ HleftUnique = Hleft(index);
 % message = input('Press a key to continue');
 % close
 
-% Second, create a gridded interpolant object for the right and left branches data. By default, griddedInterpolant uses the 'linear' interpolation method
-%Interpolation method: linear; Extrapolation method: none (you can specify 'none' if you want queries outside the domain of your grid to return NaN values)
-Fright = griddedInterpolant(MrightUnique,HrightUnique,'linear','none');
-Fleft = griddedInterpolant(MleftUnique,HleftUnique,'linear','none');
-
-% Third, find the maximum absolute M (it's the same for both branches, within numerical error)
+% Second, find the maximum absolute M (it's the same for both branches, within numerical error)
 MpostipRight = max(Mright);
 MpostipLeft = max(Mleft);
-Mpostip = max(MpostipRight,MpostipLeft);
+Mpostip = min(MpostipRight,MpostipLeft);    % We need to choose between the smallest value of both. Otherwise, we will obtain a NaN interpolated value afterwards
 MnegtipRight = min(Mright);
 MnegtipLeft = min(Mleft);
-Mnegtip = min(MnegtipRight,MnegtipLeft);
+Mnegtip = max(MnegtipRight,MnegtipLeft);    % We need to choose between the smallest absolute value of both. Otherwise, we will obtain a NaN interpolated value afterwards
 
-% Forth, find the minimum absolute non zero M (it's the same for both branches)
+% Third, find the minimum absolute non zero M (it's the same for both branches)
 tmp = Mright;
 tmp(tmp==0) = Inf;
 Mmin = min(abs(tmp));
 
+% Forth, create a gridded interpolant object for the right and left branches data. By default, griddedInterpolant uses the 'linear' interpolation method
+%Interpolation method: linear; Extrapolation method: none (you can specify 'none' if you want queries outside the domain of your grid to return NaN values)
+Fright = griddedInterpolant(MrightUnique,HrightUnique,'linear','none');
+Fleft = griddedInterpolant(MleftUnique,HleftUnique,'linear','none');
+
 % Fifth, query the interpolant F at Ngrid points between 0 to tip
 
-Ngrid = 100; %number of elements from 0 to tip
+Ngrid = 100; %number of elements from 0 to tip  % This value might need to be increased or decreased depending on the resolution and ripples of the data curve. 
+                                                % Lower N decreases some ripples but increases ripples in the objective error function to minimize.
 
 %Mpos = logspace(log10(Mmin),log10(Mtip),Ngrid);	% logarithmically spaced
 Mpos = linspace(Mmin,Mpostip,Ngrid);					% linearly spaced
@@ -256,6 +260,8 @@ mse_k = @(Moffset)(msek(k,Mq,Moffset)); % Define a new MSE function only depende
 % Uncomment for debugging: Plot the error functions vs Moffset within the interval [-Mbounds Mbounds]
 % Mbounds = 0.5 * Mpostip;
 % fplot(mse_k,[-Mbounds Mbounds])
+% message = input('Press a key to continue');
+% close
 
 % Optimize vertical offset
 Moffset0 = 0;   % seed
@@ -279,6 +285,8 @@ mse_hanh = @(Hoffset)(msehanh(Hanh,Mq,Moffset_opt,Hoffset)); % Define a new MSE 
 % Uncomment for debugging: Plot the error functions vs Hoffset within the interval [-Mbounds Mbounds]
 % Hbounds = 0.5 * max(abs(Hleftq));
 % fplot(mse_hanh,[-Hbounds Hbounds])
+% message = input('Press a key to continue');
+% close
 
 % Optimize horizontal offset
 Hoffset0 = 0;   % seed

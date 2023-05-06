@@ -29,24 +29,5 @@ function ek = msek(k,Mq,Moffset)
     absMneg_shifted = flip(abs(tmpMqShifted(1:end_kMneg_shifted)));
     absMpos_shifted = tmpMqShifted(start_kMpos_shifted:end);
     
-    Fneg = griddedInterpolant(absMneg_shifted,kMneg_shifted,'linear','none'); % Create griddedInterpolant object
-    Fpos = griddedInterpolant(absMpos_shifted,kMpos_shifted,'linear','none'); % Create griddedInterpolant object
-    
-    max_absMneg_shifted = max(absMneg_shifted);
-    max_absMpos_shifted = max(absMpos_shifted);
-    max_absM = min(max_absMneg_shifted,max_absMpos_shifted); % Find maximum absolute M from both branches (i.e. the minimum of those two maxima)
-    
-    min_absM = 0; % Define minimum absolute M from both branches
-    
-    Ngrid_absM = 100; % number of elements from min_absM to max_absM
-    absMq = linspace(min_absM,max_absM,Ngrid_absM); % linearly spaced query points
-    
-    kMneg_shiftedq = Fneg(absMq); % query the interpolant Fneg at absMq points
-    kMpos_shiftedq = Fpos(absMq); % query the interpolant Fpos at absMq points
-        
-    kError = kMpos_shiftedq - kMneg_shiftedq;
-    
-    kError_clear = kError(~isnan(kError)); % removes elements that are NaN
-    
-    ek = sum(abs(kError_clear).^2); % sum of squared differences
+    ek = diagonal_error2(absMpos_shifted, kMpos_shifted,absMneg_shifted, kMneg_shifted); %ACÁ LLAMO A UNA COPY-PASTE FUNCTION DE LA QUE ESTÁ DENTRO DE ERROR CALCULATOR. AVERIGUAR CÓMO LLAMARLA PARA NO DUPLICAR.
 end

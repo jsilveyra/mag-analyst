@@ -13,7 +13,8 @@ function ehanh = msehanh(Hanh,Mq,Moffset,Hoffset)
     % We'll do it both for the original Hanh(M) distribution, as for the shifted distribution, just to compare them both in a plot
     % (we actually only need it for the shifted distribution)
 
-    [Hanhzero_shifted, Izero_shifted] = min(abs(HanhShifted(Hoffset)));   % Find |Hanh_shifted| minimum (i.e., where Hanh is zero o changes sign) as well as the row index of data in which it appears
+    [Hanhzero_shifted, Izero_shifted] = min(abs(HanhShifted(Hoffset)));   % Find |Hanh_shifted| minimum (i.e., where Hanh is zero o changes sign) 
+                                                                          % as well as the row index of data in which it appears
     
     if Izero_shifted == 0
         end_Hanhneg_shifted = Izero_shifted;
@@ -26,33 +27,15 @@ function ehanh = msehanh(Hanh,Mq,Moffset,Hoffset)
 	    start_Hanhpos_shifted = Izero_shifted + 1;
     end
     
-    absMHanhneg_shifted = abs(flip(MqShifted(1:end_Hanhneg_shifted)));       % array of M(Hanh) with Hanhshifted<0
-    absMHanhpos_shifted = abs(MqShifted(start_Hanhpos_shifted:end));         % array of M(Hanh) with Hanhshifted>0
+    absManhneg_shifted = abs(flip(MqShifted(1:end_Hanhneg_shifted)));       % array of M(Hanh) with Hanhshifted<0
+    absManhpos_shifted = abs(MqShifted(start_Hanhpos_shifted:end));         % array of M(Hanh) with Hanhshifted>0
     
     tmpHanhShifted = HanhShifted(Hoffset);   % temporary variable to store the function of shifted Hanh at Hoffset input. 
                                              % Although Octave does handle a syntaxis such as HanhShifted(Hoffset)(1:end_Hanhneg_shifted)
                                              % -having two sets of parentheses immediately following one another-, Matlab doesn't.
     absHanhneg_shifted = flip(abs(tmpHanhShifted(1:end_Hanhneg_shifted)));
     absHanhpos_shifted = tmpHanhShifted(start_Hanhpos_shifted:end);
-    
-    Fneg = griddedInterpolant(absHanhneg_shifted,absMHanhneg_shifted,'linear','none'); % Create griddedInterpolant object
-    Fpos = griddedInterpolant(absHanhpos_shifted,absMHanhpos_shifted,'linear','none'); % Create griddedInterpolant object
-    
-    max_absHanhneg_shifted = max(absHanhneg_shifted);
-    max_absHanhpos_shifted = max(absHanhpos_shifted);
-    max_absHanh = min(max_absHanhneg_shifted,max_absHanhpos_shifted); % Find maximum absolute Hanh from both parts of the curve (positive and negative)
-    
-    min_absHanh = 0; % Define minimum absolute Hanh from both parts of the curve (positive and negative)
-    
-    Ngrid_absHanh = 100; % number of elements from min_absHanh to max_absHanh
-    absHanhq = linspace(min_absHanh,max_absHanh,Ngrid_absHanh); % linearly spaced query points
-    
-    MHanhneg_shiftedq = Fneg(absHanhq); % query the interpolant Fneg at absHanhq points
-    MHanhpos_shiftedq = Fpos(absHanhq); % query the interpolant Fpos at absHanhq points
-    
-    absManhError = MHanhpos_shiftedq - MHanhneg_shiftedq;   % at constant |Hanh|, i.e., absHanhq (the query points)
-  
-    absManhError_clear = absManhError(~isnan(absManhError)); % removes elements that are NaN
-    
-    ehanh = sum(absManhError_clear.^2); % sum of squared differences 
+        
+    ehanh = diagonal_error2(absHanhpos_shifted, absManhpos_shifted,absHanhneg_shifted, absManhneg_shifted); %ACÁ LLAMO A UNA COPY-PASTE FUNCTION DE LA QUE ESTÁ DENTRO DE ERROR CALCULATOR. AVERIGUAR CÓMO LLAMARLA PARA NO DUPLICAR.
+
 end

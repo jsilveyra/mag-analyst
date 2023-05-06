@@ -26,25 +26,13 @@ function MH = mvshanhpos(Hanh,Mq,Moffset,Hoffset)
 	    start_Hanhpos_shifted = Izero_shifted + 1;
     end
     
-    absMHanhpos_shifted = abs(MqShifted(start_Hanhpos_shifted:end));         % array of M(Hanh) with Hanhshifted>0
+    absManhpos_shifted = abs(MqShifted(start_Hanhpos_shifted:end));         % array of M(Hanh) with Hanhshifted>0
     
     tmpHanhShifted = HanhShifted(Hoffset);   % temporary variable to store the function of shifted Hanh at Hoffset input. 
                                              % Although Octave does handle a syntaxis such as HanhShifted(Hoffset)(1:end_Hanhneg_shifted)
                                              % -having two sets of parentheses immediately following one another-, Matlab doesn't.
     absHanhpos_shifted = tmpHanhShifted(start_Hanhpos_shifted:end);
     
-    Fpos = griddedInterpolant(absHanhpos_shifted,absMHanhpos_shifted,'linear','none'); % Create griddedInterpolant object
-    
-    max_absHanhpos_shifted = max(absHanhpos_shifted);
-    max_absHanh = max_absHanhpos_shifted;
-
-    min_absHanh = min(absHanhpos_shifted); % Define minimum absolute Hanh from both parts of the curve (positive and negative)
-    
-    Ngrid_absHanh = 100; % number of elements from min_absHanh to max_absHanh
-    absHanhq = linspace(min_absHanh,max_absHanh,Ngrid_absHanh); % linearly spaced query points
-    
-    MHanhpos_shiftedq = Fpos(absHanhq); % query the interpolant Fpos at absHanhq points
-    
-    MH = [transpose(absHanhq),transpose(MHanhpos_shiftedq)];
+    MH = [transpose(absHanhpos_shifted),transpose(absManhpos_shifted)];
     MH = [[0,0]; MH];
 end
