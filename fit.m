@@ -1,16 +1,10 @@
-function [Hcr, mcr, Hx] = fit(H, M, seed, select_a, error_type, lb, ub)
+function [Hcr, mcr, Hx] = fit(H, M, seed, select_a, error_type, lb, ub, select_fit)
     [HTip, ~] = Utils().find_tip(H, M);
     H_log = log(H);
     N = 100;
     Hhat = logspace(log10(H(2)),log10(HTip),N);
     error = ErrorCalculator();
     number_components = (length(seed)+1)/3;
-    disp("seed")
-    disp(seed)
-    disp("lb")
-    disp(lb)
-    disp("ub")
-    disp(ub)
 
     function ret = fit_parameters(x)
         Hcr_fit = x(1:number_components);
@@ -25,8 +19,15 @@ function [Hcr, mcr, Hx] = fit(H, M, seed, select_a, error_type, lb, ub)
         ret = error.get_error(H_log, M, log(Hhat), Mhat, error_type);
     end
 
+    epsilon = 0.0001;
+    for i=1:length(select_fit)
+        if(~select_fit{i})
+            lb(i) = seed(i) - epsilon;
+            ub(i) = seed(i) + epsilon;
+        end
+    end
+
     params = minimize(@fit_parameters, seed, [],[], [],[], lb , ub);
-    disp(params)
 
     Hcr = params(1:number_components);
     mcr = params(number_components+1:2*number_components);
