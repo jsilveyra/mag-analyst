@@ -43,8 +43,8 @@ classdef ErrorCalculator
 
         function v_error = vertical_error(~, X, Y, Xhat, Yhat)
             Yint = interp1(Xhat, Yhat, X, 'linear', 'extrap');
-            Yint = Yint(3:end);
-            Ydat = Y(3:end);
+            Yint = Yint(3:end);     %por qué quedaba iniciando en 3?
+            Ydat = Y(3:end);        %por qué quedaba iniciando en 3?
             v_error = 0;
             for i = 1:length(Yint)
                 e = Ydat(i) - Yint(i);

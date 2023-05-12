@@ -6,6 +6,8 @@ function ek = msekplots(k,Mq,Moffset)
     % Moffset is the vertical offset to add to the hysteresis loop so that k(M)=k(-M)
     
     MqShifted = @(Moffset)(Mq + Moffset);
+
+    tmpMqShifted = MqShifted(Moffset);
     
     % Plot shifted k[M] distribution
 
@@ -28,13 +30,13 @@ function ek = msekplots(k,Mq,Moffset)
 
     [Mzero, Izero] = min(abs(Mq));   % Find |M| minimum (i.e., where M is zero o changes sign) as well as the row index of data in which it appears
     
-    if Izero == 0
+    if Mq(Izero) == 0;
         end_kMneg = Izero;
 	    start_kMpos = Izero;
-    elseif Izero > 0
+    elseif Mq(Izero) > 0;
         end_kMneg = Izero-1;
 	    start_kMpos = Izero;
-    else Izero < 0
+    else Mq(Izero) < 0;
         end_kMneg = Izero;
 	    start_kMpos = Izero+1;
     end
@@ -44,13 +46,13 @@ function ek = msekplots(k,Mq,Moffset)
     
     [Mzero_shifted, Izero_shifted] = min(abs(MqShifted(Moffset)));   % Find |M_shifted| minimum (i.e., where M is zero o changes sign) as well as the row index of data in which it appears
     
-    if Izero_shifted == 0
+    if tmpMqShifted(Izero_shifted) == 0;
         end_kMneg_shifted = Izero_shifted;
 	    start_kMpos_shifted = Izero_shifted;
-    elseif Izero_shifted > 0
+    elseif tmpMqShifted(Izero_shifted) > 0;
         end_kMneg_shifted = Izero_shifted - 1;
 	    start_kMpos_shifted = Izero_shifted;
-    else Izero_shifted < 0
+    else tmpMqShifted(Izero_shifted) < 0;
         end_kMneg_shifted = Izero_shifted;
 	    start_kMpos_shifted = Izero_shifted + 1;
     end

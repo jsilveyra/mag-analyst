@@ -9,6 +9,10 @@ function ehanh = msehanhplots(Hanh,Mq,Moffset,Hoffset)
     MqShifted = (Mq + Moffset);
     HanhShifted = @(Hoffset)(Hanh + Hoffset);
     
+    tmpHanhShifted = HanhShifted(Hoffset);   % temporary variable to store the function of shifted Hanh at Hoffset input. 
+                                             % Although Octave does handle a syntaxis such as HanhShifted(Hoffset)(1:end_Hanhneg_shifted)
+                                             % -having two sets of parentheses immediately following one another-, Matlab doesn't.
+
     % Plot shifted M[Hanh] distribution
 
     figure
@@ -30,13 +34,13 @@ function ehanh = msehanhplots(Hanh,Mq,Moffset,Hoffset)
 
     [Hzero, Izero] = min(abs(Hanh));   % Find |Hanh| minimum (i.e., where Hanh is zero o changes sign) as well as the row index of data in which it appears
     
-    if Izero == 0
+    if Hanh(Izero) == 0;
         end_Hanhneg = Izero;
 	    start_Hanhpos = Izero;
-    elseif Izero > 0
+    elseif Hanh(Izero) > 0;
         end_Hanhneg = Izero-1;
 	    start_Hanhpos = Izero;
-    else Izero < 0
+    else Hanh(Izero) < 0;
         end_Hanhneg = Izero;
 	    start_Hanhpos = Izero+1;
     end
@@ -44,15 +48,15 @@ function ehanh = msehanhplots(Hanh,Mq,Moffset,Hoffset)
     Manhneg = MqShifted(1:end_Hanhneg);                             % array of M(Hanh) with Hanh<0
     Manhpos = MqShifted(start_Hanhpos:end);                         % array of M(Hanh) with Hanh>0
     
-    [Hanhzero_shifted, Izero_shifted] = min(abs(HanhShifted(Hoffset)));   % Find |Hanh_shifted| minimum (i.e., where Hanh is zero o changes sign) as well as the row index of data in which it appears
+    [Hanhzero_shifted, Izero_shifted] = min(abs(tmpHanhShifted));   % Find |Hanh_shifted| minimum (i.e., where Hanh is zero o changes sign) as well as the row index of data in which it appears
     
-    if Izero_shifted == 0
+    if tmpHanhShifted(Izero_shifted) == 0;
         end_Hanhneg_shifted = Izero_shifted;
 	    start_Hanhpos_shifted = Izero_shifted;
-    elseif Izero_shifted > 0
+    elseif tmpHanhShifted(Izero_shifted) > 0;
         end_Hanhneg_shifted = Izero_shifted - 1;
 	    start_Hanhpos_shifted = Izero_shifted;
-    else Izero_shifted < 0
+    else tmpHanhShifted(Izero_shifted) < 0;
         end_Hanhneg_shifted = Izero_shifted;
 	    start_Hanhpos_shifted = Izero_shifted + 1;
     end
