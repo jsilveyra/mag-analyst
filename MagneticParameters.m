@@ -104,6 +104,13 @@ classdef MagneticParameters
                 initial_relative_magnetic_permeability(i) = 1 + Ms(i)/Hk(i);
             end
         end
+        
+        function murin = get_murin(~, initial_relative_magnetic_permeability)
+            murin = 0;
+            for i = 1:length(initial_relative_magnetic_permeability)
+                murin = murin + initial_relative_magnetic_permeability(i);
+            end
+        end
     end
 
     methods (Access = private)
