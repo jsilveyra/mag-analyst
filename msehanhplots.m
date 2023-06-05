@@ -83,8 +83,13 @@ function ehanh = msehanhplots(Hanh,Mq,Moffset,Hoffset)
     message = input('Press a key to continue');
     close    
 
-    absManhError = residue2(absHanhpos_shifted, absManhpos_shifted,absHanhneg_shifted, absManhneg_shifted);   % at constant |Hanh|
+    %absManhError = residue2(absHanhpos_shifted, absManhpos_shifted,absHanhneg_shifted, absManhneg_shifted);   % at constant |Hanh|
     %ACÁ LLAMO A UNA COPY-PASTE FUNCTION DE LA QUE ESTÁ DENTRO DE ERROR CALCULATOR. AVERIGUAR CÓMO LLAMARLA PARA NO DUPLICAR.
+    %errorCalculator = ErrorCalculator()
+    %errorCalculator.get_error(X, Y, Xhat, Yhat, "Diagonal")
+    %errorCalculator.residue(X, Y, Xhat, Yhat, "Diagonal")
+    errorCalculator = ErrorCalculator();
+    absManhError = errorCalculator(absHanhpos_shifted, absManhpos_shifted,absHanhneg_shifted, absManhneg_shifted);   % at constant |Hanh|
   
     figure
     plot(absHanhpos_shifted(3:end),absManhError,'.')

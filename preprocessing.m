@@ -303,7 +303,7 @@ Moffset_opt = Moffset0;
 
     % Calculate MSE of Hanh[M] distribution
 
-% mse_hanh = @(Hoffset)(msehanh(Hanh,Mq,Moffset_opt,Hoffset)); % Define a new MSE function only dependent on Hoffset so it can be optimized
+mse_hanh = @(Hoffset)(msehanh(Hanh,Mq,Moffset_opt,Hoffset)); % Define a new MSE function only dependent on Hoffset so it can be optimized
 
 % Uncomment for debugging: Plot the error functions vs Hoffset within the interval [-Mbounds Mbounds]
 % Hbounds = 0.5 * max(abs(Hleftq));
@@ -316,13 +316,13 @@ Moffset_opt = Moffset0;
 Hoffset0 = 0;   % seed
 Hoffset_opt = Hoffset0;
 
-% [Hoffset_opt, msehanh_opt] = fminsearch(mse_hanh,Hoffset0); % Call the function the finds the optimium Hoffset so that the MSE of the |Hanh|[|Manh|] distribution is minimum
+[Hoffset_opt, msehanh_opt] = fminsearch(mse_hanh,Hoffset0); % Call the function the finds the optimium Hoffset so that the MSE of the |Hanh|[|Manh|] distribution is minimum
 
-% disp('mseHanh')
-% disp(msehanh_opt)
+disp('mseHanh')
+disp(msehanh_opt)
 % disp('Hoffset_opt')
 % disp(Hoffset_opt)
-%msehanhplots(Hanh,Mq,Moffset_opt,Hoffset_opt); % Plot graphs after the optimal Hoffset has been applied.
+msehanhplots(Hanh,Mq,Moffset_opt,Hoffset_opt); % Plot graphs after the optimal Hoffset has been applied.
 
 figure
 plot (Hrightq, Mq, 'k-',Hleftq, Mq, 'k-')

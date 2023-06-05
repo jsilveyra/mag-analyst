@@ -37,6 +37,9 @@ function ehanh = msehanh(Hanh,Mq,Moffset,Hoffset)
     absHanhneg_shifted = flip(abs(tmpHanhShifted(1:end_Hanhneg_shifted)));
     absHanhpos_shifted = tmpHanhShifted(start_Hanhpos_shifted:end);
         
-    ehanh = diagonal_error2(absHanhpos_shifted, absManhpos_shifted,absHanhneg_shifted, absManhneg_shifted); %ACÁ LLAMO A UNA COPY-PASTE FUNCTION DE LA QUE ESTÁ DENTRO DE ERROR CALCULATOR. AVERIGUAR CÓMO LLAMARLA PARA NO DUPLICAR.
-
+    %ehanh = diagonal_error2(absHanhpos_shifted, absManhpos_shifted,absHanhneg_shifted, absManhneg_shifted); %ACÁ LLAMO A UNA COPY-PASTE FUNCTION DE LA QUE ESTÁ DENTRO DE ERROR CALCULATOR. AVERIGUAR CÓMO LLAMARLA PARA NO DUPLICAR.
+    %errorCalculator = ErrorCalculator()
+    %errorCalculator.get_error(X, Y, Xhat, Yhat, "Diagonal")
+    errorCalculator = ErrorCalculator();
+    ehanh = errorCalculator.get_error(absHanhpos_shifted, absManhpos_shifted,absHanhneg_shifted, absManhneg_shifted, "Diagonal");
 end
