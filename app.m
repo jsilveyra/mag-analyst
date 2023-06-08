@@ -514,7 +514,11 @@ classdef app < matlab.apps.AppBase
                 return
             end
             unit = app.HorizontalaxisfieldDropDown.Value;
-            [app.H, app.M] = Parser(strcat(path, file), unit).get_data_csv;
+            unit_convertor = UnitConvertor();
+            [H_raw, M_raw] = Parser(strcat(path, file)).get_data_csv;
+            
+            app.H = unit_convertor.convert(H_raw, unit);
+            app.M = M_raw;
             app.InputDatasetPath.Value = strcat(path, file);
             update_components(app)
             calculate_parameters(app)
