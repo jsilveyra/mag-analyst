@@ -718,7 +718,7 @@ classdef app < matlab.apps.AppBase
 
             % Create HorizontalaxisfieldDropDown
             app.HorizontalaxisfieldDropDown = uidropdown(app.GridLayoutInputHorizontalAxis);
-            app.HorizontalaxisfieldDropDown.Items = {'H [A/m]', 'H [kA/m]', 'H [Oe]', 'H [kOe]'};
+            app.HorizontalaxisfieldDropDown.Items = {'H [A/m]', 'H [kA/m]', 'H [Oe]', 'H [kOe]', 'Bext [T]'};
             app.HorizontalaxisfieldDropDown.Layout.Row = 1;
             app.HorizontalaxisfieldDropDown.Layout.Column = 2;
             app.HorizontalaxisfieldDropDown.Value = 'H [A/m]';
