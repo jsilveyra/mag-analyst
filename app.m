@@ -426,6 +426,15 @@ classdef app < matlab.apps.AppBase
             msg = sprintf("[%s] %s", app.get_time_string(), message);
             app.MessagesTextArea.Value(end+1) = cellstr(msg);
         end
+        
+        function import_data(app, path)
+            unit = app.HorizontalaxisfieldDropDown.Value;
+            unit_convertor = UnitConvertor();
+            [H_raw, M_raw] = Parser(path).get_data_csv;
+            
+            app.H = unit_convertor.convert(H_raw, unit);
+            app.M = M_raw;
+        end
     end
     
     methods (Access = public)
@@ -513,16 +522,14 @@ classdef app < matlab.apps.AppBase
             if strcat(path, file) == ""
                 return
             end
-            unit = app.HorizontalaxisfieldDropDown.Value;
-            unit_convertor = UnitConvertor();
-            [H_raw, M_raw] = Parser(strcat(path, file)).get_data_csv;
             
-            app.H = unit_convertor.convert(H_raw, unit);
-            app.M = M_raw;
+            app.import_data(strcat(path, file));
+
             app.InputDatasetPath.Value = strcat(path, file);
             update_components(app)
             calculate_parameters(app)
             app.write_message("Imported " + file);
+            app.plot_input();
         end
 
         % Value changed function: InputDatasetPath
@@ -535,7 +542,14 @@ classdef app < matlab.apps.AppBase
 
         % Button pushed function: CalculatePlotInputButton
         function CalculatePlotInputButtonPushed(app, event)
-            app.plot_input()
+            path = app.InputDatasetPath.Value;
+            if path == ""
+                return
+            end
+            app.import_data(path);
+            update_components(app)
+            calculate_parameters(app)
+            app.plot_input();
         end
 
         % Value changed function: logCheckBoxInputPlot
