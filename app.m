@@ -513,7 +513,8 @@ classdef app < matlab.apps.AppBase
             if strcat(path, file) == ""
                 return
             end
-            [app.H, app.M] = Parser(strcat(path, file)).get_data_csv;
+            unit = app.HorizontalaxisfieldDropDown.Value;
+            [app.H, app.M] = Parser(strcat(path, file), unit).get_data_csv;
             app.InputDatasetPath.Value = strcat(path, file);
             update_components(app)
             calculate_parameters(app)
@@ -699,7 +700,7 @@ classdef app < matlab.apps.AppBase
 
             % Create HorizontalaxisfieldDropDown
             app.HorizontalaxisfieldDropDown = uidropdown(app.GridLayoutInputHorizontalAxis);
-            app.HorizontalaxisfieldDropDown.Items = {'H [A/m]'};
+            app.HorizontalaxisfieldDropDown.Items = {'H [A/m]', 'H [kA/m]'};
             app.HorizontalaxisfieldDropDown.Layout.Row = 1;
             app.HorizontalaxisfieldDropDown.Layout.Column = 2;
             app.HorizontalaxisfieldDropDown.Value = 'H [A/m]';

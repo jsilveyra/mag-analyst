@@ -2,11 +2,13 @@ classdef Parser
 
     properties
         FilePath
+        Unit
     end
 
     methods (Access = public)
-        function obj = Parser(file_path)
+        function obj = Parser(file_path, unit)
             obj.FilePath = file_path;
+            obj.Unit = unit;
         end
 
         function [H, M] = get_data(obj)
