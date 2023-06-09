@@ -84,9 +84,9 @@ classdef app < matlab.apps.AppBase
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
         logCheckBoxM                    matlab.ui.control.CheckBox
-        AxesHdMdH                       matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesM                           matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesHdMdH                       matlab.ui.control.UIAxes
         MagnetizationoutputdataTab      matlab.ui.container.Tab
         GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
         GridLayoutExportData            matlab.ui.container.GridLayout
@@ -426,6 +426,15 @@ classdef app < matlab.apps.AppBase
             msg = sprintf("[%s] %s", app.get_time_string(), message);
             app.MessagesTextArea.Value(end+1) = cellstr(msg);
         end
+        
+        function import_data(app, path)
+            unit = app.HorizontalaxisfieldDropDown.Value;
+            unit_convertor = UnitConvertor();
+            [H_raw, M_raw] = Parser(path).get_data_csv;
+            
+            app.H = unit_convertor.convert(H_raw, unit);
+            app.M = M_raw;
+        end
     end
     
     methods (Access = public)
@@ -513,11 +522,14 @@ classdef app < matlab.apps.AppBase
             if strcat(path, file) == ""
                 return
             end
-            [app.H, app.M] = Parser(strcat(path, file)).get_data_csv;
+            
+            app.import_data(strcat(path, file));
+
             app.InputDatasetPath.Value = strcat(path, file);
             update_components(app)
             calculate_parameters(app)
             app.write_message("Imported " + file);
+            app.plot_input();
         end
 
         % Value changed function: InputDatasetPath
@@ -530,7 +542,14 @@ classdef app < matlab.apps.AppBase
 
         % Button pushed function: CalculatePlotInputButton
         function CalculatePlotInputButtonPushed(app, event)
-            app.plot_input()
+            path = app.InputDatasetPath.Value;
+            if path == ""
+                return
+            end
+            app.import_data(path);
+            update_components(app)
+            calculate_parameters(app)
+            app.plot_input();
         end
 
         % Value changed function: logCheckBoxInputPlot
@@ -699,7 +718,7 @@ classdef app < matlab.apps.AppBase
 
             % Create HorizontalaxisfieldDropDown
             app.HorizontalaxisfieldDropDown = uidropdown(app.GridLayoutInputHorizontalAxis);
-            app.HorizontalaxisfieldDropDown.Items = {'H [A/m]'};
+            app.HorizontalaxisfieldDropDown.Items = {'H [A/m]', 'H [kA/m]', 'H [Oe]', 'H [kOe]', 'Bext [T]', 'Bext [Gauss]', 'Bext [kGauss]'};
             app.HorizontalaxisfieldDropDown.Layout.Row = 1;
             app.HorizontalaxisfieldDropDown.Layout.Column = 2;
             app.HorizontalaxisfieldDropDown.Value = 'H [A/m]';
@@ -903,15 +922,14 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.TickDir = 'in';
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(logH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -922,14 +940,15 @@ classdef app < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(logH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.TickDir = 'in';
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
