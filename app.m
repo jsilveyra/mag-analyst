@@ -435,6 +435,9 @@ classdef app < matlab.apps.AppBase
             
             app.H = unit_convertor.convert(H_raw, H_unit);
             app.M = unit_convertor.convert(M_raw, M_unit);
+            if(M_unit == "B [T]")
+                app.M = app.M - app.H;
+            end
         end
     end
     
@@ -741,7 +744,7 @@ classdef app < matlab.apps.AppBase
 
             % Create VerticalaxisfieldDropDown
             app.VerticalaxisfieldDropDown = uidropdown(app.GridLayoutInputVerticalAxis);
-            app.VerticalaxisfieldDropDown.Items = {'M [A/m]', 'M [kA/m]', 'M [MA/m]', 'M [emu/cm^3]', 'J [T]'};
+            app.VerticalaxisfieldDropDown.Items = {'M [A/m]', 'M [kA/m]', 'M [MA/m]', 'M [emu/cm^3]', 'J [T]', 'B [T]'};
             app.VerticalaxisfieldDropDown.Layout.Row = 1;
             app.VerticalaxisfieldDropDown.Layout.Column = 2;
             app.VerticalaxisfieldDropDown.Value = 'M [A/m]';
