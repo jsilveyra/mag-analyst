@@ -16,5 +16,13 @@ classdef UnitConvertor
         function X = convert(obj, X_raw, unit)
             X = X_raw .* obj.UnitConversions(unit);
         end
+
+        function [H, M] = convert_H_M(obj, H_raw, H_unit, M_raw, M_unit)
+            H = convert(obj, H_raw, H_unit);
+            M = convert(obj, M_raw, M_unit);
+            if(M_unit == "B [T]" || M_unit == "B [Gauss]" || M_unit == "B [kGauss]")
+                M = M - H;
+            end
+        end
     end
 end
