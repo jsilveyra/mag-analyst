@@ -471,7 +471,7 @@ classdef app < matlab.apps.AppBase
             update_components(app)
             
             % Each element from the array represents RGB on scale 0-1 
-            app.Colors = [ 0.58 0 0.70; 0.70 0 0; 0 0 0; 0 0 0; 0 0 0];
+            app.Colors = [ 0.58 0 0.70; 0.70 0 0; 0 0 0.70; 0 0 0; 0 0 0];
 
             addpath(".\minimize")
 
