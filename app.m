@@ -221,7 +221,6 @@ classdef app < matlab.apps.AppBase
                 fit_select_fit(i + 2*app.number_components) = app.select_fit(2*app.number_components + i);
             end
             
-
             app.write_message("Fitting started");
             pause(0.01);
             tic
