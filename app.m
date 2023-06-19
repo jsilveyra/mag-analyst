@@ -84,9 +84,9 @@ classdef app < matlab.apps.AppBase
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
         logCheckBoxM                    matlab.ui.control.CheckBox
-        AxesHdMdH                       matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesM                           matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesHdMdH                       matlab.ui.control.UIAxes
         MagnetizationoutputdataTab      matlab.ui.container.Tab
         GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
         GridLayoutExportData            matlab.ui.container.GridLayout
@@ -221,12 +221,18 @@ classdef app < matlab.apps.AppBase
                 fit_select_fit(i + 2*app.number_components) = app.select_fit(2*app.number_components + i);
             end
             
+
             app.write_message("Fitting started");
             pause(0.01);
             tic
-            [app.Hcr, app.mcr, app.Hx] = fit(app.H, app.M, cat(2, app.Hcr, app.mcr, app.Hx), select_a, app.ErrortominimizeDropDown.Value, fit_lb, fit_ub, fit_select_fit);
-            t = sprintf("%0.2f", toc);
-            app.write_message("Fitting finished after " + t + " s");
+            try
+                [app.Hcr, app.mcr, app.Hx] = fit(app.H, app.M, cat(2, app.Hcr, app.mcr, app.Hx), select_a, app.ErrortominimizeDropDown.Value, fit_lb, fit_ub, fit_select_fit);
+                t = sprintf("%0.2f", toc);
+                app.write_message("Fitting finished after " + t + " s");
+            catch e
+                t = sprintf("%0.2f", toc);
+                app.write_message("Fitting failed after " + t + " s: " + e.message);
+            end
         end
         
         function update_components(app)
@@ -523,14 +529,18 @@ classdef app < matlab.apps.AppBase
             if strcat(path, file) == ""
                 return
             end
-            
-            app.import_data(strcat(path, file));
 
-            app.InputDatasetPath.Value = strcat(path, file);
-            update_components(app)
-            calculate_parameters(app)
-            app.write_message("Imported " + file);
-            app.plot_input();
+            try
+                app.import_data(strcat(path, file));
+
+                app.InputDatasetPath.Value = strcat(path, file);
+                update_components(app)
+                calculate_parameters(app)
+                app.write_message("Imported " + file);
+                app.plot_input();
+            catch e
+                app.write_message("Import failed: " + e.message);
+            end
         end
 
         % Value changed function: InputDatasetPath
@@ -923,15 +933,14 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.TickDir = 'in';
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(logH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -942,14 +951,15 @@ classdef app < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(logH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.TickDir = 'in';
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
