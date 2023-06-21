@@ -6,14 +6,14 @@ clc;				%clear command window
 
 % Parse hysteresis loop data table
 
-inputFolder = 'data/loopData/TEAM32/';
+inputFolder = 'data/loopData/Nick/';
 inputExtension = '.csv';
-%dataname = 'Core1_10000Am'; % To be used when exporting processed data as csv files % Core 1 DC 10000Am Nico B(T)vsH(Am)
-%dataname = 'CAHLtest'; % To be used when exporting processed data as csv files
+%dataname = 'Core1_10000Am';    % To be used when importing/exporting processed data as csv files % Core 1 DC 10000Am Nico B(T)vsH(Am)
+%dataname = 'CAHLtest';         % To be used when importing/exporting processed data as csv files
 
 %dataname = 'Core1_100Am';      %OJO Hay demasiado ruido. Ver de meter algún filtrado, smootheado, unique o algo
 %dataname = 'Core1_4000Am';     %OJO El algoritmo la descentra
-dataname = 'TEAM32_1.68T';     % To be used when exporting processed data as csv files
+dataname = '675C_53MPaneg';     % To be used when importing/exporting processed data as csv files
 
 inputString = append(inputFolder,dataname,inputExtension);
 
@@ -207,6 +207,8 @@ close
 HrightUnique = Hright(index);
 [MleftUnique, index] = unique(Mleft);
 HleftUnique = Hleft(index);
+
+
 % figure
 % plot(Hright, Mright, 'r.',Hleft, Mleft, 'b.')
 % hold
@@ -286,7 +288,7 @@ Hanh = 1/2*(Hrightq + Hleftq);
 % fplot(mse_k,[-Mbounds Mbounds])
 % message = input('Press a key to continue');
 % close
-
+%%
     % Optimize vertical offset
 
 Moffset0 = 0;   % seed
@@ -316,13 +318,13 @@ mse_hanh = @(Hoffset)(msehanh(Hanh,Mq,Moffset_opt,Hoffset)); % Define a new MSE 
 Hoffset0 = 0;   % seed
 Hoffset_opt = Hoffset0;
 
-[Hoffset_opt, msehanh_opt] = fminsearch(mse_hanh,Hoffset0); % Call the function the finds the optimium Hoffset so that the MSE of the |Hanh|[|Manh|] distribution is minimum
+%[Hoffset_opt, msehanh_opt] = fminsearch(mse_hanh,Hoffset0); % Call the function the finds the optimium Hoffset so that the MSE of the |Hanh|[|Manh|] distribution is minimum
 
-disp('mseHanh')
-disp(msehanh_opt)
+%disp('mseHanh')
+%disp(msehanh_opt)
 % disp('Hoffset_opt')
 % disp(Hoffset_opt)
-msehanhplots(Hanh,Mq,Moffset_opt,Hoffset_opt); % Plot graphs after the optimal Hoffset has been applied.
+%msehanhplots(Hanh,Mq,Moffset_opt,Hoffset_opt); % Plot graphs after the optimal Hoffset has been applied.
 
 figure
 plot (Hrightq, Mq, 'k-',Hleftq, Mq, 'k-')
@@ -362,6 +364,11 @@ close
 % Obtain k[M] and M[Hanh] distributions for positive M and H (these are the distributions we will fit later. For the 1st public version)
 
 kvsM = kvsmpos(k,Mq, Moffset_opt);
+
+
+Moffset_opt = 0;
+Hoffset_opt = 0;
+
 % plot(kvsM(1:end,1),kvsM(1:end,2));    % Plot k vs M (for positive M)
 MvsHanh = mvshanhpos(Hanh,Mq,Moffset_opt,Hoffset_opt);
 % plot(MvsHanh(1:end,1),MvsHanh(1:end,2));    % Plot Manh vs Hanh (for positive H)
@@ -396,8 +403,8 @@ close
 export = input('Export loop, k vs M & Manh vs Hanh data? (1-Yes/2-No): ');
 
 if export == 1
-    %outputFolder = 'data\processedData\TEAM32\';
-    outputFolder = 'data\';
+    outputFolder = 'data\processedData\Nick\';
+    %outputFolder = 'data\';
     outputExtension = '.csv';
     delimiter = ';';
     
@@ -433,6 +440,11 @@ if export == 1
     outputStringMHanh = append(outputFolder,dataname,' ','Manh_vs_Hanh',outputExtension);
     Hanhproc = MvsHanh(1:end,1);
     Manhproc = MvsHanh(1:end,2);
+    
+    % We need to remove duplicates using 'unique' function. C = unique(A) returns the same data as in A, but with no repetitions. C is in sorted order.
+    [Hanhproc, index] = unique(Hanhproc);
+    Manhproc = Manhproc(index);
+        
     MHanhprocLabel = ["Hanh [A/m]","Manh [A/m]"];
     writematrix(MHanhprocLabel,outputStringMHanh ,'Delimiter',delimiter, 'FileType', 'text')
     MHanhproc = [Hanhproc,Manhproc];

@@ -1,0 +1,7 @@
+Aleación: Fe72.5Nb2Mo2Cu1Si15.5B7 (at. %)
+Cinta de 20 cm de longitud
+Originalmente amorfa, recocida bajo tensión mecánica durante 5 segundos a 650 ºC.
+
+Referencia:
+Bruno, N. M., Adoo, N. A., Meakins, E., Keylin, V., Feichter, G. E., & Noebe, R. D. (2023). The effect of stress-annealing on the mechanical and magnetic properties of several Fe-based metal-amorphous nano-composite soft magnetic alloys. Journal of Non-Crystalline Solids, 600, 122037.
+https://doi.org/10.1016/j.jnoncrysol.2022.122037
