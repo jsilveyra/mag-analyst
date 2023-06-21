@@ -84,9 +84,9 @@ classdef app < matlab.apps.AppBase
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
         logCheckBoxM                    matlab.ui.control.CheckBox
-        AxesHdMdH                       matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesM                           matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesHdMdH                       matlab.ui.control.UIAxes
         MagnetizationoutputdataTab      matlab.ui.container.Tab
         GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
         GridLayoutExportData            matlab.ui.container.GridLayout
@@ -224,9 +224,14 @@ classdef app < matlab.apps.AppBase
             app.write_message("Fitting started");
             pause(0.01);
             tic
-            [app.Hcr, app.mcr, app.Hx] = fit(app.H, app.M, cat(2, app.Hcr, app.mcr, app.Hx), select_a, app.ErrortominimizeDropDown.Value, fit_lb, fit_ub, fit_select_fit);
-            t = sprintf("%0.2f", toc);
-            app.write_message("Fitting finished after " + t + " s");
+            try
+                [app.Hcr, app.mcr, app.Hx] = fit(app.H, app.M, cat(2, app.Hcr, app.mcr, app.Hx), select_a, app.ErrortominimizeDropDown.Value, fit_lb, fit_ub, fit_select_fit);
+                t = sprintf("%0.2f", toc);
+                app.write_message("Fitting finished after " + t + " s");
+            catch e
+                t = sprintf("%0.2f", toc);
+                app.write_message("Fitting failed after " + t + " s: " + e.message);
+            end
         end
         
         function update_components(app)
@@ -433,8 +438,7 @@ classdef app < matlab.apps.AppBase
             unit_convertor = UnitConvertor();
             [H_raw, M_raw] = Parser(path).get_data_csv;
             
-            app.H = unit_convertor.convert(H_raw, H_unit);
-            app.M = unit_convertor.convert(M_raw, M_unit);
+            [app.H, app.M] = unit_convertor.convert_H_M(H_raw, H_unit, M_raw, M_unit);
         end
     end
     
@@ -471,7 +475,8 @@ classdef app < matlab.apps.AppBase
 
             update_components(app)
             
-            app.Colors = [ 0 0 0; 0 0 0; 0 0 0; 0 0 0; 0 0 0];
+            % Each element from the array represents RGB on scale 0-1 
+            app.Colors = [ 0.58 0 0.70; 0.70 0 0; 0 0 0.70; 0 0.70 0; 1 0.50 0];
 
             addpath(".\minimize")
 
@@ -523,14 +528,18 @@ classdef app < matlab.apps.AppBase
             if strcat(path, file) == ""
                 return
             end
-            
-            app.import_data(strcat(path, file));
 
-            app.InputDatasetPath.Value = strcat(path, file);
-            update_components(app)
-            calculate_parameters(app)
-            app.write_message("Imported " + file);
-            app.plot_input();
+            try
+                app.import_data(strcat(path, file));
+
+                app.InputDatasetPath.Value = strcat(path, file);
+                update_components(app)
+                calculate_parameters(app)
+                app.write_message("Imported " + file);
+                app.plot_input();
+            catch e
+                app.write_message("Import failed: " + e.message);
+            end
         end
 
         % Value changed function: InputDatasetPath
@@ -741,7 +750,7 @@ classdef app < matlab.apps.AppBase
 
             % Create VerticalaxisfieldDropDown
             app.VerticalaxisfieldDropDown = uidropdown(app.GridLayoutInputVerticalAxis);
-            app.VerticalaxisfieldDropDown.Items = {'M [A/m]', 'M [kA/m]', 'M [MA/m]', 'M [emu/cm^3]', 'J [T]'};
+            app.VerticalaxisfieldDropDown.Items = {'M [A/m]', 'M [kA/m]', 'M [MA/m]', 'M [emu/cm^3]', 'J [T]', 'B [T]', 'B [Gauss]', 'B [kGauss]'};
             app.VerticalaxisfieldDropDown.Layout.Row = 1;
             app.VerticalaxisfieldDropDown.Layout.Column = 2;
             app.VerticalaxisfieldDropDown.Value = 'M [A/m]';
@@ -923,15 +932,14 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.TickDir = 'in';
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(logH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -942,14 +950,15 @@ classdef app < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(logH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.TickDir = 'in';
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
