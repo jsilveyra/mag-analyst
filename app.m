@@ -84,11 +84,21 @@ classdef app < matlab.apps.AppBase
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
         logCheckBoxM                    matlab.ui.control.CheckBox
-        AxesM                           matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesHdMdH                       matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesM                           matlab.ui.control.UIAxes
         MagnetizationoutputdataTab      matlab.ui.container.Tab
         GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
+        GridLayoutExportParametersButton  matlab.ui.container.GridLayout
+        ExportErrorsCheckBox            matlab.ui.control.CheckBox
+        ExportOtherquantitiesCheckBox   matlab.ui.control.CheckBox
+        ExportParametersButton          matlab.ui.control.Button
+        GridLayoutExportParametersFile  matlab.ui.container.GridLayout
+        ExportModelparametersCheckBox   matlab.ui.control.CheckBox
+        ExportFittedparametersCheckBox  matlab.ui.control.CheckBox
+        DropDownOutputParametersExtension  matlab.ui.control.DropDown
+        EditFieldFileNameParameters     matlab.ui.control.EditField
+        ParametersLabel                 matlab.ui.control.Label
         GridLayoutExportData            matlab.ui.container.GridLayout
         ModeledanhystereticmagnetizationcomponentsLabel  matlab.ui.control.Label
         OutputSeparateComponentsCheckBox  matlab.ui.control.CheckBox
@@ -932,14 +942,15 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(logH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.TickDir = 'in';
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -950,15 +961,14 @@ classdef app < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.TickDir = 'in';
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(logH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
@@ -1279,7 +1289,7 @@ classdef app < matlab.apps.AppBase
             % Create GridLayoutMagnetizationoutputdata
             app.GridLayoutMagnetizationoutputdata = uigridlayout(app.MagnetizationoutputdataTab);
             app.GridLayoutMagnetizationoutputdata.ColumnWidth = {'1x'};
-            app.GridLayoutMagnetizationoutputdata.RowHeight = {'1x', '1x', '1x', '1x', '10x'};
+            app.GridLayoutMagnetizationoutputdata.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '7x'};
 
             % Create GridLayout3
             app.GridLayout3 = uigridlayout(app.GridLayoutMagnetizationoutputdata);
@@ -1376,6 +1386,73 @@ classdef app < matlab.apps.AppBase
             app.ModeledanhystereticmagnetizationcomponentsLabel.Layout.Row = 1;
             app.ModeledanhystereticmagnetizationcomponentsLabel.Layout.Column = 1;
             app.ModeledanhystereticmagnetizationcomponentsLabel.Text = 'Modeled anhysteretic magnetization components';
+
+            % Create ParametersLabel
+            app.ParametersLabel = uilabel(app.GridLayoutMagnetizationoutputdata);
+            app.ParametersLabel.FontWeight = 'bold';
+            app.ParametersLabel.Layout.Row = 5;
+            app.ParametersLabel.Layout.Column = 1;
+            app.ParametersLabel.Text = 'Parameters:';
+
+            % Create GridLayoutExportParametersFile
+            app.GridLayoutExportParametersFile = uigridlayout(app.GridLayoutMagnetizationoutputdata);
+            app.GridLayoutExportParametersFile.ColumnWidth = {'0.8x', '0.8x', '2.4x', '1x'};
+            app.GridLayoutExportParametersFile.RowHeight = {'1x'};
+            app.GridLayoutExportParametersFile.Padding = [0 0 0 0];
+            app.GridLayoutExportParametersFile.Layout.Row = 6;
+            app.GridLayoutExportParametersFile.Layout.Column = 1;
+
+            % Create EditFieldFileNameParameters
+            app.EditFieldFileNameParameters = uieditfield(app.GridLayoutExportParametersFile, 'text');
+            app.EditFieldFileNameParameters.HorizontalAlignment = 'right';
+            app.EditFieldFileNameParameters.Layout.Row = 1;
+            app.EditFieldFileNameParameters.Layout.Column = 3;
+            app.EditFieldFileNameParameters.Value = 'parameters';
+
+            % Create DropDownOutputParametersExtension
+            app.DropDownOutputParametersExtension = uidropdown(app.GridLayoutExportParametersFile);
+            app.DropDownOutputParametersExtension.Items = {'.txt'};
+            app.DropDownOutputParametersExtension.Layout.Row = 1;
+            app.DropDownOutputParametersExtension.Layout.Column = 4;
+            app.DropDownOutputParametersExtension.Value = '.txt';
+
+            % Create ExportFittedparametersCheckBox
+            app.ExportFittedparametersCheckBox = uicheckbox(app.GridLayoutExportParametersFile);
+            app.ExportFittedparametersCheckBox.Text = 'Fitted parameters';
+            app.ExportFittedparametersCheckBox.Layout.Row = 1;
+            app.ExportFittedparametersCheckBox.Layout.Column = 1;
+
+            % Create ExportModelparametersCheckBox
+            app.ExportModelparametersCheckBox = uicheckbox(app.GridLayoutExportParametersFile);
+            app.ExportModelparametersCheckBox.Text = 'Model parameters';
+            app.ExportModelparametersCheckBox.Layout.Row = 1;
+            app.ExportModelparametersCheckBox.Layout.Column = 2;
+
+            % Create GridLayoutExportParametersButton
+            app.GridLayoutExportParametersButton = uigridlayout(app.GridLayoutMagnetizationoutputdata);
+            app.GridLayoutExportParametersButton.ColumnWidth = {'0.8x', '0.8x', '2.4x', '1x'};
+            app.GridLayoutExportParametersButton.RowHeight = {'1x'};
+            app.GridLayoutExportParametersButton.Padding = [0 0 0 0];
+            app.GridLayoutExportParametersButton.Layout.Row = 7;
+            app.GridLayoutExportParametersButton.Layout.Column = 1;
+
+            % Create ExportParametersButton
+            app.ExportParametersButton = uibutton(app.GridLayoutExportParametersButton, 'push');
+            app.ExportParametersButton.Layout.Row = 1;
+            app.ExportParametersButton.Layout.Column = 4;
+            app.ExportParametersButton.Text = 'Export data';
+
+            % Create ExportOtherquantitiesCheckBox
+            app.ExportOtherquantitiesCheckBox = uicheckbox(app.GridLayoutExportParametersButton);
+            app.ExportOtherquantitiesCheckBox.Text = 'Other quantities';
+            app.ExportOtherquantitiesCheckBox.Layout.Row = 1;
+            app.ExportOtherquantitiesCheckBox.Layout.Column = 1;
+
+            % Create ExportErrorsCheckBox
+            app.ExportErrorsCheckBox = uicheckbox(app.GridLayoutExportParametersButton);
+            app.ExportErrorsCheckBox.Text = 'Errors';
+            app.ExportErrorsCheckBox.Layout.Row = 1;
+            app.ExportErrorsCheckBox.Layout.Column = 2;
 
             % Create MessagesTabPanel
             app.MessagesTabPanel = uitabgroup(app.AppGridLayout);
