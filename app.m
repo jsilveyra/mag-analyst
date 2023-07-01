@@ -677,6 +677,26 @@ classdef app < matlab.apps.AppBase
             delete(app.ColorDialogApp)
             delete(app)
         end
+
+        % Button pushed function: ExportParametersButton
+        function ExportParametersButtonPushed(app, event)
+            file_name = strcat(app.EditFieldFileNameParameters.Value, app.DropDownOutputParametersExtension.Value);
+            path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+            file = fopen(path,'w');
+            fprintf(file, "Parameters:" + newline);
+            if(app.ExportFittedparametersCheckBox.Value == 1)
+                fprintf(file, "Fitted Parameters:" + newline);
+                for i = 1:height(app.TableFittedParameters.Data)
+                    name = string(app.TableFittedParameters.Data(i, 1));
+                    value = str2double(app.TableFittedParameters.Data(i, 2));
+                    s = sprintf("%s: %f", name, value);
+                    fprintf(file, s + newline);
+                end
+            end
+            
+            fclose(file);
+            app.write_message("Parameter data saved as " + file_name);
+        end
     end
 
     % Component initialization
@@ -1438,6 +1458,7 @@ classdef app < matlab.apps.AppBase
 
             % Create ExportParametersButton
             app.ExportParametersButton = uibutton(app.GridLayoutExportParametersButton, 'push');
+            app.ExportParametersButton.ButtonPushedFcn = createCallbackFcn(app, @ExportParametersButtonPushed, true);
             app.ExportParametersButton.Layout.Row = 1;
             app.ExportParametersButton.Layout.Column = 4;
             app.ExportParametersButton.Text = 'Export data';
