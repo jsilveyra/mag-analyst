@@ -84,11 +84,14 @@ classdef app < matlab.apps.AppBase
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
         logCheckBoxM                    matlab.ui.control.CheckBox
-        AxesHdMdH                       matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesM                           matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesHdMdH                       matlab.ui.control.UIAxes
         MagnetizationoutputdataTab      matlab.ui.container.Tab
         GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
+        GridLayoutExportPlotsButton     matlab.ui.container.GridLayout
+        ExportPlotsButton               matlab.ui.control.Button
+        PlotsLabel                      matlab.ui.control.Label
         GridLayoutExportParametersButton  matlab.ui.container.GridLayout
         ExportErrorsCheckBox            matlab.ui.control.CheckBox
         ExportOtherquantitiesCheckBox   matlab.ui.control.CheckBox
@@ -730,15 +733,34 @@ classdef app < matlab.apps.AppBase
                 diagonal_error = error.get_error(log(app.H), app.M, log(app.Hhat), app.Mhat, "Diagonal");
                 horizontal_error = error.get_error(log(app.H), app.M, log(app.Hhat), app.Mhat, "Horizontal");
                 vertical_error = error.get_error(log(app.H), app.M, log(app.Hhat), app.Mhat, "Vertical");
-                s_diagonal_error = sprintf("    Diagonal error: %0.4e", diagonal_error);
-                s_horizontal_error = sprintf("    Horizontal error: %0.4e", horizontal_error);
-                s_vertical_error = sprintf("    Vertical error: %0.4e", vertical_error);
+                s_diagonal_error = sprintf("    Diagonal error: %10.4e", diagonal_error);
+                s_horizontal_error = sprintf("    Horizontal error: %10.4e", horizontal_error);
+                s_vertical_error = sprintf("    Vertical error: %10.4e", vertical_error);
                 s = "Errors:" + newline + s_diagonal_error + newline + s_horizontal_error + newline + s_vertical_error + newline;
                 fprintf(file, s + newline);
             end
 
             fclose(file);
             app.write_message("Parameter data saved as " + file_name);
+        end
+
+        % Button pushed function: ExportPlotsButton
+        function ExportPlotsButtonPushed(app, event)
+            app.write_message("Exporting plots");
+
+            file_name = "M.png";
+            path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+            exportgraphics(app.AxesM,path,'Resolution',400);
+
+            file_name = "dMdH.png";
+            path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+            exportgraphics(app.AxesdMdH,path,'Resolution',400);
+
+            file_name = "dMdlogH.png";
+            path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+            exportgraphics(app.AxesHdMdH,path,'Resolution',400);
+
+            app.write_message("Plots exported as M.png dMdH.png dMdlogH.png");
         end
     end
 
@@ -1005,15 +1027,14 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.TickDir = 'in';
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(logH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -1024,14 +1045,15 @@ classdef app < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(logH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.TickDir = 'in';
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
@@ -1352,7 +1374,7 @@ classdef app < matlab.apps.AppBase
             % Create GridLayoutMagnetizationoutputdata
             app.GridLayoutMagnetizationoutputdata = uigridlayout(app.MagnetizationoutputdataTab);
             app.GridLayoutMagnetizationoutputdata.ColumnWidth = {'1x'};
-            app.GridLayoutMagnetizationoutputdata.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '7x'};
+            app.GridLayoutMagnetizationoutputdata.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '5x'};
 
             % Create GridLayout3
             app.GridLayout3 = uigridlayout(app.GridLayoutMagnetizationoutputdata);
@@ -1517,6 +1539,28 @@ classdef app < matlab.apps.AppBase
             app.ExportErrorsCheckBox.Text = 'Errors';
             app.ExportErrorsCheckBox.Layout.Row = 1;
             app.ExportErrorsCheckBox.Layout.Column = 2;
+
+            % Create PlotsLabel
+            app.PlotsLabel = uilabel(app.GridLayoutMagnetizationoutputdata);
+            app.PlotsLabel.FontWeight = 'bold';
+            app.PlotsLabel.Layout.Row = 8;
+            app.PlotsLabel.Layout.Column = 1;
+            app.PlotsLabel.Text = 'Plots:';
+
+            % Create GridLayoutExportPlotsButton
+            app.GridLayoutExportPlotsButton = uigridlayout(app.GridLayoutMagnetizationoutputdata);
+            app.GridLayoutExportPlotsButton.ColumnWidth = {'0.8x', '0.8x', '2.4x', '1x'};
+            app.GridLayoutExportPlotsButton.RowHeight = {'1x'};
+            app.GridLayoutExportPlotsButton.Padding = [0 0 0 0];
+            app.GridLayoutExportPlotsButton.Layout.Row = 9;
+            app.GridLayoutExportPlotsButton.Layout.Column = 1;
+
+            % Create ExportPlotsButton
+            app.ExportPlotsButton = uibutton(app.GridLayoutExportPlotsButton, 'push');
+            app.ExportPlotsButton.ButtonPushedFcn = createCallbackFcn(app, @ExportPlotsButtonPushed, true);
+            app.ExportPlotsButton.Layout.Row = 1;
+            app.ExportPlotsButton.Layout.Column = 4;
+            app.ExportPlotsButton.Text = 'Export plots';
 
             % Create MessagesTabPanel
             app.MessagesTabPanel = uitabgroup(app.AppGridLayout);
