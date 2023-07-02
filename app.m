@@ -697,18 +697,34 @@ classdef app < matlab.apps.AppBase
             if(app.ExportModelparametersCheckBox.Value == 1)
                 fprintf(file, "Model-Retrieved Parameters:" + newline);
                 for i = 1:height(app.TableParameters.Data)
-                    component = str2double(app.TableParameters.Data(i, 1).parameters_col);
-                    msiValue = str2double(app.TableParameters.Data(i, 2).Ms_col);
-                    alphaValue = str2double(app.TableParameters.Data(i, 3).alpha_col);
-                    aiValue = str2double(app.TableParameters.Data(i, 4).a_col);
-                    sComponent = sprintf("Component: %i", component);
-                    sMsiValue = sprintf("    Msi [A/m]: %0.4f", msiValue);
-                    sAlphaValue = sprintf("    α: %0.4e", alphaValue);
-                    sAiValue = sprintf("    ai [A/m]: %0.4f", aiValue);
-                    fprintf(file, sComponent + newline + sMsiValue + newline + sAlphaValue + newline + sAiValue + newline);
+                    Ms_value = str2double(app.TableParameters.Data(i, 2).Ms_col);
+                    alpha_value = str2double(app.TableParameters.Data(i, 3).alpha_col);
+                    a_value = str2double(app.TableParameters.Data(i, 4).a_col);
+                    s_component = sprintf("Component: %i", i);
+                    s_Ms_value = sprintf("    Msi [A/m]: %0.4f", Ms_value);
+                    s_alpha_value = sprintf("    α: %0.4e", alpha_value);
+                    s_a_value = sprintf("    ai [A/m]: %0.4f", a_value);
+                    fprintf(file, s_component + newline + s_Ms_value + newline + s_alpha_value + newline + s_a_value + newline);
                 end
                 fprintf(file, newline);
             end
+            if(app.ExportOtherquantitiesCheckBox.Value == 1)
+            fprintf(file, "Calculated Quantities:" + newline);
+                for i = 1:height(app.TableQuantities.Data)
+                    alpha_Ms_value = str2double(app.TableQuantities.Data(i, 2).dimensionless_alphaMs_col);
+                    density_product_value = str2double(app.TableQuantities.Data(i, 3).density_product_col);
+                    Hk_value = str2double(app.TableQuantities.Data(i, 4).Hk_col);
+                    magnetic_permeability_value = str2double(app.TableQuantities.Data(i, 5).initial_relative_magnetic_permeability_col);
+                    s_component = sprintf("Component: %i", i);
+                    s_alpha_Ms_value = sprintf("    αᵢ⏐Msᵢ⏐/(3aᵢ): %0.4f", alpha_Ms_value);
+                    s_density_product_value = sprintf("    NᵢkвT [J/m³]: %0.4f", density_product_value);
+                    s_Hk = sprintf("    Hkᵢ [A/m]: %0.4f", Hk_value);
+                    s_magnetic_permeability_value = sprintf("    μrᵢₙ ᵢ: %i", magnetic_permeability_value);
+                    fprintf(file, s_component + newline + s_alpha_Ms_value + newline + s_density_product_value + newline + s_Hk + newline + s_magnetic_permeability_value + newline);
+                end
+                fprintf(file, newline);
+            end
+
             fclose(file);
             app.write_message("Parameter data saved as " + file_name);
         end
