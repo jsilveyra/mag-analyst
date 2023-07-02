@@ -84,9 +84,9 @@ classdef app < matlab.apps.AppBase
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
         logCheckBoxM                    matlab.ui.control.CheckBox
-        AxesHdMdH                       matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesM                           matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesHdMdH                       matlab.ui.control.UIAxes
         MagnetizationoutputdataTab      matlab.ui.container.Tab
         GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
         GridLayoutExportParametersButton  matlab.ui.container.GridLayout
@@ -692,8 +692,23 @@ classdef app < matlab.apps.AppBase
                     s = sprintf("%s: %f", name, value);
                     fprintf(file, s + newline);
                 end
+                fprintf(file, newline);
+            end     
+            if(app.ExportModelparametersCheckBox.Value == 1)
+                fprintf(file, "Model-Retrieved Parameters:" + newline);
+                for i = 1:height(app.TableParameters.Data)
+                    component = str2double(app.TableParameters.Data(i, 1).parameters_col);
+                    msiValue = str2double(app.TableParameters.Data(i, 2).Ms_col);
+                    alphaValue = str2double(app.TableParameters.Data(i, 3).alpha_col);
+                    aiValue = str2double(app.TableParameters.Data(i, 4).a_col);
+                    sComponent = sprintf("Component: %i", component);
+                    sMsiValue = sprintf("    Msi [A/m]: %0.4f", msiValue);
+                    sAlphaValue = sprintf("    α: %0.4e", alphaValue);
+                    sAiValue = sprintf("    ai [A/m]: %0.4f", aiValue);
+                    fprintf(file, sComponent + newline + sMsiValue + newline + sAlphaValue + newline + sAiValue + newline);
+                end
+                fprintf(file, newline);
             end
-            
             fclose(file);
             app.write_message("Parameter data saved as " + file_name);
         end
@@ -962,15 +977,14 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.TickDir = 'in';
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(logH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -981,14 +995,15 @@ classdef app < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(logH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.TickDir = 'in';
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
