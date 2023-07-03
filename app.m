@@ -30,7 +30,7 @@ classdef app < matlab.apps.AppBase
         InputDatasetpathLabel           matlab.ui.control.Label
         DescriptionLabel                matlab.ui.control.Label
         GridLayout                      matlab.ui.container.GridLayout
-        TextArea                        matlab.ui.control.TextArea
+        DescriptionTextArea             matlab.ui.control.TextArea
         GridLayoutInputCurve            matlab.ui.container.GridLayout
         CurveDropDown                   matlab.ui.control.DropDown
         CurveDropDownLabel              matlab.ui.control.Label
@@ -116,6 +116,9 @@ classdef app < matlab.apps.AppBase
         OutputBrowseButton              matlab.ui.control.Button
         OutputDatasetPath               matlab.ui.control.EditField
         OutputDatasetpathLabel          matlab.ui.control.Label
+        ProjectMenu                     matlab.ui.container.Menu
+        OpenMenu                        matlab.ui.container.Menu
+        SaveasMenu                      matlab.ui.container.Menu
     end
 
     
@@ -762,6 +765,56 @@ classdef app < matlab.apps.AppBase
 
             app.write_message("Plots exported as M.png dMdH.png dMdlogH.png");
         end
+
+        % Menu selected function: SaveasMenu
+        function SaveasMenuSelected(app, event)
+            file = fopen("project.txt",'w');
+            s.fitted_parameters = app.TableFittedParameters.Data(:,2);
+            s.model_parameters = app.TableParameters.Data.(5);
+            s.number_components = app.number_components;
+            s.number_points = app.NumberofpointsEditField.Value;
+            s.point_space = app.PointSpaceDropDown.Value;
+            s.error_type = app.ErrortominimizeDropDown.Value;
+            s.input_path = app.InputDatasetPath.Value;
+            s.horizontal_axis = app.HorizontalaxisfieldDropDown.Value;
+            s.vertical_axis = app.VerticalaxisfieldDropDown.Value;
+            s.description = app.DescriptionTextArea.Value;
+            data = jsonencode(s, PrettyPrint=true);
+            fprintf(file, "%s", data);
+            fclose(file);
+            app.write_message("Project saved as project.txt");
+        end
+
+        % Menu selected function: OpenMenu
+        function OpenMenuSelected(app, event)
+            app.write_message("Opening project project.txt");
+            pause(0.01);
+            data = fileread("project.txt");
+            s = jsondecode(data);
+
+            app.number_components = s.number_components;
+            app.init_components();
+            app.init_parameters_table(true);
+            app.init_quantities_table(true);
+            app.NumberofcomponentsSpinner.Value = app.number_components;
+
+            app.TableFittedParameters.Data(:,2) = s.fitted_parameters;
+
+            app.TableParameters.Data.(5) = s.model_parameters;
+            app.TableParameters.Data.(5) = categorical(app.TableParameters.Data.(5), {'high', 'low'}, 'Ordinal', true);
+            
+            app.NumberofpointsEditField.Value = s.number_points;
+            app.PointSpaceDropDown.Value = s.point_space;
+            app.ErrortominimizeDropDown.Value = s.error_type;
+            app.InputDatasetPath.Value = s.input_path;
+            app.HorizontalaxisfieldDropDown.Value = s.horizontal_axis;
+            app.VerticalaxisfieldDropDown.Value = s.vertical_axis;
+            app.DescriptionTextArea.Value = s.description;
+
+            app.CalculatePlotInputButtonPushed();
+            app.CalculatePlotButtonPushed();
+            app.write_message("Project was opened successfully");
+        end
     end
 
     % Component initialization
@@ -880,10 +933,10 @@ classdef app < matlab.apps.AppBase
             app.GridLayout.Layout.Row = 6;
             app.GridLayout.Layout.Column = 1;
 
-            % Create TextArea
-            app.TextArea = uitextarea(app.GridLayout);
-            app.TextArea.Layout.Row = 1;
-            app.TextArea.Layout.Column = 1;
+            % Create DescriptionTextArea
+            app.DescriptionTextArea = uitextarea(app.GridLayout);
+            app.DescriptionTextArea.Layout.Row = 1;
+            app.DescriptionTextArea.Layout.Column = 1;
 
             % Create DescriptionLabel
             app.DescriptionLabel = uilabel(app.GridLayoutInput);
@@ -1581,6 +1634,24 @@ classdef app < matlab.apps.AppBase
             app.MessagesTextArea.Editable = 'off';
             app.MessagesTextArea.Layout.Row = 1;
             app.MessagesTextArea.Layout.Column = 1;
+
+            % Create ProjectMenu
+            app.ProjectMenu = uimenu(app.UIFigure);
+            app.ProjectMenu.Text = 'Project';
+
+            % Create OpenMenu
+            app.OpenMenu = uimenu(app.ProjectMenu);
+            app.OpenMenu.MenuSelectedFcn = createCallbackFcn(app, @OpenMenuSelected, true);
+            app.OpenMenu.Separator = 'on';
+            app.OpenMenu.Accelerator = 'O';
+            app.OpenMenu.Text = 'Open...';
+
+            % Create SaveasMenu
+            app.SaveasMenu = uimenu(app.ProjectMenu);
+            app.SaveasMenu.MenuSelectedFcn = createCallbackFcn(app, @SaveasMenuSelected, true);
+            app.SaveasMenu.Separator = 'on';
+            app.SaveasMenu.Accelerator = 'S';
+            app.SaveasMenu.Text = ' Save as...';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
