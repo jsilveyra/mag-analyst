@@ -1,0 +1,13 @@
+Parameters:
+Fitted Parameters:
+Hcr₁ [A/m]: 0.010000
+m₁ (Hcr₁): 0.500000
+Hcr₂ [A/m]: 0.020000
+m₂ (Hcr₂): 0.500000
+Hcr₃ [A/m]: 0.030000
+m₃ (Hcr₃): 0.500000
+Hcr₄ [A/m]: 0.040000
+m₄ (Hcr₄): 0.500000
+Hx₁ [A/m]: 0.015000
+Hx₂ [A/m]: 0.030000
+Hx₃ [A/m]: 0.045000

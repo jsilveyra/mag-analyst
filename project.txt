@@ -1,0 +1,23 @@
+{
+  "fitted_parameters": [
+    "1",
+    "0.5061",
+    "10.9333",
+    "0.4989",
+    "21.8292"
+  ],
+  "model_parameters": [
+    "low",
+    "low"
+  ],
+  "number_components": 2,
+  "number_points": 100,
+  "point_space": "log",
+  "error_type": "Diagonal",
+  "input_path": "C:\\ubuntu\\mag-analyst\\data\\sampleData\\JNEX-900.csv",
+  "horizontal_axis": "H [A/m]",
+  "vertical_axis": "M [A/m]",
+  "description": [
+    "Este es un test"
+  ]
+}
