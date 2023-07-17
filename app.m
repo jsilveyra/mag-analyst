@@ -87,9 +87,9 @@ classdef app < matlab.apps.AppBase
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
         logCheckBoxM                    matlab.ui.control.CheckBox
-        AxesM                           matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesHdMdH                       matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesM                           matlab.ui.control.UIAxes
         MagnetizationoutputdataTab      matlab.ui.container.Tab
         GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
         GridLayout4                     matlab.ui.container.GridLayout
@@ -766,19 +766,29 @@ classdef app < matlab.apps.AppBase
         function ExportPlotsButtonPushed(app, event)
             app.write_message("Exporting plots");
 
-            file_name = "M.png";
-            path = strcat(app.OutputDatasetPath.Value, '\', file_name);
-            exportgraphics(app.AxesM,path,'Resolution',400);
+            if (app.CheckBoxExportPlotMagnetization.Value == 1)
+                file_name = strcat(app.EditFieldFileNamePlotMagnetization.Value, app.DropDownPlotMagnetizacionExtension.Value);
+                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+                exportgraphics(app.AxesM,path,'Resolution',400);
+                message = strcat("Magnetization plots exported as ",file_name);
+                app.write_message(message);
+            end
 
-            file_name = "dMdH.png";
-            path = strcat(app.OutputDatasetPath.Value, '\', file_name);
-            exportgraphics(app.AxesdMdH,path,'Resolution',400);
+            if (app.CheckBoxExportPlotSusceptibility.Value == 1)
+                file_name = strcat(app.EditFieldFileNamePlotSusceptibility.Value, app.DropDownPlotSusceptibilityExtension.Value);
+                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+                exportgraphics(app.AxesdMdH,path,'Resolution',400);
+                message = strcat("Susceptibility plots exported as ",file_name);
+                app.write_message(message);
+            end
 
-            file_name = "dMdlogH.png";
-            path = strcat(app.OutputDatasetPath.Value, '\', file_name);
-            exportgraphics(app.AxesHdMdH,path,'Resolution',400);
-
-            app.write_message("Plots exported as M.png dMdH.png dMdlogH.png");
+            if(app.CheckBoxExportPlotSemiLogMagDerivative.Value == 1)
+                file_name = strcat(app.EditFieldFileNamePlotSemiLogMagDerivative.Value, app.DropDownPlotSemiLogMagDerivativeExtension.Value);
+                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+                exportgraphics(app.AxesHdMdH,path,'Resolution',400);
+                message = strcat("Semi-Log Magnetization Derivative plots exported as ",file_name);
+                app.write_message(message);
+            end
         end
 
         % Menu selected function: SaveasMenu
@@ -1113,14 +1123,15 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(logH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.TickDir = 'in';
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -1131,15 +1142,14 @@ classdef app < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.TickDir = 'in';
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(logH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
