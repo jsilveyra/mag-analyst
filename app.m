@@ -471,6 +471,16 @@ classdef app < matlab.apps.AppBase
             
             [app.H, app.M] = unit_convertor.convert_H_M(H_raw, H_unit, M_raw, M_unit);
         end
+        
+        function ret = subscript_to_number(~, str)
+            chars = char(str);
+            for i = 1:length(chars)
+                if chars(i) >= 8272
+                    chars(i) = 48 + chars(i) - '₀'; 
+                end
+            end
+            ret = string(chars);
+        end
     end
     
     methods (Access = public)
@@ -709,8 +719,9 @@ classdef app < matlab.apps.AppBase
                 fprintf(file, "Fitted Parameters:" + newline);
                 for i = 1:height(app.TableFittedParameters.Data)
                     name = string(app.TableFittedParameters.Data(i, 1));
+                    name = subscript_to_number(app, name);
                     value = str2double(app.TableFittedParameters.Data(i, 2));
-                    s = sprintf("%s: %f", name, value);
+                    s = sprintf("%s: \t%f", name, value);
                     fprintf(file, s + newline);
                 end
                 fprintf(file, newline);
@@ -722,9 +733,9 @@ classdef app < matlab.apps.AppBase
                     alpha_value = str2double(app.TableParameters.Data(i, 3).alpha_col);
                     a_value = str2double(app.TableParameters.Data(i, 4).a_col);
                     s_component = sprintf("Component: %i", i);
-                    s_Ms_value = sprintf("    Msi [A/m]: %0.4f", Ms_value);
-                    s_alpha_value = sprintf("    α: %0.4e", alpha_value);
-                    s_a_value = sprintf("    ai [A/m]: %0.4f", a_value);
+                    s_Ms_value = sprintf("    Ms%i [A/m]: \t%0.4f", i, Ms_value);
+                    s_alpha_value = sprintf("    α: \t\t%0.4e", alpha_value);
+                    s_a_value = sprintf("    a%i [A/m]: \t%0.4f", i, a_value);
                     fprintf(file, s_component + newline + s_Ms_value + newline + s_alpha_value + newline + s_a_value + newline);
                 end
                 fprintf(file, newline);
@@ -737,10 +748,10 @@ classdef app < matlab.apps.AppBase
                     Hk_value = str2double(app.TableQuantities.Data(i, 4).Hk_col);
                     magnetic_permeability_value = str2double(app.TableQuantities.Data(i, 5).initial_relative_magnetic_permeability_col);
                     s_component = sprintf("Component: %i", i);
-                    s_alpha_Ms_value = sprintf("    αᵢ⏐Msᵢ⏐/(3aᵢ): %0.4f", alpha_Ms_value);
-                    s_density_product_value = sprintf("    NᵢkвT [J/m³]: %0.4f", density_product_value);
-                    s_Hk = sprintf("    Hkᵢ [A/m]: %0.4f", Hk_value);
-                    s_magnetic_permeability_value = sprintf("    μrᵢₙ ᵢ: %i", magnetic_permeability_value);
+                    s_alpha_Ms_value = sprintf("    α%i|Ms%i|/(3a%i): \t%0.4f", i, i, i, alpha_Ms_value);
+                    s_density_product_value = sprintf("    N%ikBT [J/m^3]: \t%0.4f", i, density_product_value);
+                    s_Hk = sprintf("    Hk%i [A/m]: \t\t%0.4f", i, Hk_value);
+                    s_magnetic_permeability_value = sprintf("    μrin %i: \t\t%i", i, magnetic_permeability_value);
                     fprintf(file, s_component + newline + s_alpha_Ms_value + newline + s_density_product_value + newline + s_Hk + newline + s_magnetic_permeability_value + newline);
                 end
                 fprintf(file, newline);
@@ -751,9 +762,9 @@ classdef app < matlab.apps.AppBase
                 diagonal_error = error.get_error(log(app.H), app.M, log(app.Hhat), app.Mhat, "Diagonal");
                 horizontal_error = error.get_error(log(app.H), app.M, log(app.Hhat), app.Mhat, "Horizontal");
                 vertical_error = error.get_error(log(app.H), app.M, log(app.Hhat), app.Mhat, "Vertical");
-                s_diagonal_error = sprintf("    Diagonal error: %10.4e", diagonal_error);
-                s_horizontal_error = sprintf("    Horizontal error: %10.4e", horizontal_error);
-                s_vertical_error = sprintf("    Vertical error: %10.4e", vertical_error);
+                s_diagonal_error = sprintf("Diagonal error: \t%10.4e", diagonal_error);
+                s_horizontal_error = sprintf("Horizontal error: \t%10.4e", horizontal_error);
+                s_vertical_error = sprintf("Vertical error: \t%10.4e", vertical_error);
                 s = "Errors:" + newline + s_diagonal_error + newline + s_horizontal_error + newline + s_vertical_error + newline;
                 fprintf(file, s + newline);
             end
@@ -1602,12 +1613,14 @@ classdef app < matlab.apps.AppBase
             app.ExportFittedparametersCheckBox.Text = 'Fitted parameters';
             app.ExportFittedparametersCheckBox.Layout.Row = 1;
             app.ExportFittedparametersCheckBox.Layout.Column = 1;
+            app.ExportFittedparametersCheckBox.Value = true;
 
             % Create ExportModelparametersCheckBox
             app.ExportModelparametersCheckBox = uicheckbox(app.GridLayoutExportParametersFile);
             app.ExportModelparametersCheckBox.Text = 'Model parameters';
             app.ExportModelparametersCheckBox.Layout.Row = 1;
             app.ExportModelparametersCheckBox.Layout.Column = 2;
+            app.ExportModelparametersCheckBox.Value = true;
 
             % Create GridLayoutExportParametersButton
             app.GridLayoutExportParametersButton = uigridlayout(app.GridLayoutMagnetizationoutputdata);
@@ -1629,12 +1642,14 @@ classdef app < matlab.apps.AppBase
             app.ExportOtherquantitiesCheckBox.Text = 'Other quantities';
             app.ExportOtherquantitiesCheckBox.Layout.Row = 1;
             app.ExportOtherquantitiesCheckBox.Layout.Column = 1;
+            app.ExportOtherquantitiesCheckBox.Value = true;
 
             % Create ExportErrorsCheckBox
             app.ExportErrorsCheckBox = uicheckbox(app.GridLayoutExportParametersButton);
             app.ExportErrorsCheckBox.Text = 'Errors';
             app.ExportErrorsCheckBox.Layout.Row = 1;
             app.ExportErrorsCheckBox.Layout.Column = 2;
+            app.ExportErrorsCheckBox.Value = true;
 
             % Create PlotsLabel
             app.PlotsLabel = uilabel(app.GridLayoutMagnetizationoutputdata);
