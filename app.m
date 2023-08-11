@@ -87,9 +87,9 @@ classdef app < matlab.apps.AppBase
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
         logCheckBoxM                    matlab.ui.control.CheckBox
-        AxesHdMdH                       matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesM                           matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesHdMdH                       matlab.ui.control.UIAxes
         MagnetizationoutputdataTab      matlab.ui.container.Tab
         GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
         GridLayoutExportResiduesButton  matlab.ui.container.GridLayout
@@ -498,6 +498,16 @@ classdef app < matlab.apps.AppBase
                 end
             end
             ret = string(chars);
+        end
+        
+        function export_residual(app, residue, file_name)
+            
+            t = table(transpose(app.H(2:end-1)), transpose(residue));
+            t.Properties.VariableNames(:) = {'H [A/m]' 'residue'};
+                
+            path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+            writetable(t,path, 'Delimiter', ';');
+            app.write_message("Data saved as " + file_name);
         end
     end
     
@@ -928,6 +938,30 @@ classdef app < matlab.apps.AppBase
             value = app.OutputDatasetPath.Value;
             
         end
+
+        % Button pushed function: ExportResiduesButton
+        function ExportResiduesButtonPushed(app, event)
+            error = ErrorCalculator();
+            H_log = log(app.H);
+
+            if (app.CheckBoxExportResiduesMagnetization.Value == 1)
+                residue = error.residue(H_log, app.M, log(app.Hhat), app.Mhat);
+                file_name = strcat(app.EditFieldFileNameResiduesMagnetization.Value, app.DropDownResiduesMagnetizacionExtension.Value);
+                app.export_residual(residue, file_name);
+            end
+
+            if(app.CheckBoxExportResiduesSusceptibility.Value == 1)
+                residue = error.residue(H_log, app.dMdH, log(app.Hhat), app.dMdHhat);
+                file_name = strcat(app.EditFieldFileNameResiduesSusceptibility.Value, app.DropDownResiduesSusceptibilityExtension.Value);
+                app.export_residual(residue, file_name);
+            end
+
+            if(app.CheckBoxExportResiduesSusceptibility.Value == 1)
+                residue = error.residue(H_log, app.HdMdH, log(app.Hhat), app.HdMdHhat);
+                file_name = strcat(app.EditFieldFileNameResiduesSemiLogMagDerivative.Value, app.DropDownResiduesSemiLogMagDerivativeExtension.Value);
+                app.export_residual(residue, file_name);
+            end
+        end
     end
 
     % Component initialization
@@ -1211,15 +1245,14 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.TickDir = 'in';
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(logH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -1230,14 +1263,15 @@ classdef app < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(logH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.TickDir = 'in';
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
@@ -1979,6 +2013,7 @@ classdef app < matlab.apps.AppBase
 
             % Create ExportResiduesButton
             app.ExportResiduesButton = uibutton(app.GridLayoutExportResiduesButton, 'push');
+            app.ExportResiduesButton.ButtonPushedFcn = createCallbackFcn(app, @ExportResiduesButtonPushed, true);
             app.ExportResiduesButton.Layout.Row = 1;
             app.ExportResiduesButton.Layout.Column = 4;
             app.ExportResiduesButton.Text = 'Export data';
