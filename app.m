@@ -5,6 +5,7 @@ classdef app < matlab.apps.AppBase
         UIFigure                        matlab.ui.Figure
         ProjectMenu                     matlab.ui.container.Menu
         OpenMenu                        matlab.ui.container.Menu
+        SaveMenu                        matlab.ui.container.Menu
         SaveasMenu                      matlab.ui.container.Menu
         AppGridLayout                   matlab.ui.container.GridLayout
         MessagesTabPanel                matlab.ui.container.TabGroup
@@ -87,9 +88,9 @@ classdef app < matlab.apps.AppBase
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
         logCheckBoxM                    matlab.ui.control.CheckBox
-        AxesM                           matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesHdMdH                       matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesM                           matlab.ui.control.UIAxes
         MagnetizationoutputdataTab      matlab.ui.container.Tab
         GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
         GridLayoutExportResiduesButton  matlab.ui.container.GridLayout
@@ -186,6 +187,7 @@ classdef app < matlab.apps.AppBase
         select_fit
         Colors
         ColorDialogApp
+        ProjectPath
     end
     
     methods (Access = private)
@@ -509,6 +511,59 @@ classdef app < matlab.apps.AppBase
             writetable(t,path, 'Delimiter', ';');
             app.write_message("Data saved as " + file_name);
         end
+        
+        function save(app)
+            file = fopen(app.ProjectPath,'w');
+
+            s.fitted_parameters_value = app.TableFittedParameters.Data(:,2);
+            s.fitted_parameters_lower_bound = app.TableFittedParameters.Data(:,3);
+            s.fitted_parameters_upper_bound = app.TableFittedParameters.Data(:,4);
+            s.number_components = app.number_components;
+            s.select_a = app.TableParameters.Data.(5);
+            s.number_points = app.NumberofpointsEditField.Value;
+            s.point_space = app.PointSpaceDropDown.Value;
+            s.error_type = app.ErrortominimizeDropDown.Value;
+            s.input_path = app.InputDatasetPath.Value;
+            s.horizontal_axis = app.HorizontalaxisfieldDropDown.Value;
+            s.vertical_axis = app.VerticalaxisfieldDropDown.Value;
+            s.description = app.DescriptionTextArea.Value;
+            s.data_set_path = app.OutputDatasetPath.Value;
+
+            s.magnetization_file_name = app.EditFieldFileNameModeledAnhystereticMagnetization.Value;
+            s.parameters_file_name = app.EditFieldFileNameParameters.Value;
+            s.magnetization_plots_file_name = app.EditFieldFileNamePlotMagnetization.Value;
+            s.suceptibility_plots_file_name = app.EditFieldFileNamePlotSusceptibility.Value;
+            s.magnetization_derivative_file_name = app.EditFieldFileNamePlotSemiLogMagDerivative.Value;
+            s.magnetization_residual_file_name = app.EditFieldFileNameResiduesMagnetization.Value;
+            s.susceptibility_residual_file_name = app.EditFieldFileNameResiduesSusceptibility.Value;
+            s.semi_log_derivative_file_name = app.EditFieldFileNameResiduesSemiLogMagDerivative.Value;
+
+            s.log_checkbox = app.logCheckBoxInputPlot.Value;
+
+            s.fitting_log_checkbox = app.logCheckBoxHdMdH.Value;
+            s.fitting_show_grid_checkbox = app.ShowgridCheckBoxHdMdH.Value;
+            s.fitting_plot_components_checkbox = app.PlotcomponentsCheckBoxHdMdH.Value;
+            
+
+            s.model_magnetization_checkbox = app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Value;
+            s.model_magnetization_components_checkbox = app.OutputSeparateComponentsCheckBox.Value;
+            s.fitted_parameters_checkbox = app.ExportFittedparametersCheckBox.Value;
+            s.model_parameters_checkbox = app.ExportModelparametersCheckBox.Value;
+            s.other_quantities_checkbox = app.ExportOtherquantitiesCheckBox.Value;
+            s.errors_checkbox = app.ExportErrorsCheckBox.Value;
+            s.magnetization_plots_checkbox = app.CheckBoxExportPlotMagnetization.Value;
+            s.susceptibility_plots_checkbox = app.CheckBoxExportPlotSusceptibility.Value;
+            s.magnetization_derivatives_checkbox = app.CheckBoxExportPlotSemiLogMagDerivative.Value;
+
+            s.magnetization_residual_checkbox = app.CheckBoxExportResiduesMagnetization.Value;
+            s.susceptibility_residual_checkbox = app.CheckBoxExportResiduesSusceptibility.Value;
+            s.semi_log_derivative_residual_checkbox = app.CheckBoxExportResiduesSemiLogMagDerivative.Value;
+
+            data = jsonencode(s, PrettyPrint=true);
+            fprintf(file, "%s", data);
+            fclose(file);
+            app.write_message("Project saved at " + app.ProjectPath);
+        end
     end
     
     methods (Access = public)
@@ -527,6 +582,8 @@ classdef app < matlab.apps.AppBase
 
         % Code that executes after component creation
         function startupFcn(app)
+            app.ProjectPath = "";
+
             app.number_components = app.NumberofcomponentsSpinner.Value;
 
             app.init_components();
@@ -832,56 +889,19 @@ classdef app < matlab.apps.AppBase
 
         % Menu selected function: SaveasMenu
         function SaveasMenuSelected(app, event)
-            file = fopen("project.txt",'w');
-
-            s.fitted_parameters_value = app.TableFittedParameters.Data(:,2);
-            s.fitted_parameters_lower_bound = app.TableFittedParameters.Data(:,3);
-            s.fitted_parameters_upper_bound = app.TableFittedParameters.Data(:,4);
-            s.number_components = app.number_components;
-            s.select_a = app.TableParameters.Data.(5);
-            s.number_points = app.NumberofpointsEditField.Value;
-            s.point_space = app.PointSpaceDropDown.Value;
-            s.error_type = app.ErrortominimizeDropDown.Value;
-            s.input_path = app.InputDatasetPath.Value;
-            s.horizontal_axis = app.HorizontalaxisfieldDropDown.Value;
-            s.vertical_axis = app.VerticalaxisfieldDropDown.Value;
-            s.description = app.DescriptionTextArea.Value;
-            s.data_set_path = app.OutputDatasetPath.Value;
-
-            s.magnetization_file_name = app.EditFieldFileNameModeledAnhystereticMagnetization.Value;
-            s.parameters_file_name = app.EditFieldFileNameParameters.Value;
-            s.magnetization_plots_file_name = app.EditFieldFileNamePlotMagnetization.Value;
-            s.suceptibility_plots_file_name = app.EditFieldFileNamePlotSusceptibility.Value;
-            s.magnetization_derivative_file_name = app.EditFieldFileNamePlotSemiLogMagDerivative.Value;
-
-            s.log_checkbox = app.logCheckBoxInputPlot.Value;
-
-            s.fitting_log_checkbox = app.logCheckBoxHdMdH.Value;
-            s.fitting_show_grid_checkbox = app.ShowgridCheckBoxHdMdH.Value;
-            s.fitting_plot_components_checkbox = app.PlotcomponentsCheckBoxHdMdH.Value;
-            
-
-            s.model_magnetization_checkbox = app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Value;
-            s.model_magnetization_components_checkbox = app.OutputSeparateComponentsCheckBox.Value;
-            s.fitted_parameters_checkbox = app.ExportFittedparametersCheckBox.Value;
-            s.model_parameters_checkbox = app.ExportModelparametersCheckBox.Value;
-            s.other_quantities_checkbox = app.ExportOtherquantitiesCheckBox.Value;
-            s.errors_checkbox = app.ExportErrorsCheckBox.Value;
-            s.magnetization_plots_checkbox = app.CheckBoxExportPlotMagnetization.Value;
-            s.susceptibility_plots_checkbox = app.CheckBoxExportPlotSusceptibility.Value;
-            s.magnetization_derivatives_checkbox = app.CheckBoxExportPlotSemiLogMagDerivative.Value;
-
-            data = jsonencode(s, PrettyPrint=true);
-            fprintf(file, "%s", data);
-            fclose(file);
-            app.write_message("Project saved as project.txt");
+          [file,path] = uiputfile('*.txt','Save project', '.\data\project.txt');
+          app.ProjectPath = strcat(path, file);
+          app.save();
         end
 
         % Menu selected function: OpenMenu
         function OpenMenuSelected(app, event)
             app.write_message("Opening project project.txt");
             pause(0.01);
-            data = fileread("project.txt");
+            [file,path] = uigetfile('*.txt','Select project', '.\data');
+            app.ProjectPath = strcat(path, file);
+
+            data = fileread(app.ProjectPath);
             s = jsondecode(data);
 
             app.number_components = s.number_components;
@@ -912,6 +932,9 @@ classdef app < matlab.apps.AppBase
             app.EditFieldFileNamePlotMagnetization.Value = s.magnetization_plots_file_name;
             app.EditFieldFileNamePlotSusceptibility.Value = s.suceptibility_plots_file_name;
             app.EditFieldFileNamePlotSemiLogMagDerivative.Value = s.magnetization_derivative_file_name;
+            app.EditFieldFileNameResiduesMagnetization.Value = s.magnetization_residual_file_name;
+            app.EditFieldFileNameResiduesSusceptibility.Value = s.susceptibility_residual_file_name;
+            app.EditFieldFileNameResiduesSemiLogMagDerivative.Value = s.semi_log_derivative_file_name;
 
             app.logCheckBoxInputPlot.Value = s.log_checkbox;
             app.logCheckBoxHdMdH.Value = s.fitting_log_checkbox;
@@ -927,6 +950,9 @@ classdef app < matlab.apps.AppBase
             app.CheckBoxExportPlotSusceptibility.Value = s.susceptibility_plots_checkbox;
             app.CheckBoxExportPlotSemiLogMagDerivative.Value = s.magnetization_derivatives_checkbox;
 
+            app.CheckBoxExportResiduesMagnetization.Value = s.magnetization_residual_checkbox;
+            app.CheckBoxExportResiduesSusceptibility.Value = s.susceptibility_residual_checkbox;
+            app.CheckBoxExportResiduesSemiLogMagDerivative.Value = s.semi_log_derivative_residual_checkbox;
 
             app.CalculatePlotInputButtonPushed();
             app.CalculatePlotButtonPushed();
@@ -962,6 +988,15 @@ classdef app < matlab.apps.AppBase
                 app.export_residual(residue, file_name);
             end
         end
+
+        % Menu selected function: SaveMenu
+        function SaveMenuSelected(app, event)
+            if (app.ProjectPath == "")
+                app.SaveasMenuSelected();
+            else
+                app.save();
+            end
+        end
     end
 
     % Component initialization
@@ -987,12 +1022,17 @@ classdef app < matlab.apps.AppBase
             app.OpenMenu.Accelerator = 'O';
             app.OpenMenu.Text = 'Open...';
 
+            % Create SaveMenu
+            app.SaveMenu = uimenu(app.ProjectMenu);
+            app.SaveMenu.MenuSelectedFcn = createCallbackFcn(app, @SaveMenuSelected, true);
+            app.SaveMenu.Accelerator = 'S';
+            app.SaveMenu.Text = 'Save';
+
             % Create SaveasMenu
             app.SaveasMenu = uimenu(app.ProjectMenu);
             app.SaveasMenu.MenuSelectedFcn = createCallbackFcn(app, @SaveasMenuSelected, true);
             app.SaveasMenu.Separator = 'on';
-            app.SaveasMenu.Accelerator = 'S';
-            app.SaveasMenu.Text = ' Save as...';
+            app.SaveasMenu.Text = 'Save as...';
 
             % Create AppGridLayout
             app.AppGridLayout = uigridlayout(app.UIFigure);
@@ -1245,14 +1285,15 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(logH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.TickDir = 'in';
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -1263,15 +1304,14 @@ classdef app < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.TickDir = 'in';
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(logH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
@@ -1685,6 +1725,7 @@ classdef app < matlab.apps.AppBase
             app.OutputSeparateComponentsCheckBox.Text = '';
             app.OutputSeparateComponentsCheckBox.Layout.Row = 1;
             app.OutputSeparateComponentsCheckBox.Layout.Column = 2;
+            app.OutputSeparateComponentsCheckBox.Value = true;
 
             % Create ModeledanhystereticmagnetizationcomponentsLabel
             app.ModeledanhystereticmagnetizationcomponentsLabel = uilabel(app.GridLayoutExportData);
