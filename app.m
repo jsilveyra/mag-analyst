@@ -88,9 +88,9 @@ classdef app < matlab.apps.AppBase
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
         logCheckBoxM                    matlab.ui.control.CheckBox
-        AxesHdMdH                       matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesM                           matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesHdMdH                       matlab.ui.control.UIAxes
         MagnetizationoutputdataTab      matlab.ui.container.Tab
         GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
         GridLayoutExportResiduesButton  matlab.ui.container.GridLayout
@@ -819,8 +819,8 @@ classdef app < matlab.apps.AppBase
                     a_value = str2double(app.TableParameters.Data(i, 4).a_col);
                     s_component = sprintf("Component: %i", i);
                     s_Ms_value = sprintf("    Ms%i [A/m]: \t%0.4f", i, Ms_value);
-                    s_alpha_value = sprintf("    α: \t\t%0.4e", alpha_value);
-                    s_a_value = sprintf("    a%i [A/m]: \t%0.4f", i, a_value);
+                    s_alpha_value = sprintf("            α: \t%0.4e", alpha_value);
+                    s_a_value = sprintf("     a%i [A/m]: \t%0.4f", i, a_value);
                     fprintf(file, s_component + newline + s_Ms_value + newline + s_alpha_value + newline + s_a_value + newline);
                 end
                 fprintf(file, newline);
@@ -835,8 +835,8 @@ classdef app < matlab.apps.AppBase
                     s_component = sprintf("Component: %i", i);
                     s_alpha_Ms_value = sprintf("    α%i|Ms%i|/(3a%i): \t%0.4f", i, i, i, alpha_Ms_value);
                     s_density_product_value = sprintf("    N%ikBT [J/m^3]: \t%0.4f", i, density_product_value);
-                    s_Hk = sprintf("    Hk%i [A/m]: \t\t%0.4f", i, Hk_value);
-                    s_magnetic_permeability_value = sprintf("    μrin %i: \t\t%i", i, magnetic_permeability_value);
+                    s_Hk = sprintf("        Hk%i [A/m]: \t%0.4f", i, Hk_value);
+                    s_magnetic_permeability_value = sprintf("            μrin%i: \t%i", i, magnetic_permeability_value);
                     fprintf(file, s_component + newline + s_alpha_Ms_value + newline + s_density_product_value + newline + s_Hk + newline + s_magnetic_permeability_value + newline);
                 end
                 fprintf(file, newline);
@@ -847,9 +847,9 @@ classdef app < matlab.apps.AppBase
                 diagonal_error = error.get_error(log(app.H), app.M, log(app.Hhat), app.Mhat, "Diagonal");
                 horizontal_error = error.get_error(log(app.H), app.M, log(app.Hhat), app.Mhat, "Horizontal");
                 vertical_error = error.get_error(log(app.H), app.M, log(app.Hhat), app.Mhat, "Vertical");
-                s_diagonal_error = sprintf("Diagonal error: \t%10.4e", diagonal_error);
+                s_diagonal_error = sprintf("  Diagonal error: \t%10.4e", diagonal_error);
                 s_horizontal_error = sprintf("Horizontal error: \t%10.4e", horizontal_error);
-                s_vertical_error = sprintf("Vertical error: \t%10.4e", vertical_error);
+                s_vertical_error = sprintf("  Vertical error: \t%10.4e", vertical_error);
                 s = "Errors:" + newline + s_diagonal_error + newline + s_horizontal_error + newline + s_vertical_error + newline;
                 fprintf(file, s + newline);
             end
@@ -1285,15 +1285,14 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.TickDir = 'in';
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(logH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -1304,14 +1303,15 @@ classdef app < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(logH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.TickDir = 'in';
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
