@@ -88,9 +88,9 @@ classdef app < matlab.apps.AppBase
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
         logCheckBoxM                    matlab.ui.control.CheckBox
-        AxesM                           matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesHdMdH                       matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesM                           matlab.ui.control.UIAxes
         MagnetizationoutputdataTab      matlab.ui.container.Tab
         GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
         GridLayoutExportResiduesButton  matlab.ui.container.GridLayout
@@ -769,17 +769,26 @@ classdef app < matlab.apps.AppBase
 
         % Value changed function: ShowgridCheckBoxM
         function ShowgridCheckBoxMValueChanged(app, event)
-            app.plot_M()
+            grid(app.AxesM,"off");
+            if(app.ShowgridCheckBoxM.Value == 1)
+                grid(app.AxesM,"on");
+            end 
         end
 
         % Value changed function: ShowgridCheckBoxdMdH
         function ShowgridCheckBoxdMdHValueChanged(app, event)
-            app.plot_dMdH()
+            grid(app.AxesdMdH,"off");
+            if(app.ShowgridCheckBoxdMdH.Value == 1)
+                grid(app.AxesdMdH,"on");
+            end
         end
 
         % Value changed function: ShowgridCheckBoxHdMdH
         function ShowgridCheckBoxHdMdHValueChanged(app, event)
-            app.plot_HdMdH()
+            grid(app.AxesHdMdH,"off");
+            if(app.ShowgridCheckBoxHdMdH.Value == 1)
+                grid(app.AxesHdMdH,"on");
+            end
         end
 
         % Button pushed function: SetColorsButton
@@ -1285,14 +1294,15 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(logH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.TickDir = 'in';
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -1303,15 +1313,14 @@ classdef app < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.TickDir = 'in';
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
