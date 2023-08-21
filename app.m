@@ -487,9 +487,11 @@ classdef app < matlab.apps.AppBase
             H_unit = app.HorizontalaxisfieldDropDown.Value;
             M_unit = app.VerticalaxisfieldDropDown.Value;
             unit_convertor = UnitConvertor();
+            curve_convertor = CurveConvertor();
             [H_raw, M_raw] = Parser(path).get_data_csv;
             
-            [app.H, app.M] = unit_convertor.convert_H_M(H_raw, H_unit, M_raw, M_unit);
+            [X, Y] = unit_convertor.convert_H_M(H_raw, H_unit, M_raw, M_unit);
+            [app.H, app.M] = curve_convertor.convert_curve(X,Y,app.CurveDropDown.Value);
         end
         
         function ret = subscript_to_number(~, str)
@@ -1134,7 +1136,7 @@ classdef app < matlab.apps.AppBase
 
             % Create CurveDropDown
             app.CurveDropDown = uidropdown(app.GridLayoutInputCurve);
-            app.CurveDropDown.Items = {'Anhysteretic curve'};
+            app.CurveDropDown.Items = {'Anhysteretic curve', 'Hysteretic cycle'};
             app.CurveDropDown.Layout.Row = 1;
             app.CurveDropDown.Layout.Column = 2;
             app.CurveDropDown.Value = 'Anhysteretic curve';
