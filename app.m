@@ -95,6 +95,11 @@ classdef app < matlab.apps.AppBase
         AxesM                           matlab.ui.control.UIAxes
         MagnetizationoutputdataTab      matlab.ui.container.Tab
         GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
+        GridLayoutExperimentalMagnetizationData  matlab.ui.container.GridLayout
+        DropDownOutputExperimentalMagnetizationData  matlab.ui.control.DropDown
+        EditFieldFileNameExperimentalMagnetizationData  matlab.ui.control.EditField
+        ExperimentalanhystereticmagnetizationLabel  matlab.ui.control.Label
+        CheckBox                        matlab.ui.control.CheckBox
         GridLayoutExportResiduesButton  matlab.ui.container.GridLayout
         ExportResiduesButton            matlab.ui.control.Button
         GridLayoutExportResiduesSemiLogMagDerivative  matlab.ui.container.GridLayout
@@ -1661,7 +1666,7 @@ classdef app < matlab.apps.AppBase
             % Create GridLayoutMagnetizationoutputdata
             app.GridLayoutMagnetizationoutputdata = uigridlayout(app.MagnetizationoutputdataTab);
             app.GridLayoutMagnetizationoutputdata.ColumnWidth = {'1x'};
-            app.GridLayoutMagnetizationoutputdata.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
+            app.GridLayoutMagnetizationoutputdata.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
             app.GridLayoutMagnetizationoutputdata.RowSpacing = 5;
 
             % Create GridLayoutOutputDatasetPath
@@ -1704,7 +1709,7 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutMagnetizationDataFittedAnhystereticMagnetization.ColumnWidth = {'1.5x', '0.1x', '2.4x', '1x'};
             app.GridLayoutMagnetizationDataFittedAnhystereticMagnetization.RowHeight = {'1x'};
             app.GridLayoutMagnetizationDataFittedAnhystereticMagnetization.Padding = [0 0 0 0];
-            app.GridLayoutMagnetizationDataFittedAnhystereticMagnetization.Layout.Row = 3;
+            app.GridLayoutMagnetizationDataFittedAnhystereticMagnetization.Layout.Row = 4;
             app.GridLayoutMagnetizationDataFittedAnhystereticMagnetization.Layout.Column = 1;
 
             % Create CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization
@@ -1739,7 +1744,7 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutExportData.ColumnWidth = {'1.5x', '0.1x', '2.4x', '1x'};
             app.GridLayoutExportData.RowHeight = {'1x'};
             app.GridLayoutExportData.Padding = [0 0 0 0];
-            app.GridLayoutExportData.Layout.Row = 4;
+            app.GridLayoutExportData.Layout.Row = 5;
             app.GridLayoutExportData.Layout.Column = 1;
 
             % Create ExportdataButton
@@ -1765,7 +1770,7 @@ classdef app < matlab.apps.AppBase
             % Create ParametersLabel
             app.ParametersLabel = uilabel(app.GridLayoutMagnetizationoutputdata);
             app.ParametersLabel.FontWeight = 'bold';
-            app.ParametersLabel.Layout.Row = 5;
+            app.ParametersLabel.Layout.Row = 6;
             app.ParametersLabel.Layout.Column = 1;
             app.ParametersLabel.Text = 'Parameters:';
 
@@ -1774,7 +1779,7 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutExportParametersFile.ColumnWidth = {'0.8x', '0.8x', '2.4x', '1x'};
             app.GridLayoutExportParametersFile.RowHeight = {'1x'};
             app.GridLayoutExportParametersFile.Padding = [0 0 0 0];
-            app.GridLayoutExportParametersFile.Layout.Row = 6;
+            app.GridLayoutExportParametersFile.Layout.Row = 7;
             app.GridLayoutExportParametersFile.Layout.Column = 1;
 
             % Create EditFieldFileNameParameters
@@ -1810,7 +1815,7 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutExportParametersButton.ColumnWidth = {'0.8x', '0.8x', '2.4x', '1x'};
             app.GridLayoutExportParametersButton.RowHeight = {'1x'};
             app.GridLayoutExportParametersButton.Padding = [0 0 0 0];
-            app.GridLayoutExportParametersButton.Layout.Row = 7;
+            app.GridLayoutExportParametersButton.Layout.Row = 8;
             app.GridLayoutExportParametersButton.Layout.Column = 1;
 
             % Create ExportParametersButton
@@ -1837,7 +1842,7 @@ classdef app < matlab.apps.AppBase
             % Create PlotsLabel
             app.PlotsLabel = uilabel(app.GridLayoutMagnetizationoutputdata);
             app.PlotsLabel.FontWeight = 'bold';
-            app.PlotsLabel.Layout.Row = 8;
+            app.PlotsLabel.Layout.Row = 9;
             app.PlotsLabel.Layout.Column = 1;
             app.PlotsLabel.Text = 'Plots:';
 
@@ -1846,7 +1851,7 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutExportPlotMagnetization.ColumnWidth = {'1.5x', '0.1x', '2.4x', '1x'};
             app.GridLayoutExportPlotMagnetization.RowHeight = {'1x'};
             app.GridLayoutExportPlotMagnetization.Padding = [0 0 0 0];
-            app.GridLayoutExportPlotMagnetization.Layout.Row = 9;
+            app.GridLayoutExportPlotMagnetization.Layout.Row = 10;
             app.GridLayoutExportPlotMagnetization.Layout.Column = 1;
 
             % Create MagnetizationPlotExportLabel
@@ -1881,7 +1886,7 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutExportPlotSusceptibility.ColumnWidth = {'1.5x', '0.1x', '2.4x', '1x'};
             app.GridLayoutExportPlotSusceptibility.RowHeight = {'1x'};
             app.GridLayoutExportPlotSusceptibility.Padding = [0 0 0 0];
-            app.GridLayoutExportPlotSusceptibility.Layout.Row = 10;
+            app.GridLayoutExportPlotSusceptibility.Layout.Row = 11;
             app.GridLayoutExportPlotSusceptibility.Layout.Column = 1;
 
             % Create SusceptibilityPlotExportLabel
@@ -1916,7 +1921,7 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutExportPlotSemiLogMagDerivative.ColumnWidth = {'1.5x', '0.1x', '2.4x', '1x'};
             app.GridLayoutExportPlotSemiLogMagDerivative.RowHeight = {'1x'};
             app.GridLayoutExportPlotSemiLogMagDerivative.Padding = [0 0 0 0];
-            app.GridLayoutExportPlotSemiLogMagDerivative.Layout.Row = 11;
+            app.GridLayoutExportPlotSemiLogMagDerivative.Layout.Row = 12;
             app.GridLayoutExportPlotSemiLogMagDerivative.Layout.Column = 1;
 
             % Create SemilogmagnetizationderivativePlotExportLabel
@@ -1951,7 +1956,7 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutExportPlotsButton.ColumnWidth = {'0.8x', '0.8x', '2.4x', '1x'};
             app.GridLayoutExportPlotsButton.RowHeight = {'1x'};
             app.GridLayoutExportPlotsButton.Padding = [0 0 0 0];
-            app.GridLayoutExportPlotsButton.Layout.Row = 12;
+            app.GridLayoutExportPlotsButton.Layout.Row = 13;
             app.GridLayoutExportPlotsButton.Layout.Column = 1;
 
             % Create ExportPlotsButton
@@ -1966,7 +1971,7 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutExportResiduesMagnetization.ColumnWidth = {'1.5x', '0.1x', '2.4x', '1x'};
             app.GridLayoutExportResiduesMagnetization.RowHeight = {'1x'};
             app.GridLayoutExportResiduesMagnetization.Padding = [0 0 0 0];
-            app.GridLayoutExportResiduesMagnetization.Layout.Row = 14;
+            app.GridLayoutExportResiduesMagnetization.Layout.Row = 15;
             app.GridLayoutExportResiduesMagnetization.Layout.Column = 1;
 
             % Create MagnetizationExportResiduesLabel
@@ -1999,7 +2004,7 @@ classdef app < matlab.apps.AppBase
             % Create ResidualplotsdataLabel
             app.ResidualplotsdataLabel = uilabel(app.GridLayoutMagnetizationoutputdata);
             app.ResidualplotsdataLabel.FontWeight = 'bold';
-            app.ResidualplotsdataLabel.Layout.Row = 13;
+            app.ResidualplotsdataLabel.Layout.Row = 14;
             app.ResidualplotsdataLabel.Layout.Column = 1;
             app.ResidualplotsdataLabel.Text = 'Residual plots data:';
 
@@ -2008,7 +2013,7 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutExportResiduesSusceptibility.ColumnWidth = {'1.5x', '0.1x', '2.4x', '1x'};
             app.GridLayoutExportResiduesSusceptibility.RowHeight = {'1x'};
             app.GridLayoutExportResiduesSusceptibility.Padding = [0 0 0 0];
-            app.GridLayoutExportResiduesSusceptibility.Layout.Row = 15;
+            app.GridLayoutExportResiduesSusceptibility.Layout.Row = 16;
             app.GridLayoutExportResiduesSusceptibility.Layout.Column = 1;
 
             % Create SusceptibilityResiduesExportLabel
@@ -2043,7 +2048,7 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutExportResiduesSemiLogMagDerivative.ColumnWidth = {'1.5x', '0.1x', '2.4x', '1x'};
             app.GridLayoutExportResiduesSemiLogMagDerivative.RowHeight = {'1x'};
             app.GridLayoutExportResiduesSemiLogMagDerivative.Padding = [0 0 0 0];
-            app.GridLayoutExportResiduesSemiLogMagDerivative.Layout.Row = 16;
+            app.GridLayoutExportResiduesSemiLogMagDerivative.Layout.Row = 17;
             app.GridLayoutExportResiduesSemiLogMagDerivative.Layout.Column = 1;
 
             % Create SemilogmagnetizationderivativeResiduesExportLabel
@@ -2078,7 +2083,7 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutExportResiduesButton.ColumnWidth = {'0.8x', '0.8x', '2.4x', '1x'};
             app.GridLayoutExportResiduesButton.RowHeight = {'1x'};
             app.GridLayoutExportResiduesButton.Padding = [0 0 0 0];
-            app.GridLayoutExportResiduesButton.Layout.Row = 17;
+            app.GridLayoutExportResiduesButton.Layout.Row = 18;
             app.GridLayoutExportResiduesButton.Layout.Column = 1;
 
             % Create ExportResiduesButton
@@ -2087,6 +2092,41 @@ classdef app < matlab.apps.AppBase
             app.ExportResiduesButton.Layout.Row = 1;
             app.ExportResiduesButton.Layout.Column = 4;
             app.ExportResiduesButton.Text = 'Export data';
+
+            % Create GridLayoutExperimentalMagnetizationData
+            app.GridLayoutExperimentalMagnetizationData = uigridlayout(app.GridLayoutMagnetizationoutputdata);
+            app.GridLayoutExperimentalMagnetizationData.ColumnWidth = {'1.5x', '0.1x', '2.4x', '1x'};
+            app.GridLayoutExperimentalMagnetizationData.RowHeight = {'1x'};
+            app.GridLayoutExperimentalMagnetizationData.Padding = [0 0 0 0];
+            app.GridLayoutExperimentalMagnetizationData.Layout.Row = 3;
+            app.GridLayoutExperimentalMagnetizationData.Layout.Column = 1;
+
+            % Create CheckBox
+            app.CheckBox = uicheckbox(app.GridLayoutExperimentalMagnetizationData);
+            app.CheckBox.Text = '';
+            app.CheckBox.Layout.Row = 1;
+            app.CheckBox.Layout.Column = 2;
+            app.CheckBox.Value = true;
+
+            % Create ExperimentalanhystereticmagnetizationLabel
+            app.ExperimentalanhystereticmagnetizationLabel = uilabel(app.GridLayoutExperimentalMagnetizationData);
+            app.ExperimentalanhystereticmagnetizationLabel.Layout.Row = 1;
+            app.ExperimentalanhystereticmagnetizationLabel.Layout.Column = 1;
+            app.ExperimentalanhystereticmagnetizationLabel.Text = 'Experimental anhysteretic magnetization';
+
+            % Create EditFieldFileNameExperimentalMagnetizationData
+            app.EditFieldFileNameExperimentalMagnetizationData = uieditfield(app.GridLayoutExperimentalMagnetizationData, 'text');
+            app.EditFieldFileNameExperimentalMagnetizationData.HorizontalAlignment = 'right';
+            app.EditFieldFileNameExperimentalMagnetizationData.Layout.Row = 1;
+            app.EditFieldFileNameExperimentalMagnetizationData.Layout.Column = 3;
+            app.EditFieldFileNameExperimentalMagnetizationData.Value = 'experimental_anhysteretic_magnetization';
+
+            % Create DropDownOutputExperimentalMagnetizationData
+            app.DropDownOutputExperimentalMagnetizationData = uidropdown(app.GridLayoutExperimentalMagnetizationData);
+            app.DropDownOutputExperimentalMagnetizationData.Items = {'.csv'};
+            app.DropDownOutputExperimentalMagnetizationData.Layout.Row = 1;
+            app.DropDownOutputExperimentalMagnetizationData.Layout.Column = 4;
+            app.DropDownOutputExperimentalMagnetizationData.Value = '.csv';
 
             % Create MessagesTabPanel
             app.MessagesTabPanel = uitabgroup(app.AppGridLayout);
