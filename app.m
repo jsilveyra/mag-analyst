@@ -16,6 +16,9 @@ classdef app < matlab.apps.AppBase
         MagnetizationinputdataTab       matlab.ui.container.Tab
         GridLayoutMagnetizationInputData  matlab.ui.container.GridLayout
         GridLayoutInputPlot             matlab.ui.container.GridLayout
+        GridLayoutInputPlots            matlab.ui.container.GridLayout
+        AxesRawInputData                matlab.ui.control.UIAxes
+        AxesProcessedInputData          matlab.ui.control.UIAxes
         GridLayoutInputTipsAndPlotButton  matlab.ui.container.GridLayout
         GridLayoutInputPlotButton       matlab.ui.container.GridLayout
         CalculatePlotInputButton        matlab.ui.control.Button
@@ -26,7 +29,6 @@ classdef app < matlab.apps.AppBase
         HtipAmLabel                     matlab.ui.control.Label
         GridLayoutInputPlotLog          matlab.ui.container.GridLayout
         logCheckBoxInputPlot            matlab.ui.control.CheckBox
-        AxesInput                       matlab.ui.control.UIAxes
         GridLayoutInput                 matlab.ui.container.GridLayout
         GridLayoutDatasetPath           matlab.ui.container.GridLayout
         InputDatasetPath                matlab.ui.control.EditField
@@ -157,6 +159,8 @@ classdef app < matlab.apps.AppBase
 
     
     properties (Access = private)
+        H_raw
+        M_raw
         H
         M
         dMdH
@@ -354,14 +358,16 @@ classdef app < matlab.apps.AppBase
             app.MTipField.Value = app.format_short(MTip);
             app.HTipField.Value = app.format_short(HTip);
 
-            cla(app.AxesInput, 'reset')
-            plotter = Plotter(app.H, app.M, [], [], [], [], [], [], [], [], [], [], app.Colors, 5);
-            plot_components = app.PlotcomponentsCheckBoxM.Value == 1;
-            show_grid = true;
+            cla(app.AxesProcessedInputData, 'reset')
+            cla(app.AxesRawInputData, 'reset')
+            plotter = Plotter([], [], [], [], [], [], [], [], [], [], [], [], app.Colors, 5);
+
             if(app.logCheckBoxInputPlot.Value == 0)
-                plotter.plot_M(app.AxesInput, plot_components, show_grid);
+                plotter.plot_raw(app.AxesProcessedInputData, app.H, app.M, 'H [A/m]', 'M [A/m]', 'Processed input data');
+                plotter.plot_raw(app.AxesRawInputData, app.H_raw, app.M_raw, app.HorizontalaxisfieldDropDown.Value, app.VerticalaxisfieldDropDown.Value, 'Raw input data');
             else
-                plotter.plot_M_log(app.AxesInput, plot_components, show_grid);
+                plotter.plot_raw_log(app.AxesProcessedInputData, app.H, app.M, 'H [A/m]', 'M [A/m]', 'Processed input data');
+                plotter.plot_raw_log(app.AxesRawInputData, app.H_raw, app.M_raw, app.HorizontalaxisfieldDropDown.Value, app.VerticalaxisfieldDropDown.Value, 'Raw input data');
             end
         end
         
@@ -488,9 +494,9 @@ classdef app < matlab.apps.AppBase
             M_unit = app.VerticalaxisfieldDropDown.Value;
             unit_convertor = UnitConvertor();
             curve_convertor = CurveConvertor();
-            [H_raw, M_raw] = Parser(path).get_data_csv;
+            [app.H_raw, app.M_raw] = Parser(path).get_data_csv;
             
-            [X, Y] = unit_convertor.convert_H_M(H_raw, H_unit, M_raw, M_unit);
+            [X, Y] = unit_convertor.convert_H_M(app.H_raw, H_unit, app.M_raw, M_unit);
             [app.H, app.M] = curve_convertor.convert_curve(X,Y,app.CurveDropDown.Value);
         end
         
@@ -1198,14 +1204,6 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutInputPlot.Layout.Row = 1;
             app.GridLayoutInputPlot.Layout.Column = 2;
 
-            % Create AxesInput
-            app.AxesInput = uiaxes(app.GridLayoutInputPlot);
-            xlabel(app.AxesInput, 'H [A/m]')
-            ylabel(app.AxesInput, 'M [A/m]')
-            app.AxesInput.Box = 'on';
-            app.AxesInput.Layout.Row = 1;
-            app.AxesInput.Layout.Column = 1;
-
             % Create GridLayoutInputPlotLog
             app.GridLayoutInputPlotLog = uigridlayout(app.GridLayoutInputPlot);
             app.GridLayoutInputPlotLog.ColumnWidth = {'11x', '1x'};
@@ -1277,6 +1275,26 @@ classdef app < matlab.apps.AppBase
             app.CalculatePlotInputButton.Layout.Row = 2;
             app.CalculatePlotInputButton.Layout.Column = 2;
             app.CalculatePlotInputButton.Text = 'Calculate & Plot';
+
+            % Create GridLayoutInputPlots
+            app.GridLayoutInputPlots = uigridlayout(app.GridLayoutInputPlot);
+            app.GridLayoutInputPlots.RowHeight = {'1x'};
+            app.GridLayoutInputPlots.Layout.Row = 1;
+            app.GridLayoutInputPlots.Layout.Column = 1;
+
+            % Create AxesProcessedInputData
+            app.AxesProcessedInputData = uiaxes(app.GridLayoutInputPlots);
+            title(app.AxesProcessedInputData, 'Processed input data')
+            app.AxesProcessedInputData.Box = 'on';
+            app.AxesProcessedInputData.Layout.Row = 1;
+            app.AxesProcessedInputData.Layout.Column = 2;
+
+            % Create AxesRawInputData
+            app.AxesRawInputData = uiaxes(app.GridLayoutInputPlots);
+            title(app.AxesRawInputData, 'Raw input data')
+            zlabel(app.AxesRawInputData, 'Z')
+            app.AxesRawInputData.Layout.Row = 1;
+            app.AxesRawInputData.Layout.Column = 1;
 
             % Create AnhystereticmagnetizationfittingTab
             app.AnhystereticmagnetizationfittingTab = uitab(app.TabGroup);

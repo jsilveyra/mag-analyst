@@ -228,6 +228,34 @@ classdef Plotter
             end
         end
 
+        function plot_raw(obj, ax, X, Y, X_label, Y_label, plot_title)
+            hold( ax, 'on' );
+            tip = max(Y);
+            ax.YAxis.Exponent = obj.get_scientific_notation_exponent(tip);
+            plot(ax, X, Y, '.', 'markersize', obj.MarkerSize, "Color", [0 0 0]);
+            grid(ax,"on");
+            yline(ax, 0);
+            xlabel(ax, X_label);
+            ylabel(ax, Y_label);
+            title(ax, plot_title);
+            box(ax,'on');
+            hold( ax, 'off' )     
+        end
+
+        function plot_raw_log(obj, ax, X, Y, X_label, Y_label, plot_title)
+            semilogx(ax, X, Y, '.', 'markersize', obj.MarkerSize, "Color", [0 0 0]);
+            hold( ax, 'on' );
+            tip = max(Y);
+            ax.YAxis.Exponent = obj.get_scientific_notation_exponent(tip);
+            grid(ax,"on");
+            yline(ax, 0);
+            xlabel(ax, X_label);
+            ylabel(ax, Y_label);
+            title(ax, plot_title);
+            box(ax,'on');
+            hold( ax, 'off' )     
+        end
+
         function plot(obj)
             figure();
             tiledlayout(2,2);
