@@ -90,16 +90,16 @@ classdef app < matlab.apps.AppBase
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
         logCheckBoxM                    matlab.ui.control.CheckBox
-        AxesHdMdH                       matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesM                           matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesHdMdH                       matlab.ui.control.UIAxes
         MagnetizationoutputdataTab      matlab.ui.container.Tab
         GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
         GridLayoutExperimentalMagnetizationData  matlab.ui.container.GridLayout
         DropDownOutputExperimentalMagnetizationData  matlab.ui.control.DropDown
         EditFieldFileNameExperimentalMagnetizationData  matlab.ui.control.EditField
         ExperimentalanhystereticmagnetizationLabel  matlab.ui.control.Label
-        CheckBox                        matlab.ui.control.CheckBox
+        CheckBoxExperimentalMagnetization  matlab.ui.control.CheckBox
         GridLayoutExportResiduesButton  matlab.ui.container.GridLayout
         ExportResiduesButton            matlab.ui.control.Button
         GridLayoutExportResiduesSemiLogMagDerivative  matlab.ui.container.GridLayout
@@ -762,7 +762,18 @@ classdef app < matlab.apps.AppBase
             file_name = strcat(app.EditFieldFileNameModeledAnhystereticMagnetization.Value, app.DropDownOutputModeledAnhystereticMagnetizationExtension.Value);
             path = strcat(app.OutputDatasetPath.Value, '\', file_name);
             writetable(t,path, 'Delimiter', ';');
-            app.write_message("Data saved as " + file_name);
+            app.write_message("Modeled data saved as " + file_name);
+
+            %Separate into two functions
+            if(app.CheckBoxExperimentalMagnetization.Value == 1)
+                t = table(transpose(app.H), transpose(app.M));
+                t.Properties.VariableNames(:) = {'H [A/m]' 'M [A/m]'};
+                file_name = strcat(app.EditFieldFileNameExperimentalMagnetizationData.Value, app.DropDownOutputExperimentalMagnetizationData.Value);
+                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+                writetable(t,path, 'Delimiter', ';');
+                app.write_message("Experimental data saved as " + file_name);
+            end
+
         end
 
         % Value changed function: PlotcomponentsCheckBoxM
@@ -1319,15 +1330,14 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.TickDir = 'in';
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -1338,14 +1348,15 @@ classdef app < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.TickDir = 'in';
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
@@ -2101,12 +2112,12 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutExperimentalMagnetizationData.Layout.Row = 3;
             app.GridLayoutExperimentalMagnetizationData.Layout.Column = 1;
 
-            % Create CheckBox
-            app.CheckBox = uicheckbox(app.GridLayoutExperimentalMagnetizationData);
-            app.CheckBox.Text = '';
-            app.CheckBox.Layout.Row = 1;
-            app.CheckBox.Layout.Column = 2;
-            app.CheckBox.Value = true;
+            % Create CheckBoxExperimentalMagnetization
+            app.CheckBoxExperimentalMagnetization = uicheckbox(app.GridLayoutExperimentalMagnetizationData);
+            app.CheckBoxExperimentalMagnetization.Text = '';
+            app.CheckBoxExperimentalMagnetization.Layout.Row = 1;
+            app.CheckBoxExperimentalMagnetization.Layout.Column = 2;
+            app.CheckBoxExperimentalMagnetization.Value = true;
 
             % Create ExperimentalanhystereticmagnetizationLabel
             app.ExperimentalanhystereticmagnetizationLabel = uilabel(app.GridLayoutExperimentalMagnetizationData);
