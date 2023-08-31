@@ -50,8 +50,11 @@ classdef Plotter
         end
 
         function plot_M(obj, ax, plot_components, plot_grid)
-
-            hold( ax, 'on' )
+            hold( ax, 'on' );
+            tip_data = max(obj.M);
+            tip_model = max(obj.Mhat);
+            tip = max([tip_model, tip_data]);
+            ax.YAxis.Exponent = obj.get_scientific_notation_exponent(tip);
             plot(ax, obj.H, obj.M, '.', 'markersize', obj.MarkerSize, "Color", [0 0 0]);
             plot(ax, obj.Hhat, obj.Mhat, "Color", obj.Colors(1,:));
 
@@ -77,6 +80,10 @@ classdef Plotter
         function plot_M_log(obj, ax, plot_components, plot_grid)
             semilogx(ax, obj.H,obj.M, '.', 'markersize', obj.MarkerSize, "Color", [0 0 0]);
             hold( ax, 'on' )
+            tip_data = max(obj.M);
+            tip_model = max(obj.Mhat);
+            tip = max([tip_model, tip_data]);
+            ax.YAxis.Exponent = obj.get_scientific_notation_exponent(tip);
             semilogx(ax, obj.Hhat,obj.Mhat, "Color", obj.Colors(1,:));
 
             if(plot_components)
@@ -100,6 +107,10 @@ classdef Plotter
 
         function plot_dMdH(obj, ax, plot_components, plot_grid)
             hold( ax, 'on' );
+            tip_data = max(obj.dMdH);
+            tip_model = max(obj.dMdHhat);
+            tip = max([tip_model, tip_data]);
+            ax.YAxis.Exponent = obj.get_scientific_notation_exponent(tip);
             plot(ax, obj.H,obj.dMdH, '.', 'markersize', obj.MarkerSize, "Color", [0 0 0]);
             plot(ax, obj.Hhat, obj.dMdHhat, "Color", obj.Colors(1,:));
             obj.plot_Hcr(ax);
@@ -126,6 +137,10 @@ classdef Plotter
         function plot_dMdH_log(obj, ax, plot_components, plot_grid)
             semilogx(ax, obj.H,obj.dMdH, '.', 'markersize', obj.MarkerSize, "Color", [0 0 0]);
             hold( ax, 'on' );
+            tip_data = max(obj.dMdH);
+            tip_model = max(obj.dMdHhat);
+            tip = max([tip_model, tip_data]);
+            ax.YAxis.Exponent = obj.get_scientific_notation_exponent(tip);
             semilogx(ax, obj.Hhat, obj.dMdHhat, "Color", obj.Colors(1,:));
             obj.plot_Hcr(ax);
             
@@ -151,6 +166,10 @@ classdef Plotter
         function plot_HdMdH_log(obj, ax, plot_components, plot_grid)
             semilogx(ax, obj.Hhat, obj.HdMdHhat, "Color", obj.Colors(1,:));
             hold( ax, 'on' );
+            tip_data = max(obj.HdMdH);
+            tip_model = max(obj.HdMdHhat);
+            tip = max([tip_model, tip_data]);
+            ax.YAxis.Exponent = obj.get_scientific_notation_exponent(tip);
             semilogx(ax, obj.H,obj.HdMdH, '.', 'markersize', obj.MarkerSize, "Color", [0 0 0]);
             obj.plot_Hcr(ax);
 
@@ -167,13 +186,17 @@ classdef Plotter
             yline(ax, 0);
 
             xlabel(ax, 'H [A/m]');
-            ylabel(ax, '∂M/∂(logH) [A/m]', "Color",[0, 0, 0]);
+            ylabel(ax, '∂M/∂(lnH) [A/m]', "Color",[0, 0, 0]);
             box(ax,'on');
             hold( ax, 'off' );
         end
 
         function plot_HdMdH(obj, ax, plot_components, plot_grid)
             hold( ax, 'on' );
+            tip_data = max(obj.HdMdH);
+            tip_model = max(obj.HdMdHhat);
+            tip = max([tip_model, tip_data]);
+            ax.YAxis.Exponent = obj.get_scientific_notation_exponent(tip);
             plot(ax, obj.Hhat, obj.HdMdHhat, "Color", obj.Colors(1,:));
             plot(ax, obj.H,obj.HdMdH, '.', 'markersize', obj.MarkerSize, "Color", [0 0 0]);
             obj.plot_Hcr(ax);
@@ -191,9 +214,18 @@ classdef Plotter
             yline(ax, 0);
 
             xlabel(ax, 'H [A/m]');
-            ylabel(ax, '∂M/∂(logH) [A/m]', "Color",[0, 0, 0]);
+            ylabel(ax, '∂M/∂(lnH) [A/m]', "Color",[0, 0, 0]);
             box(ax,'on');
             hold( ax, 'off' );
+        end
+
+        function exponent = get_scientific_notation_exponent(~, tip)
+            exponent = 0;
+
+            while (tip >= 10)
+                tip = tip / 10;
+                exponent = exponent + 1;
+            end
         end
 
         function plot(obj)

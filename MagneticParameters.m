@@ -42,8 +42,28 @@ classdef MagneticParameters
         end
 
         function Ms = get_Ms(obj, a, alphaMs)
+            % Check if all components are the same
+            some_Hcr = obj.Hcr(1);
+            some_mcr = obj.mcr(1);
+            all_same_components = true;
+            for i = 1:length(obj.Hcr)
+                if ((obj.Hcr(i) ~= some_Hcr) || (obj.mcr(i) ~= some_mcr))
+                    all_same_components = false;
+                end
+            end
 
             [HTip, MTip] = Utils().find_tip(obj.H, obj.M);
+
+            if all_same_components
+                n = length(obj.Hcr);
+                Ms = zeros(1, n);
+                for i = 1:n
+                    Ms(i) = MTip / (n * Utils().get_m(HTip, a(i), alphaMs(i)));
+                end
+
+                return;
+            end
+
             H_solve = zeros(1, length(obj.Hcr));
             M_solve = zeros(1, length(obj.Hcr));
             H_solve(1) = HTip;

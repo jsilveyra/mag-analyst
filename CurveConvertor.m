@@ -11,6 +11,16 @@ classdef CurveConvertor
             H = X;
             M = Y;
             if(curve_type == "Anhysteretic curve")
+                new_index = -1;
+                for i = 1:length(H)
+                    if( H(i) >= 0 )
+                        new_index = i;
+                        break;
+                    end
+                end
+
+                H = H(new_index:end);
+                M = M(new_index:end);
                 return;
             end
             [~, H_min_index] = min(H); % Find H minimum (i.e., -Htip) as well as the row index of data in which it appears
