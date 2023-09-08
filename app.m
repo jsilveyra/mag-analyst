@@ -2,7 +2,7 @@ classdef app < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure                        matlab.ui.Figure
+        MagAnalystUIFigure              matlab.ui.Figure
         ProjectMenu                     matlab.ui.container.Menu
         OpenMenu                        matlab.ui.container.Menu
         SaveMenu                        matlab.ui.container.Menu
@@ -821,8 +821,8 @@ classdef app < matlab.apps.AppBase
             app.ColorDialogApp = colorDialog(app, app.Colors, app.number_components);
         end
 
-        % Close request function: UIFigure
-        function UIFigureCloseRequest(app, event)
+        % Close request function: MagAnalystUIFigure
+        function MagAnalystUIFigureCloseRequest(app, event)
             delete(app.ColorDialogApp)
             delete(app)
         end
@@ -994,8 +994,7 @@ classdef app < matlab.apps.AppBase
 
         % Value changed function: OutputDatasetPath
         function OutputDatasetPathValueChanged(app, event)
-            value = app.OutputDatasetPath.Value;
-            
+           
         end
 
         % Button pushed function: ExportResiduesButton
@@ -1038,14 +1037,19 @@ classdef app < matlab.apps.AppBase
         % Create UIFigure and components
         function createComponents(app)
 
-            % Create UIFigure and hide until all components are created
-            app.UIFigure = uifigure('Visible', 'off');
-            app.UIFigure.Position = [100 100 1024 768];
-            app.UIFigure.Name = 'MATLAB App';
-            app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @UIFigureCloseRequest, true);
+            % Get the file path for locating images
+            pathToMLAPP = fileparts(mfilename('fullpath'));
+
+            % Create MagAnalystUIFigure and hide until all components are created
+            app.MagAnalystUIFigure = uifigure('Visible', 'off');
+            app.MagAnalystUIFigure.Position = [100 100 1024 768];
+            app.MagAnalystUIFigure.Name = 'MagAnalyst';
+            app.MagAnalystUIFigure.Icon = fullfile(pathToMLAPP, 'logo.png');
+            app.MagAnalystUIFigure.CloseRequestFcn = createCallbackFcn(app, @MagAnalystUIFigureCloseRequest, true);
+            app.MagAnalystUIFigure.WindowState = 'maximized';
 
             % Create ProjectMenu
-            app.ProjectMenu = uimenu(app.UIFigure);
+            app.ProjectMenu = uimenu(app.MagAnalystUIFigure);
             app.ProjectMenu.Text = 'Project';
 
             % Create OpenMenu
@@ -1068,7 +1072,7 @@ classdef app < matlab.apps.AppBase
             app.SaveasMenu.Text = 'Save as...';
 
             % Create AppGridLayout
-            app.AppGridLayout = uigridlayout(app.UIFigure);
+            app.AppGridLayout = uigridlayout(app.MagAnalystUIFigure);
             app.AppGridLayout.ColumnWidth = {'1x'};
             app.AppGridLayout.RowHeight = {'3x', '1x'};
             app.AppGridLayout.RowSpacing = 0;
@@ -2161,7 +2165,7 @@ classdef app < matlab.apps.AppBase
             app.MessagesTextArea.Layout.Column = 1;
 
             % Show the figure after all components are created
-            app.UIFigure.Visible = 'on';
+            app.MagAnalystUIFigure.Visible = 'on';
         end
     end
 
@@ -2175,7 +2179,7 @@ classdef app < matlab.apps.AppBase
             createComponents(app)
 
             % Register the app with App Designer
-            registerApp(app, app.UIFigure)
+            registerApp(app, app.MagAnalystUIFigure)
 
             % Execute the startup function
             runStartupFcn(app, @startupFcn)
@@ -2189,7 +2193,7 @@ classdef app < matlab.apps.AppBase
         function delete(app)
 
             % Delete UIFigure when app is deleted
-            delete(app.UIFigure)
+            delete(app.MagAnalystUIFigure)
         end
     end
 end
