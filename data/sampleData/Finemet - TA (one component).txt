@@ -21,7 +21,7 @@
   "vertical_axis": "B [T]",
   "description": [
     "Curve type: ",
-    "* Hysteresis loop (B(T) vs H(A/m))",
+    "* Hysteresis loop (B[T] vs H[A/m])",
     "",
     "Material: ",
     "* Fe73.5Si13.5B9Nb3Cu1 nanocrystalline alloy with induced transverse anisotropy.",
