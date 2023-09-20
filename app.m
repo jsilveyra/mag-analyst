@@ -21,7 +21,6 @@ classdef app < matlab.apps.AppBase
         AxesProcessedInputData          matlab.ui.control.UIAxes
         GridLayoutInputTipsAndPlotButton  matlab.ui.container.GridLayout
         GridLayoutInputPlotButton       matlab.ui.container.GridLayout
-        CalculatePlotInputButton        matlab.ui.control.Button
         GridLayoutTips                  matlab.ui.container.GridLayout
         MTipField                       matlab.ui.control.EditField
         MtipAmLabel                     matlab.ui.control.Label
@@ -90,9 +89,9 @@ classdef app < matlab.apps.AppBase
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
         logCheckBoxM                    matlab.ui.control.CheckBox
-        AxesHdMdH                       matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesM                           matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesHdMdH                       matlab.ui.control.UIAxes
         MagnetizationoutputdataTab      matlab.ui.container.Tab
         GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
         GridLayoutExperimentalMagnetizationData  matlab.ui.container.GridLayout
@@ -587,6 +586,17 @@ classdef app < matlab.apps.AppBase
             calculate_parameters(app)
             plot(app)
         end
+
+        function calculate_and_plot(app)
+            path = app.InputDatasetPath.Value;
+            if path == ""
+                return
+            end
+            app.import_data(path);
+            update_components(app)
+            calculate_parameters(app)
+            app.plot_input();
+        end
     end
     
 
@@ -689,7 +699,7 @@ classdef app < matlab.apps.AppBase
             calculate_parameters(app)
         end
 
-        % Button pushed function: CalculatePlotInputButton
+        % Callback function: not associated with a component
         function CalculatePlotInputButtonPushed(app, event)
             path = app.InputDatasetPath.Value;
             if path == ""
@@ -1029,6 +1039,21 @@ classdef app < matlab.apps.AppBase
                 app.save();
             end
         end
+
+        % Value changed function: HorizontalaxisfieldDropDown
+        function HorizontalaxisfieldDropDownValueChanged(app, event)
+            app.calculate_and_plot();
+        end
+
+        % Value changed function: VerticalaxisfieldDropDown
+        function VerticalaxisfieldDropDownValueChanged(app, event)
+            app.calculate_and_plot();
+        end
+
+        % Value changed function: CurveDropDown
+        function CurveDropDownValueChanged(app, event)
+            app.calculate_and_plot();
+        end
     end
 
     % Component initialization
@@ -1119,6 +1144,7 @@ classdef app < matlab.apps.AppBase
             % Create HorizontalaxisfieldDropDown
             app.HorizontalaxisfieldDropDown = uidropdown(app.GridLayoutInputHorizontalAxis);
             app.HorizontalaxisfieldDropDown.Items = {'H [A/m]', 'H [kA/m]', 'H [Oe]', 'H [kOe]', 'Bext [T]', 'Bext [Gauss]', 'Bext [kGauss]'};
+            app.HorizontalaxisfieldDropDown.ValueChangedFcn = createCallbackFcn(app, @HorizontalaxisfieldDropDownValueChanged, true);
             app.HorizontalaxisfieldDropDown.Layout.Row = 1;
             app.HorizontalaxisfieldDropDown.Layout.Column = 2;
             app.HorizontalaxisfieldDropDown.Value = 'H [A/m]';
@@ -1141,6 +1167,7 @@ classdef app < matlab.apps.AppBase
             % Create VerticalaxisfieldDropDown
             app.VerticalaxisfieldDropDown = uidropdown(app.GridLayoutInputVerticalAxis);
             app.VerticalaxisfieldDropDown.Items = {'M [A/m]', 'M [kA/m]', 'M [MA/m]', 'M [emu/cm^3]', 'J [T]', 'B [T]', 'B [Gauss]', 'B [kGauss]'};
+            app.VerticalaxisfieldDropDown.ValueChangedFcn = createCallbackFcn(app, @VerticalaxisfieldDropDownValueChanged, true);
             app.VerticalaxisfieldDropDown.Layout.Row = 1;
             app.VerticalaxisfieldDropDown.Layout.Column = 2;
             app.VerticalaxisfieldDropDown.Value = 'M [A/m]';
@@ -1162,7 +1189,8 @@ classdef app < matlab.apps.AppBase
 
             % Create CurveDropDown
             app.CurveDropDown = uidropdown(app.GridLayoutInputCurve);
-            app.CurveDropDown.Items = {'Anhysteretic curve', 'Hysteretic cycle'};
+            app.CurveDropDown.Items = {'Anhysteretic curve', 'Hysteretic loop'};
+            app.CurveDropDown.ValueChangedFcn = createCallbackFcn(app, @CurveDropDownValueChanged, true);
             app.CurveDropDown.Layout.Row = 1;
             app.CurveDropDown.Layout.Column = 2;
             app.CurveDropDown.Value = 'Anhysteretic curve';
@@ -1289,13 +1317,6 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutInputPlotButton.Layout.Row = 1;
             app.GridLayoutInputPlotButton.Layout.Column = 2;
 
-            % Create CalculatePlotInputButton
-            app.CalculatePlotInputButton = uibutton(app.GridLayoutInputPlotButton, 'push');
-            app.CalculatePlotInputButton.ButtonPushedFcn = createCallbackFcn(app, @CalculatePlotInputButtonPushed, true);
-            app.CalculatePlotInputButton.Layout.Row = 2;
-            app.CalculatePlotInputButton.Layout.Column = 2;
-            app.CalculatePlotInputButton.Text = 'Calculate & Plot';
-
             % Create GridLayoutInputPlots
             app.GridLayoutInputPlots = uigridlayout(app.GridLayoutInputPlot);
             app.GridLayoutInputPlots.RowHeight = {'1x'};
@@ -1335,15 +1356,14 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.TickDir = 'in';
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -1354,14 +1374,15 @@ classdef app < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.TickDir = 'in';
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
