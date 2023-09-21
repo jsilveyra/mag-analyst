@@ -6,15 +6,17 @@
 1. [Authors](#authors)
 2. [Statement of need](#statement-of-need)
 3. [Installation instructions](#installation-instructions)
-4. [External libraries](#external-libraries)
-5. [Examples](#examples)
-6. [Cite as](#cite-as)
-7. [Contact us](#contact-us)
-8. [License](#license)
-9. [Acknowledgement](#acknowledgment)
+4. [Description of the files and directory structure](#description-of-the-files-and-directory-structure)
+5. [External libraries](#external-libraries)
+6. [Examples](#examples)
+7. [Cite as](#cite-as)
+8. [Contact us](#contact-us)
+9. [License](#license)
+10. [Acknowledgement](#acknowledgment)
  
  ## Authors
   - Matías Ignacio González
+  - Tomás Francisco González
   - Josefina María Silveyra
   - Juan Manuel Conde Garrido
 	
@@ -22,7 +24,7 @@ University of Buenos Aires – CONICET, Buenos Aires, Argentina.
    
 ## Statement of need
 
-The design of devices with soft magnetic cores depends on the simple and accurate description of their magnetization. MagAnalyst is an easy-to-use Matlab toolbox to model the magnetization of soft magnetic materials. It implements the physically based approach recently proposed by Silveyra and Conde Garrido to describe the ideal anhysteretic curve. The equation of state is simple and yet accurate for a variety of materials’ scenarios. MagAnalyst first plots a set of curves to help to identify the number of component magnetizations to model. Then, it retrieves the model parameters without requiring programming or optimization skills. As a result, noisy data of the most challenging scenarios can accurately be described by a single analytic function, with both the magnetization and susceptibility continuous and differentiable. We believe that our toolbox can be a valuable resource to the magnetic materials community.
+The accurate description of magnetization is crucial for designing devices with soft magnetic cores. MagAnalyst is an easy-to-use MATLAB toolbox that models the magnetization of soft magnetic materials. It implements a physically based approach, proposed by Silveyra and Conde Garrido, to describe the ideal anhysteretic curve. The equation of state is simple yet accurate for various material scenarios. The toolbox first plots a set of curves to help the user determine the number of component magnetizations to model and the seeds for the fitting process. It then retrieves the model parameters without the need for programming or optimization skills. As a result, even noisy data from challenging scenarios can be accurately described by a single analytic function, with continuous and differentiable magnetization and susceptibility. We believe that MagAnalyst will be a valuable resource for the magnetic materials community.
 
 ## Installation instructions
 
@@ -34,6 +36,10 @@ After downloading the main folder and placing it in a relevant location, the ins
  
 MagAnalyst was implemented and tested with the Matlab 2022b version on Windows 10. Authors cannot guarantee that the code can run on previous versions.
 
+## Description of the files and directory structure
+
+TO BE COMPLETED
+
 ## External libraries
 
 MagAnalyst currently uses the following third-party libraries:
@@ -41,10 +47,10 @@ MagAnalyst currently uses the following third-party libraries:
 
 ## Examples
 
-These are the examples provided with the current release:
+These are the examples provided in the \data\sampleData folder with the current release :
 
-* Mn-Zn ferrite: A soft ferrite (Mn<sub>0.51</sub>Zn<sub>0.44</sub>Fe<sub>2.05</sub>O<sub>4</sub>) with very low anisotropy. Analyzed in [JMMM article](https://doi.org/10.1016/j.jmmm.2021.168430) and in [AIP Advances article](https://doi.org/10.1063/9.0000328).
-* Finemet - TA: Finemet (r) alloy (Fe<sub>73.5</sub>Si<sub>13.5</sub>B<sub>9</sub>Nb<sub>3</sub>Cu<sub>1</sub>) nanocrystallized under transverse field annealing and measured along the longitudinal direction of the ribbon. Analyzed in [JOM article](https://doi.org/10.1007/s11837-023-05704-x). The example is illustrated by a video available in [YouTube](https://www.youtube.com/channel/xxx).
+* Mn-Zn ferrite: A soft ferrite (Mn<sub>0.51</sub>Zn<sub>0.44</sub>Fe<sub>2.05</sub>O<sub>4</sub>) with very low anisotropy. Similar to the curve analyzed in [JMMM article](https://doi.org/10.1016/j.jmmm.2021.168430) and in [AIP Advances article](https://doi.org/10.1063/9.0000328). The example is illustrated by a video available in [YouTube](https://www.youtube.com/finisilveyra/xxx).
+* Finemet - TA: Finemet (r) alloy (Fe<sub>73.5</sub>Si<sub>13.5</sub>B<sub>9</sub>Nb<sub>3</sub>Cu<sub>1</sub>) nanocrystallized under transverse field annealing and measured along the longitudinal direction of the ribbon. Analyzed in [JOM article](https://doi.org/10.1007/s11837-023-05704-x).
 * JNEX-900: A non-oriented electrical steel. Analyzed in [AIP Advances article](https://doi.org/10.1063/9.0000328). 
 * GOSS - 67 MPa: A grain-oriented silicon steel sheet, cut parallel to the rolling direction, longitudinally compressed up to 67 MPa. Analyzed in [JOM article](https://doi.org/10.1007/s11837-023-05704-x). 
 
