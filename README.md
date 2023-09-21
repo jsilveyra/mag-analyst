@@ -67,7 +67,7 @@ If you encounter bugs or problems using MagAnalyst, have any suggestions for imp
 
 ## License
 
-MagAnalyst is provided under the [MIT License](https://github.com/matias-gonz/mag-analyst/blob/main/License.txt).
+MagAnalyst is provided under the [MIT License](https://github.com/matias-gonz/mag-analyst/blob/main/license.txt).
 
 ## Acknowledgment
 
