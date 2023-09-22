@@ -89,9 +89,9 @@ classdef app < matlab.apps.AppBase
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
         logCheckBoxM                    matlab.ui.control.CheckBox
-        AxesM                           matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesHdMdH                       matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesM                           matlab.ui.control.UIAxes
         MagnetizationoutputdataTab      matlab.ui.container.Tab
         GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
         GridLayoutExperimentalMagnetizationData  matlab.ui.container.GridLayout
@@ -541,6 +541,7 @@ classdef app < matlab.apps.AppBase
             s.description = app.DescriptionTextArea.Value;
             s.data_set_path = app.OutputDatasetPath.Value;
 
+            s.experimental_anhysteretic_magnetization_file_name = app.EditFieldFileNameExperimentalMagnetizationData.Value;
             s.magnetization_file_name = app.EditFieldFileNameModeledAnhystereticMagnetization.Value;
             s.parameters_file_name = app.EditFieldFileNameParameters.Value;
             s.magnetization_plots_file_name = app.EditFieldFileNamePlotMagnetization.Value;
@@ -567,6 +568,7 @@ classdef app < matlab.apps.AppBase
             s.susceptibility_plots_checkbox = app.CheckBoxExportPlotSusceptibility.Value;
             s.magnetization_derivatives_checkbox = app.CheckBoxExportPlotSemiLogMagDerivative.Value;
 
+            s.experimental_anhysteretic_magnetization_checkbox = app.CheckBoxExperimentalMagnetization.Value;
             s.magnetization_residual_checkbox = app.CheckBoxExportResiduesMagnetization.Value;
             s.susceptibility_residual_checkbox = app.CheckBoxExportResiduesSusceptibility.Value;
             s.semi_log_derivative_residual_checkbox = app.CheckBoxExportResiduesSemiLogMagDerivative.Value;
@@ -699,7 +701,7 @@ classdef app < matlab.apps.AppBase
             calculate_parameters(app)
         end
 
-        % Callback function: not associated with a component
+        % Callback function
         function CalculatePlotInputButtonPushed(app, event)
             path = app.InputDatasetPath.Value;
             if path == ""
@@ -970,6 +972,7 @@ classdef app < matlab.apps.AppBase
             app.DescriptionTextArea.Value = s.description;
             
             app.OutputDatasetPath.Value = s.data_set_path;
+            app.EditFieldFileNameExperimentalMagnetizationData.Value = s.experimental_anhysteretic_magnetization_file_name;
             app.EditFieldFileNameModeledAnhystereticMagnetization.Value = s.magnetization_file_name; 
             app.EditFieldFileNameParameters.Value = s.parameters_file_name;
             app.EditFieldFileNamePlotMagnetization.Value = s.magnetization_plots_file_name;
@@ -993,6 +996,7 @@ classdef app < matlab.apps.AppBase
             app.CheckBoxExportPlotSusceptibility.Value = s.susceptibility_plots_checkbox;
             app.CheckBoxExportPlotSemiLogMagDerivative.Value = s.magnetization_derivatives_checkbox;
 
+            app.CheckBoxExperimentalMagnetization.Value = s.experimental_anhysteretic_magnetization_checkbox;
             app.CheckBoxExportResiduesMagnetization.Value = s.magnetization_residual_checkbox;
             app.CheckBoxExportResiduesSusceptibility.Value = s.susceptibility_residual_checkbox;
             app.CheckBoxExportResiduesSemiLogMagDerivative.Value = s.semi_log_derivative_residual_checkbox;
@@ -1356,14 +1360,15 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.TickDir = 'in';
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -1374,15 +1379,14 @@ classdef app < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.TickDir = 'in';
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
