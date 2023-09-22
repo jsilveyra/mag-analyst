@@ -4,7 +4,7 @@
     "0.6847",
     "1.4666",
     "0.6898",
-    "3.7711"
+    "5.8698"
   ],
   "fitted_parameters_lower_bound": [
     "5.0000",
@@ -32,21 +32,7 @@
   "horizontal_axis": "H [A/m]",
   "vertical_axis": "B [T]",
   "description": [
-    "Curve type: ",
-    "* Hysteresis loop (B[T] vs H[A/m])",
-    "",
-    "Material: ",
-    "* Fe73.5Si13.5B9Nb3Cu1 nanocrystalline alloy with induced transverse anisotropy.",
-    "",
-    "Details of the material's preparation and measurement:",
-    "* Wound toroids first nanocrystallized at 540°C for 1 h with no field and subsequently annealed at 350°C with a magnetic field applied transverse to the ribbon axis (i.e., transverse field annealing). The hysteresis loops were measured along the circumferential direction of the toroids.",
-    "",
-    "References of the hysteresis loop:",
-    "* G. Herzer, Handb. Magn. Mater. 10, 415 https://doi.org/10.1016/S1567-2719(97)10007-5 (1997).",
-    "* Vacuumschmelze, Nanocrystalline VITROPERM. State-of-the-art Ribbon with Outstanding Soft Magnetic Properties, https://staging.vacpim.com/Nanocrystalline-Material. Accessed 30 Aug 2022. (2021).",
-    "",
-    "Anhisteretic curve analyzed in: ",
-    "* Silveyra, Josefina M., and Juan M. Conde Garrido. \"A Physically Based Model for Soft Magnets’ Anhysteretic Curve.\" JOM (2023): 1-14. https://doi.org/10.1007/s11837-023-05704-x"
+    ""
   ],
   "data_set_path": "C:\\Users\\Josefina\\fi.uba.ar\\JuanyJose - Documentos\\Github\\mag-analyst\\data",
   "magnetization_file_name": "modeled_anhysteretic_magnetization",
@@ -68,8 +54,8 @@
   "other_quantities_checkbox": true,
   "errors_checkbox": true,
   "magnetization_plots_checkbox": true,
-  "susceptibility_plots_checkbox": true,
-  "magnetization_derivatives_checkbox": true,
+  "susceptibility_plots_checkbox": false,
+  "magnetization_derivatives_checkbox": false,
   "magnetization_residual_checkbox": true,
   "susceptibility_residual_checkbox": true,
   "semi_log_derivative_residual_checkbox": true
