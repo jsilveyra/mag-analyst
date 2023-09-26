@@ -230,6 +230,7 @@ classdef Plotter
 
         function plot_raw(obj, ax, X, Y, X_label, Y_label, plot_title)
             hold( ax, 'on' );
+            xline(ax, 0);
             tip = max(Y);
             ax.YAxis.Exponent = obj.get_scientific_notation_exponent(tip);
             plot(ax, X, Y, '.', 'markersize', obj.MarkerSize, "Color", [0 0 0]);
