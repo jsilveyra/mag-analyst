@@ -1,10 +1,10 @@
 {
   "fitted_parameters_value": [
-    "1,099.6743",
-    "0.7197",
-    "909.7897",
-    "0.7486",
-    "1,192.4884"
+    "1,080.5996",
+    "0.7188",
+    "917.7788",
+    "0.7444",
+    "1,189.4187"
   ],
   "fitted_parameters_lower_bound": [
     "0.0000",
@@ -31,24 +31,25 @@
   "input_path": "C:\\Users\\Josefina\\fi.uba.ar\\JuanyJose - Documentos\\Github\\mag-analyst\\data\\sampleData\\GOSS - 67 MPa.csv",
   "horizontal_axis": "H [A/m]",
   "vertical_axis": "J [T]",
+  "curve_type": "Hysteretic loop",
   "description": [
     "Curve type: ",
-    "* Hysteresis cycle (J vs H)",
+    "* Hysteresis cycle (J[T] vs H[A/m])",
     "",
-    "Material: ",
+    "Material:",
     "* A grain-oriented silicon steel sheet, cut parallel to the rolling direction, longitudinally compressed up to 67 MPa.",
     "",
     "Details of the material's preparation and measurement:",
     "* The quasistatic loop was measured along the rolling direction of the steel sheets, which corresponds to the surface-parallel easy axis.",
     "",
-    "Reference of the hysteresis loop (as J vs H):",
+    "Reference of the hysteresis loop:",
     "* O. Perevertov, R. Schaefer, and O. Stupakov, IEEE Trans. Magn. 50, 1 https://doi.org/10.1109/TMAG.2014.2325211 (2014).",
     "",
-    "Anhysteretic curve analyzed in: ",
-    "* Silveyra, Josefina M., and Juan M. Conde Garrido. \"A Physically Based Model for Soft Magnets’ Anhysteretic Curve.\" JOM (2023): 1-14. https://doi.org/10.1007/s11837-023-05704-x",
-    ""
+    "Anhysteretic curve analyzed in:",
+    "* Silveyra, Josefina M., and Juan M. Conde Garrido. \\\"A Physically Based Model for Soft Magnets’ Anhysteretic Curve.\\\" JOM (2023): 1-14. https://doi.org/10.1007/s11837-023-05704-x\""
   ],
   "data_set_path": "C:\\Users\\Josefina\\fi.uba.ar\\JuanyJose - Documentos\\Github\\mag-analyst\\data",
+  "experimental_anhysteretic_magnetization_file_name": "experimental_anhysteretic_magnetization",
   "magnetization_file_name": "modeled_anhysteretic_magnetization",
   "parameters_file_name": "parameters",
   "magnetization_plots_file_name": "M",
@@ -70,6 +71,7 @@
   "magnetization_plots_checkbox": true,
   "susceptibility_plots_checkbox": true,
   "magnetization_derivatives_checkbox": true,
+  "experimental_anhysteretic_magnetization_checkbox": true,
   "magnetization_residual_checkbox": true,
   "susceptibility_residual_checkbox": true,
   "semi_log_derivative_residual_checkbox": true
