@@ -56,7 +56,7 @@ These are the examples provided in the \data\sampleData folder with the current 
 
 The files provided include:
 * data tables in CSV format, where the first and second column correspond to the horizontal and vertical axes field, respectively (the headers specify the fields and units)
-* saved projects in TXT format, where the provided data tables have been fitted with either one or two components
+* saved projects in TXT format, with the data tables fitted with either one or two components
 
 ## Cite as
 
