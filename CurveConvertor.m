@@ -48,14 +48,7 @@ classdef CurveConvertor
             
             M_positive_tip_right = max(M_right);
             M_positive_tip_left = max(M_left);
-            M_positive_tip = min(M_positive_tip_right,M_positive_tip_left); % We need to choose between the smallest value of both. Otherwise, we will obtain a NaN interpolated value afterwards
-            M_negative_tip_right = min(M_right);
-            M_negative_tip_left = min(M_left);
-            M_negative_tip = max(M_negative_tip_right,M_negative_tip_left); % We need to choose between the smallest absolute value of both. Otherwise, we will obtain a NaN interpolated value afterwards
-            
-            tmp = M_right;
-            tmp(tmp==0) = Inf;
-            M_min = min(abs(tmp));
+            M_positive_tip = min(M_positive_tip_right,M_positive_tip_left);
             
             F_right = griddedInterpolant(M_right_unique,H_right_unique,'linear','none');
             F_left = griddedInterpolant(M_left_unique,H_left_unique,'linear','none');

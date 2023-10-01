@@ -89,7 +89,6 @@ classdef MagneticParameters
             end
         end
 
-
         function dimensionless_alphaMs = get_dimensionless_alphaMs(~, alpha, Ms, a)
             dimensionless_alphaMs = zeros(1, length(alpha));
             for i = 1:length(alpha)
