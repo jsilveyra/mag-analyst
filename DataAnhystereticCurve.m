@@ -20,7 +20,7 @@ classdef DataAnhystereticCurve
         function dMdH = get_dMdH(~, H, M)
             dMdH = transpose(gradient(M(:)) ./ gradient(H(:)));
         end
-        
+
         function HdMdH = get_HdMdH(~, H, dHdH)
             HdMdH = H.*dHdH;
         end
