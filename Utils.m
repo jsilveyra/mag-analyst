@@ -1,5 +1,4 @@
 classdef Utils
-
     methods
         function m = get_m(~, H, a, alphaMs)
             function ret = f_m(m)
