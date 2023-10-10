@@ -713,18 +713,6 @@ classdef app < matlab.apps.AppBase
             calculate_parameters(app)
         end
 
-        % Callback function
-        function CalculatePlotInputButtonPushed(app, event)
-            path = app.InputDatasetPath.Value;
-            if path == ""
-                return
-            end
-            app.import_data(path);
-            update_components(app)
-            calculate_parameters(app)
-            app.plot_input();
-        end
-
         % Value changed function: logCheckBoxInputPlot
         function logCheckBoxInputPlotValueChanged(app, event)
             app.plot_input()
@@ -744,7 +732,7 @@ classdef app < matlab.apps.AppBase
         function ResidualplotButtondMdHPushed(app, event)
             data_curve = DataAnhystereticCurve(app.H, app.M);
             modeled_curve = ModeledAnhystereticCurve(app.H, app.a, app.alpha, app.alphaMs, app.Ms);
-            residue_calculator = DerivativeResidueCalculator(data_curve, modeled_curve);
+            residue_calculator = SusceptibilityResidueCalculator(data_curve, modeled_curve);
             residue = residue_calculator.get_residue();
             residue_plotter = ResiduePlotter(app.H(2:end-1), app.dMdH(2:end-1), app.Hhat, app.dMdHhat, residue, app.logCheckBoxdMdH.Value, "∂M/∂H");
             residue_plotter.plot()
@@ -1029,23 +1017,23 @@ classdef app < matlab.apps.AppBase
 
         % Button pushed function: ExportResiduesButton
         function ExportResiduesButtonPushed(app, event)
-            error = ErrorCalculator();
-            H_log = log(app.H);
+            data_curve = DataAnhystereticCurve(app.H, app.M);
+            modeled_curve = ModeledAnhystereticCurve(app.H, app.a, app.alpha, app.alphaMs, app.Ms);
 
             if (app.CheckBoxExportResiduesMagnetization.Value == 1)
-                residue = error.residue(H_log, app.M, log(app.Hhat), app.Mhat);
+                residue = MagnetizationResidueCalculator(data_curve, modeled_curve).get_residue();
                 file_name = strcat(app.EditFieldFileNameResiduesMagnetization.Value, app.DropDownResiduesMagnetizacionExtension.Value);
                 app.export_residual(residue, file_name);
             end
 
             if(app.CheckBoxExportResiduesSusceptibility.Value == 1)
-                residue = error.residue(H_log, app.dMdH, log(app.Hhat), app.dMdHhat);
+                residue = SusceptibilityResidueCalculator(data_curve, modeled_curve).get_residue();
                 file_name = strcat(app.EditFieldFileNameResiduesSusceptibility.Value, app.DropDownResiduesSusceptibilityExtension.Value);
                 app.export_residual(residue, file_name);
             end
 
-            if(app.CheckBoxExportResiduesSusceptibility.Value == 1)
-                residue = error.residue(H_log, app.HdMdH, log(app.Hhat), app.HdMdHhat);
+            if(app.CheckBoxExportResiduesSemiLogMagDerivative.Value == 1)
+                residue = SemilogDerivativeResidueCalculator(data_curve, modeled_curve).get_residue();
                 file_name = strcat(app.EditFieldFileNameResiduesSemiLogMagDerivative.Value, app.DropDownResiduesSemiLogMagDerivativeExtension.Value);
                 app.export_residual(residue, file_name);
             end

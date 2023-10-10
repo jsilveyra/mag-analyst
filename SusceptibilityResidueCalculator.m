@@ -1,6 +1,6 @@
-classdef DerivativeResidueCalculator < ResidueCalculator
+classdef SusceptibilityResidueCalculator < ResidueCalculator
     methods (Access = public)
-        function obj = DerivativeResidueCalculator(data_curve, modeled_curve)
+        function obj = SusceptibilityResidueCalculator(data_curve, modeled_curve)
             obj.X = log(data_curve.H);
             obj.Y = data_curve.dMdH;
             obj.Xhat = log(modeled_curve.H);
