@@ -401,7 +401,7 @@ classdef app < matlab.apps.AppBase
 
             app.TableParameters.Data = t;  
         end
-        
+
         function init_quantities_table(app, default_values)
             parameters_col = cell(app.number_components, 1);
             for i = 1:app.number_components
@@ -413,7 +413,7 @@ classdef app < matlab.apps.AppBase
             density_product_col = cell(app.number_components, 1);
             Hk_col = cell(app.number_components, 1);
             initial_relative_magnetic_permeability_col = cell(app.number_components, 1);
-            
+
             if ~default_values
                 for i = 1:app.number_components
                     dimensionless_alphaMs_col(i,:) = {app.format_short(app.dimensionless_alphaMs(i))};
@@ -426,14 +426,14 @@ classdef app < matlab.apps.AppBase
             t = table(parameters_col, dimensionless_alphaMs_col, density_product_col, Hk_col, initial_relative_magnetic_permeability_col);
             app.TableQuantities.Data = t;
         end
-        
+
         function ret = format_short(~, v)
             string_value = char(sprintf("%0.4f",v));
             aux = regexp(string_value,'\.','split');
             aux{1} = fliplr(regexprep(fliplr(aux{1}),'\d{3}(?=\d)', '$0,'));
             ret = [aux{1},'.',aux{2}];
         end
-        
+
         function ret = format_engineering(~, v)
             ret = char(sprintf("%0.4e",v));
         end
@@ -442,7 +442,7 @@ classdef app < matlab.apps.AppBase
             string_value = char(sprintf("%d",round(v)));
             ret = fliplr(regexprep(fliplr(string_value),'\d{3}(?=\d)', '$0,'));
         end
-        
+
         function plot_M(app)
             plotter = Plotter(app.data_curve.H, app.data_curve.M, app.data_curve.dMdH, app.data_curve.HdMdH, app.modeled_curve.H, app.modeled_curve.M, app.modeled_curve.Mi, app.modeled_curve.dMdH, app.modeled_curve.dMidH, app.modeled_curve.HdMdH, app.modeled_curve.HdMidH, app.Hcr, app.Colors);
             cla(app.AxesM,'reset');
@@ -454,7 +454,7 @@ classdef app < matlab.apps.AppBase
                 plotter.plot_M_log(app.AxesM, plot_components, show_grid);
             end
         end
-        
+
         function plot_dMdH(app)
             plotter = Plotter(app.data_curve.H, app.data_curve.M, app.data_curve.dMdH, app.data_curve.HdMdH, app.modeled_curve.H, app.modeled_curve.M, app.modeled_curve.Mi, app.modeled_curve.dMdH, app.modeled_curve.dMidH, app.modeled_curve.HdMdH, app.modeled_curve.HdMidH, app.Hcr, app.Colors);
             cla(app.AxesdMdH,'reset');
@@ -487,7 +487,7 @@ classdef app < matlab.apps.AppBase
             msg = sprintf("[%s] %s", app.get_time_string(), message);
             app.MessagesTextArea.Value(end+1) = cellstr(msg);
         end
-        
+
         function import_data(app, path)
             H_unit = app.HorizontalaxisfieldDropDown.Value;
             M_unit = app.VerticalaxisfieldDropDown.Value;
@@ -499,7 +499,7 @@ classdef app < matlab.apps.AppBase
             [H, M] = curve_convertor.convert_curve(X,Y,app.CurveDropDown.Value);
             app.data_curve = DataAnhystereticCurve(H, M);
         end
-        
+
         function ret = subscript_to_number(~, str)
             chars = char(str);
             for i = 1:length(chars)
@@ -509,11 +509,11 @@ classdef app < matlab.apps.AppBase
             end
             ret = string(chars);
         end
-        
+
         function export_residual(app, residue, file_name)
             t = table(transpose(app.data_curve.H(2:end-1)), transpose(residue));
             t.Properties.VariableNames(:) = {'H [A/m]' 'residue'};
-                
+
             path = strcat(app.OutputDatasetPath.Value, '\', file_name);
             writetable(t,path, 'Delimiter', ';');
             app.write_message("Data saved as " + file_name);

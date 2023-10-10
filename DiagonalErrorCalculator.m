@@ -6,6 +6,8 @@ classdef DiagonalErrorCalculator < ErrorCalculator
         end
 
         function e = get_error(obj)
+            obj.X = obj.X(2:end);
+            obj.Y = obj.Y(2:end);
             Ydat = obj.Y(2:end-1);
             Xdat = obj.X(2:end-1);
             e = 0;
