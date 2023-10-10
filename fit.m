@@ -1,7 +1,7 @@
-function [Hcr, mcr, Hx] = fit(H, M, seed, select_a, error_type, lb, ub, select_fit)
-    [HTip, ~] = Utils().find_tip(H, M);
+function [Hcr, mcr, Hx] = fit(data_curve, seed, select_a, error_type, lb, ub, select_fit)
+    [HTip, ~] = Utils().find_tip(data_curve.H, data_curve.M);
     N = 100;
-    Hhat = logspace(log10(H(2)),log10(HTip),N);
+    Hhat = logspace(log10(data_curve.H(2)),log10(HTip),N);
     number_components = (length(seed)+1)/3;
 
     function ret = fit_parameters(x)
@@ -9,13 +9,12 @@ function [Hcr, mcr, Hx] = fit(H, M, seed, select_a, error_type, lb, ub, select_f
         mcr_fit = x(number_components+1:2*number_components);
         Hx_fit = x(number_components*2 +1:end);
 
-        magnetic_parameters = MagneticParameters(H, M, Hcr_fit, mcr_fit, Hx_fit);
+        magnetic_parameters = MagneticParameters(data_curve.H, data_curve.M, Hcr_fit, mcr_fit, Hx_fit);
         a = magnetic_parameters.get_a(select_a);
         alphaMs = magnetic_parameters.get_alphaMs(a);
         Ms = magnetic_parameters.get_Ms(a, alphaMs);
         alpha = magnetic_parameters.get_alpha(alphaMs, Ms);
 
-        data_curve = DataAnhystereticCurve(H, M);
         modeled_curve = ModeledAnhystereticCurve(Hhat, a, alpha, alphaMs, Ms);
         if (error_type == "Diagonal")
             error_calculator = DiagonalErrorCalculator(data_curve, modeled_curve);

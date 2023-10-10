@@ -279,7 +279,7 @@ classdef app < matlab.apps.AppBase
             pause(0.01);
             tic
             try
-                [app.Hcr, app.mcr, app.Hx] = fit(app.data_curve.H, app.data_curve.M, cat(2, app.Hcr, app.mcr, app.Hx), select_a, app.ErrortominimizeDropDown.Value, fit_lb, fit_ub, fit_select_fit);
+                [app.Hcr, app.mcr, app.Hx] = fit(app.data_curve, cat(2, app.Hcr, app.mcr, app.Hx), select_a, app.ErrortominimizeDropDown.Value, fit_lb, fit_ub, fit_select_fit);
                 t = sprintf("%0.2f", toc);
                 app.write_message("Fitting finished after " + t + " s");
             catch e
