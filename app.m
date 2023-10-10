@@ -222,7 +222,18 @@ classdef app < matlab.apps.AppBase
             end
             app.JsField.Value = app.format_short(app.Js);
             app.murinField.Value = app.format_engineering(app.murin);
-            e = ErrorCalculator().get_error(log(app.H), app.M, log(app.Hhat), app.Mhat, app.ErrortominimizeDropDown.Value);
+            data_curve = DataAnhystereticCurve(app.H,app.M);
+            modeled_curve = ModeledAnhystereticCurve(app.H, app.a, app.alpha, app.alphaMs, app.Ms);
+            if (app.ErrortominimizeDropDown.Value == "Diagonal")
+                error_calculator = DiagonalErrorCalculator(data_curve, modeled_curve);
+            end
+            if (app.ErrortominimizeDropDown.Value == "Vertical")
+                error_calculator = VerticalErrorCalculator(data_curve, modeled_curve);
+            end
+            if (app.ErrortominimizeDropDown.Value == "Horizontal")
+                error_calculator = HorizontalErrorCalculator(data_curve, modeled_curve);
+            end
+            e = error_calculator.get_error();
             app.ErrorDisplay.Value = app.format_engineering(e);
         end
 
