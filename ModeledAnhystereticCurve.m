@@ -20,7 +20,6 @@ classdef ModeledAnhystereticCurve
     end
 
     methods (Access = private)
-
         function [M, Mi] = get_M(~, H, a, alphaMs, Ms)
             M = zeros(1, length(H));
             Mi = zeros(length(a), length(H));

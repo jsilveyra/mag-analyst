@@ -359,7 +359,7 @@ classdef app < matlab.apps.AppBase
 
             cla(app.AxesProcessedInputData, 'reset')
             cla(app.AxesRawInputData, 'reset')
-            plotter = Plotter([], [], [], [], [], [], [], [], [], [], [], [], app.Colors, 5);
+            plotter = Plotter(app.data_curve, app.modeled_curve, [], app.Colors, 5);
 
             if(app.logCheckBoxInputPlot.Value == 0)
                 plotter.plot_raw(app.AxesProcessedInputData, app.data_curve.H, app.data_curve.M, 'H [A/m]', 'M [A/m]', 'Processed input data');
@@ -444,7 +444,7 @@ classdef app < matlab.apps.AppBase
         end
 
         function plot_M(app)
-            plotter = Plotter(app.data_curve.H, app.data_curve.M, app.data_curve.dMdH, app.data_curve.HdMdH, app.modeled_curve.H, app.modeled_curve.M, app.modeled_curve.Mi, app.modeled_curve.dMdH, app.modeled_curve.dMidH, app.modeled_curve.HdMdH, app.modeled_curve.HdMidH, app.Hcr, app.Colors);
+            plotter = Plotter(app.data_curve, app.modeled_curve, app.Hcr, app.Colors);
             cla(app.AxesM,'reset');
             plot_components = app.PlotcomponentsCheckBoxM.Value == 1;
             show_grid = app.ShowgridCheckBoxM.Value == 1;
@@ -456,7 +456,7 @@ classdef app < matlab.apps.AppBase
         end
 
         function plot_dMdH(app)
-            plotter = Plotter(app.data_curve.H, app.data_curve.M, app.data_curve.dMdH, app.data_curve.HdMdH, app.modeled_curve.H, app.modeled_curve.M, app.modeled_curve.Mi, app.modeled_curve.dMdH, app.modeled_curve.dMidH, app.modeled_curve.HdMdH, app.modeled_curve.HdMidH, app.Hcr, app.Colors);
+            plotter = Plotter(app.data_curve, app.modeled_curve, app.Hcr, app.Colors);
             cla(app.AxesdMdH,'reset');
             plot_components = app.PlotcomponentsCheckBoxdMdH.Value == 1;
             show_grid = app.ShowgridCheckBoxdMdH.Value == 1;
@@ -468,7 +468,7 @@ classdef app < matlab.apps.AppBase
         end
         
         function plot_HdMdH(app)
-            plotter = Plotter(app.data_curve.H, app.data_curve.M, app.data_curve.dMdH, app.data_curve.HdMdH, app.modeled_curve.H, app.modeled_curve.M, app.modeled_curve.Mi, app.modeled_curve.dMdH, app.modeled_curve.dMidH, app.modeled_curve.HdMdH, app.modeled_curve.HdMidH, app.Hcr, app.Colors);
+            plotter = Plotter(app.data_curve, app.modeled_curve, app.Hcr, app.Colors);
             cla(app.AxesHdMdH,'reset');
             plot_components = app.PlotcomponentsCheckBoxHdMdH.Value == 1;
             show_grid = app.ShowgridCheckBoxHdMdH.Value == 1;
