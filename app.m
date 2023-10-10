@@ -165,17 +165,8 @@ classdef app < matlab.apps.AppBase
     properties (Access = private)
         H_raw
         M_raw
-        H
-        M
-        dMdH
-        HdMdH
-        Hhat
-        Mhat
-        Mihat
-        dMdHhat
-        dMidHhat
-        HdMdHhat
-        HdMidHhat
+        data_curve
+        modeled_curve
         Hcr
         mcr
         Hx
@@ -222,16 +213,15 @@ classdef app < matlab.apps.AppBase
             end
             app.JsField.Value = app.format_short(app.Js);
             app.murinField.Value = app.format_engineering(app.murin);
-            data_curve = DataAnhystereticCurve(app.H,app.M);
-            modeled_curve = ModeledAnhystereticCurve(app.H, app.a, app.alpha, app.alphaMs, app.Ms);
+
             if (app.ErrortominimizeDropDown.Value == "Diagonal")
-                error_calculator = DiagonalErrorCalculator(data_curve, modeled_curve);
+                error_calculator = DiagonalErrorCalculator(app.data_curve, app.modeled_curve);
             end
             if (app.ErrortominimizeDropDown.Value == "Vertical")
-                error_calculator = VerticalErrorCalculator(data_curve, modeled_curve);
+                error_calculator = VerticalErrorCalculator(app.data_curve, app.modeled_curve);
             end
             if (app.ErrortominimizeDropDown.Value == "Horizontal")
-                error_calculator = HorizontalErrorCalculator(data_curve, modeled_curve);
+                error_calculator = HorizontalErrorCalculator(app.data_curve, app.modeled_curve);
             end
             e = error_calculator.get_error();
             app.ErrorDisplay.Value = app.format_engineering(e);
@@ -242,13 +232,9 @@ classdef app < matlab.apps.AppBase
 
             utils = Utils();
 
-            app.dMdH = transpose(gradient(app.M(:)) ./ gradient(app.H(:)));
+            [HTip, ~] = utils.find_tip(app.data_curve.H, app.data_curve.M);
 
-            app.HdMdH = app.H.*app.dMdH;
-
-            [HTip, ~] = utils.find_tip(app.H, app.M);
-
-            magnetic_parameters = MagneticParameters(app.H, app.M, app.Hcr, app.mcr, app.Hx);
+            magnetic_parameters = MagneticParameters(app.data_curve.H, app.data_curve.M, app.Hcr, app.mcr, app.Hx);
             select_a = app.TableParameters.Data{1:app.number_components,5};
             app.a = magnetic_parameters.get_a(select_a);
             app.alphaMs = magnetic_parameters.get_alphaMs(app.a);
@@ -261,14 +247,12 @@ classdef app < matlab.apps.AppBase
             app.initial_relative_magnetic_permeability = magnetic_parameters.get_initial_relative_magnetic_permeability(app.Ms, app.Hk);
             app.murin = magnetic_parameters.get_murin(app.initial_relative_magnetic_permeability);
             if(app.PointSpaceDropDown.Value == "log")
-                app.Hhat = logspace(log10(app.H(2)),log10(HTip),N);
+                Hhat = logspace(log10(app.data_curve.H(2)),log10(HTip),N);
             elseif(app.PointSpaceDropDown.Value == "linear")
-                app.Hhat = linspace(app.H(2),HTip,N);
+                Hhat = linspace(app.data_curve.H(2),HTip,N);
             end
-            
-            [app.Mhat, app.Mihat] = get_Mhat(app.Hhat, app.a, app.alphaMs, app.Ms);
-            [app.dMdHhat, app.dMidHhat] = get_dMdHhat(app.Hhat, app.alpha, app.Ms, app.a, app.alphaMs);
-            [app.HdMdHhat, app.HdMidHhat] = get_HdMdHhat(app.Hhat, app.dMidHhat);
+
+            app.modeled_curve = ModeledAnhystereticCurve(Hhat, app.a, app.alpha, app.alphaMs, app.Ms);
         end
         
         function fit_parameters(app)
@@ -295,7 +279,7 @@ classdef app < matlab.apps.AppBase
             pause(0.01);
             tic
             try
-                [app.Hcr, app.mcr, app.Hx] = fit(app.H, app.M, cat(2, app.Hcr, app.mcr, app.Hx), select_a, app.ErrortominimizeDropDown.Value, fit_lb, fit_ub, fit_select_fit);
+                [app.Hcr, app.mcr, app.Hx] = fit(app.data_curve.H, app.data_curve.M, cat(2, app.Hcr, app.mcr, app.Hx), select_a, app.ErrortominimizeDropDown.Value, fit_lb, fit_ub, fit_select_fit);
                 t = sprintf("%0.2f", toc);
                 app.write_message("Fitting finished after " + t + " s");
             catch e
@@ -369,7 +353,7 @@ classdef app < matlab.apps.AppBase
 
         
         function plot_input(app)
-            [HTip, MTip] = Utils().find_tip(app.H, app.M);
+            [HTip, MTip] = Utils().find_tip(app.data_curve.H, app.data_curve.M);
             app.MTipField.Value = app.format_short(MTip);
             app.HTipField.Value = app.format_short(HTip);
 
@@ -378,10 +362,10 @@ classdef app < matlab.apps.AppBase
             plotter = Plotter([], [], [], [], [], [], [], [], [], [], [], [], app.Colors, 5);
 
             if(app.logCheckBoxInputPlot.Value == 0)
-                plotter.plot_raw(app.AxesProcessedInputData, app.H, app.M, 'H [A/m]', 'M [A/m]', 'Processed input data');
+                plotter.plot_raw(app.AxesProcessedInputData, app.data_curve.H, app.data_curve.M, 'H [A/m]', 'M [A/m]', 'Processed input data');
                 plotter.plot_raw(app.AxesRawInputData, app.H_raw, app.M_raw, app.HorizontalaxisfieldDropDown.Value, app.VerticalaxisfieldDropDown.Value, 'Raw input data');
             else
-                plotter.plot_raw_log(app.AxesProcessedInputData, app.H, app.M, 'H [A/m]', 'M [A/m]', 'Processed input data');
+                plotter.plot_raw_log(app.AxesProcessedInputData, app.data_curve.H, app.data_curve.M, 'H [A/m]', 'M [A/m]', 'Processed input data');
                 plotter.plot_raw_log(app.AxesRawInputData, app.H_raw, app.M_raw, app.HorizontalaxisfieldDropDown.Value, app.VerticalaxisfieldDropDown.Value, 'Raw input data');
             end
         end
@@ -460,7 +444,7 @@ classdef app < matlab.apps.AppBase
         end
         
         function plot_M(app)
-            plotter = Plotter(app.H, app.M, app.dMdH, app.HdMdH, app.Hhat, app.Mhat, app.Mihat, app.dMdHhat, app.dMidHhat, app.HdMdHhat, app.HdMidHhat, app.Hcr, app.Colors);
+            plotter = Plotter(app.data_curve.H, app.data_curve.M, app.data_curve.dMdH, app.data_curve.HdMdH, app.modeled_curve.H, app.modeled_curve.M, app.modeled_curve.Mi, app.modeled_curve.dMdH, app.modeled_curve.dMidH, app.modeled_curve.HdMdH, app.modeled_curve.HdMidH, app.Hcr, app.Colors);
             cla(app.AxesM,'reset');
             plot_components = app.PlotcomponentsCheckBoxM.Value == 1;
             show_grid = app.ShowgridCheckBoxM.Value == 1;
@@ -472,7 +456,7 @@ classdef app < matlab.apps.AppBase
         end
         
         function plot_dMdH(app)
-            plotter = Plotter(app.H, app.M, app.dMdH, app.HdMdH, app.Hhat, app.Mhat, app.Mihat, app.dMdHhat, app.dMidHhat, app.HdMdHhat, app.HdMidHhat, app.Hcr, app.Colors);
+            plotter = Plotter(app.data_curve.H, app.data_curve.M, app.data_curve.dMdH, app.data_curve.HdMdH, app.modeled_curve.H, app.modeled_curve.M, app.modeled_curve.Mi, app.modeled_curve.dMdH, app.modeled_curve.dMidH, app.modeled_curve.HdMdH, app.modeled_curve.HdMidH, app.Hcr, app.Colors);
             cla(app.AxesdMdH,'reset');
             plot_components = app.PlotcomponentsCheckBoxdMdH.Value == 1;
             show_grid = app.ShowgridCheckBoxdMdH.Value == 1;
@@ -484,7 +468,7 @@ classdef app < matlab.apps.AppBase
         end
         
         function plot_HdMdH(app)
-            plotter = Plotter(app.H, app.M, app.dMdH, app.HdMdH, app.Hhat, app.Mhat, app.Mihat, app.dMdHhat, app.dMidHhat, app.HdMdHhat, app.HdMidHhat, app.Hcr, app.Colors);
+            plotter = Plotter(app.data_curve.H, app.data_curve.M, app.data_curve.dMdH, app.data_curve.HdMdH, app.modeled_curve.H, app.modeled_curve.M, app.modeled_curve.Mi, app.modeled_curve.dMdH, app.modeled_curve.dMidH, app.modeled_curve.HdMdH, app.modeled_curve.HdMidH, app.Hcr, app.Colors);
             cla(app.AxesHdMdH,'reset');
             plot_components = app.PlotcomponentsCheckBoxHdMdH.Value == 1;
             show_grid = app.ShowgridCheckBoxHdMdH.Value == 1;
@@ -512,7 +496,8 @@ classdef app < matlab.apps.AppBase
             [app.H_raw, app.M_raw] = Parser(path).get_data_csv;
             
             [X, Y] = unit_convertor.convert_H_M(app.H_raw, H_unit, app.M_raw, M_unit);
-            [app.H, app.M] = curve_convertor.convert_curve(X,Y,app.CurveDropDown.Value);
+            [H, M] = curve_convertor.convert_curve(X,Y,app.CurveDropDown.Value);
+            app.data_curve = DataAnhystereticCurve(H, M);
         end
         
         function ret = subscript_to_number(~, str)
@@ -526,8 +511,7 @@ classdef app < matlab.apps.AppBase
         end
         
         function export_residual(app, residue, file_name)
-            
-            t = table(transpose(app.H(2:end-1)), transpose(residue));
+            t = table(transpose(app.data_curve.H(2:end-1)), transpose(residue));
             t.Properties.VariableNames(:) = {'H [A/m]' 'residue'};
                 
             path = strcat(app.OutputDatasetPath.Value, '\', file_name);
@@ -720,9 +704,7 @@ classdef app < matlab.apps.AppBase
 
         % Button pushed function: ResidualplotButtonM
         function ResidualplotButtonMPushed(app, event)
-            data_curve = DataAnhystereticCurve(app.H, app.M);
-            modeled_curve = ModeledAnhystereticCurve(app.H, app.a, app.alpha, app.alphaMs, app.Ms);
-            residue_calculator = MagnetizationResidueCalculator(data_curve, modeled_curve);
+            residue_calculator = MagnetizationResidueCalculator(app.data_curve, app.modeled_curve);
             residue = residue_calculator.get_residue();
             residue_plotter = ResiduePlotter(app.H(2:end-1), app.M(2:end-1), app.Hhat, app.Mhat, residue, app.logCheckBoxM.Value, "M [A/m]");
             residue_plotter.plot()
@@ -730,9 +712,7 @@ classdef app < matlab.apps.AppBase
 
         % Button pushed function: ResidualplotButtondMdH
         function ResidualplotButtondMdHPushed(app, event)
-            data_curve = DataAnhystereticCurve(app.H, app.M);
-            modeled_curve = ModeledAnhystereticCurve(app.H, app.a, app.alpha, app.alphaMs, app.Ms);
-            residue_calculator = SusceptibilityResidueCalculator(data_curve, modeled_curve);
+            residue_calculator = SusceptibilityResidueCalculator(app.data_curve, app.modeled_curve);
             residue = residue_calculator.get_residue();
             residue_plotter = ResiduePlotter(app.H(2:end-1), app.dMdH(2:end-1), app.Hhat, app.dMdHhat, residue, app.logCheckBoxdMdH.Value, "∂M/∂H");
             residue_plotter.plot()
@@ -740,9 +720,7 @@ classdef app < matlab.apps.AppBase
 
         % Button pushed function: ResidualplotButtondHdMdH
         function ResidualplotButtondHdMdHPushed(app, event)
-            data_curve = DataAnhystereticCurve(app.H, app.M);
-            modeled_curve = ModeledAnhystereticCurve(app.H, app.a, app.alpha, app.alphaMs, app.Ms);
-            residue_calculator = SemilogDerivativeResidueCalculator(data_curve, modeled_curve);
+            residue_calculator = SemilogDerivativeResidueCalculator(app.data_curve, app.modeled_curve);
             residue = residue_calculator.get_residue();
             residue_plotter = ResiduePlotter(app.H(2:end-1), app.HdMdH(2:end-1), app.Hhat, app.HdMdHhat, residue, app.logCheckBoxHdMdH.Value, "∂M/∂(logH) [A/m]");
             residue_plotter.plot()
@@ -759,7 +737,7 @@ classdef app < matlab.apps.AppBase
                 t = table(transpose(app.Hhat), transpose(app.Mhat), transpose(app.dMdHhat), transpose(app.HdMdHhat));
                 t.Properties.VariableNames(:) = {'H [A/m]' 'M [A/m]' 'dM/dH' 'dM/dlogH [A/m]' };
             elseif(app.OutputSeparateComponentsCheckBox.Value == 1)
-                t = table(transpose(app.Hhat), transpose(app.Mhat), array2table(transpose(app.Mihat)), transpose(app.dMdHhat), array2table(transpose(app.dMidHhat)), transpose(app.HdMdHhat), array2table(transpose(app.HdMidHhat)));
+                t = table(transpose(app.modeled_curve.H), transpose(app.modeled_curve.M), array2table(transpose(app.modeled_curve.Mi)), transpose(app.modeled_curve.dMdH), array2table(transpose(app.modeled_curve.dMidH)), transpose(app.modeled_curve.HdMdH), array2table(transpose(app.modeled_curve.HdMidH)));
                 t = splitvars(t);
                 variable_names = cell(4 + app.number_components*3, 1);
                 variable_names(1) = {'H [A/m]'};
@@ -781,7 +759,7 @@ classdef app < matlab.apps.AppBase
 
             %Separate into two functions
             if(app.CheckBoxExperimentalMagnetization.Value == 1)
-                t = table(transpose(app.H), transpose(app.M));
+                t = table(transpose(app.data_curve.H), transpose(app.data_curve.M));
                 t.Properties.VariableNames(:) = {'H [A/m]' 'M [A/m]'};
                 file_name = strcat(app.EditFieldFileNameExperimentalMagnetizationData.Value, app.DropDownOutputExperimentalMagnetizationData.Value);
                 path = strcat(app.OutputDatasetPath.Value, '\', file_name);
@@ -891,10 +869,9 @@ classdef app < matlab.apps.AppBase
             end
 
             if (app.ExportErrorsCheckBox.Value == 1)
-                error = ErrorCalculator();
-                diagonal_error = error.get_error(log(app.H), app.M, log(app.Hhat), app.Mhat, "Diagonal");
-                horizontal_error = error.get_error(log(app.H), app.M, log(app.Hhat), app.Mhat, "Horizontal");
-                vertical_error = error.get_error(log(app.H), app.M, log(app.Hhat), app.Mhat, "Vertical");
+                diagonal_error = DiagonalErrorCalculator(app.data_curve, app.modeled_curve).get_error();
+                horizontal_error = HorizontalErrorCalculator(app.data_curve, app.modeled_curve).get_error();
+                vertical_error = VerticalErrorCalculator(app.data_curve, app.modeled_curve).get_error();
                 s_diagonal_error = sprintf("  Diagonal error: \t%10.4e", diagonal_error);
                 s_horizontal_error = sprintf("Horizontal error: \t%10.4e", horizontal_error);
                 s_vertical_error = sprintf("  Vertical error: \t%10.4e", vertical_error);
@@ -1010,30 +987,22 @@ classdef app < matlab.apps.AppBase
             app.write_message("Project was opened successfully");
         end
 
-        % Value changed function: OutputDatasetPath
-        function OutputDatasetPathValueChanged(app, event)
-           
-        end
-
         % Button pushed function: ExportResiduesButton
         function ExportResiduesButtonPushed(app, event)
-            data_curve = DataAnhystereticCurve(app.H, app.M);
-            modeled_curve = ModeledAnhystereticCurve(app.H, app.a, app.alpha, app.alphaMs, app.Ms);
-
             if (app.CheckBoxExportResiduesMagnetization.Value == 1)
-                residue = MagnetizationResidueCalculator(data_curve, modeled_curve).get_residue();
+                residue = MagnetizationResidueCalculator(app.data_curve, app.modeled_curve).get_residue();
                 file_name = strcat(app.EditFieldFileNameResiduesMagnetization.Value, app.DropDownResiduesMagnetizacionExtension.Value);
                 app.export_residual(residue, file_name);
             end
 
             if(app.CheckBoxExportResiduesSusceptibility.Value == 1)
-                residue = SusceptibilityResidueCalculator(data_curve, modeled_curve).get_residue();
+                residue = SusceptibilityResidueCalculator(app.data_curve, app.modeled_curve).get_residue();
                 file_name = strcat(app.EditFieldFileNameResiduesSusceptibility.Value, app.DropDownResiduesSusceptibilityExtension.Value);
                 app.export_residual(residue, file_name);
             end
 
             if(app.CheckBoxExportResiduesSemiLogMagDerivative.Value == 1)
-                residue = SemilogDerivativeResidueCalculator(data_curve, modeled_curve).get_residue();
+                residue = SemilogDerivativeResidueCalculator(app.data_curve, app.modeled_curve).get_residue();
                 file_name = strcat(app.EditFieldFileNameResiduesSemiLogMagDerivative.Value, app.DropDownResiduesSemiLogMagDerivativeExtension.Value);
                 app.export_residual(residue, file_name);
             end
@@ -1731,7 +1700,6 @@ classdef app < matlab.apps.AppBase
 
             % Create OutputDatasetPath
             app.OutputDatasetPath = uieditfield(app.GridLayoutOutputDatasetPath, 'text');
-            app.OutputDatasetPath.ValueChangedFcn = createCallbackFcn(app, @OutputDatasetPathValueChanged, true);
             app.OutputDatasetPath.Layout.Row = 1;
             app.OutputDatasetPath.Layout.Column = 2;
 
