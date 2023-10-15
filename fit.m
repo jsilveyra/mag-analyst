@@ -9,11 +9,11 @@ function [Hcr, mcr, Hx] = fit(data_curve, seed, select_a, error_type, lb, ub, se
         mcr_fit = x(number_components+1:2*number_components);
         Hx_fit = x(number_components*2 +1:end);
 
-        magnetic_parameters = MagneticParameters(data_curve.H, data_curve.M, Hcr_fit, mcr_fit, Hx_fit);
-        a = magnetic_parameters.get_a(select_a);
-        alphaMs = magnetic_parameters.get_alphaMs(a);
-        Ms = magnetic_parameters.get_Ms(a, alphaMs);
-        alpha = magnetic_parameters.get_alpha(alphaMs, Ms);
+        magnetic_parameters = MagneticParameters(data_curve, Hcr_fit, mcr_fit, Hx_fit, select_a);
+        a = magnetic_parameters.a;
+        alphaMs = magnetic_parameters.alphaMs;
+        Ms = magnetic_parameters.Ms;
+        alpha = magnetic_parameters.alpha;
 
         modeled_curve = ModeledAnhystereticCurve(Hhat, a, alpha, alphaMs, Ms);
         if (error_type == "Diagonal")

@@ -89,9 +89,9 @@ classdef app < matlab.apps.AppBase
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
         logCheckBoxM                    matlab.ui.control.CheckBox
-        AxesM                           matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesHdMdH                       matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesM                           matlab.ui.control.UIAxes
         MagnetizationoutputdataTab      matlab.ui.container.Tab
         GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
         GridLayoutExperimentalMagnetizationData  matlab.ui.container.GridLayout
@@ -170,16 +170,7 @@ classdef app < matlab.apps.AppBase
         Hcr
         mcr
         Hx
-        a
-        alphaMs
-        Ms
-        Js
-        murin
-        alpha
-        dimensionless_alphaMs
-        Hk
-        density_product
-        initial_relative_magnetic_permeability
+        magnetic_parameters
         number_components
         lb
         ub
@@ -211,8 +202,8 @@ classdef app < matlab.apps.AppBase
                 app.TableFittedParameters.Data(2*offset + i) = {app.format_short(str2double(app.TableFittedParameters.Data(2*offset + i)))};
                 app.TableFittedParameters.Data(3*offset + i) = {app.format_short(str2double(app.TableFittedParameters.Data(3*offset + i)))};
             end
-            app.JsField.Value = app.format_short(app.Js);
-            app.murinField.Value = app.format_engineering(app.murin);
+            app.JsField.Value = app.format_short(app.magnetic_parameters.Js);
+            app.murinField.Value = app.format_engineering(app.magnetic_parameters.murin);
 
             if (app.ErrortominimizeDropDown.Value == "Diagonal")
                 error_calculator = DiagonalErrorCalculator(app.data_curve, app.modeled_curve);
@@ -234,25 +225,16 @@ classdef app < matlab.apps.AppBase
 
             [HTip, ~] = utils.find_tip(app.data_curve.H, app.data_curve.M);
 
-            magnetic_parameters = MagneticParameters(app.data_curve.H, app.data_curve.M, app.Hcr, app.mcr, app.Hx);
             select_a = app.TableParameters.Data{1:app.number_components,5};
-            app.a = magnetic_parameters.get_a(select_a);
-            app.alphaMs = magnetic_parameters.get_alphaMs(app.a);
-            app.Ms = magnetic_parameters.get_Ms(app.a, app.alphaMs);
-            app.alpha = magnetic_parameters.get_alpha(app.alphaMs, app.Ms);
-            app.dimensionless_alphaMs = magnetic_parameters.get_dimensionless_alphaMs(app.alpha, app.Ms, app.a);
-            app.Hk = magnetic_parameters.get_Hk(app.alphaMs, app.a);
-            app.Js = magnetic_parameters.get_Js(app.Ms);
-            app.density_product = magnetic_parameters.get_density_product(app.Ms, app.a);
-            app.initial_relative_magnetic_permeability = magnetic_parameters.get_initial_relative_magnetic_permeability(app.Ms, app.Hk);
-            app.murin = magnetic_parameters.get_murin(app.initial_relative_magnetic_permeability);
+            app.magnetic_parameters = MagneticParameters(app.data_curve, app.Hcr, app.mcr, app.Hx, select_a);
+
             if(app.PointSpaceDropDown.Value == "log")
                 Hhat = logspace(log10(app.data_curve.H(2)),log10(HTip),N);
             elseif(app.PointSpaceDropDown.Value == "linear")
                 Hhat = linspace(app.data_curve.H(2),HTip,N);
             end
 
-            app.modeled_curve = ModeledAnhystereticCurve(Hhat, app.a, app.alpha, app.alphaMs, app.Ms);
+            app.modeled_curve = ModeledAnhystereticCurve(Hhat, app.magnetic_parameters.a, app.magnetic_parameters.alpha, app.magnetic_parameters.alphaMs, app.magnetic_parameters.Ms);
         end
         
         function fit_parameters(app)
@@ -390,9 +372,9 @@ classdef app < matlab.apps.AppBase
                 select_a_col = app.TableParameters.Data{:,5};
 
                 for i = 1:app.number_components
-                    Ms_col(i,:) = {app.format_short(app.Ms(i))};
-                    alpha_col(i,:) = {app.format_engineering(app.alpha(i))};
-                    a_col(i,:) = {app.format_short(app.a(i))};
+                    Ms_col(i,:) = {app.format_short(app.magnetic_parameters.Ms(i))};
+                    alpha_col(i,:) = {app.format_engineering(app.magnetic_parameters.alpha(i))};
+                    a_col(i,:) = {app.format_short(app.magnetic_parameters.a(i))};
                 end
             end
 
@@ -416,10 +398,10 @@ classdef app < matlab.apps.AppBase
 
             if ~default_values
                 for i = 1:app.number_components
-                    dimensionless_alphaMs_col(i,:) = {app.format_short(app.dimensionless_alphaMs(i))};
-                    density_product_col(i,:) = {app.format_short(app.density_product(i))};
-                    Hk_col(i,:) = {app.format_short(app.Hk(i))};
-                    initial_relative_magnetic_permeability_col(i,:) = {app.format_thousands_only(app.initial_relative_magnetic_permeability(i))};
+                    dimensionless_alphaMs_col(i,:) = {app.format_short(app.magnetic_parameters.dimensionless_alphaMs(i))};
+                    density_product_col(i,:) = {app.format_short(app.magnetic_parameters.density_product(i))};
+                    Hk_col(i,:) = {app.format_short(app.magnetic_parameters.Hk(i))};
+                    initial_relative_magnetic_permeability_col(i,:) = {app.format_thousands_only(app.magnetic_parameters.initial_relative_magnetic_permeability(i))};
                 end
             end
 
@@ -1333,14 +1315,15 @@ classdef app < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.TickDir = 'in';
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -1351,15 +1334,14 @@ classdef app < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.TickDir = 'in';
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
