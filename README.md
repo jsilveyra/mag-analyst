@@ -38,7 +38,22 @@ MagAnalyst was implemented and tested with the Matlab 2022b version on Windows 1
 
 ## Description of the files and directory structure
 
-TO BE COMPLETED
+```tree
+├── app.mlapp                     # App controller
+├── data                          # IO data
+├── assets                        # Logos
+└── src
+    ├── AnhystereticCurve         # Data and modeled anhyesteretic curve
+    ├── ErrorCalculator
+    ├── MagneticParameters
+    ├── Parser                    # Input parser
+    ├── Plotter
+    ├── ResidueCalculator
+    ├── minimize                  # minimize library files
+    ├── colorDialog.mlapp
+    └── fit.m
+
+```
 
 ## External libraries
 
