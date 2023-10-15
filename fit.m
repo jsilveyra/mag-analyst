@@ -10,12 +10,8 @@ function [Hcr, mcr, Hx] = fit(data_curve, seed, select_a, error_type, lb, ub, se
         Hx_fit = x(number_components*2 +1:end);
 
         magnetic_parameters = MagneticParameters(data_curve, Hcr_fit, mcr_fit, Hx_fit, select_a);
-        a = magnetic_parameters.a;
-        alphaMs = magnetic_parameters.alphaMs;
-        Ms = magnetic_parameters.Ms;
-        alpha = magnetic_parameters.alpha;
-
-        modeled_curve = ModeledAnhystereticCurve(Hhat, a, alpha, alphaMs, Ms);
+        
+        modeled_curve = ModeledAnhystereticCurve(Hhat, magnetic_parameters);
         if (error_type == "Diagonal")
             error_calculator = DiagonalErrorCalculator(data_curve, modeled_curve);
         end
