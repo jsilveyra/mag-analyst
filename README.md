@@ -70,12 +70,12 @@ These are the examples provided in the \data\sampleData folder with the current 
 * GOSS - 67 MPa: A grain-oriented silicon steel sheet, cut parallel to the rolling direction, longitudinally compressed up to 67 MPa. Analyzed in [JOM article](https://doi.org/10.1007/s11837-023-05704-x). 
 
 The files provided include:
-* data tables in CSV format, where the first and second column correspond to the horizontal and vertical axes field, respectively (the headers specify the fields and units)
-* saved projects in TXT format, with the data tables fitted with either one or two components
+* data tables of either anhysteretic curves or hysteresis loops in CSV format, where the first and second column correspond to the horizontal and vertical axes field, respectively (the headers specify the fields and units)
+* saved projects in TXT format, where the anhysteretic curves have been fitted with either one or two components
 
 ## Cite as
 
-If you use MagAnalyst in your work, please cite the following papers:
+If you use MagAnalyst in your work, please cite the following papers on the approach used by MagAnalyst to describe anhysteretic curves:
 * J. M. Silveyra and J. M. Conde Garrido, "A physically based model for soft magnets’ anhysteretic curve," JOM, pp. 1-14, 2023. https://doi.org/10.1007/s11837-023-05704-x
 * J. M. Silveyra and J. M. Conde Garrido, "On the anhysteretic magnetization of soft magnetic materials," AIP Advances, vol. 12, p. 035019, 2022. https://doi.org/10.1063/9.0000328
 * J. M. Silveyra and J. M. Conde Garrido, "On the modelling of the anhysteretic magnetization of homogeneous soft magnetic materials," Journal of Magnetism and Magnetic Materials, vol. 540, p. 168430, 2021. https://doi.org/10.1016/j.jmmm.2021.168430
