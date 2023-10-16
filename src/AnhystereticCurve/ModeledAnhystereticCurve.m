@@ -11,17 +11,16 @@ classdef ModeledAnhystereticCurve
     end
 
     methods (Access = public)
-        function obj = ModeledAnhystereticCurve(H, a, alpha, alphaMs, Ms)
+        function obj = ModeledAnhystereticCurve(H, magnetic_parameters)
             obj.H = H;
-            [obj.M, obj.Mi] = obj.get_M(H, a, alphaMs, Ms);
-            [obj.dMdH, obj.dMidH] = obj.get_dMdH(H, alpha, Ms, a, alphaMs);
-            [obj.HdMdH, obj.HdMidH] = obj.get_HdMdH(H, dMidH);
+            [obj.M, obj.Mi] = obj.get_M(H, magnetic_parameters.a, magnetic_parameters.alphaMs, magnetic_parameters.Ms);
+            [obj.dMdH, obj.dMidH] = obj.get_dMdH(H, magnetic_parameters.alpha, magnetic_parameters.Ms, magnetic_parameters.a, magnetic_parameters.alphaMs);
+            [obj.HdMdH, obj.HdMidH] = obj.get_HdMdH(H, obj.dMidH);
         end
     end
 
     methods (Access = private)
-
-        function [M, Mi] = get_M(H, a, alphaMs, Ms)
+        function [M, Mi] = get_M(~, H, a, alphaMs, Ms)
             M = zeros(1, length(H));
             Mi = zeros(length(a), length(H));
     
@@ -34,7 +33,7 @@ classdef ModeledAnhystereticCurve
             end
         end
 
-        function [dMdH, dMidH] = get_dMdH(H, alpha, Ms, a, alphaMs)
+        function [dMdH, dMidH] = get_dMdH(~, H, alpha, Ms, a, alphaMs)
             dMdH = zeros(1, length(H));
             dMidH = zeros(length(a), length(H));
         
@@ -49,7 +48,7 @@ classdef ModeledAnhystereticCurve
             end
         end
 
-        function [HdMdH, HdMidH] = get_HdMdH(H, dMidH)
+        function [HdMdH, HdMidH] = get_HdMdH(~, H, dMidH)
             HdMdH = zeros(1, length(H));
             HdMidH = zeros(size(dMidH,1), length(H));
         
