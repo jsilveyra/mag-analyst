@@ -1148,7 +1148,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create CurveDropDown
             app.CurveDropDown = uidropdown(app.GridLayoutInputCurve);
-            app.CurveDropDown.Items = {'Anhysteretic curve', 'Hysteretic loop'};
+            app.CurveDropDown.Items = {'Anhysteretic curve', 'Hysteresis loop'};
             app.CurveDropDown.ValueChangedFcn = createCallbackFcn(app, @CurveDropDownValueChanged, true);
             app.CurveDropDown.Layout.Row = 1;
             app.CurveDropDown.Layout.Column = 2;
