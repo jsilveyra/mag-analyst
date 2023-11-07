@@ -26,6 +26,7 @@ classdef MagneticParameters
             obj.Js = obj.get_Js();
             obj.density_product = obj.get_density_product();
             obj.initial_relative_magnetic_permeability = obj.get_initial_relative_magnetic_permeability();
+            obj.murin = obj.get_murin();
         end
     end
 

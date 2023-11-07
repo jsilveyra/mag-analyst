@@ -32,7 +32,7 @@ You need to create a copy on a local directory on your machine to use MagAnalyst
 
 We recommend using [GitHub Desktop](https://desktop.github.com/), which allows users to easily synchronize with the latest version of MagAnalyst.
 
-After downloading the main folder and placing it in a relevant location, the installation only consists in running the Installation file.
+After downloading the main folder and placing it in a relevant location, the installation only consists in running the `app.mlapp` file.
  
 MagAnalyst was implemented and tested with the Matlab 2022b version on Windows 10. Authors cannot guarantee that the code can run on previous versions.
 
@@ -52,7 +52,6 @@ MagAnalyst was implemented and tested with the Matlab 2022b version on Windows 1
     ├── minimize                  # minimize library files
     ├── colorDialog.mlapp
     └── fit.m
-
 ```
 
 ## External libraries
