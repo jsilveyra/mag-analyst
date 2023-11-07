@@ -964,7 +964,7 @@ classdef app_exported < matlab.apps.AppBase
             app.CheckBoxExportResiduesSusceptibility.Value = s.susceptibility_residual_checkbox;
             app.CheckBoxExportResiduesSemiLogMagDerivative.Value = s.semi_log_derivative_residual_checkbox;
 
-            app.CalculatePlotInputButtonPushed();
+            app.calculate_and_plot();
             app.CalculatePlotButtonPushed();
             app.write_message("Project was opened successfully");
         end
