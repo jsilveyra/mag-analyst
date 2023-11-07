@@ -82,7 +82,7 @@ classdef MagneticParameters
             M_solve(1) = MTip;
             for i = 2:length(Hcr)
                 H_solve(i) = Hx(i-1);
-                M_solve(i) = interp1(data_curve.H, data_curve.M, H_solve(i));
+                M_solve(i) = interp1(data_curve.H, data_curve.M, H_solve(i), 'linear', 'extrap');
             end
             A = zeros(length(Hcr), length(Hcr));
             
