@@ -1,6 +1,6 @@
 {
   "fitted_parameters_value": [
-    "5.8063",
+    "5.8062",
     "0.6455"
   ],
   "fitted_parameters_lower_bound": [
@@ -19,10 +19,10 @@
   "input_path": "C:\\Users\\Josefina\\fi.uba.ar\\JuanyJose - Documentos\\Github\\mag-analyst\\data\\sampleData\\Finemet - TA.csv",
   "horizontal_axis": "H [A/m]",
   "vertical_axis": "B [T]",
-  "curve_type": "Hysteretic loop",
+  "curve_type": "Hysteresis loop",
   "description": [
     "Curve type:",
-    "* Hysteresis cycle (B[T] vs H[A/m])",
+    "* Hysteresis loop (B[T] vs H[A/m])",
     "",
     "Material:",
     "* Fe73.5Si13.5B9Nb3Cu1 nanocrystalline alloy with induced transverse anisotropy.",
@@ -35,7 +35,7 @@
     "* Vacuumschmelze, Nanocrystalline VITROPERM. State-of-the-art Ribbon with Outstanding Soft Magnetic Properties, https://staging.vacpim.com/Nanocrystalline-Material. Accessed 30 Aug 2022. (2021).",
     "",
     "Anhisteretic curve analyzed in:",
-    "* Silveyra, Josefina M., and Juan M. Conde Garrido. \\\"A Physically Based Model for Soft Magnets’ Anhysteretic Curve.\\\" JOM (2023): 1-14. https://doi.org/10.1007/s11837-023-05704-x\""
+    "* Silveyra, Josefina M., and Juan M. Conde Garrido. \\\\\\\"A Physically Based Model for Soft Magnets’ Anhysteretic Curve.\\\\\\\" JOM (2023): 1-14. https://doi.org/10.1007/s11837-023-05704-x\\\""
   ],
   "data_set_path": "C:\\Users\\Josefina\\fi.uba.ar\\JuanyJose - Documentos\\Github\\mag-analyst\\data",
   "experimental_anhysteretic_magnetization_file_name": "experimental_anhysteretic_magnetization",

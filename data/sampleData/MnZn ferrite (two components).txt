@@ -1,10 +1,10 @@
 {
   "fitted_parameters_value": [
-    "7.3185",
-    "0.5408",
-    "32.7784",
+    "7.3181",
+    "0.5409",
+    "32.7781",
     "0.5124",
-    "9.8104"
+    "9.8107"
   ],
   "fitted_parameters_lower_bound": [
     "0.0000",
@@ -31,10 +31,10 @@
   "input_path": "C:\\Users\\Josefina\\fi.uba.ar\\JuanyJose - Documentos\\Github\\mag-analyst\\data\\sampleData\\MnZn ferrite.csv",
   "horizontal_axis": "H [A/m]",
   "vertical_axis": "B [T]",
-  "curve_type": "Hysteretic loop",
+  "curve_type": "Hysteresis loop",
   "description": [
     "Curve type:",
-    "* Hysteresis cycle (B[T] vs H[A/m])",
+    "* Hysteresis loop (B[T] vs H[A/m])",
     "",
     "Material:",
     "* A soft ferrite (Mn0.51Zn0.44Fe2.05O4) with very low anisotropy.",
@@ -43,13 +43,13 @@
     "* Acquired by the fluxmetric method on a toroidal sample. Measurements were carried out with a magnetizing field frequency of 0.5 Hz at room temperature using a digitally controlled hysteresisgraph.",
     "",
     "References of the hysteresis loop:",
-    "* R. Szewczyk, “Jiles–Atherton model for Octave/MATLAB”, https://www.github.com/romanszewczyk/JAmodel/. Access date: 01-01-2021.",
-    "* R. Szewczyk, M. Nowicki, \\\"Sensitivity of Jiles-Atherton model parameters identified during the optimization process\\\", in: AIP Conference Proceedings, 2018, p. 020046, https://doi.org/10.1063/1.5048898.",
-    "* R. Szewczyk, P. Cheng, \\\"Open source implementation of different variants of Jiles-Atherton model of magnetic hysteresis loops\\\", Acta Phys. Pol. A 133 (3) (2018) 654–656, https://doi.org/10.12693/APhysPolA.133.654",
+    "* R. Szewczyk, “Jiles–Atherton model for Octave/MATLAB”, https://www.github.com/romanszewczyk/JAmodel/. Access date: 01-01-2021",
+    "* R. Szewczyk, M. Nowicki, \\\\\\\"Sensitivity of Jiles-Atherton model parameters identified during the optimization process\\\\\\\", in: AIP Conference Proceedings, 2018, p. 020046, https://doi.org/10.1063/1.5048898",
+    "* R. Szewczyk, P. Cheng, \\\\\\\"Open source implementation of different variants of Jiles-Atherton model of magnetic hysteresis loops\\\\\\\", Acta Phys. Pol. A 133 (3) (2018) 654–656, https://doi.org/10.12693/APhysPolA.133.654",
     "",
     "Similar to the anhysteretic curve analyzed in:",
-    "* Silveyra, Josefina M., and Juan M. Conde Garrido. \\\"On the modelling of the anhysteretic magnetization of homogeneous soft magnetic materials\\\" JMMM (2021): 168430. https://doi.org/10.1016/j.jmmm.2021.168430",
-    "* Silveyra, Josefina M., and Juan M. Conde Garrido. \\\"On the anhysteretic magnetization of soft magnetic materials\\\" AIP Advances (2022): 035019. https://doi.org/10.1063/9.0000328"
+    "* Silveyra, Josefina M., and Juan M. Conde Garrido. \\\\\\\"On the modelling of the anhysteretic magnetization of homogeneous soft magnetic materials\\\\\\\" JMMM (2021): 168430. https://doi.org/10.1016/j.jmmm.2021.168430",
+    "* Silveyra, Josefina M., and Juan M. Conde Garrido. \\\\\\\"On the anhysteretic magnetization of soft magnetic materials\\\\\\\" AIP Advances (2022): 035019. https://doi.org/10.1063/9.0000328"
   ],
   "data_set_path": "C:\\Users\\Josefina\\fi.uba.ar\\JuanyJose - Documentos\\Github\\mag-analyst\\data",
   "experimental_anhysteretic_magnetization_file_name": "experimental_anhysteretic_magnetization",
