@@ -5,7 +5,7 @@
 ## Table of contents
 1. [Authors](#authors)
 2. [Statement of need](#statement-of-need)
-3. [Installation instructions](#installation-instructions)
+3. [Setup and usage instructions](#setup-and-usage-instructions)
 4. [Description of the files and directory structure](#description-of-the-files-and-directory-structure)
 5. [External libraries](#external-libraries)
 6. [Examples](#examples)
@@ -26,13 +26,13 @@ University of Buenos Aires – CONICET, Buenos Aires, Argentina.
 
 The accurate description of magnetization is crucial for designing devices with soft magnetic cores. MagAnalyst is an easy-to-use MATLAB toolbox that models the magnetization of soft magnetic materials. It implements a physically based approach, proposed by Silveyra and Conde Garrido, to describe the ideal anhysteretic curve. The equation of state is simple yet accurate for various material scenarios. The toolbox first plots a set of curves to help the user determine the number of component magnetizations to model and the seeds for the fitting process. It then retrieves the model parameters without the need for programming or optimization skills. As a result, even noisy data from challenging scenarios can be accurately described by a single analytic function, with continuous and differentiable magnetization and susceptibility. We believe that MagAnalyst will be a valuable resource for the magnetic materials community.
 
-## Installation instructions
+## Setup and usage instructions
 
-You need to create a copy on a local directory on your machine to use MagAnalyst. Obtain a copy by downloading and unzipping the latest zip file or clone MagAanalyst instead e.g. using: git clone https://github.com/matias-gonz/mag-analyst. You can place the MagAnalyst folder anywhere on your machine.
+You need to create a copy on a local directory on your machine to use MagAnalyst. Obtain a copy by downloading and unzipping the latest [release](https://github.com/matias-gonz/mag-analyst/releases) or clone MagAanalyst instead e.g. using: git clone https://github.com/matias-gonz/mag-analyst. You can place the MagAnalyst folder anywhere on your machine.
 
 We recommend using [GitHub Desktop](https://desktop.github.com/), which allows users to easily synchronize with the latest version of MagAnalyst.
 
-After downloading the main folder and placing it in a relevant location, the installation only consists in running the `app.mlapp` file.
+After downloading the main folder and placing it in a suitable location, MagAnalyst is ready to use. Simply run the `app.mlapp` file to start using the application.
  
 MagAnalyst was implemented and tested with the Matlab 2022b version on Windows 10. Authors cannot guarantee that the code can run on previous versions.
 
