@@ -9,9 +9,10 @@ upper_bound = [6 0.7];
 select_fit = {true true};
 
 select_a = 'low';
-error_type = "Diagonal";
 
-[Hcr, mcr, Hx] = fit(data_curve, seed, select_a, error_type, lower_bound, upper_bound, select_fit);
+fit_constants = FitContants();
+
+[Hcr, mcr, Hx] = fit(data_curve, seed, fit_constants.LOW_A, fit_constants.DIAGONAL_ERROR_TYPE, lower_bound, upper_bound, select_fit);
 
 magnetic_parameters = MagneticParameters(data_curve, Hcr, mcr, Hx, select_a);
 
