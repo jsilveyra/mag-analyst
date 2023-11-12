@@ -1,4 +1,6 @@
-parser = Parser('.\data\sampleData\Finemet - TA.csv', "H [A/m]", "B [T]", "Hysteretic loop");
+parser_constants = ParserConstants();
+
+parser = Parser('.\data\sampleData\Finemet - TA.csv', parser_constants.H_AMPERE_PER_METER, parser_constants.B_TESLA, parser_constants.HYSTERESIS_LOOP_TYPE);
 [H, M, H_raw, M_raw] = parser.import();
 
 data_curve = DataAnhystereticCurve(H, M);
