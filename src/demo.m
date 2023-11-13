@@ -16,6 +16,7 @@ fit_constants = FitContants();
 [Hcr, mcr, Hx] = fit(data_curve, seed, fit_constants.LOW_A, fit_constants.DIAGONAL_ERROR_TYPE, lower_bound, upper_bound, select_fit);
 
 magnetic_parameters_constants = MagneticParametersConstants();
+% To initialize magnetic_parameters: magnetic_parameters = MagneticParameters(data_curve, Hcr, mcr, Hx, select_a)
 magnetic_parameters = MagneticParameters(data_curve, Hcr, mcr, Hx, magnetic_parameters_constants.LOW_A);
 
 [HTip, ~] = Utils().find_tip(data_curve.H, data_curve.M);
@@ -45,6 +46,7 @@ disp(horizontal_error)
 % Residues
 residue_calculator = MagnetizationResidueCalculator(data_curve, modeled_curve);
 magnetization_residue = residue_calculator.get_residue();
+% To initialize residue_plotter: residue_plotter = ResiduePlotter(X, Y, Xhat, Yhat, Residue, Log, Label, varargin)
 residue_plotter = ResiduePlotter(data_curve.H(2:end-1), data_curve.M(2:end-1), modeled_curve.H, modeled_curve.M, magnetization_residue, true, "M [A/m]");
 residue_plotter.plot()
 
@@ -57,7 +59,7 @@ semilog_derivative_residue = residue_calculator.get_residue();
 
 
 % Plot
-colors = [ 0.58 0 0.70; 0.70 0 0];
+colors = [ 0.58 0 0.70; 0.70 0 0]; %[R G B; R G B] 0-1 scale
 plotter = Plotter(data_curve, modeled_curve, Hcr, colors);
 
 figure();
