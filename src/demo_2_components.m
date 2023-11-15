@@ -19,7 +19,7 @@ lower_bound = [0; 0; 0.4496; 0.4496; 0];
 % Set values for upper bounds: upper_bounds = [Hcr1 Hcr2 m(Hcr1) m(Hcr2) Hx1]
 upper_bound = [5; 10; 1; 1; 14]; 
 
-% Set boolean values for fitting: slect_fit = [Hcr1 Hcr2 m(Hcr1) m(Hcr2) Hx1]
+% Set boolean values for fitting: select_fit = [Hcr1 Hcr2 m(Hcr1) m(Hcr2) Hx1]
 select_fit = {true; true; true; true; true};
 
 % Set low/high value for ai: select_a = categorical({'a1';'a2'});

@@ -19,7 +19,7 @@ lower_bound = [4 0.5];
 % Set values for upper bounds: upper_bounds = [Hcr m(Hcr)]
 upper_bound = [6 0.7]; 
 
-% Set values for fitting booleans: slect_fit = [Hcr m(Hcr)]
+% Set values for fitting booleans: select_fit = [Hcr m(Hcr)]
 select_fit = {true true}; 
 
 fit_constants = FitContants();
@@ -79,7 +79,7 @@ residue_calculator = SemilogDerivativeResidueCalculator(data_curve, modeled_curv
 semilog_derivative_residue = residue_calculator.get_residue();
 
 
-% Plot
+% Plots examples
 % Set colors: colors = [R G B; R G B] 0-1 scale
 colors = [ 0.58 0 0.70; 0.70 0 0]; 
 plotter = Plotter(data_curve, modeled_curve, Hcr, colors);
