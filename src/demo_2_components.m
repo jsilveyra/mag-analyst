@@ -1,7 +1,6 @@
 % Parser
 parser_constants = ParserConstants();
 % To initialize a parser: parser = Parser(file_path, H_unit, M_unit, curve_type)
-% To initialize a parser: parser = Parser(file_path, H_unit, M_unit, curve_type)
 % curve_type options:
 %   ANHYSTERETIC_CURVE_TYPE
 %   HYSTERESIS_LOOP_TYPE
@@ -12,13 +11,13 @@ parser = Parser('.\data\sampleData\Finemet - TA.csv', parser_constants.H_AMPERE_
 data_curve = DataAnhystereticCurve(H, M);
 
 % Set values for seed: seed = [Hcr1 Hcr2 m(Hcr1) m(Hcr2) Hx1]
-seed = [0.0100 0.0200 0.5000 0.5000 0.0150]; 
+seed = [1.5000 6.0000 0.5000 0.5000 3.7500]; 
 
 % Set values for lower bounds: lower_bounds = [Hcr1 Hcr2 m(Hcr1) m(Hcr2) Hx1]
 lower_bound = [0; 0; 0.4496; 0.4496; 0];
 
 % Set values for upper bounds: upper_bounds = [Hcr1 Hcr2 m(Hcr1) m(Hcr2) Hx1]
-upper_bound = [1000000; 1000000; 1; 1; 1000000]; 
+upper_bound = [5; 10; 1; 1; 14]; 
 
 % Set boolean values for fitting: slect_fit = [Hcr1 Hcr2 m(Hcr1) m(Hcr2) Hx1]
 select_fit = {true; true; true; true; true};
@@ -76,7 +75,7 @@ residue_calculator = SemilogDerivativeResidueCalculator(data_curve, modeled_curv
 semilog_derivative_residue = residue_calculator.get_residue();
 
 
-% Plot
+% Plots examples
 % Set colors: colors = [R G B; R G B] 0-1 scale
 colors = [0.58 0 0.70; 0.70 0 0; 0 0 0.70];
 plotter = Plotter(data_curve, modeled_curve, Hcr, colors);
@@ -93,4 +92,4 @@ plotter.plot_HdMdH_log(ax, plot_components, plot_grid);
 
 figure();
 ax = nexttile;
-plotter.plot_raw_log(ax, modeled_curve.H, modeled_curve.M, "H", "M", "plot con log")
+plotter.plot_raw_log(ax, modeled_curve.H, modeled_curve.M, "H", "M", "M vs H semilog plot")
