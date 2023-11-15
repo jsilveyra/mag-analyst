@@ -32,7 +32,11 @@ You need to create a copy on a local directory on your machine to use MagAnalyst
 
 We recommend using [GitHub Desktop](https://desktop.github.com/), which allows users to easily synchronize with the latest version of MagAnalyst.
 
-After downloading the main folder and placing it in a suitable location, MagAnalyst is ready to use. Simply run the `app.mlapp` file to start using the application.
+After downloading the main folder and placing it in a suitable location, MagAnalyst is ready to use.
+
+To start using the application with the graphical user interface, simply run the `app.mlapp` file.
+
+If you prefer to run MagAnalyst using command lines, you can follow the instructions in the `mag-analyst\src\demo.m` and `mag-analyst\src\demo_2_components.m` files..
  
 MagAnalyst was implemented and tested with the Matlab 2022b version on Windows 10. Authors cannot guarantee that the code can run on previous versions.
 
