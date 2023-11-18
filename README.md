@@ -68,7 +68,7 @@ MagAnalyst currently uses the following third-party libraries:
 
 These are the examples provided in the \data\sampleData folder with the current release :
 
-* Mn-Zn ferrite: A soft ferrite (Mn<sub>0.51</sub>Zn<sub>0.44</sub>Fe<sub>2.05</sub>O<sub>4</sub>) with very low anisotropy. Similar to the curve analyzed in [JMMM article](https://doi.org/10.1016/j.jmmm.2021.168430) and in [AIP Advances article](https://doi.org/10.1063/9.0000328). The example is illustrated by a video available in [YouTube](https://www.youtube.com/finisilveyra/xxx).
+* Mn-Zn ferrite: A soft ferrite (Mn<sub>0.51</sub>Zn<sub>0.44</sub>Fe<sub>2.05</sub>O<sub>4</sub>) with very low anisotropy. Similar to the curve analyzed in [JMMM article](https://doi.org/10.1016/j.jmmm.2021.168430) and in [AIP Advances article](https://doi.org/10.1063/9.0000328). The example is illustrated by a video available in YouTube, fitted with [one component magnetization](https://youtu.be/r4jyjOQ61yY) and [two component magnetizations](https://youtu.be/7WqBK7YCKWY).
 * Finemet - TA: Finemet (r) alloy (Fe<sub>73.5</sub>Si<sub>13.5</sub>B<sub>9</sub>Nb<sub>3</sub>Cu<sub>1</sub>) nanocrystallized under transverse field annealing and measured along the longitudinal direction of the ribbon. Analyzed in [JOM article](https://doi.org/10.1007/s11837-023-05704-x).
 * JNEX-900: A non-oriented electrical steel. Analyzed in [AIP Advances article](https://doi.org/10.1063/9.0000328). 
 * GOSS - 67 MPa: A grain-oriented silicon steel sheet, cut parallel to the rolling direction, longitudinally compressed up to 67 MPa. Analyzed in [JOM article](https://doi.org/10.1007/s11837-023-05704-x). 
