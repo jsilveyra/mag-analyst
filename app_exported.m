@@ -261,6 +261,24 @@ classdef app_exported < matlab.apps.AppBase
             pause(0.01);
             tic
             try
+                disp("2do parametro");
+                disp(class(cat(2, app.Hcr, app.mcr, app.Hx)));
+                disp(cat(2, app.Hcr, app.mcr, app.Hx));
+                disp("3ero parametro");
+                disp(class(select_a));
+                disp(select_a)
+                disp("4to parametro");
+                disp(class(app.ErrortominimizeDropDown.Value));
+                disp(app.ErrortominimizeDropDown.Value);
+                disp("5to parametro");
+                disp(class(fit_lb));
+                disp(fit_lb);
+                disp("6to parametro");
+                disp(class(fit_ub));
+                disp(fit_ub);
+                disp("7mo parametro");
+                disp(class(fit_select_fit));
+                disp(fit_select_fit);
                 [app.Hcr, app.mcr, app.Hx] = fit(app.data_curve, cat(2, app.Hcr, app.mcr, app.Hx), select_a, app.ErrortominimizeDropDown.Value, fit_lb, fit_ub, fit_select_fit);
                 t = sprintf("%0.2f", toc);
                 app.write_message("Fitting finished after " + t + " s");
@@ -716,7 +734,7 @@ classdef app_exported < matlab.apps.AppBase
         % Button pushed function: ExportdataButton
         function ExportdataButtonPushed(app, event)
             if(app.OutputSeparateComponentsCheckBox.Value == 0)
-                t = table(transpose(app.Hhat), transpose(app.Mhat), transpose(app.dMdHhat), transpose(app.HdMdHhat));
+                t = table(transpose(app.modeled_curve.H), transpose(app.modeled_curve.M), transpose(app.modeled_curve.dMdH), transpose(app.modeled_curve.HdMdH));
                 t.Properties.VariableNames(:) = {'H [A/m]' 'M [A/m]' 'dM/dH' 'dM/dlogH [A/m]' };
             elseif(app.OutputSeparateComponentsCheckBox.Value == 1)
                 t = table(transpose(app.modeled_curve.H), transpose(app.modeled_curve.M), array2table(transpose(app.modeled_curve.Mi)), transpose(app.modeled_curve.dMdH), array2table(transpose(app.modeled_curve.dMidH)), transpose(app.modeled_curve.HdMdH), array2table(transpose(app.modeled_curve.HdMidH)));
