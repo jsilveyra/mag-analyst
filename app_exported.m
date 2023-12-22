@@ -89,9 +89,9 @@ classdef app_exported < matlab.apps.AppBase
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
         logCheckBoxM                    matlab.ui.control.CheckBox
-        AxesHdMdH                       matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesM                           matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesHdMdH                       matlab.ui.control.UIAxes
         MagnetizationoutputdataTab      matlab.ui.container.Tab
         GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
         GridLayoutExperimentalMagnetizationData  matlab.ui.container.GridLayout
@@ -261,24 +261,6 @@ classdef app_exported < matlab.apps.AppBase
             pause(0.01);
             tic
             try
-                disp("2do parametro");
-                disp(class(cat(2, app.Hcr, app.mcr, app.Hx)));
-                disp(cat(2, app.Hcr, app.mcr, app.Hx));
-                disp("3ero parametro");
-                disp(class(select_a));
-                disp(select_a)
-                disp("4to parametro");
-                disp(class(app.ErrortominimizeDropDown.Value));
-                disp(app.ErrortominimizeDropDown.Value);
-                disp("5to parametro");
-                disp(class(fit_lb));
-                disp(fit_lb);
-                disp("6to parametro");
-                disp(class(fit_ub));
-                disp(fit_ub);
-                disp("7mo parametro");
-                disp(class(fit_select_fit));
-                disp(fit_select_fit);
                 [app.Hcr, app.mcr, app.Hx] = fit(app.data_curve, cat(2, app.Hcr, app.mcr, app.Hx), select_a, app.ErrortominimizeDropDown.Value, fit_lb, fit_ub, fit_select_fit);
                 t = sprintf("%0.2f", toc);
                 app.write_message("Fitting finished after " + t + " s");
@@ -733,30 +715,30 @@ classdef app_exported < matlab.apps.AppBase
 
         % Button pushed function: ExportdataButton
         function ExportdataButtonPushed(app, event)
-            if(app.OutputSeparateComponentsCheckBox.Value == 0)
-                t = table(transpose(app.modeled_curve.H), transpose(app.modeled_curve.M), transpose(app.modeled_curve.dMdH), transpose(app.modeled_curve.HdMdH));
-                t.Properties.VariableNames(:) = {'H [A/m]' 'M [A/m]' 'dM/dH' 'dM/dlogH [A/m]' };
-            elseif(app.OutputSeparateComponentsCheckBox.Value == 1)
-                t = table(transpose(app.modeled_curve.H), transpose(app.modeled_curve.M), array2table(transpose(app.modeled_curve.Mi)), transpose(app.modeled_curve.dMdH), array2table(transpose(app.modeled_curve.dMidH)), transpose(app.modeled_curve.HdMdH), array2table(transpose(app.modeled_curve.HdMidH)));
-                t = splitvars(t);
-                variable_names = cell(4 + app.number_components*3, 1);
-                variable_names(1) = {'H [A/m]'};
-                variable_names(2) = {'M [A/m]'};
-                variable_names(app.number_components + 3) = {'dM/dH'};
-                variable_names(2*app.number_components + 4) = {'dM/dlogH [A/m]'};
-                for i=1:app.number_components
-                    variable_names(i + 2) = cellstr(strcat('M', string(i), ' [A/m]'));
-                    variable_names(i + app.number_components + 3) = cellstr(strcat('dM', string(i), '/dH'));
-                    variable_names(i + 2*app.number_components + 4) = cellstr(strcat('dM', string(i), '/dlogH [A/m]'));
+            if(app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Value == 1)
+                if(app.OutputSeparateComponentsCheckBox.Value == 0)
+                    t = table(transpose(app.modeled_curve.H), transpose(app.modeled_curve.M), transpose(app.modeled_curve.dMdH), transpose(app.modeled_curve.HdMdH));
+                    t.Properties.VariableNames(:) = {'H [A/m]' 'M [A/m]' 'dM/dH' 'dM/dlogH [A/m]' };
+                elseif(app.OutputSeparateComponentsCheckBox.Value == 1)
+                    t = table(transpose(app.modeled_curve.H), transpose(app.modeled_curve.M), array2table(transpose(app.modeled_curve.Mi)), transpose(app.modeled_curve.dMdH), array2table(transpose(app.modeled_curve.dMidH)), transpose(app.modeled_curve.HdMdH), array2table(transpose(app.modeled_curve.HdMidH)));
+                    t = splitvars(t);
+                    variable_names = cell(4 + app.number_components*3, 1);
+                    variable_names(1) = {'H [A/m]'};
+                    variable_names(2) = {'M [A/m]'};
+                    variable_names(app.number_components + 3) = {'dM/dH'};
+                    variable_names(2*app.number_components + 4) = {'dM/dlogH [A/m]'};
+                    for i=1:app.number_components
+                        variable_names(i + 2) = cellstr(strcat('M', string(i), ' [A/m]'));
+                        variable_names(i + app.number_components + 3) = cellstr(strcat('dM', string(i), '/dH'));
+                        variable_names(i + 2*app.number_components + 4) = cellstr(strcat('dM', string(i), '/dlogH [A/m]'));
+                    end
+                    t.Properties.VariableNames = variable_names;
                 end
-                t.Properties.VariableNames = variable_names;
+                file_name = strcat(app.EditFieldFileNameModeledAnhystereticMagnetization.Value, app.DropDownOutputModeledAnhystereticMagnetizationExtension.Value);
+                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+                writetable(t,path, 'Delimiter', ';');
+                app.write_message("Modeled data saved as " + file_name);
             end
-            
-            file_name = strcat(app.EditFieldFileNameModeledAnhystereticMagnetization.Value, app.DropDownOutputModeledAnhystereticMagnetizationExtension.Value);
-            path = strcat(app.OutputDatasetPath.Value, '\', file_name);
-            writetable(t,path, 'Delimiter', ';');
-            app.write_message("Modeled data saved as " + file_name);
-
             %Separate into two functions
             if(app.CheckBoxExperimentalMagnetization.Value == 1)
                 t = table(transpose(app.data_curve.H), transpose(app.data_curve.M));
@@ -766,7 +748,6 @@ classdef app_exported < matlab.apps.AppBase
                 writetable(t,path, 'Delimiter', ';');
                 app.write_message("Experimental data saved as " + file_name);
             end
-
         end
 
         % Value changed function: PlotcomponentsCheckBoxM
@@ -1333,15 +1314,14 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.TickDir = 'in';
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -1352,14 +1332,15 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.TickDir = 'in';
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
