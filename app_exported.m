@@ -335,6 +335,9 @@ classdef app_exported < matlab.apps.AppBase
 
         
         function plot_input(app)
+            if app.ProjectPath == ""
+                return
+            end
             [HTip, MTip] = Utils().find_tip(app.data_curve.H, app.data_curve.M);
             app.MTipField.Value = app.format_short(MTip);
             app.HTipField.Value = app.format_short(HTip);
