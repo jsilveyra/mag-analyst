@@ -22,7 +22,7 @@ upper_bound = [6 0.7];
 % Set values for fitting booleans: select_fit = [Hcr m(Hcr)]
 select_fit = {true true}; 
 
-fit_constants = FitContants();
+fit_constants = FitConstants();
 % To use fit function: [Hcr, mcr, Hx] = fit(data_curve, seed, select_a, error_type, lower_bound, upper_bound, select_fit)
 % select_a options:
 %   fit_constants.LOW_A

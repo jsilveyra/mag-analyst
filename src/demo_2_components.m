@@ -25,7 +25,7 @@ select_fit = {true; true; true; true; true};
 % Set low/high value for ai: select_a = categorical({'a1';'a2'});
 select_a = categorical({'low';'low'});
 
-fit_constants = FitContants();
+fit_constants = FitConstants();
 % To use fit function: [Hcr, mcr, Hx] = fit(data_curve, seed, select_a, error_type, lower_bound, upper_bound, select_fit)
 [Hcr, mcr, Hx] = fit(data_curve, seed, select_a, fit_constants.DIAGONAL_ERROR_TYPE, lower_bound, upper_bound, select_fit);
 
