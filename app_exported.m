@@ -335,9 +335,6 @@ classdef app_exported < matlab.apps.AppBase
 
         
         function plot_input(app)
-            if app.ProjectPath == ""
-                return
-            end
             [HTip, MTip] = Utils().find_tip(app.data_curve.H, app.data_curve.M);
             app.MTipField.Value = app.format_short(MTip);
             app.HTipField.Value = app.format_short(HTip);
@@ -684,6 +681,9 @@ classdef app_exported < matlab.apps.AppBase
 
         % Value changed function: logCheckBoxInputPlot
         function logCheckBoxInputPlotValueChanged(app, event)
+            if app.InputDatasetPath.Value == ""
+                return
+            end
             app.plot_input()
         end
 
@@ -718,7 +718,11 @@ classdef app_exported < matlab.apps.AppBase
 
         % Button pushed function: ExportdataButton
         function ExportdataButtonPushed(app, event)
-            if(app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Value == 1)
+            if (app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Value == 0 && app.CheckBoxExperimentalMagnetization.Value == 0)
+                app.write_message("No magnetization data was selected to be exported.");
+                return;
+            end
+            if (app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Value == 1)
                 if(app.OutputSeparateComponentsCheckBox.Value == 0)
                     t = table(transpose(app.modeled_curve.H), transpose(app.modeled_curve.M), transpose(app.modeled_curve.dMdH), transpose(app.modeled_curve.HdMdH));
                     t.Properties.VariableNames(:) = {'H [A/m]' 'M [A/m]' 'dM/dH' 'dM/dlogH [A/m]' };
@@ -806,6 +810,10 @@ classdef app_exported < matlab.apps.AppBase
 
         % Button pushed function: ExportParametersButton
         function ExportParametersButtonPushed(app, event)
+            if(app.ExportFittedparametersCheckBox.Value == 0 && app.ExportModelparametersCheckBox.Value == 0 && app.ExportOtherquantitiesCheckBox.Value == 0 && app.ExportErrorsCheckBox.Value == 0)
+                app.write_message("No parameters were selected to be exported");
+                return;
+            end
             file_name = strcat(app.EditFieldFileNameParameters.Value, app.DropDownOutputParametersExtension.Value);
             path = strcat(app.OutputDatasetPath.Value, '\', file_name);
             file = fopen(path,'w');
@@ -869,6 +877,10 @@ classdef app_exported < matlab.apps.AppBase
 
         % Button pushed function: ExportPlotsButton
         function ExportPlotsButtonPushed(app, event)
+            if (app.CheckBoxExportPlotMagnetization.Value == 0 && app.CheckBoxExportPlotSusceptibility.Value == 0 && app.CheckBoxExportPlotSemiLogMagDerivative.Value == 0)
+                app.write_message("No plots were selected to be exported");
+                return;
+            end
             app.write_message("Exporting plots");
 
             if (app.CheckBoxExportPlotMagnetization.Value == 1)
@@ -973,6 +985,10 @@ classdef app_exported < matlab.apps.AppBase
 
         % Button pushed function: ExportResiduesButton
         function ExportResiduesButtonPushed(app, event)
+            if (app.CheckBoxExportResiduesMagnetization.Value == 0 && app.CheckBoxExportResiduesSusceptibility.Value == 0 && app.CheckBoxExportResiduesSemiLogMagDerivative.Value == 0)
+                app.write_message("No residual plots were selected to be exported");
+                return;
+            end
             if (app.CheckBoxExportResiduesMagnetization.Value == 1)
                 residue = MagnetizationResidueCalculator(app.data_curve, app.modeled_curve).get_residue();
                 file_name = strcat(app.EditFieldFileNameResiduesMagnetization.Value, app.DropDownResiduesMagnetizacionExtension.Value);
