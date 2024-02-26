@@ -26,17 +26,17 @@ $$
 
 $$
 \begin{gather}
-M_{i} &= M_{Si}m_{i} \\
-m_{i} &= \mathcal{L}\left( h_{i} \right) = \coth\left( h_{i} \right) - h_{i}^{- 1}, \\
-h_{i} &= \frac{H + \alpha_{i}M_{Si}m_{i}}{a_{i}}. \\
+M_{i} = M_{Si}m_{i} \\
+m_{i} = \mathcal{L}\left( h_{i} \right) = \coth\left( h_{i} \right) - h_{i}^{- 1}, \\
+h_{i} = \frac{H + \alpha_{i}M_{Si}m_{i}}{a_{i}}. \\
 \end{gather}
 $$
 
 $$
 \begin{equation}
-M_{i} &= M_{Si}m_{i} \\
-m_{i} &= \mathcal{L}\left( h_{i} \right) = \coth\left( h_{i} \right) - h_{i}^{- 1}, \\
-h_{i} &= \frac{H + \alpha_{i}M_{Si}m_{i}}{a_{i}}. \\
+M_{i} = M_{Si}m_{i} \\
+m_{i} = \mathcal{L}\left( h_{i} \right) = \coth\left( h_{i} \right) - h_{i}^{- 1}, \\
+h_{i} = \frac{H + \alpha_{i}M_{Si}m_{i}}{a_{i}}. \\
 \end{equation}
 $$
 
