@@ -12,7 +12,7 @@
 
 We use the following law of mixtures to explain the anhysteretic magnetization of soft magnetic materials [[1]](#1): the magnetization field ($M$, which corresponds to the moments per unit volume) is the sum of the magnetization of its components ($M_{i}$), each at the same applied magnetic field ($H$) and temperature ($T$)
 
-$$ M(H,T) &= \sum_{i = 1}^{n}{M_{i}(H,T)}.$$
+$$ M(H,T) = \sum_{i = 1}^{n}{M_{i}(H,T)}.$$
 
 The component magnetizations are described in terms of the mean-field theory introduced by Weiss [[2]](#2)
 
@@ -25,19 +25,19 @@ h_{i} &= \frac{H + \alpha_{i}M_{Si}m_{i}}{a_{i}}. \\
 $$
 
 $$
-\begin{aligned}{gather}
+\begin{gather}
 M_{i} &= M_{Si}m_{i} \\
 m_{i} &= \mathcal{L}\left( h_{i} \right) = \coth\left( h_{i} \right) - h_{i}^{- 1}, \\
 h_{i} &= \frac{H + \alpha_{i}M_{Si}m_{i}}{a_{i}}. \\
-\end{aligned}{gather}
+\end{gather}
 $$
 
 $$
-\begin{aligned}{equation}
+\begin{equation}
 M_{i} &= M_{Si}m_{i} \\
 m_{i} &= \mathcal{L}\left( h_{i} \right) = \coth\left( h_{i} \right) - h_{i}^{- 1}, \\
 h_{i} &= \frac{H + \alpha_{i}M_{Si}m_{i}}{a_{i}}. \\
-\end{aligned}{equation}
+\end{equation}
 $$
 
 In the equations above, $m_{i}$ and $h_{i}$ denote the reduced magnetization and the reduced magnetic field for the component $i$, respectively. $\mathcal{L}$ is the so-called Langevin function [[3]](#3), which assumes that the magnetic entities are regular pseudo-domains with
