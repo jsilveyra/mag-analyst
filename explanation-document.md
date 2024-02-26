@@ -17,27 +17,12 @@ $$ M(H,T) = \sum_{i = 1}^{n}{M_{i}(H,T)}.$$
 The component magnetizations are described in terms of the mean-field theory introduced by Weiss [[2]](#2)
 
 $$
-\begin{aligned}
-M_{i} &= M_{Si}m_{i} \\
-m_{i} &= \mathcal{L}\left( h_{i} \right) = \coth\left( h_{i} \right) - h_{i}^{- 1}, \\
-h_{i} &= \frac{H + \alpha_{i}M_{Si}m_{i}}{a_{i}}. \\
-\end{aligned}
-$$
-
-$$
 \begin{gather}
 M_{i} = M_{Si}m_{i} \\
 m_{i} = \mathcal{L}\left( h_{i} \right) = \coth\left( h_{i} \right) - h_{i}^{- 1}, \\
 h_{i} = \frac{H + \alpha_{i}M_{Si}m_{i}}{a_{i}}. \\
+\label{eq:2}
 \end{gather}
-$$
-
-$$
-\begin{equation}
-M_{i} = M_{Si}m_{i} \\
-m_{i} = \mathcal{L}\left( h_{i} \right) = \coth\left( h_{i} \right) - h_{i}^{- 1}, \\
-h_{i} = \frac{H + \alpha_{i}M_{Si}m_{i}}{a_{i}}. \\
-\end{equation}
 $$
 
 In the equations above, $m_{i}$ and $h_{i}$ denote the reduced magnetization and the reduced magnetic field for the component $i$, respectively. $\mathcal{L}$ is the so-called Langevin function [[3]](#3), which assumes that the magnetic entities are regular pseudo-domains with
