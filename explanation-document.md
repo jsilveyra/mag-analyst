@@ -26,14 +26,11 @@ $$
 
 
 $$
-\begin{equation}
-\{gather}
+\begin{gather}
 M_{i} = M_{Si}m_{i} \\
 m_{i} = \mathcal{L}\left( h_{i} \right) = \coth\left( h_{i} \right) - h_{i}^{- 1}, \\
 h_{i} = \frac{H + \alpha_{i}M_{Si}m_{i}}{a_{i}}. \\
-\{gather}
-\label{eq:1}
-\end{equation}
+\end{gather}
 $$
 
 In the equations above, $m_{i}$ and $h_{i}$ denote the reduced magnetization and the reduced magnetic field for the component $i$, respectively. $\mathcal{L}$ is the so-called Langevin function [[3]](#3), which assumes that the magnetic entities are regular pseudo-domains with
