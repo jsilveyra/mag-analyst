@@ -18,7 +18,9 @@ The component magnetizations are described in terms of the mean-field theory int
 
 ```math
 M_{i} = M_{Si}m_{i},
+<br>	
 m_{i} = \mathcal{L}\left( h_{i} \right) = \coth\left( h_{i} \right) - h_{i}^{- 1},
+<br>	
 h_{i} = \frac{H + \alpha_{i}M_{Si}m_{i}}{a_{i}}.
 ```
 
