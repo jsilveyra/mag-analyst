@@ -67,7 +67,7 @@ MagAnalyst currently uses the following third-party libraries:
 
 ## Explanation manual
 
-In this [Explanation document](explanation-document.md) we provide additional documentation, know how, guidelines and examples to understand the background of MagAnalyst.
+In this [Explanation document](explanation-document.md), we provide additional documentation, know-how, guidelines, and examples to understand the background of MagAnalyst.
 
 ## Examples
 
