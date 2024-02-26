@@ -17,7 +17,9 @@ $$ M(H,T) = \sum_{i = 1}^{n}{M_{i}(H,T)}.$$
 The component magnetizations are described in terms of the mean-field theory introduced by Weiss [[2]](#2)
 
 ```math
-a^2+b^2=c^2
+M_{i} = M_{Si}m_{i},
+m_{i} = \mathcal{L}\left( h_{i} \right) = \coth\left( h_{i} \right) - h_{i}^{- 1},
+h_{i} = \frac{H + \alpha_{i}M_{Si}m_{i}}{a_{i}}.
 ```
 
 $$ M_{i} = M_{Si}m_{i} $$,
