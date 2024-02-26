@@ -10,7 +10,7 @@
 
 ## Explanation
 
-We use the following law of mixtures to explain the anhysteretic magnetization of soft magnetic materials [[1]](#1): the magnetization field ($M$, which corresponds to the moments per unit volume) is the sum of the magnetization of its components ($M_{i}$), each at the same applied magnetic field ($H$) and temperature ($T$)
+We use the following law of mixtures to explain the anhysteretic magnetization of soft magnetic materials [[1]](#1)(https://doi.org/10.1063/9.0000328): the magnetization field ($M$, which corresponds to the moments per unit volume) is the sum of the magnetization of its components ($M_{i}$), each at the same applied magnetic field ($H$) and temperature ($T$)
 
 $$ M(H,T) = \sum_{i = 1}^{n}{M_{i}(H,T)}.$$
 
@@ -51,5 +51,6 @@ acceptance among the scientific community \[23, 24\].
 ## References
 <a id="1">[1]</a> 
 J. M. Silveyra and J. M. Conde Garrido, "On the anhysteretic magnetization of soft magnetic materials," AIP Advances, vol. 12, p. 035019, 2022. https://doi.org/10.1063/9.0000328
+<br>
 <a id="2">[2]</a>
 P. Weiss, "L'hypothèse du champ moléculaire et la propriété ferromagnétique," J. Phys. Theor. Appl., vol. 6, pp. 661-690, 1907. https://doi.org/0.1051/jphystap:019070060066100
