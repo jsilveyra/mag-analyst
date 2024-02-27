@@ -76,7 +76,7 @@ $$\begin{align}
 \mathcal{L}^{''}(h) \cong - \frac{2}{15}h + \frac{8}{189}h^{3} - \frac{2}{225}h^{5}.
 \end{align}$$
 
-For a model with $n$ components, the saturation magnetizations can be determined by ensuring that the fitted curve passes through the tip of the data curve and through $n - 1$ other points, which can be either optimized or fixed. The corresponding applied fields are denoted as $H_{TIP}$ and $H_{X_{i - 1}}$, respectively. Typically, $H_{X_{i - 1}}$ is between $H_{{cr}_{i - 1}} $ and $H_{{cr}_{i}} $ [[1]](#1). These constraints result in a system of $n$ equations and $n$ unknowns
+For a model with $n$ components, the saturation magnetizations can be determined by ensuring that the fitted curve passes through the tip of the data curve and through $n - 1$ other points, which can be either optimized or fixed. The corresponding applied fields are denoted as $H_{TIP}$ and $H_{X_{i - 1}}$, respectively. Typically, $H_{X_{i - 1}}$ is between $H_{cr\ i}$ and $H_{cr\ i - 1}$ $ [[1]](#1). These constraints result in a system of $n$ equations and $n$ unknowns
 
 ## References
 <a id="1">[1]</a> 
