@@ -53,6 +53,31 @@ $$\begin{align}
 Q(m) = \left( \frac{m}{\mathcal{L}^{'}\left( \mathcal{L}^{- 1}(m) \right)} \right)^{2}\frac{\left( - \mathcal{L}^{''}\left( \mathcal{L}^{- 1}(m) \right) \right)}{2\left( m - \mathcal{L}^{- 1}(m)\mathcal{L}^{'}\left( \mathcal{L}^{- 1}(m) \right) \right)} - 1.
 \end{align}$$
 
+
+Notice the equation for $a_{i}$ has two possible values, being the lowest one generally more common [[4]](#4).
+
+MagAnalyst utilizes Kröger's approximant to evaluate the Langevin inverse ($\mathcal{L}^{- 1}$), as it provides a balance between simplicity and accuracy. This approximant has a maximum relative error below $0.3%$ [[7]](#7). The first and second derivatives of the Langevin function with respect to the reduced magnetic field are, respectively,
+
+$$\begin{align}
+\mathcal{L}^{'}(h) = - {csch}^{2}(h) + \frac{1}{h^{2}},
+\end{align}$$
+
+$$\begin{align}
+\mathcal{L}^{''}(h) = 2\coth(h){csch}^{2}(h) - \frac{2}{h^{3}}.
+\end{align}$$
+
+To avoid catastrophic cancellation, MagAnalyst computes the Taylor expansion about the origin instead of directly evaluating the aforementioned functions when $|h| \leq 0.001$
+
+$$\begin{align}
+\mathcal{L}^{'}(h) \cong \frac{1}{3} - \frac{h^{2}}{15} + \frac{2}{189}h^{4},
+\end{align}$$
+
+$$\begin{align}
+\mathcal{L}^{''}(h) \cong - \frac{2}{15}h + \frac{8}{189}h^{3} - \frac{2}{225}h^{5}.
+\end{align}$$
+
+For a model with $n$ components, the saturation magnetizations can be determined by ensuring that the fitted curve passes through the tip of the data curve and through $n - 1$ other points, which can be either optimized or fixed. The corresponding applied fields are denoted as $H_{TIP}$ and $H_{X_{i - 1}}$, respectively. Typically, $H_{{cr}_{i - 1}} < H_{X_{i - 1}} < H_{{cr}_{i}}$ [[1]](#1). These constraints result in a system of $n$ equations and $n$ unknowns
+
 ## References
 <a id="1">[1]</a> 
 J. M. Silveyra and J. M. Conde Garrido, "On the anhysteretic magnetization of soft magnetic materials," AIP Advances, vol. 12, p. 035019, 2022. https://doi.org/10.1063/9.0000328
@@ -73,7 +98,7 @@ J. Pytlík, J. Luňáček, and O. Životský, "Differential isotropic model of f
 K. Chwastek, P. Gębara, A. Przybył, R. Gozdur, A. P. Baghel, and B. S. Ram, "An Alternative Formulation of the Harrison Model," Applied Sciences, vol. 13, p. 12009, 2023. https://doi.org/10.3390/app132112009
 <br>
 <a id="7">[7]</a>
-
+M. Kröger, "Simple, admissible, and accurate approximants of the inverse Langevin and Brillouin functions, relevant for strong polymer deformations and flows," Journal of Non-Newtonian Fluid Mechanics, vol. 223, pp. 77-87, 2015. https://doi.org/10.1016/j.jnnfm.2015.05.007
 <br>
 <a id="8">[8]</a>
 
