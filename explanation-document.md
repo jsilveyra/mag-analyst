@@ -78,6 +78,13 @@ $$\begin{align}
 
 For a model with $n$ components, the saturation magnetizations can be determined by ensuring that the fitted curve passes through the tip of the data curve and through $n - 1$ other points, which can be either optimized or fixed. The corresponding applied fields are denoted as $H_{TIP}$ and $H_{X_{i - 1}}$, respectively. Typically, $H_{X_{i - 1}}$ is between $H_{cr\ i}$ and $H_{cr\ i - 1}$ $ [[1]](#1). These constraints result in a system of $n$ equations and $n$ unknowns
 
+$$\begin{align}
+M_{TIP} &= M_{S1}m_{1}\left( H_{TIP} \right) + \ldots + M_{Sn}m_{n}\left( H_{TIP} \right), \\
+M_{X_{1}} &= M_{S1}m_{1}\left( H_{X_{1}} \right) + \ldots + M_{Sn}m_{n}\left( H_{X_{1}} \right), \\
+\ldots \\
+M_{X_{n - 1}} &= M_{S1}m_{1}\left( H_{X_{n - 1}} \right) + \ldots + M_{Sn}m_{n}\left( H_{X_{n - 1}} \right),
+\end{align}$$
+
 ## References
 <a id="1">[1]</a> 
 J. M. Silveyra and J. M. Conde Garrido, "On the anhysteretic magnetization of soft magnetic materials," AIP Advances, vol. 12, p. 035019, 2022. https://doi.org/10.1063/9.0000328
