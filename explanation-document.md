@@ -103,7 +103,7 @@ $$\begin{align}
 \alpha_{i}M_{Si} = \frac{\mathcal{L}^{- 1}\left( m_{i}\left( H_{cr\ i} \right) \right)a_{i} - H_{cr\ i}}{m_{i}\left( H_{cr\ i} \right)}.
 \end{align}$$
 
-The solution to obtain the reduced magnetization is determined by finding the point where $\mathcal{L}\left( \frac{H + \alpha_{i}M_{Si}m_{i}(H)}{a_{i}} \right) - m_{i}(H)$ changes sign and falls within the range $0 < m_{i}(H) < 1$. MagAnalyst employs the Matlab built-in ´fzero´ function to find this solution. The algorithm, developed by Dekker, implements a combination of bisection, secant, and inverse quadratic interpolation methods [[9]](#9). Similar to the derivatives of the Langevin function, when dealing with the Langevin function and $|h| \leq 0.001$, MagAnalyst computes the Taylor expansion about the origin
+The solution to obtain the reduced magnetization is determined by finding the point where $\mathcal{L}\left( \frac{H + \alpha_{i}M_{Si}m_{i}(H)}{a_{i}} \right) - m_{i}(H)$ changes sign and falls within the range $0 < m_{i}(H) < 1$. MagAnalyst employs the Matlab built-in `fzero` function to find this solution. The algorithm, developed by Dekker, implements a combination of bisection, secant, and inverse quadratic interpolation methods [[9]](#9). Similar to the derivatives of the Langevin function, when dealing with the Langevin function and $|h| \leq 0.001$, MagAnalyst computes the Taylor expansion about the origin
 
 $$\begin{align}
 \mathcal{L}(h) \cong \frac{h}{3} - \frac{1}{45}h^{3} + \frac{2}{945}h^{5}.
@@ -168,6 +168,38 @@ $$\begin{align}
 \end{align}$$
 
 since it is also relevant for technological applications.
+
+##Computation of the modeled anhysteretic curve
+
+Once all the model parameters have been retrieved, the anhysteretic magnetization can be described using the equation of state. For a single-component system, it can be expressed as
+
+$$\begin{align}
+M(H) = M_{S}\mathcal{L}\left( \frac{H + \alpha M}{a} \right),
+\end{align}$$
+
+and for a multicomponent system, it can be expressed as
+
+$$\begin{align}
+M(H) = \sum_{i}^{}{M_{Si}\mathcal{L}\left( \frac{H + \alpha_{i}M_{i}}{a_{i}} \right)}.
+\end{align}$$
+
+However, directly calculating $M$ through these equations is not possible since it appears in the argument of the Langevin function. Therefore, we choose to compute the modeled magnetization $M(H)$ in the following manner. MagAnalyst first calculates the corresponding reduced magnetizations (Eq. $(14)$) for an array of $H$ values ranging from 0 to $H_{TIP}$. Then, it determines $M$ using
+
+$$\begin{align}
+M(H) = \sum_{i}^{}{M_{Si}m_{i}(H)}.
+\end{align}$$
+
+The modeled susceptibility, $\frac{\partial M}{\partial H}$, is computed as [[1]](#1)
+
+$$\begin{align}
+\frac{\partial M}{\partial H}(H) = \sum_{i}^{}{M_{Si}\frac{\mathcal{L}^{'}\left( \mathcal{L}^{- 1}\left( m_{i}(H) \right) \right)/a_{i}}{1 - \alpha_{i}M_{Si}\mathcal{L}^{'}\left( \mathcal{L}^{- 1}\left( m_{i}(H) \right) \right)/a_{i}}},
+\end{align}$$
+
+and the modeled semi-log $M$ derivative, $\frac{\partial M}{\partial\ln H}$, is calculated as [[1]](#1)
+
+$$\begin{align}
+\frac{\partial M}{\partial\ln H}(H) = H\frac{\partial M}{\partial H}(H).
+\end{align}$$
 
 ## References
 <a id="1">[1]</a> 
