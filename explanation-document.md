@@ -169,7 +169,7 @@ $$\begin{align}
 
 since it is also relevant for technological applications.
 
-##Computation of the modeled anhysteretic curve
+## Computation of the modeled anhysteretic curve
 
 Once all the model parameters have been retrieved, the anhysteretic magnetization can be described using the equation of state. For a single-component system, it can be expressed as
 
@@ -183,7 +183,7 @@ $$\begin{align}
 M(H) = \sum_{i}^{}{M_{Si}\mathcal{L}\left( \frac{H + \alpha_{i}M_{i}}{a_{i}} \right)}.
 \end{align}$$
 
-However, directly calculating $M$ through these equations is not possible since it appears in the argument of the Langevin function. Therefore, we choose to compute the modeled magnetization $M(H)$ in the following manner. MagAnalyst first calculates the corresponding reduced magnetizations (Eq. $(14)$) for an array of $H$ values ranging from 0 to $H_{TIP}$. Then, it determines $M$ using
+However, directly calculating $M$ through these equations is not possible since it appears in the argument of the Langevin function. Therefore, we choose to compute the modeled magnetization $M(H)$ in the following manner. MagAnalyst first calculates the corresponding reduced magnetizations for an array of $H$ values ranging from 0 to $H_{TIP}$. Then, it determines $M$ using
 
 $$\begin{align}
 M(H) = \sum_{i}^{}{M_{Si}m_{i}(H)}.
@@ -200,6 +200,98 @@ and the modeled semi-log $M$ derivative, $\frac{\partial M}{\partial\ln H}$, is 
 $$\begin{align}
 \frac{\partial M}{\partial\ln H}(H) = H\frac{\partial M}{\partial H}(H).
 \end{align}$$
+
+## Optimization technique
+
+By default, MagAnalyst fits the anhysteretic curve by minimizing the mean orthogonal distance error between the data and modeled curve, also known as the diagonal distance error. This is done in a normalized $(X,Y) = \left( \log H,M \right)$ plane [[4]](#4) computing
+
+$$\begin{align}
+Diagonal\ error = \frac{1}{N}\sqrt{\sum_{i = 0}^{N}{\mathrm{\Delta}o}_{i}^{2}},
+\end{align}$$
+
+$$\begin{align}
+\mathrm{\Delta}o_{i} = \mathrm{\Delta}y_{i}\cos\left( {atan}\left( \frac{\mathrm{\Delta}y_{i}}{\mathrm{\Delta}x_{i}} \right) \right),
+\end{align}$$
+
+$$\begin{align}
+\left\{ \begin{align}
+\mathrm{\Delta}x_{i} = \frac{1}{X\left( Y_{N} \right)}\left| \widehat{X}\left( Y_{i} \right) - X\left( Y_{i} \right) \right| \\
+\mathrm{\Delta}y_{i} = \frac{1}{Y\left( X_{N} \right)}\left| Y\left( \widehat{X}\left( Y_{i} \right) \right) - Y\left( X_{i} \right) \right|
+\end{align} \right.\ .
+\end{align}$$
+
+The unhatted values represent the data curve, while the hatted values represent the modeled curve. The $N$-th value corresponds to the curve tip, with the arrays sorted in ascending order. This objective function has been found to yield better fittings compared to conventional techniques that minimize the normalized root-mean-squared error of either $M$ at constant $H$ or $H$ at constant $M$ [[1]](#1)[[4]](#4); vertical and horizontal errors, respectively
+
+$$\begin{align}
+Vertical\ error = \frac{1}{N}\frac{1}{Y\left( X_{N} \right)}\sqrt{\sum_{i = 0}^{N}\left( Y\left( X_{i} \right) - \widehat{Y}\left( X_{i} \right) \right)^{2}},
+\end{align}$$
+
+$$\begin{align}
+Horizontal\ error = \frac{1}{N}\frac{1}{X\left( Y_{N} \right)}\sqrt{\sum_{i = 0}^{N}\left( X\left( Y_{i} \right) - \widehat{X}\left( Y_{i} \right) \right)^{2}}.
+\end{align}$$
+
+However, the user has the option to optimize either of the traditional objective functions if desired (they are faster to compute). The toolbox utilizes the Matlab built-in `interp1` function [[11]](#11) to evaluate the data and modeled curves at fields that are not present in the set of values but are needed to calculate any of the errors. For interpolation and extrapolation, the default linear method is implemented.
+
+Currently, MagAnalyst utilizes the Matlab function `minimize`, developed by Oldenhuis [[12]](#12), to find the constrained minimum of the objective function starting at the user's initial estimates. This function uses `fminsearch` [[13]](#13) as its engine, which is a Matlab built-in function that employs the Nelder-Mead simplex method, an heuristic search method. `minimize` shares the same syntaxis of `fmincon` [[14]](#14), which offers deterministic algorithms such like the interior-point method, but it has the advantage of being freely distributed (unlike `fmincon`, which requires Matlab's Optimization Toolbox).
+
+## Graphical user interface
+
+We have developed the toolbox with a graphical user interface (GUI) to simplify its usage. MagAnalyst allows users to set up a new project and fit an anhysteretic curve using the Silveyra-Conde Garrido approach with just a few clicks and inputs. Additionally, users have the flexibility to save their projects at any point during the analysis, enabling them to resume it at a later time.
+
+The first tab in our toolbox, labeled \"Magnetization input data\", is designed to set up the data curve for analysis in MagAnalyst. The software automatically converts the input data into $M\left\lbrack \frac{A}{m} \right\rbrack$ vs $H\left\lbrack \frac{A}{m} \right\rbrack$ for the analysis and fitting process, following the conversion formulae provided in Table I. If other field units are required for the input data, they can be made available upon request.
+
+The magnetization input data can be either an anhysteretic curve or a symmetric hysteresis loop. If a hysteresis loop is provided, the software calculates the anhysteretic curve as the left and right branches of the $M$ vs $H$ loop (input data can be noisy and begin at any point of the loop). MagAnalyst assumes inverse symmetry and analyzes only the positive half of the anhysteretic curve. The tab displays two plots: the raw and the processed input data plots, which can be viewed in linear or logarithmic scale for $H$ and are updated based on user selections. 
+
+To digitize data from figures from the literature, we recommend using WebPlotDigitizer 4.6 [[15]](#15).
+
+Table I. Supported input fields and conversion formulae to obtain $M\left\lbrack \frac{A}{m} \right\rbrack$ vs $H\left\lbrack \frac{A}{m} \right\rbrack$ data.
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  **Horizontal axis field**
+  ---------------------------------------------------- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  **Input field**                                      **Conversion to** $\mathbf{H}\left\lbrack \frac{\mathbf{A}}{\mathbf{m}} \right\rbrack$
+
+  $$H\left\lbrack \frac{A}{m} \right\rbrack$$          $$H\left\lbrack \frac{A}{m} \right\rbrack$$
+
+  $$H\left\lbrack \frac{kA}{m} \right\rbrack$$         $$H\left\lbrack \frac{kA}{m} \right\rbrack\frac{10^{3}\left\lbrack \frac{A}{m} \right\rbrack}{1\left\lbrack \frac{kA}{m} \right\rbrack}$$
+
+  $$H\lbrack Oe\rbrack$$                               $$H\lbrack Oe\rbrack\frac{79.5774715459\ \left\lbrack \frac{A}{m} \right\rbrack}{1\lbrack Oe\rbrack}$$
+
+  $$H\lbrack kOe\rbrack$$                              $$H\lbrack kOe\rbrack\frac{79577.4715459\ \left\lbrack \frac{A}{m} \right\rbrack}{1\lbrack kOe\rbrack}$$
+
+  $$B_{ext}\lbrack T\rbrack$$                          $$B_{ext}\lbrack T\rbrack\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack}$$
+
+  $$B_{ext}\lbrack G\rbrack$$                          $$B_{ext}\lbrack G\rbrack\frac{1\lbrack T\rbrack}{10^{4}\lbrack G\rbrack}\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack}$$
+
+  $$B_{ext}\lbrack kG\rbrack$$                         $$B_{ext}\lbrack kG\rbrack\frac{1\lbrack T\rbrack}{10\lbrack kG\rbrack}\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack}$$
+
+  **Vertical axis field**
+
+  **Input field**                                      **Conversion to** $\mathbf{M}\left\lbrack \frac{\mathbf{A}}{\mathbf{m}} \right\rbrack$
+
+  $$M\left\lbrack \frac{A}{m} \right\rbrack$$          $$M\left\lbrack \frac{A}{m} \right\rbrack$$
+
+  $$M\left\lbrack \frac{kA}{m} \right\rbrack$$         $$M\left\lbrack \frac{kA}{m} \right\rbrack\frac{10^{3}\left\lbrack \frac{A}{m} \right\rbrack}{1\left\lbrack \frac{kA}{m} \right\rbrack}$$
+
+  $$M\left\lbrack \frac{MA}{m} \right\rbrack$$         $$M\left\lbrack \frac{MA}{m} \right\rbrack\frac{10^{6}\left\lbrack \frac{A}{m} \right\rbrack}{1\left\lbrack \frac{MA}{m} \right\rbrack}$$
+
+  $$M\left\lbrack \frac{emu}{cm^{3}} \right\rbrack$$   $$M\left\lbrack \frac{emu}{cm^{3}} \right\rbrack\frac{10^{3}\left\lbrack \frac{A}{m} \right\rbrack}{1\left\lbrack \frac{emu}{cm^{3}} \right\rbrack}$$
+
+  $$J\lbrack T\rbrack$$                                $$J\lbrack T\rbrack\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack}$$
+
+  $$B\lbrack T\rbrack$$                                $$B\lbrack T\rbrack\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack} - H\left\lbrack \frac{A}{m} \right\rbrack$$
+
+  $$B\lbrack G\rbrack$$                                $$B\lbrack G\rbrack\frac{1\lbrack T\rbrack}{10^{4}\lbrack G\rbrack}\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack} - H\left\lbrack \frac{A}{m} \right\rbrack$$
+
+  $$B\lbrack kG\rbrack$$                               $$B\lbrack kG\rbrack\frac{1\lbrack T\rbrack}{10\lbrack kG\rbrack}\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack} - H\left\lbrack \frac{A}{m} \right\rbrack$$
+  -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  
+The Residual plots, available for $M$ vs. $H$, $\frac{\partial M}{\partial H}$ vs. $H$, and $\frac{\partial M}{\partial\ln H}$ vs. $H$ graphs, display the arrays of vertical errors 
+
+$$\begin{align}
+r_{i}\left( X_{i} \right) = Y\left( X_{i} \right) - \widehat{Y}\left( X_{i} \right),
+\end{align}$$
+
+where the dependent variable $Y$ is $M$, $\frac{\partial M}{\partial H}$, or $\frac{\partial M}{\partial\ln H}$, respectively, and the independent variable $X$ is $H$.
 
 ## References
 <a id="1">[1]</a> 
@@ -233,14 +325,16 @@ Matlab. fzero - Root of nonlinear function. Available: https://www.mathworks.com
 J. M. Silveyra and J. M. Conde Garrido, "On the modelling of the anhysteretic magnetization of homogeneous soft magnetic materials," Journal of Magnetism and Magnetic Materials, vol. 540, p. 168430, 2021. https://doi.org/10.1016/j.jmmm.2021.168430
 <br>
 <a id="11">[11]</a>
-
+Matlab. interp1 - 1-D data interpolation. Available: https://www.mathworks.com/help/matlab/ref/interp1.html. Access date: 03/11/2023
 <br>
 <a id="12">[12]</a>
-
-
-
-
-
-
-
-
+Matlab. minimize - Minimize constrained functions with FMINSEARCH or FMINLBFGS, globally or locally. Available: https://www.mathworks.com/matlabcentral/fileexchange/24298-minimize, https://github.com/rodyo/FEX-minimize/releases/tag/v1.8. Access date: 03/11/2023
+<br>
+<a id="13">[13]</a>
+Matlab. fminsearch - Find minimum of unconstrained multivariable function using derivative-free method. Available: https://www.mathworks.com/help/matlab/ref/fminsearch.html. Access date: 03/11/2023
+<br>
+<a id="14">[14]</a>
+Matlab. fmincon - Find minimum of constrained nonlinear multivariable function. Available: https://www.mathworks.com/help/optim/ug/fmincon.html. Access date: 03/11/2023
+<br>
+<a id="15">[15]</a>
+A. Rohatgi. WebPlotDigitizer. Available: https://automeris.io/WebPlotDigitizer. Access date: 19/9/2023
