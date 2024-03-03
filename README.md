@@ -9,7 +9,7 @@
 3. [Setup and usage instructions](#setup-and-usage-instructions)
 4. [Description of the files and directory structure](#description-of-the-files-and-directory-structure)
 5. [External libraries](#external-libraries)
-6. [Explanation manual](#explanation-manual)
+6. [Explanation document](#explanation-document)
 7. [Examples](#examples)
 8. [Cite as](#cite-as)
 9. [Contact us](#contact-us)
@@ -65,7 +65,7 @@ MagAnalyst was implemented and tested with the Matlab 2022b version on Windows 1
 MagAnalyst currently uses the following third-party libraries:
 * [minimize](https://www.mathworks.com/matlabcentral/fileexchange/24298-minimize) to find the constrained minimum of the objective function starting at the user’s initial estimates.
 
-## Explanation manual
+## Explanation document
 
 In this [Explanation document](explanation-document.md), we provide additional documentation and know-how to understand the background of MagAnalyst.
 
