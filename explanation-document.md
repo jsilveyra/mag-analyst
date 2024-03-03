@@ -1,4 +1,4 @@
-## Contents of the explanation manual
+## Contents of the explanation document
 
 1. [Theory for the anhysteretic magnetization model](#theory-for-the-anhysteretic-magnetization-model)
 2. [Analysis plots](#analysis-plots)
