@@ -244,47 +244,6 @@ The magnetization input data can be either an anhysteretic curve or a symmetric 
 
 To digitize data from figures from the literature, we recommend using WebPlotDigitizer 4.6 [[15]](#15).
 
-Table I. Supported input fields and conversion formulae to obtain $M\left\lbrack \frac{A}{m} \right\rbrack$ vs $H\left\lbrack \frac{A}{m} \right\rbrack$ data.
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  **Horizontal axis field**
-  ---------------------------------------------------- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  **Input field**                                      **Conversion to** $\mathbf{H}\left\lbrack \frac{\mathbf{A}}{\mathbf{m}} \right\rbrack$
-
-  $$H\left\lbrack \frac{A}{m} \right\rbrack$$          $$H\left\lbrack \frac{A}{m} \right\rbrack$$
-
-  $$H\left\lbrack \frac{kA}{m} \right\rbrack$$         $$H\left\lbrack \frac{kA}{m} \right\rbrack\frac{10^{3}\left\lbrack \frac{A}{m} \right\rbrack}{1\left\lbrack \frac{kA}{m} \right\rbrack}$$
-
-  $$H\lbrack Oe\rbrack$$                               $$H\lbrack Oe\rbrack\frac{79.5774715459\ \left\lbrack \frac{A}{m} \right\rbrack}{1\lbrack Oe\rbrack}$$
-
-  $$H\lbrack kOe\rbrack$$                              $$H\lbrack kOe\rbrack\frac{79577.4715459\ \left\lbrack \frac{A}{m} \right\rbrack}{1\lbrack kOe\rbrack}$$
-
-  $$B_{ext}\lbrack T\rbrack$$                          $$B_{ext}\lbrack T\rbrack\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack}$$
-
-  $$B_{ext}\lbrack G\rbrack$$                          $$B_{ext}\lbrack G\rbrack\frac{1\lbrack T\rbrack}{10^{4}\lbrack G\rbrack}\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack}$$
-
-  $$B_{ext}\lbrack kG\rbrack$$                         $$B_{ext}\lbrack kG\rbrack\frac{1\lbrack T\rbrack}{10\lbrack kG\rbrack}\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack}$$
-
-  **Vertical axis field**
-
-  **Input field**                                      **Conversion to** $\mathbf{M}\left\lbrack \frac{\mathbf{A}}{\mathbf{m}} \right\rbrack$
-
-  $$M\left\lbrack \frac{A}{m} \right\rbrack$$          $$M\left\lbrack \frac{A}{m} \right\rbrack$$
-
-  $$M\left\lbrack \frac{kA}{m} \right\rbrack$$         $$M\left\lbrack \frac{kA}{m} \right\rbrack\frac{10^{3}\left\lbrack \frac{A}{m} \right\rbrack}{1\left\lbrack \frac{kA}{m} \right\rbrack}$$
-
-  $$M\left\lbrack \frac{MA}{m} \right\rbrack$$         $$M\left\lbrack \frac{MA}{m} \right\rbrack\frac{10^{6}\left\lbrack \frac{A}{m} \right\rbrack}{1\left\lbrack \frac{MA}{m} \right\rbrack}$$
-
-  $$M\left\lbrack \frac{emu}{cm^{3}} \right\rbrack$$   $$M\left\lbrack \frac{emu}{cm^{3}} \right\rbrack\frac{10^{3}\left\lbrack \frac{A}{m} \right\rbrack}{1\left\lbrack \frac{emu}{cm^{3}} \right\rbrack}$$
-
-  $$J\lbrack T\rbrack$$                                $$J\lbrack T\rbrack\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack}$$
-
-  $$B\lbrack T\rbrack$$                                $$B\lbrack T\rbrack\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack} - H\left\lbrack \frac{A}{m} \right\rbrack$$
-
-  $$B\lbrack G\rbrack$$                                $$B\lbrack G\rbrack\frac{1\lbrack T\rbrack}{10^{4}\lbrack G\rbrack}\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack} - H\left\lbrack \frac{A}{m} \right\rbrack$$
-
-  $$B\lbrack kG\rbrack$$                               $$B\lbrack kG\rbrack\frac{1\lbrack T\rbrack}{10\lbrack kG\rbrack}\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack} - H\left\lbrack \frac{A}{m} \right\rbrack$$
-  -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  
 The Residual plots, available for $M$ vs. $H$, $\frac{\partial M}{\partial H}$ vs. $H$, and $\frac{\partial M}{\partial\ln H}$ vs. $H$ graphs, display the arrays of vertical errors 
 
 $$\begin{align}
@@ -292,6 +251,33 @@ r_{i}\left( X_{i} \right) = Y\left( X_{i} \right) - \widehat{Y}\left( X_{i} \rig
 \end{align}$$
 
 where the dependent variable $Y$ is $M$, $\frac{\partial M}{\partial H}$, or $\frac{\partial M}{\partial\ln H}$, respectively, and the independent variable $X$ is $H$.
+
+**Table I. Supported input fields and conversion formulae to obtain $M\left\lbrack \frac{A}{m} \right\rbrack$ vs $H\left\lbrack \frac{A}{m} \right\rbrack$ data.**
+-------------------------------------------------------------------------------------------------
+  | **Horizontal axis field**| 
+  | ----------------------------------------------------|  
+  | **Input field**                                    |**Conversion to $\mathbf{H}\left\lbrack \frac{\mathbf{A}}{\mathbf{m}} \right\rbrack$**| 
+  | -------------------------------------------| -------------------------------------------|
+  | $$H\left\lbrack \frac{A}{m} \right\rbrack$$        | $$H\left\lbrack \frac{A}{m} \right\rbrack$$|
+  | $$H\left\lbrack \frac{kA}{m} \right\rbrack$$       | $$H\left\lbrack \frac{kA}{m} \right\rbrack\frac{10^{3}\left\lbrack \frac{A}{m} \right\rbrack}{1\left\lbrack \frac{kA}{m} \right\rbrack}$$|
+  | $$H\lbrack Oe\rbrack$$                             | $$H\lbrack Oe\rbrack\frac{79.5774715459\ \left\lbrack \frac{A}{m} \right\rbrack}{1\lbrack Oe\rbrack}$$|
+  | $$H\lbrack kOe\rbrack$$                            | $$H\lbrack kOe\rbrack\frac{79577.4715459\ \left\lbrack \frac{A}{m} \right\rbrack}{1\lbrack kOe\rbrack}$$|
+  | $$B_{ext}\lbrack T\rbrack$$                        | $$B_{ext}\lbrack T\rbrack\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack}$$|
+  | $$B_{ext}\lbrack G\rbrack$$                        | $$B_{ext}\lbrack G\rbrack\frac{1\lbrack T\rbrack}{10^{4}\lbrack G\rbrack}\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack}$$|
+  | $$B_{ext}\lbrack kG\rbrack$$                       | $$B_{ext}\lbrack kG\rbrack\frac{1\lbrack T\rbrack}{10\lbrack kG\rbrack}\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack}$$|
+
+  |**Vertical axis field**|
+  | ----------------------------------------------------|  
+  |**Input field**                                     | **Conversion to $\mathbf{M}\left\lbrack \frac{\mathbf{A}}{\mathbf{m}} \right\rbrack$**|
+  | -------------------------------------------| -------------------------------------------|
+  | $$M\left\lbrack \frac{A}{m} \right\rbrack$$        | $$M\left\lbrack \frac{A}{m} \right\rbrack$$|
+  | $$M\left\lbrack \frac{kA}{m} \right\rbrack$$       | $$M\left\lbrack \frac{kA}{m} \right\rbrack\frac{10^{3}\left\lbrack \frac{A}{m} \right\rbrack}{1\left\lbrack \frac{kA}{m} \right\rbrack}$$|
+  |$$M\left\lbrack \frac{MA}{m} \right\rbrack$$        | $$M\left\lbrack \frac{MA}{m} \right\rbrack\frac{10^{6}\left\lbrack \frac{A}{m} \right\rbrack}{1\left\lbrack \frac{MA}{m} \right\rbrack}$$|
+  |$$M\left\lbrack \frac{emu}{cm^{3}} \right\rbrack$$  | $$M\left\lbrack \frac{emu}{cm^{3}} \right\rbrack\frac{10^{3}\left\lbrack \frac{A}{m} \right\rbrack}{1\left\lbrack \frac{emu}{cm^{3}} \right\rbrack}$$|
+  | $$J\lbrack T\rbrack$$                              | $$J\lbrack T\rbrack\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack}$$|
+  | $$B\lbrack T\rbrack$$                              | $$B\lbrack T\rbrack\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack} - H\left\lbrack \frac{A}{m} \right\rbrack$$|
+  | $$B\lbrack G\rbrack$$                              | $$B\lbrack G\rbrack\frac{1\lbrack T\rbrack}{10^{4}\lbrack G\rbrack}\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack} - H\left\lbrack \frac{A}{m} \right\rbrack$$|
+  | $$B\lbrack kG\rbrack$$                             | $$B\lbrack kG\rbrack\frac{1\lbrack T\rbrack}{10\lbrack kG\rbrack}\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack} - H\left\lbrack \frac{A}{m} \right\rbrack$$|
 
 ## References
 <a id="1">[1]</a> 
