@@ -85,10 +85,10 @@ M_{X_{1}} &= M_{S1}m_{1}\left( H_{X_{1}} \right) + \ldots + M_{Sn}m_{n}\left( H_
 M_{X_{n - 1}} &= M_{S1}m_{1}\left( H_{X_{n - 1}} \right) + \ldots + M_{Sn}m_{n}\left( H_{X_{n - 1}} \right),
 \end{align}$$
 
-which MagAnalyst solves for $M_{Si}$ using the ****Matlab****  !small caps! `MATLAB` built-in `linsolve` function. The algorithm employs LU factorization with partial pivoting to solve the linear system [[6]](#6). In the case of $n$ equal components (i.e., with equal both $H_{cr\ i}$ and $m_{i}(H_{cr\ i})$, the saturation magnetization (which is equal for all $n$ components) is given by
+which MagAnalyst solves for $M_{Si}$ using the Matlab built-in `linsolve` function. The algorithm employs LU factorization with partial pivoting to solve the linear system [[6]](#6). In the case of $n$ equal components (i.e., with equal both $H_{cr\ i}$ and $m_{i}(H_{cr\ i})$, the saturation magnetization (which is equal for all $n$ components) is given by
 
 $$\begin{align}
-M_{Si} = \frac{M_{TIP}}{n m_{i}\left( H_{TIP} \right)}.
+M_{Si} = \frac{M_{TIP}}{n  m_{i}\left( H_{TIP} \right)}.
 \end{align}$$
 
 The reduced magnetizations $m_{1}\left( H_{TIP} \right)$, ..., $m_{n}\left( H_{X_{n - 1}} \right)$ are obtained by solving
