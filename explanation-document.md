@@ -254,7 +254,7 @@ where the dependent variable $Y$ is $M$, $\frac{\partial M}{\partial H}$, or $\f
 
 Tutorial videos are available in [YouTube](https://y-t.be/qvyw), illustrating how to analyze and fit an anhysteretic magnetization curve with either one or two component magnetizations.
 
-**Table I. Supported input fields and conversion formulae to obtain $M\left\lbrack \frac{A}{m} \right\rbrack$ vs $H\left\lbrack \frac{A}{m} \right\rbrack$ data.**
+### **Table I. Supported input fields and conversion formulae to obtain $M\left\lbrack \frac{A}{m} \right\rbrack$ vs $H\left\lbrack \frac{A}{m} \right\rbrack$ data**
 -------------------------------------------------------------------------------------------------
   **Horizontal axis field**
   | **Input field**                                    |**Conversion to $\mathbf{H}\left\lbrack \frac{\mathbf{A}}{\mathbf{m}} \right\rbrack$**| 
