@@ -6,7 +6,7 @@
 4. [Calculation of other physical quantities](#calculation-of-other-physical-quantities) 
 5. [Computation of the modeled anhysteretic curve](#computation-of-the-modeled-anhysteretic-curve)
 6. [Optimization technique](#optimization-technique)
-7. [Examples of the graphical user interface](#examples-of-the-graphical-user-interface)
+7. [Graphical user interface](#graphical-user-interface)
 
 ## Explanation
 
@@ -238,7 +238,7 @@ Currently, MagAnalyst utilizes the Matlab function `minimize`, developed by Olde
 
 We have developed the toolbox with a graphical user interface (GUI) to simplify its usage. MagAnalyst allows users to set up a new project and fit an anhysteretic curve using the Silveyra-Conde Garrido approach with just a few clicks and inputs. Additionally, users have the flexibility to save their projects at any point during the analysis, enabling them to resume it at a later time.
 
-The first tab in our toolbox, labeled \"Magnetization input data\", is designed to set up the data curve for analysis in MagAnalyst. The software automatically converts the input data into $M\left\lbrack \frac{A}{m} \right\rbrack$ vs $H\left\lbrack \frac{A}{m} \right\rbrack$ for the analysis and fitting process, following the conversion formulae provided in Table I. If other field units are required for the input data, they can be made available upon request.
+The software automatically converts the input data for analysis into $M\left\lbrack \frac{A}{m} \right\rbrack$ vs $H\left\lbrack \frac{A}{m} \right\rbrack$ for the analysis and fitting process, following the conversion formulae provided in Table I. If other field units are required for the input data, they can be made available upon request.
 
 The magnetization input data can be either an anhysteretic curve or a symmetric hysteresis loop. If a hysteresis loop is provided, the software calculates the anhysteretic curve as the left and right branches of the $M$ vs $H$ loop (input data can be noisy and begin at any point of the loop). MagAnalyst assumes inverse symmetry and analyzes only the positive half of the anhysteretic curve. The tab displays two plots: the raw and the processed input data plots, which can be viewed in linear or logarithmic scale for $H$ and are updated based on user selections. 
 
@@ -252,9 +252,11 @@ r_{i}\left( X_{i} \right) = Y\left( X_{i} \right) - \widehat{Y}\left( X_{i} \rig
 
 where the dependent variable $Y$ is $M$, $\frac{\partial M}{\partial H}$, or $\frac{\partial M}{\partial\ln H}$, respectively, and the independent variable $X$ is $H$.
 
+Tutorial videos are available in [YouTube](https://y-t.be/qvyw), illustrating how to analyze and fit an anhysteretic magnetization curve with either one or two component magnetizations.
+
 **Table I. Supported input fields and conversion formulae to obtain $M\left\lbrack \frac{A}{m} \right\rbrack$ vs $H\left\lbrack \frac{A}{m} \right\rbrack$ data.**
 -------------------------------------------------------------------------------------------------
-  | **Horizontal axis field**| 
+  **Horizontal axis field**
   | ----------------------------------------------------|  
   | **Input field**                                    |**Conversion to $\mathbf{H}\left\lbrack \frac{\mathbf{A}}{\mathbf{m}} \right\rbrack$**| 
   | -------------------------------------------| -------------------------------------------|
@@ -266,7 +268,7 @@ where the dependent variable $Y$ is $M$, $\frac{\partial M}{\partial H}$, or $\f
   | $$B_{ext}\lbrack G\rbrack$$                        | $$B_{ext}\lbrack G\rbrack\frac{1\lbrack T\rbrack}{10^{4}\lbrack G\rbrack}\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack}$$|
   | $$B_{ext}\lbrack kG\rbrack$$                       | $$B_{ext}\lbrack kG\rbrack\frac{1\lbrack T\rbrack}{10\lbrack kG\rbrack}\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack}$$|
 
-  |**Vertical axis field**|
+  **Vertical axis field**
   | ----------------------------------------------------|  
   |**Input field**                                     | **Conversion to $\mathbf{M}\left\lbrack \frac{\mathbf{A}}{\mathbf{m}} \right\rbrack$**|
   | -------------------------------------------| -------------------------------------------|
