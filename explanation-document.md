@@ -257,7 +257,6 @@ Tutorial videos are available in [YouTube](https://y-t.be/qvyw), illustrating ho
 **Table I. Supported input fields and conversion formulae to obtain $M\left\lbrack \frac{A}{m} \right\rbrack$ vs $H\left\lbrack \frac{A}{m} \right\rbrack$ data.**
 -------------------------------------------------------------------------------------------------
   **Horizontal axis field**
-  | ----------------------------------------------------|  
   | **Input field**                                    |**Conversion to $\mathbf{H}\left\lbrack \frac{\mathbf{A}}{\mathbf{m}} \right\rbrack$**| 
   | -------------------------------------------| -------------------------------------------|
   | $$H\left\lbrack \frac{A}{m} \right\rbrack$$        | $$H\left\lbrack \frac{A}{m} \right\rbrack$$|
@@ -269,7 +268,6 @@ Tutorial videos are available in [YouTube](https://y-t.be/qvyw), illustrating ho
   | $$B_{ext}\lbrack kG\rbrack$$                       | $$B_{ext}\lbrack kG\rbrack\frac{1\lbrack T\rbrack}{10\lbrack kG\rbrack}\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack}$$|
 
   **Vertical axis field**
-  | ----------------------------------------------------|  
   |**Input field**                                     | **Conversion to $\mathbf{M}\left\lbrack \frac{\mathbf{A}}{\mathbf{m}} \right\rbrack$**|
   | -------------------------------------------| -------------------------------------------|
   | $$M\left\lbrack \frac{A}{m} \right\rbrack$$        | $$M\left\lbrack \frac{A}{m} \right\rbrack$$|
