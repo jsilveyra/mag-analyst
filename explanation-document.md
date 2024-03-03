@@ -85,10 +85,10 @@ M_{X_{1}} &= M_{S1}m_{1}\left( H_{X_{1}} \right) + \ldots + M_{Sn}m_{n}\left( H_
 M_{X_{n - 1}} &= M_{S1}m_{1}\left( H_{X_{n - 1}} \right) + \ldots + M_{Sn}m_{n}\left( H_{X_{n - 1}} \right),
 \end{align}$$
 
-which MagAnalyst solves for $M_{Si}$ using the Matlab built-in `linsolve` function. The algorithm employs LU factorization with partial pivoting to solve the linear system [[6]](#6). In the case of $n$ equal components (i.e., with equal both $H_{cr\ i}$ and $m_{i}(H_{cr\ i})$, the saturation magnetization (which is equal for all $n$ components) is given by
+which MagAnalyst solves for $M_{Si}$ using the Matlab built-in `linsolve` function. The algorithm employs LU factorization with partial pivoting to solve the linear system [[8]](#8). In the case of $n$ equal components (i.e., with equal both $H_{cr\ i}$ and $m_{i}(H_{cr\ i})$, the saturation magnetization (which is equal for all $n$ components) is given by
 
 $$\begin{align}
-M_{Si} = \frac{M_{TIP}}{n  m_{i}\left( H_{TIP} \right)}.
+M_{Si} = \frac{M_{TIP}}{n m_{i}\left( H_{TIP} \right)}.
 \end{align}$$
 
 The reduced magnetizations $m_{1}\left( H_{TIP} \right)$, ..., $m_{n}\left( H_{X_{n - 1}} \right)$ are obtained by solving
@@ -103,6 +103,71 @@ $$\begin{align}
 \alpha_{i}M_{Si} = \frac{\mathcal{L}^{- 1}\left( m_{i}\left( H_{cr\ i} \right) \right)a_{i} - H_{cr\ i}}{m_{i}\left( H_{cr\ i} \right)}.
 \end{align}$$
 
+The solution to obtain the reduced magnetization is determined by finding the point where $\mathcal{L}\left( \frac{H + \alpha_{i}M_{Si}m_{i}(H)}{a_{i}} \right) - m_{i}(H)$ changes sign and falls within the range $0 < m_{i}(H) < 1$. MagAnalyst employs the Matlab built-in ´fzero´ function to find this solution. The algorithm, developed by Dekker, implements a combination of bisection, secant, and inverse quadratic interpolation methods [[9]](#9). Similar to the derivatives of the Langevin function, when dealing with the Langevin function and $|h| \leq 0.001$, MagAnalyst computes the Taylor expansion about the origin
+
+$$\begin{align}
+\mathcal{L}(h) \cong \frac{h}{3} - \frac{1}{45}h^{3} + \frac{2}{945}h^{5}.
+\end{align}$$
+
+Finally, the molecular field constant is given by
+
+$$\begin{align}
+\alpha_{i} = \alpha_{i}M_{Si}/M_{Si}.
+\end{align}$$
+
+## Calculation of other physical quantities
+
+After retrieving the model parameters, $M_{Si}$, $\alpha_{i}$, and $a_{i}$, MagAnalyst calculates several quantities with significant physical implications.
+
+Firstly, it determines the material's saturation polarization, which is crucial for technological applications. This is calculated as
+
+$$\begin{align}
+J_{S} = \mu_{0}\sum_{i = 1}^{n}M_{Si},
+\end{align}$$
+
+where $\mu_{0}$ is the vacuum magnetic permeability.
+
+Secondly, MagAnalyst computes the dimensionless product $\alpha_{i}\left| M_{Si} \right|/(3a_{i})$, which is utilized in the dimensionless plot of the Langevin-Weiss function (see Fig. 1 in [[4]](#4)).
+
+Thirdly, MagAnalyst calculates the energy density
+
+$$\begin{align}
+N_{i}k_{B}T = \mu_{0}\left| M_{Si} \right|a_{i},
+\end{align}$$
+
+where $N_{i}$ represents the number of magnetic entities (pseudodomains) of the $i$-component per unit volume, and $k_{B}$ denotes the Boltzmann constant [[4]](#4) (this equation arises from the definition $a_{i} = \frac{k_{B}T}{\mu_{0}\left| m_{d\ i} \right|}$, where $\left| m_{d\ i} \right| = \left| M_{Si} \right|/N_{i}$ is the effective magnetic moment of each magnetic entity).
+
+MagAnalyst also determines the anisotropy mean field as
+
+$$\begin{align}
+H_{ki} = 3a_{i} - \alpha_{i}M_{Si}.
+\end{align}$$
+
+This relation is derived from assuming a constant magnetic susceptibility up to saturation at $H_{ki}$, i.e., $\chi_{i} = \frac{M_{Si}}{H_{ki}}$, what leads that the magnetic susceptibility is equal to the initial magnetic susceptibility [[10]](#10)
+
+$$\begin{align}
+\chi_{in\ i} = \frac{M_{Si}}{\left( 3a_{i} - \alpha_{i}M_{Si} \right)}.
+\end{align}$$
+
+When the magnetic susceptibility remains practically constant up to saturation, the anisotropy mean field can be correlated to the induced anisotropy energy constant $K_{ui}$ as
+
+$$\begin{align}
+K_{ui} = \frac{1}{2}\mu_{0}M_{Si}H_{ki}.
+\end{align}$$
+
+Lastly, MagAnalyst reports the initial relative magnetic permeability of each component
+
+$$\begin{align}
+\mu_{r\ in\ i} = 1 + \chi_{in\ i},
+\end{align}$$
+
+and of the material
+
+$$\begin{align}
+\mu_{r\ in} = \sum_{i = 1}^{n}\mu_{r\ in\ i},
+\end{align}$$
+
+since it is also relevant for technological applications.
 
 ## References
 <a id="1">[1]</a> 
@@ -130,10 +195,10 @@ M. Kröger, "Simple, admissible, and accurate approximants of the inverse Langev
 Matlab. linsolve - Solve linear system of equations. Available: https://www.mathworks.com/help/matlab/ref/linsolve.html. Access date: 03/11/2023
 <br>
 <a id="9">[9]</a>
-
+Matlab. fzero - Root of nonlinear function. Available: https://www.mathworks.com/help/matlab/ref/fzero.html. Access date: 03/11/2023
 <br>
 <a id="10">[10]</a>
-
+J. M. Silveyra and J. M. Conde Garrido, "On the modelling of the anhysteretic magnetization of homogeneous soft magnetic materials," Journal of Magnetism and Magnetic Materials, vol. 540, p. 168430, 2021. https://doi.org/10.1016/j.jmmm.2021.168430
 <br>
 <a id="11">[11]</a>
 
