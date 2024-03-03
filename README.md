@@ -9,7 +9,7 @@
 3. [Setup and usage instructions](#setup-and-usage-instructions)
 4. [Description of the files and directory structure](#description-of-the-files-and-directory-structure)
 5. [External libraries](#external-libraries)
-6. [Explanation manual](#explanation-manual)
+6. [Explanation document](#explanation-document)
 7. [Examples](#examples)
 8. [Cite as](#cite-as)
 9. [Contact us](#contact-us)
