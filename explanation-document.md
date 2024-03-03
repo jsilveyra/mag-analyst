@@ -76,7 +76,7 @@ $$\begin{align}
 \mathcal{L}^{''}(h) \cong - \frac{2}{15}h + \frac{8}{189}h^{3} - \frac{2}{225}h^{5}.
 \end{align}$$
 
-For a model with $n$ components, the saturation magnetizations can be determined by ensuring that the fitted curve passes through the tip of the data curve and through $n - 1$ other points, which can be either optimized or fixed. The corresponding applied fields are denoted as $H_{TIP}$ and $H_{X_{i - 1}}$, respectively. Typically, $H_{X_{i - 1}}$ is between $H_{cr\ i}$ and $H_{cr\ i - 1}$ $ [[1]](#1). These constraints result in a system of $n$ equations and $n$ unknowns
+For a model with $n$ components, the saturation magnetizations can be determined by ensuring that the fitted curve passes through the tip of the data curve and through $n - 1$ other points, which can be either optimized or fixed. The corresponding applied fields are denoted as $H_{TIP}$ and $H_{X_{i - 1}}$, respectively. Typically, $H_{X_{i - 1}}$ is between $H_{cr\ i}$ and $H_{cr\ i - 1}$ [[1]](#1). These constraints result in a system of $n$ equations and $n$ unknowns
 
 $$\begin{align}
 M_{TIP} &= M_{S1}m_{1}\left( H_{TIP} \right) + \ldots + M_{Sn}m_{n}\left( H_{TIP} \right), \\
@@ -84,6 +84,33 @@ M_{X_{1}} &= M_{S1}m_{1}\left( H_{X_{1}} \right) + \ldots + M_{Sn}m_{n}\left( H_
 &\ldots \\
 M_{X_{n - 1}} &= M_{S1}m_{1}\left( H_{X_{n - 1}} \right) + \ldots + M_{Sn}m_{n}\left( H_{X_{n - 1}} \right),
 \end{align}$$
+
+which MagAnalyst solves for $M_{Si}$ using the [Matlab]{.smallcaps}
+built-in linsolve function. The algorithm employs LU factorization with
+partial pivoting to solve the linear system \[26\]. In the case of $n$
+equal components (i.e., with equal both $H_{cr\ i}$ and
+$m_{i}\left( H_{cr\ i} \right)$), the saturation magnetization (which is
+equal for all $n$ components) is given by
+
+$$\begin{array}{r}
+M_{Si} = \frac{M_{TIP}}{n{\ m}_{i}\left( H_{TIP} \right)}.\#(13)
+\end{array}$$
+
+The reduced magnetizations $m_{1}\left( H_{TIP} \right)$, ...,
+$m_{n}\left( H_{X_{n - 1}} \right)$ are obtained by solving
+
+$$\begin{array}{r}
+\mathcal{L}\left( \frac{H + \alpha_{i}M_{Si}m_{i}(H)}{a_{i}} \right) - m_{i}(H) = 0,\#(14)
+\end{array}$$
+
+for $m_{i}$ at the respective applied fields. The $a_{i}$ parameters
+required in Eq. $(14)$ are calculated using Eq. $(5)$, and the products
+$\alpha_{i}M_{Si}$ are given by
+
+$$\begin{array}{r}
+\alpha_{i}M_{Si} = \frac{\mathcal{L}^{- 1}\left( m_{i}\left( H_{cr\ i} \right) \right)a_{i} - H_{cr\ i}}{m_{i}\left( H_{cr\ i} \right)}.\#(15)
+\end{array}$$
+
 
 ## References
 <a id="1">[1]</a> 
