@@ -85,31 +85,23 @@ M_{X_{1}} &= M_{S1}m_{1}\left( H_{X_{1}} \right) + \ldots + M_{Sn}m_{n}\left( H_
 M_{X_{n - 1}} &= M_{S1}m_{1}\left( H_{X_{n - 1}} \right) + \ldots + M_{Sn}m_{n}\left( H_{X_{n - 1}} \right),
 \end{align}$$
 
-which MagAnalyst solves for $M_{Si}$ using the [Matlab]{.smallcaps}
-built-in linsolve function. The algorithm employs LU factorization with
-partial pivoting to solve the linear system \[26\]. In the case of $n$
-equal components (i.e., with equal both $H_{cr\ i}$ and
-$m_{i}\left( H_{cr\ i} \right)$), the saturation magnetization (which is
-equal for all $n$ components) is given by
+which MagAnalyst solves for $M_{Si}$ using the ^^Matlab^^ [Matlab]{.smallcaps} built-in 'linsolve' function. The algorithm employs LU factorization with partial pivoting to solve the linear system [[6]](#6). In the case of $n$ equal components (i.e., with equal both $H_{cr\ i}$ and $m_{i}(H_{cr\ i})$, the saturation magnetization (which is equal for all $n$ components) is given by
 
-$$\begin{array}{r}
-M_{Si} = \frac{M_{TIP}}{n{\ m}_{i}\left( H_{TIP} \right)}.\#(13)
-\end{array}$$
+$$\begin{align}
+M_{Si} = \frac{M_{TIP}}{n{\ m}_{i}\left( H_{TIP} \right)}.
+\end{align}$$
 
-The reduced magnetizations $m_{1}\left( H_{TIP} \right)$, ...,
-$m_{n}\left( H_{X_{n - 1}} \right)$ are obtained by solving
+The reduced magnetizations $m_{1}\left( H_{TIP} \right)$, ..., $m_{n}\left( H_{X_{n - 1}} \right)$ are obtained by solving
 
-$$\begin{array}{r}
-\mathcal{L}\left( \frac{H + \alpha_{i}M_{Si}m_{i}(H)}{a_{i}} \right) - m_{i}(H) = 0,\#(14)
-\end{array}$$
+$$\begin{align}
+\mathcal{L}\left( \frac{H + \alpha_{i}M_{Si}m_{i}(H)}{a_{i}} \right) - m_{i}(H) = 0,
+\end{align}$$
 
-for $m_{i}$ at the respective applied fields. The $a_{i}$ parameters
-required in Eq. $(14)$ are calculated using Eq. $(5)$, and the products
-$\alpha_{i}M_{Si}$ are given by
+for $m_{i}$ at the respective applied fields. The $a_{i}$ parameters required in the above equation are calculated by using their dependence on $H_{cr\ i}$ and $m_{i}(H_{cr\ i})$, and the products $\alpha_{i}M_{Si}$ are given by
 
-$$\begin{array}{r}
-\alpha_{i}M_{Si} = \frac{\mathcal{L}^{- 1}\left( m_{i}\left( H_{cr\ i} \right) \right)a_{i} - H_{cr\ i}}{m_{i}\left( H_{cr\ i} \right)}.\#(15)
-\end{array}$$
+$$\begin{align}
+\alpha_{i}M_{Si} = \frac{\mathcal{L}^{- 1}\left( m_{i}\left( H_{cr\ i} \right) \right)a_{i} - H_{cr\ i}}{m_{i}\left( H_{cr\ i} \right)}.
+\end{align}$$
 
 
 ## References
@@ -135,7 +127,7 @@ K. Chwastek, P. Gębara, A. Przybył, R. Gozdur, A. P. Baghel, and B. S. Ram, "A
 M. Kröger, "Simple, admissible, and accurate approximants of the inverse Langevin and Brillouin functions, relevant for strong polymer deformations and flows," Journal of Non-Newtonian Fluid Mechanics, vol. 223, pp. 77-87, 2015. https://doi.org/10.1016/j.jnnfm.2015.05.007
 <br>
 <a id="8">[8]</a>
-
+Matlab. linsolve - Solve linear system of equations. Available: https://www.mathworks.com/help/matlab/ref/linsolve.html. Access date: 03/11/2023
 <br>
 <a id="9">[9]</a>
 
