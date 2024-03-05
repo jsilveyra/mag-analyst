@@ -7,8 +7,9 @@
 5. [Computation of the modeled anhysteretic curve](#computation-of-the-modeled-anhysteretic-curve)
 6. [Optimization technique](#optimization-technique)
 7. [Graphical user interface](#graphical-user-interface)
+8. [References](#references)
 
-## Explanation
+## Theory for the anhysteretic magnetization model
 
 We use the following law of mixtures to explain the anhysteretic magnetization of soft magnetic materials [[1]](#1): the magnetization field ($M$, which corresponds to the moments per unit volume) is the sum of the magnetization of its components ($M_{i}$), each at the same applied magnetic field ($H$) and temperature ($T$)
 
@@ -215,8 +216,8 @@ $$\begin{align}
 
 $$\begin{align}
 \left\{ \begin{align}
-\mathrm{\Delta}x_{i} = \frac{1}{X\left( Y_{N} \right)}\left| \widehat{X}\left( Y_{i} \right) - X\left( Y_{i} \right) \right| \\
-\mathrm{\Delta}y_{i} = \frac{1}{Y\left( X_{N} \right)}\left| Y\left( \widehat{X}\left( Y_{i} \right) \right) - Y\left( X_{i} \right) \right|
+\mathrm{\Delta}x_{i} = \frac{1}{X\left( Y_{N} \right)}\left| \widehat{X}\left( Y_{i} \right) - X\left( Y_{i} \right) \right|, \\
+\mathrm{\Delta}y_{i} = \frac{1}{Y\left( X_{N} \right)}\left| Y\left( \widehat{X}\left( Y_{i} \right) \right) - Y\left( X_{i} \right) \right|.
 \end{align} \right.\ .
 \end{align}$$
 
