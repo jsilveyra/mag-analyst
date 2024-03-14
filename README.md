@@ -36,6 +36,8 @@ We recommend using [GitHub Desktop](https://desktop.github.com/), which allows u
 
 After downloading the main folder and placing it in a suitable location, MagAnalyst is ready to use.
 
+We recommend using the C:\ drive for the proper functioning of the project samples here provided. Otherwise, after opening a sample project you will need to import the curve sample file again.
+
 To start using the application with the graphical user interface, simply run the `app.mlapp` file.
 
 If you prefer to run MagAnalyst using command lines, you can follow the instructions in the `mag-analyst\src\demo.m` and `mag-analyst\src\demo_2_components.m` files.
