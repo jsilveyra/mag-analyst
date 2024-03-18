@@ -216,19 +216,19 @@ $$\begin{align}
 
 $$\begin{align}
 \left\{ \begin{align}
-\mathrm{\Delta}x_{i} = \frac{1}{X\left( Y_{N} \right)}\left| \widehat{X}\left( Y_{i} \right) - X\left( Y_{i} \right) \right|, \\
-\mathrm{\Delta}y_{i} = \frac{1}{Y\left( X_{N} \right)}\left| Y\left( \widehat{X}\left( Y_{i} \right) \right) - Y\left( X_{i} \right) \right|.
+\mathrm{\Delta}x_{i} = \frac{1}{X_{N}}\left| \widehat{X}\left( Y_{i} \right) - X_{i} \right|, \\
+\mathrm{\Delta}y_{i} = \frac{1}{Y_{N}}\left| Y\left( \widehat{X}\left( Y_{i} \right) \right) - Y_{i} \right|.
 \end{align} \right.\ .
 \end{align}$$
 
 The unhatted values represent the data curve, while the hatted values represent the modeled curve. The $N$-th value corresponds to the curve tip, with the arrays sorted in ascending order. This objective function has been found to yield better fittings compared to conventional techniques that minimize the normalized root-mean-squared error of either $M$ at constant $H$ or $H$ at constant $M$ [[1]](#1)[[4]](#4); vertical and horizontal errors, respectively
 
 $$\begin{align}
-Vertical\ error = \frac{1}{N}\frac{1}{Y\left( X_{N} \right)}\sqrt{\sum_{i = 0}^{N}\left( Y\left( X_{i} \right) - \widehat{Y}\left( X_{i} \right) \right)^{2}},
+Vertical\ error = \frac{1}{N}\frac{1}{Y_{N}}\sqrt{\sum_{i = 0}^{N}\left( Y_{i} - \widehat{Y}\left( X_{i} \right) \right)^{2}},
 \end{align}$$
 
 $$\begin{align}
-Horizontal\ error = \frac{1}{N}\frac{1}{X\left( Y_{N} \right)}\sqrt{\sum_{i = 0}^{N}\left( X\left( Y_{i} \right) - \widehat{X}\left( Y_{i} \right) \right)^{2}}.
+Horizontal\ error = \frac{1}{N}\frac{1}{X_{N}}\sqrt{\sum_{i = 0}^{N}\left( X_{i} - \widehat{X}\left( Y_{i} \right) \right)^{2}}.
 \end{align}$$
 
 However, the user has the option to optimize either of the traditional objective functions if desired (they are faster to compute). The toolbox utilizes the Matlab built-in `interp1` function [[11]](#11) to evaluate the data and modeled curves at fields that are not present in the set of values but are needed to calculate any of the errors. For interpolation and extrapolation, the default linear method is implemented.
