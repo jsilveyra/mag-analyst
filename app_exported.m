@@ -572,15 +572,18 @@ classdef app_exported < matlab.apps.AppBase
             plot(app)
         end
 
-        function calculate_and_plot(app)
+        function a = calculate_and_plot(app)
             path = app.InputDatasetPath.Value;
-            if path == ""
-                return
+            if isfile(path)
+                app.import_data(path);
+                update_components(app)
+                calculate_parameters(app)
+                app.plot_input();
+                a = 0;
+            else
+                app.write_message(path + " was not found, please browse the dataseth path again");
+                a = -1;
             end
-            app.import_data(path);
-            update_components(app)
-            calculate_parameters(app)
-            app.plot_input();
         end
     end
     
@@ -985,8 +988,11 @@ classdef app_exported < matlab.apps.AppBase
             app.CheckBoxExportResiduesMagnetization.Value = s.magnetization_residual_checkbox;
             app.CheckBoxExportResiduesSusceptibility.Value = s.susceptibility_residual_checkbox;
             app.CheckBoxExportResiduesSemiLogMagDerivative.Value = s.semi_log_derivative_residual_checkbox;
-
-            app.calculate_and_plot();
+            
+           
+            if (app.calculate_and_plot() == -1)
+                return
+            end
             app.CalculatePlotButtonPushed();
             app.write_message(file + " was opened successfully");
         end
