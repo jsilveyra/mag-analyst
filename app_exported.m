@@ -229,20 +229,15 @@ classdef app_exported < matlab.apps.AppBase
             app.magnetic_parameters = MagneticParameters(app.data_curve, app.Hcr, app.mcr, app.Hx, select_a);
 
 
-            H_first_element = app.data_curve.H(2);
-            if(app.data_curve.H(1) ~= 0)
-                H_first_element = app.data_curve.H(1);
-            end
-
             
             if(app.PointSpaceDropDown.Value == "log")
-                Hhat = logspace(log10(H_first_element),log10(HTip),N);
+                Hhat = logspace(log10(app.data_curve.H(2)),log10(HTip),N-1);
             elseif(app.PointSpaceDropDown.Value == "linear")
-                Hhat = linspace(H_first_element,HTip,N);
+                Hhat = linspace(app.data_curve.H(2),HTip,N-1);
             end
 
+            Hhat = [0, Hhat];
             app.modeled_curve = ModeledAnhystereticCurve(Hhat, app.magnetic_parameters);
-            
         end
         
         function fit_parameters(app)
@@ -292,7 +287,6 @@ classdef app_exported < matlab.apps.AppBase
             if (app.number_components == 1)
                 app.Hx = [];
             end
-            
             app.lb = zeros(1, offset);
             app.ub = zeros(1, offset);
             app.select_fit = cell(1, offset);
@@ -614,7 +608,6 @@ classdef app_exported < matlab.apps.AppBase
             end
 
             update_components(app)
-            
             % Each element from the array represents RGB on scale 0-1 
             app.Colors = [ 0.58 0 0.70; 0.70 0 0; 0 0 0.70; 0 0.70 0; 1 0.50 0];
 
