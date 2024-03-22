@@ -31,6 +31,7 @@ classdef ModeledAnhystereticCurve
                     M(i) = M(i) + Mi(j, i);
                 end 
             end
+            M(1) = 0;
         end
 
         function [dMdH, dMidH] = get_dMdH(~, H, alpha, Ms, a, alphaMs)
