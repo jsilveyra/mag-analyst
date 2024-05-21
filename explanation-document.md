@@ -279,6 +279,8 @@ Tutorial videos are available in [YouTube](https://y-t.be/qvyw), illustrating ho
   | $$B\lbrack G\rbrack$$                              | $$B\lbrack G\rbrack\frac{1\lbrack T\rbrack}{10^{4}\lbrack G\rbrack}\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack} - H\left\lbrack \frac{A}{m} \right\rbrack$$|
   | $$B\lbrack kG\rbrack$$                             | $$B\lbrack kG\rbrack\frac{1\lbrack T\rbrack}{10\lbrack kG\rbrack}\frac{1}{4\pi 10^{- 7}\left\lbrack \frac{T}{A/m} \right\rbrack} - H\left\lbrack \frac{A}{m} \right\rbrack$$|
 
+Other input fields can be made available upon request.
+
 ## References
 <a id="1">[1]</a> 
 J. M. Silveyra and J. M. Conde Garrido, "On the anhysteretic magnetization of soft magnetic materials," AIP Advances, vol. 12, p. 035019, 2022. https://doi.org/10.1063/9.0000328
