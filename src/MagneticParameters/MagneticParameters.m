@@ -139,9 +139,11 @@ classdef MagneticParameters
         
         function murin = get_murin(obj)
             murin = 0;
+            chiin = 0;
             for i = 1:length(obj.initial_relative_magnetic_permeability)
-                murin = murin + obj.initial_relative_magnetic_permeability(i);
+                chiin = chiin + obj.Ms(i)/obj.Hk(i);
             end
+            murin = 1 + chiin;
         end
     end
 
