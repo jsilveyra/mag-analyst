@@ -165,7 +165,7 @@ $$\begin{align}
 and of the material
 
 $$\begin{align}
-\mu_{r\ in} = \sum_{i = 1}^{n}\mu_{r\ in\ i},
+\mu_{r\ in} = 1 + \sum_{i = 1}^{n}\chi_{in\ i},
 \end{align}$$
 
 since it is also relevant for technological applications.
