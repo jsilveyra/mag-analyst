@@ -86,10 +86,15 @@ The files provided include:
 
 ## Cite as
 
-If you use MagAnalyst in your work, please cite the following papers on the approach used by MagAnalyst to describe anhysteretic curves:
+If you use MagAnalyst in your work, please cite:
+* J. M. Silveyra, M. I. González, T. F. González, and J. M. Conde Garrido, "MagAnalyst: A MATLAB Toolbox for Anhysteretic Magnetization Analysis," IEEE Transactions on Magnetics, 2024. https://doi.org/10.1109/TMAG.2024.3408681
+
+You may also cite the following papers on the approach used by MagAnalyst to describe anhysteretic curves:
 * J. M. Silveyra and J. M. Conde Garrido, "A physically based model for soft magnets’ anhysteretic curve," JOM, pp. 1-14, 2023. https://doi.org/10.1007/s11837-023-05704-x
 * J. M. Silveyra and J. M. Conde Garrido, "On the anhysteretic magnetization of soft magnetic materials," AIP Advances, vol. 12, p. 035019, 2022. https://doi.org/10.1063/9.0000328
 * J. M. Silveyra and J. M. Conde Garrido, "On the modelling of the anhysteretic magnetization of homogeneous soft magnetic materials," Journal of Magnetism and Magnetic Materials, vol. 540, p. 168430, 2021. https://doi.org/10.1016/j.jmmm.2021.168430
+
+If you don't have access to any of these articles, request them through ResearchGate! We will be happy to share them with you.
 
 ## Contact us
 
