@@ -50,6 +50,7 @@ MagAnalyst was implemented and tested with the Matlab 2022b version on Windows 1
 ├── app.mlapp                     # App controller
 ├── data                          # IO data
 ├── assets                        # Logos
+├── articles                      # Articles
 └── src
     ├── AnhystereticCurve         # Data and modeled anhyesteretic curve
     ├── ErrorCalculator
