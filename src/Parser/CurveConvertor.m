@@ -53,7 +53,7 @@ classdef CurveConvertor
             F_right = griddedInterpolant(M_right_unique,H_right_unique,'linear','none');
             F_left = griddedInterpolant(M_left_unique,H_left_unique,'linear','none');
             
-            N_grid = 100; 
+            N_grid = 100; % number of points of the positive anhysteretic curve calculated from a symmetric hysteresis loop
             
             M_query = linspace(0,M_positive_tip,N_grid);
            
