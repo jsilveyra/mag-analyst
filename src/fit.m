@@ -1,8 +1,7 @@
 function [Hcr, mcr, Hx] = fit(data_curve, seed, select_a, error_type, lb, ub, select_fit)
     [HTip, ~] = Utils().find_tip(data_curve.H, data_curve.M);
-    [Hminzero] = Utils().find_Hmin(data_curve.H);
     N = 100;
-    Hhat = logspace(log10(Hminzero/100),log10(HTip),N);
+    Hhat = logspace(log10(data_curve.H(2)),log10(HTip),N);
     number_components = (length(seed)+1)/3;
 
     function ret = fit_parameters(x)

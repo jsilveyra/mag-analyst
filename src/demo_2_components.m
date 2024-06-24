@@ -38,9 +38,8 @@ magnetic_parameters = MagneticParameters(data_curve, Hcr, mcr, Hx, magnetic_para
 
 % Get modeled anhysteretic curve
 [HTip, ~] = Utils().find_tip(data_curve.H, data_curve.M);
-[Hminzero] = Utils().find_Hmin(data_curve.H);
 N = 100;
-Hhat = logspace(log10(Hminzero/100),log10(HTip),N);
+Hhat = logspace(log10(data_curve.H(2)),log10(HTip),N);
 
 modeled_curve = ModeledAnhystereticCurve(Hhat, magnetic_parameters);
 
