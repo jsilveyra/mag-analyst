@@ -11,5 +11,11 @@ classdef Utils
             [MTip, i] = max(M);
             HTip = H(i);
         end
+
+        function Hminzero = find_Hmin(~, H) % Find the minimum absolute non zero H
+            tmp = H;
+            tmp(tmp==0) = Inf;
+            Hminzero = min(abs(tmp));
+        end
     end
 end

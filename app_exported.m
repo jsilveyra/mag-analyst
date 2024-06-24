@@ -224,6 +224,7 @@ classdef app_exported < matlab.apps.AppBase
             utils = Utils();
 
             [HTip, ~] = utils.find_tip(app.data_curve.H, app.data_curve.M);
+            [Hminzero] = Utils().find_Hmin(data_curve.H);
 
             select_a = app.TableParameters.Data{1:app.number_components,5};
             app.magnetic_parameters = MagneticParameters(app.data_curve, app.Hcr, app.mcr, app.Hx, select_a);
@@ -231,9 +232,9 @@ classdef app_exported < matlab.apps.AppBase
 
             
             if(app.PointSpaceDropDown.Value == "log")
-                Hhat = logspace(log10(app.data_curve.H(2)),log10(HTip),N-1);
+                Hhat = logspace(log10(Hminzero/100),log10(HTip),N-1);
             elseif(app.PointSpaceDropDown.Value == "linear")
-                Hhat = linspace(app.data_curve.H(2),HTip,N-1);
+                Hhat = linspace(log10(Hminzero/100),log10(HTip),N-1);
             end
 
             Hhat = [0, Hhat];
