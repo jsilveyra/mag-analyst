@@ -23,10 +23,12 @@ classdef DataAnhystereticCurve
     methods (Access = private)
         function dMdH = get_dMdH(~, H, M)
             dMdH = transpose(gradient(M(:)) ./ gradient(H(:)));
+            dMdH(dMdH<0) = 0;
         end
 
         function HdMdH = get_HdMdH(~, H, dHdH)
             HdMdH = H.*dHdH;
+            HdMdH(HdMdH<0) = 0;
         end
     end
 end
