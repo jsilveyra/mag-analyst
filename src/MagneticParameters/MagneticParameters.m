@@ -33,7 +33,7 @@ classdef MagneticParameters
     methods (Access = private)
         function a = get_a(obj, Hcr, mcr, select_a)
             factors = ones(length(select_a));
-            select_a = select_a == 'low';
+            select_a = select_a == "low";
             for i = 1:length(select_a)
                 if select_a(i)
                     factors(i) = -1;
