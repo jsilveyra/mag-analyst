@@ -7,8 +7,8 @@ classdef VerticalErrorCalculator < ErrorCalculator
 
         function e = get_error(obj)
             Yint = interp1(obj.Xhat, obj.Yhat, obj.X, 'linear', 'extrap');
-            Yint = Yint(3:end);
-            Ydat = obj.Y(3:end);
+            Yint = Yint(1:end);
+            Ydat = obj.Y(1:end);
             e = 0;
             for i = 1:length(Yint)
                 aux = Ydat(i) - Yint(i);
