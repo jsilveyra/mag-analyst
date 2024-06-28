@@ -7,8 +7,8 @@ classdef HorizontalErrorCalculator < ErrorCalculator
 
         function e = get_error(obj)
             Xint = interp1(obj.Yhat, obj.Xhat, obj.Y, 'linear', 'extrap');
-            Xint = Xint(2:end);
-            Xdat = obj.X(2:end);
+            Xint = Xint(1:end);
+            Xdat = obj.X(1:end);
             e = 0;
             for i = 1:length(Xint)
                 aux = Xdat(i) - Xint(i);
