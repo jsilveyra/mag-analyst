@@ -32,15 +32,18 @@ classdef CurveConvertor
             M_start = M(H_min_index:end);
             M_end = M(1:H_min_index);
             M_sorted = [M_start M_end];
+
+            % [~, max_index] = max(M_sorted);    % find tip for Mmax 
+            % [~, max_index] = max(H_sorted);    % find tip for Hmax           
+            H2M2 = sign(H_sorted).*(H_sorted).^2./max(H_sorted.^2) + sign(M_sorted).*(M_sorted).^2./max(M_sorted.^2);
+            [~, max_index] = max(H2M2);          % find tip for normalized H2M2max    
             
-            [~, M_max_index] = max(M_sorted);
+            H_right = H_sorted(1:max_index);
+            M_right = M_sorted(1:max_index);
             
-            H_right = H_sorted(1:M_max_index);
-            M_right = M_sorted(1:M_max_index);
-            
-            H_left = H_sorted(M_max_index:end);
-            M_left = M_sorted(M_max_index:end);
-            
+            H_left = H_sorted(max_index:end);
+            M_left = M_sorted(max_index:end);
+
             [M_right_unique, M_right_unique_indexes] = unique(M_right);
             H_right_unique = H_right(M_right_unique_indexes);
             [M_left_unique, M_left_unique_indexes] = unique(M_left);
@@ -53,7 +56,7 @@ classdef CurveConvertor
             F_right = griddedInterpolant(M_right_unique,H_right_unique,'linear','none');
             F_left = griddedInterpolant(M_left_unique,H_left_unique,'linear','none');
             
-            N_grid = 100; % number of points of the positive anhysteretic curve calculated from a symmetric hysteresis loop
+            N_grid = 50; % number of points of the positive anhysteretic curve calculated from a symmetric hysteresis loop
             
             M_query = linspace(0,M_positive_tip,N_grid);
            
