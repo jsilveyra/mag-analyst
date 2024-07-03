@@ -64,6 +64,11 @@ classdef CurveConvertor
             M = M_query;
             
             new_index = -1;
+
+            if (H(1)<10^-6) % this is because sometimes we obtained, for example (H;M)=(1.77635683940025e-14;0) as the first point
+                H(1)=0;
+            end
+
             for i = 1:length(H)
               if( H(i) >= 0 )
                 new_index = i;
