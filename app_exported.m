@@ -300,7 +300,7 @@ classdef app_exported < matlab.apps.AppBase
         function init_components(app)
             row_count = 3*app.number_components - 1;
             component_values = zeros(row_count, 1);
-            lb_col = zeros(row_count, 1);
+            lb_col = zeros(row_count, 1)
             ub_col = zeros(row_count, 1);
             row_names = cell(row_count, 1);
             for i = 1:app.number_components
@@ -309,7 +309,7 @@ classdef app_exported < matlab.apps.AppBase
                 component_values(2*i-1) = 0.01*i;
                 s = 'm' + string(char(8320 + i)) + ' (' + s + ')';
                 row_names(2*i,:) = {convertStringsToChars(s)};
-                component_values(2*i) = 0.5;
+                component_values(2*i) = 0.521657107787896;
                 lb_col(2*i-1) = 0;
                 lb_col(2*i) = 0.4496;
                 ub_col(2*i-1) = 1000000;
