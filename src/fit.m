@@ -32,8 +32,7 @@ function [Hcr, mcr, Hx] = fit(data_curve, seed, select_a, error_type, lb, ub, se
             ub(i) = seed(i) + epsilon;
         end
     end
-seed
-number_components 
+
     params = minimize(@fit_parameters, seed, [],[], [],[], lb , ub);
 
     Hcr = params(1:number_components);
