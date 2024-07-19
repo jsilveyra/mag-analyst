@@ -59,7 +59,7 @@ classdef CurveConvertor
             N_grid = 50; % number of points of the positive anhysteretic curve calculated from a symmetric hysteresis loop
             
             M_query = linspace(0,M_positive_tip,N_grid);
-           
+            
             H_right_query = F_right(M_query);
             H_left_query = F_left(M_query);
             
@@ -68,7 +68,7 @@ classdef CurveConvertor
             
             new_index = -1;
 
-            if (H(1)<10^-6) % this is because sometimes we obtained, for example (H;M)=(1.77635683940025e-14;0) as the first point
+            if (H(1)<10^-6 | M(1)<10^-6) % this is because sometimes we obtained, for example (H;M)=(1.77635683940025e-14;0) as the first point
                 H(1)=0;
             end
 
