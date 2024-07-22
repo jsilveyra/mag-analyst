@@ -65,8 +65,6 @@ classdef CurveConvertor
             
             H = 1/2*(H_right_query + H_left_query);
             M = M_query;
-            
-            save 'Mq1.mat' M_query
 
             new_index = -1;
 
