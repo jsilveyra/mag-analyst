@@ -95,8 +95,6 @@ classdef CurveConvertor
             
             M_query = [0 M_query]; % add the origin to the array
 
-            save 'Mq2.mat' M_query
-
             H_right_query = F_right(M_query);
             H_left_query = F_left(M_query);
             
