@@ -317,12 +317,12 @@ Matlab. interp1 - 1-D data interpolation. Available: https://www.mathworks.com/h
 <br>
 <a id="12">[12]</a>
 Matlab. minimize - Minimize constrained functions with FMINSEARCH or FMINLBFGS, globally or locally. Available: https://www.mathworks.com/matlabcentral/fileexchange/24298-minimize, https://github.com/rodyo/FEX-minimize/releases/tag/v1.8. Access date: 03/11/2023
+<br>
 <a id="13">[13]</a>
 Matlab. fminsearch - Find minimum of unconstrained multivariable function using derivative-free method. Available: https://www.mathworks.com/help/matlab/ref/fminsearch.html. Access date: 03/11/2023
 <br>
 <a id="14">[14]</a>
 Matlab. fmincon - Find minimum of constrained nonlinear multivariable function. Available: https://www.mathworks.com/help/optim/ug/fmincon.html. Access date: 03/11/2023
-<br>
 <br>
 <a id="15">[15]</a>
 Matlab. interparc - Distance based interpolation along a general curve in space. Available: https://www.mathworks.com/help/matlab/ref/fminsearch.html. Access date: 21/07/2024
