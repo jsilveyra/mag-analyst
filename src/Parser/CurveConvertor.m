@@ -59,7 +59,46 @@ classdef CurveConvertor
             N_grid = 50; % number of points of the positive anhysteretic curve calculated from a symmetric hysteresis loop
             
             M_query = linspace(0,M_positive_tip,N_grid);
+
+            H_right_query = F_right(M_query);
+            H_left_query = F_left(M_query);
             
+            H = 1/2*(H_right_query + H_left_query);
+            M = M_query;
+            
+            save 'Mq1.mat' M_query
+
+            new_index = -1;
+
+            if (H(1)<10^-6 || M(1)<10^-6) % this is because sometimes we obtained, for example (H;M)=(1.77635683940025e-14;0) as the first point
+                H(1)=0;
+            end
+
+            for i = 1:length(H)
+              if( H(i) >= 0 )
+                new_index = i;
+                break;
+              end
+            end
+
+            H = H(new_index:end);
+            M = M(new_index:end);
+
+            % resample the unevenly spaced curve
+           
+            logH_n = transpose(log(H(H>0))/max(log(H(H>0))));
+            M_n = transpose(M(H>0)/M_positive_tip);
+
+            logH_M_n_interparc = interparc(N_grid,logH_n,M_n,'linear'); % this function calculates N_grid spaced points of the original curve in a normalized semi-log M vs H plane
+            
+            M_query = M_positive_tip * transpose(logH_M_n_interparc(:,2)); % use the recently found M values to recompute the mean average curve from the two branches of the symmetric hysteresis loop
+            
+            M_query(M_query==max(M_query)) = M_positive_tip; % this is because there is a minor difference between max(M_query) and M_positive_tip (e.g., 3.6380e-12, when they should be exactly the same), that makes that then H can't be interpolated.
+            
+            M_query = [0 M_query]; % add the origin to the array
+
+            save 'Mq2.mat' M_query
+
             H_right_query = F_right(M_query);
             H_left_query = F_left(M_query);
             
@@ -68,7 +107,7 @@ classdef CurveConvertor
             
             new_index = -1;
 
-            if (H(1)<10^-6 | M(1)<10^-6) % this is because sometimes we obtained, for example (H;M)=(1.77635683940025e-14;0) as the first point
+            if (H(1)<10^-6 || M(1)<10^-6) % this is because sometimes we obtained, for example (H;M)=(1.77635683940025e-14;0) as the first point
                 H(1)=0;
             end
 
