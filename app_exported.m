@@ -193,7 +193,7 @@ classdef app_exported < matlab.apps.AppBase
             offset = (3*app.number_components - 1);
             for i = 1:app.number_components
                 app.TableFittedParameters.Data(offset + 1 + (i-1)*2) = {app.format_short(app.Hcr(i))};
-                app.TableFittedParameters.Data(offset + 2 + (i-1)*2) = {app.format_short(app.mcr(i))};
+                app.TableFittedParameters.Data(offset + 2 + (i-1)*2) = {app.format_long(app.mcr(i))};
             end
             for i = 1:(app.number_components-1)
                 app.TableFittedParameters.Data(offset + i + 2*app.number_components) = {app.format_short(app.Hx(i))};
@@ -300,7 +300,7 @@ classdef app_exported < matlab.apps.AppBase
         function init_components(app)
             row_count = 3*app.number_components - 1;
             component_values = zeros(row_count, 1);
-            lb_col = zeros(row_count, 1)
+            lb_col = zeros(row_count, 1);
             ub_col = zeros(row_count, 1);
             row_names = cell(row_count, 1);
             for i = 1:app.number_components
@@ -323,7 +323,7 @@ classdef app_exported < matlab.apps.AppBase
                 lb_col(i + 2*app.number_components) = 0;
                 ub_col(i + 2*app.number_components) = 1000000;
             end
-            component_values = arrayfun(@(x) {app.format_short(x)}, component_values);
+            component_values = arrayfun(@(x) {app.format_long(x)}, component_values);
             lb_col = arrayfun(@(x) {app.format_short(x)}, lb_col);
             ub_col = arrayfun(@(x) {app.format_short(x)}, ub_col);
             app.select_fit = cell(row_count, 1);
@@ -403,7 +403,8 @@ classdef app_exported < matlab.apps.AppBase
                     dimensionless_alphaMs_col(i,:) = {app.format_short(app.magnetic_parameters.dimensionless_alphaMs(i))};
                     density_product_col(i,:) = {app.format_short(app.magnetic_parameters.density_product(i))};
                     Hk_col(i,:) = {app.format_short(app.magnetic_parameters.Hk(i))};
-                    initial_relative_magnetic_permeability_col(i,:) = {app.format_thousands_only(app.magnetic_parameters.initial_relative_magnetic_permeability(i))};
+%                     initial_relative_magnetic_permeability_col(i,:) = {app.format_thousands_only(app.magnetic_parameters.initial_relative_magnetic_permeability(i))};
+                    initial_relative_magnetic_permeability_col(i,:) = {app.format_short(app.magnetic_parameters.initial_relative_magnetic_permeability(i))};
                 end
             end
 
@@ -413,6 +414,13 @@ classdef app_exported < matlab.apps.AppBase
 
         function ret = format_short(~, v)
             string_value = char(sprintf("%0.4f",v));
+            aux = regexp(string_value,'\.','split');
+            aux{1} = fliplr(regexprep(fliplr(aux{1}),'\d{3}(?=\d)', '$0,'));
+            ret = [aux{1},'.',aux{2}];
+        end
+
+        function ret = format_long(~, v)
+            string_value = char(sprintf("%0.10f",v));
             aux = regexp(string_value,'\.','split');
             aux{1} = fliplr(regexprep(fliplr(aux{1}),'\d{3}(?=\d)', '$0,'));
             ret = [aux{1},'.',aux{2}];
@@ -841,7 +849,7 @@ classdef app_exported < matlab.apps.AppBase
                     a_value = str2double(app.TableParameters.Data(i, 4).a_col);
                     s_component = sprintf("Component: %i", i);
                     s_Ms_value = sprintf("    Ms%i [A/m]: \t%0.4f", i, Ms_value);
-                    s_alpha_value = sprintf("            α: \t%0.4e", alpha_value);
+                    s_alpha_value = sprintf("           α%i: \t%0.4e", i, alpha_value);
                     s_a_value = sprintf("     a%i [A/m]: \t%0.4f", i, a_value);
                     fprintf(file, s_component + newline + s_Ms_value + newline + s_alpha_value + newline + s_a_value + newline);
                 end
