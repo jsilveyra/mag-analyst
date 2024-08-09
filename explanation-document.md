@@ -215,10 +215,8 @@ $$\begin{align}
 \end{align}$$
 
 $$\begin{align}
-\left\{ \begin{align}
 \mathrm{\Delta}x_{i} = \frac{1}{X_{N}}\left| \widehat{X}\left( Y_{i} \right) - X_{i} \right|, \\
 \mathrm{\Delta}y_{i} = \frac{1}{Y_{N}}\left| Y\left( \widehat{X}\left( Y_{i} \right) \right) - Y_{i} \right|.
-\end{align} \right.\ .
 \end{align}$$
 
 The unhatted values represent the data curve, while the hatted values represent the modeled curve. The $N$-th value corresponds to the curve tip, with the arrays sorted in ascending order. This objective function has been found to yield better fittings compared to conventional techniques that minimize the normalized root-mean-squared error of either $M$ at constant $H$ or $H$ at constant $M$ [[1]](#1)[[4]](#4); vertical and horizontal errors, respectively
