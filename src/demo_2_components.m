@@ -34,7 +34,7 @@ magnetic_parameters_constants = MagneticParametersConstants();
 % select_a options:
 %   magnetic_parameters_constants.LOW_A
 %   magnetic_parameters_constants.HIGH_A
-magnetic_parameters = MagneticParameters(data_curve, Hcr, mcr, Hx, magnetic_parameters_constants.LOW_A);
+magnetic_parameters = MagneticParameters(data_curve, Hcr, mcr, Hx, select_a);
 
 % Get modeled anhysteretic curve
 [HTip, ~] = Utils().find_tip(data_curve.H, data_curve.M);
