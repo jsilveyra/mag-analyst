@@ -93,6 +93,7 @@ classdef MagneticParameters
                 end
             end
             Ms = linsolve(A, M_solve');
+            M = Ms';
         end
 
         function alpha = get_alpha(obj)
