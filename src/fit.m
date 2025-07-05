@@ -33,7 +33,8 @@ function [Hcr, mcr, Hx] = fit(data_curve, seed, select_a, error_type, lb, ub, se
         end
     end
 
-    params = minimize(@fit_parameters, seed, [],[], [],[], lb , ub);
+    options = optimset('MaxIter', 2000, 'MaxFunEvals', 1e4); % Increase iterations and evaluations
+    params = minimize(@fit_parameters, seed, [],[], [],[], lb , ub, [], options);
 
     Hcr = params(1:number_components);
     mcr = params(number_components+1:2*number_components);
