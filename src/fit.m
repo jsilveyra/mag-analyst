@@ -1,6 +1,5 @@
-function [Hcr, mcr, Hx] = fit(data_curve, seed, select_a, error_type, lb, ub, select_fit)
+function [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub, select_fit)
     [HTip, ~] = Utils().find_tip(data_curve.H, data_curve.M);
-    N = 100;
     Hhat = logspace(log10(data_curve.H(2)),log10(HTip),N);
     number_components = (length(seed)+1)/3;
 
