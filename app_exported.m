@@ -241,6 +241,7 @@ classdef app_exported < matlab.apps.AppBase
         end
         
         function fit_parameters(app)
+            N = app.NumberofpointsEditField.Value;
             app.calculate_parameters()
             select_a = app.TableParameters.Data{1:app.number_components,5};
             fit_lb = zeros(app.number_components*3 - 1, 1);
@@ -264,7 +265,7 @@ classdef app_exported < matlab.apps.AppBase
             pause(0.01);
             tic
             try
-                [app.Hcr, app.mcr, app.Hx] = fit(app.data_curve, cat(2, app.Hcr, app.mcr, app.Hx), select_a, app.ErrortominimizeDropDown.Value, fit_lb, fit_ub, fit_select_fit);
+                [app.Hcr, app.mcr, app.Hx] = fit(app.data_curve, cat(2, app.Hcr, app.mcr, app.Hx), N, select_a, app.ErrortominimizeDropDown.Value, fit_lb, fit_ub, fit_select_fit);
                 t = sprintf("%0.2f", toc);
                 app.write_message("Fitting finished after " + t + " s");
             catch e
