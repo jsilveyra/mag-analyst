@@ -1,7 +1,27 @@
 function [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub, select_fit)
     [HTip, ~] = Utils().find_tip(data_curve.H, data_curve.M);
     Hhat = logspace(log10(data_curve.H(2)),log10(HTip),N);
-    number_components = (length(seed)+1)/3;
+
+    expected_params = length(lb);
+    if (length(ub) ~= expected_params)
+        error('Lower and upper bounds must have the same length.');
+    end
+    if (length(select_fit) ~= expected_params)
+        error('select_fit must have the same length as the bounds.');
+    end
+
+    if (length(seed) > expected_params)
+        seed = seed(1:expected_params);
+    elseif (length(seed) < expected_params)
+        midpoint_seed = ((lb(:) + ub(:))/2).';
+        seed = [seed(:).', midpoint_seed(length(seed)+1:end)];
+    end
+
+    if (mod(expected_params + 1, 3) ~= 0)
+        error('Invalid parameter vector size. Expected 3*n - 1 parameters.');
+    end
+
+    number_components = (expected_params + 1)/3;
 
     function ret = fit_parameters(x)
         Hcr_fit = x(1:number_components);
@@ -39,3 +59,4 @@ function [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub,
     mcr = params(number_components+1:2*number_components);
     Hx = params(number_components*2 +1:end);
 end
+

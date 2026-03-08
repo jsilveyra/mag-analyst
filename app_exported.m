@@ -277,6 +277,7 @@ classdef app_exported < matlab.apps.AppBase
         function update_components(app)
             app.Hcr = zeros(1, app.number_components);
             app.mcr = zeros(1, app.number_components);
+            app.Hx = zeros(1, max(app.number_components - 1, 0));
             offset = (3*app.number_components - 1);
             for i = 1:app.number_components
                 app.Hcr(i) = str2double(app.TableFittedParameters.Data(offset + 1 + (i-1)*2));
@@ -284,9 +285,6 @@ classdef app_exported < matlab.apps.AppBase
             end
             for i = 1:(app.number_components-1)
                 app.Hx(i) = str2double(app.TableFittedParameters.Data(offset + i + 2*app.number_components));
-            end
-            if (app.number_components == 1)
-                app.Hx = [];
             end
             app.lb = zeros(1, offset);
             app.ub = zeros(1, offset);
