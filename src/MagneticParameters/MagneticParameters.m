@@ -6,6 +6,7 @@ classdef MagneticParameters
         Ms
         alpha
         dimensionless_alphaMs
+        chi_in
         Hk
         Js
         density_product
@@ -22,6 +23,7 @@ classdef MagneticParameters
             obj.Ms = obj.get_Ms(data_curve, Hcr, mcr, Hx);
             obj.alpha = obj.get_alpha();
             obj.dimensionless_alphaMs = obj.get_dimensionless_alphaMs();
+            obj.chi_in = obj.get_chi_in();
             obj.Hk = obj.get_Hk();
             obj.Js = obj.get_Js();
             obj.density_product = obj.get_density_product();
@@ -107,6 +109,13 @@ classdef MagneticParameters
             dimensionless_alphaMs = zeros(1, length(obj.alpha));
             for i = 1:length(obj.alpha)
                 dimensionless_alphaMs(i) = obj.alpha(i)*abs(obj.Ms(i))/(3*obj.a(i));
+            end
+        end
+
+        function chi_in = get_chi_in(obj)
+            chi_in = zeros(1, length(obj.alpha));
+            for i = 1:length(obj.alpha)
+                chi_in(i) = (3*obj.a(i)/obj.Ms(i)-obj.alpha(i))^-1;
             end
         end
 
