@@ -1,6 +1,6 @@
 clear
 
-N = 100;
+N = app.NumberofpointsEditField.Value;
 
 utils = Utils();
 
@@ -117,7 +117,7 @@ Plotter(H, M, dMdH, HdMdH, Hhat, Mhat, dMdHhat, HdMdHhat, Hcr).plot;
 
 [HTip, MTip] = Utils().find_tip(H, M);
 
-[Hcr, mcr] = fit(H, M, [10, 8000, 0.5, 0.5]);
+[Hcr, mcr] = fit(H, M, N, [10, 8000, 0.5, 0.5]);
 disp([Hcr, mcr]);
 
 magnetic_parameters = MagneticParameters(H, M, Hcr, mcr);
