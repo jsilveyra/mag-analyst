@@ -827,26 +827,17 @@ classdef app_exported < matlab.apps.AppBase
 
         % Value changed function: ShowgridCheckBoxM
         function ShowgridCheckBoxMValueChanged(app, event)
-            grid(app.AxesM,"off");
-            if(app.ShowgridCheckBoxM.Value == 1)
-                grid(app.AxesM,"on");
-            end 
+            app.plot_M();
         end
 
         % Value changed function: ShowgridCheckBoxdMdH
         function ShowgridCheckBoxdMdHValueChanged(app, event)
-            grid(app.AxesdMdH,"off");
-            if(app.ShowgridCheckBoxdMdH.Value == 1)
-                grid(app.AxesdMdH,"on");
-            end
+            app.plot_dMdH();
         end
 
         % Value changed function: ShowgridCheckBoxHdMdH
         function ShowgridCheckBoxHdMdHValueChanged(app, event)
-            grid(app.AxesHdMdH,"off");
-            if(app.ShowgridCheckBoxHdMdH.Value == 1)
-                grid(app.AxesHdMdH,"on");
-            end
+            app.plot_HdMdH();
         end
 
         % Button pushed function: SetColorsButton
