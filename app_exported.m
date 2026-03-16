@@ -540,7 +540,7 @@ classdef app_exported < matlab.apps.AppBase
             t = table(transpose(app.data_curve.H), transpose(residue));
             t.Properties.VariableNames(:) = {'H [A/m]' 'residue'};
 
-            path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+            path = fullfile(app.OutputDatasetPath.Value, file_name);
             writetable(t,path, 'Delimiter', ';');
             app.write_message("Data saved as " + file_name);
         end
@@ -613,7 +613,11 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         function a = calculate_and_plot(app)
-            path = app.InputDatasetPath.Value;
+            path = strtrim(app.InputDatasetPath.Value);
+            if isempty(path)
+                a = 0;
+                return;
+            end
             if isfile(path)
                 app.import_data(path);
                 update_components(app)
@@ -633,7 +637,7 @@ classdef app_exported < matlab.apps.AppBase
 
         % Code that executes after component creation
         function startupFcn(app)
-            addpath(".\src");
+            addpath(fullfile(pwd(), 'src'));
             import_src();
 
             app.ProjectPath = "";
@@ -659,14 +663,14 @@ classdef app_exported < matlab.apps.AppBase
 
 
 
-            app.OutputDatasetPath.Value = strcat(pwd(), '\data');
+            app.OutputDatasetPath.Value = fullfile(pwd(), 'data');
             
             msg = sprintf("[%s] %s", app.get_time_string(), "MagAnalyst 1.0.2-beta");
             app.MessagesTextArea.Value(end) = cellstr(msg);
         end
 
         % Button pushed function: FitButton
-        function FitButtonPushed(app, event)
+        function FitButtonPushed(app, ~)
             update_components(app)
             fit_parameters(app)
             calculate_parameters(app)
@@ -674,44 +678,44 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         % Button pushed function: CalculatePlotButton
-        function CalculatePlotButtonPushed(app, event)
+        function CalculatePlotButtonPushed(app, ~)
             update_components(app)
             calculate_parameters(app)
             plot(app)
         end
 
         % Value changed function: AxisScaleDropDownM
-        function AxisScaleDropDownMValueChanged(app, event)
+        function AxisScaleDropDownMValueChanged(app, ~)
             app.plot_M()
         end
 
         % Value changed function: AxisScaleDropDowndMdH
-        function AxisScaleDropDowndMdHValueChanged(app, event)
+        function AxisScaleDropDowndMdHValueChanged(app, ~)
             app.plot_dMdH()
         end
 
         % Value changed function: AxisScaleDropDownHdMdH
-        function AxisScaleDropDownHdMdHValueChanged(app, event)
+        function AxisScaleDropDownHdMdHValueChanged(app, ~)
             app.plot_HdMdH()
         end
 
         % Value changed function: NumberofcomponentsSpinner
-        function NumberofcomponentsSpinnerValueChanged(app, event)
+        function NumberofcomponentsSpinnerValueChanged(app, ~)
             app.number_components = app.NumberofcomponentsSpinner.Value;
             app.init_components();
         end
 
         % Button pushed function: InputBrowseButton
-        function InputBrowseButtonPushed(app, event)
-            [file,path] = uigetfile('*.csv','Select dataset file', '.\data');
+        function InputBrowseButtonPushed(app, ~)
+            [file,path] = uigetfile('*.csv','Select dataset file', fullfile(pwd(), 'data'));
             if strcat(path, file) == ""
                 return
             end
 
             try
-                app.import_data(strcat(path, file));
+                app.import_data(fullfile(path, file));
 
-                app.InputDatasetPath.Value = strcat(path, file);
+                app.InputDatasetPath.Value = fullfile(path, file);
                 update_components(app)
                 calculate_parameters(app)
                 app.write_message("Imported " + file);
@@ -722,7 +726,7 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         % Value changed function: InputDatasetPath
-        function InputDatasetPathValueChanged(app, event)
+        function InputDatasetPathValueChanged(app, ~)
             dataset_path = app.InputDatasetPath.Value;
             [app.H, app.M] = Parser(dataset_path).get_data_csv;
             update_components(app)
@@ -730,7 +734,7 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         % Value changed function: InputAxisScaleDropDown
-        function InputAxisScaleDropDownValueChanged(app, event)
+        function InputAxisScaleDropDownValueChanged(app, ~)
             if app.InputDatasetPath.Value == ""
                 return
             end
@@ -738,7 +742,7 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         % Button pushed function: ResidualplotButtonM
-        function ResidualplotButtonMPushed(app, event)
+        function ResidualplotButtonMPushed(app, ~)
             residue_calculator = MagnetizationResidueCalculator(app.data_curve, app.modeled_curve);
             residue = residue_calculator.get_residue();
             axis_scale = string(app.AxisScaleDropDownM.Value);
@@ -747,7 +751,7 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         % Button pushed function: ResidualplotButtondMdH
-        function ResidualplotButtondMdHPushed(app, event)
+        function ResidualplotButtondMdHPushed(app, ~)
             residue_calculator = SusceptibilityResidueCalculator(app.data_curve, app.modeled_curve);
             residue = residue_calculator.get_residue();
             axis_scale = string(app.AxisScaleDropDowndMdH.Value);
@@ -756,7 +760,7 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         % Button pushed function: ResidualplotButtondHdMdH
-        function ResidualplotButtondHdMdHPushed(app, event)
+        function ResidualplotButtondHdMdHPushed(app, ~)
             residue_calculator = SemilogDerivativeResidueCalculator(app.data_curve, app.modeled_curve);
             residue = residue_calculator.get_residue();
             axis_scale = string(app.AxisScaleDropDownHdMdH.Value);
@@ -765,12 +769,12 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         % Button pushed function: OutputBrowseButton
-        function OutputBrowseButtonPushed(app, event)
+        function OutputBrowseButtonPushed(app, ~)
             app.OutputDatasetPath.Value = uigetdir(app.OutputDatasetPath.Value,'Select output folder');
         end
 
         % Button pushed function: ExportdataButton
-        function ExportdataButtonPushed(app, event)
+        function ExportdataButtonPushed(app, ~)
             if (app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Value == 0 && app.CheckBoxExperimentalMagnetization.Value == 0)
                 app.write_message("No magnetization data was selected to be exported.");
                 return;
@@ -795,7 +799,7 @@ classdef app_exported < matlab.apps.AppBase
                     t.Properties.VariableNames = variable_names;
                 end
                 file_name = strcat(app.EditFieldFileNameModeledAnhystereticMagnetization.Value, app.DropDownOutputModeledAnhystereticMagnetizationExtension.Value);
-                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+                path = fullfile(app.OutputDatasetPath.Value, file_name);
                 writetable(t,path, 'Delimiter', ';');
                 app.write_message("Modeled data saved as " + file_name);
             end
@@ -804,62 +808,62 @@ classdef app_exported < matlab.apps.AppBase
                 t = table(transpose(app.data_curve.H), transpose(app.data_curve.M));
                 t.Properties.VariableNames(:) = {'H [A/m]' 'M [A/m]'};
                 file_name = strcat(app.EditFieldFileNameExperimentalMagnetizationData.Value, app.DropDownOutputExperimentalMagnetizationData.Value);
-                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+                path = fullfile(app.OutputDatasetPath.Value, file_name);
                 writetable(t,path, 'Delimiter', ';');
                 app.write_message("Experimental data saved as " + file_name);
             end
         end
 
         % Value changed function: PlotcomponentsCheckBoxM
-        function PlotcomponentsCheckBoxMValueChanged(app, event)
+        function PlotcomponentsCheckBoxMValueChanged(app, ~)
             app.plot_M()
         end
 
         % Value changed function: PlotcomponentsCheckBoxdMdH
-        function PlotcomponentsCheckBoxdMdHValueChanged(app, event)
+        function PlotcomponentsCheckBoxdMdHValueChanged(app, ~)
             app.plot_dMdH()
         end
 
         % Value changed function: PlotcomponentsCheckBoxHdMdH
-        function PlotcomponentsCheckBoxHdMdHValueChanged(app, event)
+        function PlotcomponentsCheckBoxHdMdHValueChanged(app, ~)
             app.plot_HdMdH()
         end
 
         % Value changed function: ShowgridCheckBoxM
-        function ShowgridCheckBoxMValueChanged(app, event)
+        function ShowgridCheckBoxMValueChanged(app, ~)
             app.plot_M();
         end
 
         % Value changed function: ShowgridCheckBoxdMdH
-        function ShowgridCheckBoxdMdHValueChanged(app, event)
+        function ShowgridCheckBoxdMdHValueChanged(app, ~)
             app.plot_dMdH();
         end
 
         % Value changed function: ShowgridCheckBoxHdMdH
-        function ShowgridCheckBoxHdMdHValueChanged(app, event)
+        function ShowgridCheckBoxHdMdHValueChanged(app, ~)
             app.plot_HdMdH();
         end
 
         % Button pushed function: SetColorsButton
-        function SetColorsButtonPushed(app, event)
+        function SetColorsButtonPushed(app, ~)
             app.SetColorsButton.Enable = false;
             app.ColorDialogApp = colorDialog(app, app.Colors, app.number_components);
         end
 
         % Close request function: MagAnalystUIFigure
-        function MagAnalystUIFigureCloseRequest(app, event)
+        function MagAnalystUIFigureCloseRequest(app, ~)
             delete(app.ColorDialogApp)
             delete(app)
         end
 
         % Button pushed function: ExportParametersButton
-        function ExportParametersButtonPushed(app, event)
+        function ExportParametersButtonPushed(app, ~)
             if(app.ExportFittedparametersCheckBox.Value == 0 && app.ExportModelparametersCheckBox.Value == 0 && app.ExportOtherquantitiesCheckBox.Value == 0 && app.ExportErrorsCheckBox.Value == 0)
                 app.write_message("No parameters were selected to be exported");
                 return;
             end
             file_name = strcat(app.EditFieldFileNameParameters.Value, app.DropDownOutputParametersExtension.Value);
-            path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+            path = fullfile(app.OutputDatasetPath.Value, file_name);
             file = fopen(path,'w');
             fprintf(file, "Parameters:" + newline);
             if(app.ExportFittedparametersCheckBox.Value == 1)
@@ -920,7 +924,7 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         % Button pushed function: ExportPlotsButton
-        function ExportPlotsButtonPushed(app, event)
+        function ExportPlotsButtonPushed(app, ~)
             if (app.CheckBoxExportPlotMagnetization.Value == 0 && app.CheckBoxExportPlotSusceptibility.Value == 0 && app.CheckBoxExportPlotSemiLogMagDerivative.Value == 0)
                 app.write_message("No plots were selected to be exported");
                 return;
@@ -929,7 +933,7 @@ classdef app_exported < matlab.apps.AppBase
 
             if (app.CheckBoxExportPlotMagnetization.Value == 1)
                 file_name = strcat(app.EditFieldFileNamePlotMagnetization.Value, app.DropDownPlotMagnetizacionExtension.Value);
-                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+                path = fullfile(app.OutputDatasetPath.Value, file_name);
                 exportgraphics(app.AxesM,path,'Resolution',400);
                 message = strcat("Magnetization plots exported as ",file_name);
                 app.write_message(message);
@@ -937,7 +941,7 @@ classdef app_exported < matlab.apps.AppBase
 
             if (app.CheckBoxExportPlotSusceptibility.Value == 1)
                 file_name = strcat(app.EditFieldFileNamePlotSusceptibility.Value, app.DropDownPlotSusceptibilityExtension.Value);
-                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+                path = fullfile(app.OutputDatasetPath.Value, file_name);
                 exportgraphics(app.AxesdMdH,path,'Resolution',400);
                 message = strcat("Susceptibility plots exported as ",file_name);
                 app.write_message(message);
@@ -945,7 +949,7 @@ classdef app_exported < matlab.apps.AppBase
 
             if(app.CheckBoxExportPlotSemiLogMagDerivative.Value == 1)
                 file_name = strcat(app.EditFieldFileNamePlotSemiLogMagDerivative.Value, app.DropDownPlotSemiLogMagDerivativeExtension.Value);
-                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+                path = fullfile(app.OutputDatasetPath.Value, file_name);
                 exportgraphics(app.AxesHdMdH,path,'Resolution',400);
                 message = strcat("Semi-Log Magnetization Derivative plots exported as ",file_name);
                 app.write_message(message);
@@ -953,17 +957,17 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         % Menu selected function: SaveasMenu
-        function SaveasMenuSelected(app, event)
-          [file,path] = uiputfile('*.txt','Save project', '.\data\project.txt');
+        function SaveasMenuSelected(app, ~)
+          [file,path] = uiputfile('*.txt','Save project', fullfile(pwd(), 'data', 'project.txt'));
           app.ProjectPath = strcat(path, file);
           app.save();
         end
 
         % Menu selected function: OpenMenu
-        function OpenMenuSelected(app, event)
+        function OpenMenuSelected(app, ~)
             app.write_message("Opening new project");
             pause(0.01);
-            [file,path] = uigetfile('*.txt','Select project', '.\data');
+            [file,path] = uigetfile('*.txt','Select project', fullfile(pwd(), 'data'));
             app.ProjectPath = strcat(path, file);
 
             data = fileread(app.ProjectPath);
@@ -1049,7 +1053,7 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         % Button pushed function: ExportResiduesButton
-        function ExportResiduesButtonPushed(app, event)
+        function ExportResiduesButtonPushed(app, ~)
             if (app.CheckBoxExportResiduesMagnetization.Value == 0 && app.CheckBoxExportResiduesSusceptibility.Value == 0 && app.CheckBoxExportResiduesSemiLogMagDerivative.Value == 0)
                 app.write_message("No residual plots were selected to be exported");
                 return;
@@ -1074,7 +1078,7 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         % Menu selected function: SaveMenu
-        function SaveMenuSelected(app, event)
+        function SaveMenuSelected(app, ~)
             if (app.ProjectPath == "")
                 app.SaveasMenuSelected();
             else
@@ -1083,17 +1087,17 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         % Value changed function: HorizontalaxisfieldDropDown
-        function HorizontalaxisfieldDropDownValueChanged(app, event)
+        function HorizontalaxisfieldDropDownValueChanged(app, ~)
             app.calculate_and_plot();
         end
 
         % Value changed function: VerticalaxisfieldDropDown
-        function VerticalaxisfieldDropDownValueChanged(app, event)
+        function VerticalaxisfieldDropDownValueChanged(app, ~)
             app.calculate_and_plot();
         end
 
         % Value changed function: CurveDropDown
-        function CurveDropDownValueChanged(app, event)
+        function CurveDropDownValueChanged(app, ~)
             app.calculate_and_plot();
         end
     end

@@ -3,11 +3,14 @@ clc; clear; close all;
 
 %% Parser
 parser_constants = ParserConstants();
+% Build cross-platform path
+data_file = fullfile('data', 'sampleData', 'Finemet - TA.csv');
+
 % Initialize parser: parser = Parser(file_path, H_unit, M_unit, curve_type)
 % curve_type options:
 %   ANHYSTERETIC_CURVE_TYPE
 %   HYSTERESIS_LOOP_TYPE
-parser = Parser('.\data\sampleData\Finemet - TA.csv', ...
+parser = Parser(data_file, ...
                 parser_constants.H_AMPERE_PER_METER, ...
                 parser_constants.B_TESLA, ...
                 parser_constants.HYSTERESIS_LOOP_TYPE);
