@@ -31,7 +31,7 @@ fit_constants = FitConstants();
 %   fit_constants.HORIZONTAL_ERROR_TYPE
 %   fit_constants.VERTICAL_ERROR_TYPE
 %   fit_constants.DIAGONAL_ERROR_TYPE
-[Hcr, mcr, Hx] = fit(data_curve, seed, fit_constants.LOW_A, fit_constants.DIAGONAL_ERROR_TYPE, lower_bound, upper_bound, select_fit);
+[Hcr, mcr, Hx] = fit(data_curve, seed, N, fit_constants.LOW_A, fit_constants.DIAGONAL_ERROR_TYPE, lower_bound, upper_bound, select_fit);
 
 magnetic_parameters_constants = MagneticParametersConstants();
 % To initialize magnetic_parameters: magnetic_parameters = MagneticParameters(data_curve, Hcr, mcr, Hx, select_a)

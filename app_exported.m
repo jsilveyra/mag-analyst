@@ -27,7 +27,8 @@ classdef app_exported < matlab.apps.AppBase
         HTipField                       matlab.ui.control.EditField
         HtipAmLabel                     matlab.ui.control.Label
         GridLayoutInputPlotLog          matlab.ui.container.GridLayout
-        logCheckBoxInputPlot            matlab.ui.control.CheckBox
+        InputAxisScaleLabel             matlab.ui.control.Label
+        InputAxisScaleDropDown          matlab.ui.control.DropDown
         GridLayoutInput                 matlab.ui.container.GridLayout
         GridLayoutDatasetPath           matlab.ui.container.GridLayout
         InputDatasetPath                matlab.ui.control.EditField
@@ -77,18 +78,21 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxHdMdH           matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxHdMdH     matlab.ui.control.CheckBox
         ResidualplotButtondHdMdH        matlab.ui.control.Button
-        logCheckBoxHdMdH                matlab.ui.control.CheckBox
+        AxisScaleLabelHdMdH             matlab.ui.control.Label
+        AxisScaleDropDownHdMdH          matlab.ui.control.DropDown
         GridLayoutOptionsdMdH           matlab.ui.container.GridLayout
         ShowgridCheckBoxdMdH            matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxdMdH      matlab.ui.control.CheckBox
         ResidualplotButtondMdH          matlab.ui.control.Button
-        logCheckBoxdMdH                 matlab.ui.control.CheckBox
+        AxisScaleLabeldMdH              matlab.ui.control.Label
+        AxisScaleDropDowndMdH           matlab.ui.control.DropDown
         GridLayoutOptionsM              matlab.ui.container.GridLayout
         SetColorsButton                 matlab.ui.control.Button
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        logCheckBoxM                    matlab.ui.control.CheckBox
+        AxisScaleLabelM                 matlab.ui.control.Label
+        AxisScaleDropDownM              matlab.ui.control.DropDown
         AxesHdMdH                       matlab.ui.control.UIAxes
         AxesdMdH                        matlab.ui.control.UIAxes
         AxesM                           matlab.ui.control.UIAxes
@@ -344,13 +348,41 @@ classdef app_exported < matlab.apps.AppBase
             cla(app.AxesRawInputData, 'reset')
             plotter = Plotter(app.data_curve, app.modeled_curve, [], app.Colors, 5);
 
-            if(app.logCheckBoxInputPlot.Value == 0)
-                plotter.plot_raw(app.AxesProcessedInputData, app.data_curve.H, app.data_curve.M, 'H [A/m]', 'M [A/m]', 'Processed input data');
-                plotter.plot_raw(app.AxesRawInputData, app.H_raw, app.M_raw, app.HorizontalaxisfieldDropDown.Value, app.VerticalaxisfieldDropDown.Value, 'Raw input data');
-            else
+            axis_scale = string(app.InputAxisScaleDropDown.Value);
+            if app.axis_scale_has_x(axis_scale)
                 plotter.plot_raw_log(app.AxesProcessedInputData, app.data_curve.H, app.data_curve.M, 'H [A/m]', 'M [A/m]', 'Processed input data');
                 plotter.plot_raw_log(app.AxesRawInputData, app.H_raw, app.M_raw, app.HorizontalaxisfieldDropDown.Value, app.VerticalaxisfieldDropDown.Value, 'Raw input data');
+            else
+                plotter.plot_raw(app.AxesProcessedInputData, app.data_curve.H, app.data_curve.M, 'H [A/m]', 'M [A/m]', 'Processed input data');
+                plotter.plot_raw(app.AxesRawInputData, app.H_raw, app.M_raw, app.HorizontalaxisfieldDropDown.Value, app.VerticalaxisfieldDropDown.Value, 'Raw input data');
             end
+
+            app.apply_axis_scale(app.AxesProcessedInputData, axis_scale);
+            app.apply_axis_scale(app.AxesRawInputData, axis_scale);
+        end
+
+        function apply_axis_scale(app, ax, selection)
+            selection = string(selection);
+            if app.axis_scale_has_x(selection)
+                ax.XScale = 'log';
+            else
+                ax.XScale = 'linear';
+            end
+            if app.axis_scale_has_y(selection)
+                ax.YScale = 'log';
+            else
+                ax.YScale = 'linear';
+            end
+        end
+
+        function has_x = axis_scale_has_x(~, selection)
+            selection = string(selection);
+            has_x = selection == "X log" || selection == "Both";
+        end
+
+        function has_y = axis_scale_has_y(~, selection)
+            selection = string(selection);
+            has_y = selection == "Y log" || selection == "Both";
         end
         
         function init_parameters_table(app, default_values)
@@ -439,11 +471,13 @@ classdef app_exported < matlab.apps.AppBase
             cla(app.AxesM,'reset');
             plot_components = app.PlotcomponentsCheckBoxM.Value == 1;
             show_grid = app.ShowgridCheckBoxM.Value == 1;
-            if(app.logCheckBoxM.Value == 0)
-                plotter.plot_M(app.AxesM, plot_components, show_grid);
-            else
+            axis_scale = string(app.AxisScaleDropDownM.Value);
+            if app.axis_scale_has_x(axis_scale)
                 plotter.plot_M_log(app.AxesM, plot_components, show_grid);
+            else
+                plotter.plot_M(app.AxesM, plot_components, show_grid);
             end
+            app.apply_axis_scale(app.AxesM, axis_scale);
         end
 
         function plot_dMdH(app)
@@ -451,11 +485,13 @@ classdef app_exported < matlab.apps.AppBase
             cla(app.AxesdMdH,'reset');
             plot_components = app.PlotcomponentsCheckBoxdMdH.Value == 1;
             show_grid = app.ShowgridCheckBoxdMdH.Value == 1;
-            if(app.logCheckBoxdMdH.Value == 0)
-                plotter.plot_dMdH(app.AxesdMdH, plot_components, show_grid);
-            else
+            axis_scale = string(app.AxisScaleDropDowndMdH.Value);
+            if app.axis_scale_has_x(axis_scale)
                 plotter.plot_dMdH_log(app.AxesdMdH, plot_components, show_grid);
+            else
+                plotter.plot_dMdH(app.AxesdMdH, plot_components, show_grid);
             end
+            app.apply_axis_scale(app.AxesdMdH, axis_scale);
         end
         
         function plot_HdMdH(app)
@@ -463,11 +499,13 @@ classdef app_exported < matlab.apps.AppBase
             cla(app.AxesHdMdH,'reset');
             plot_components = app.PlotcomponentsCheckBoxHdMdH.Value == 1;
             show_grid = app.ShowgridCheckBoxHdMdH.Value == 1;
-            if(app.logCheckBoxHdMdH.Value == 0)
-                plotter.plot_HdMdH(app.AxesHdMdH, plot_components, show_grid);
-            else
+            axis_scale = string(app.AxisScaleDropDownHdMdH.Value);
+            if app.axis_scale_has_x(axis_scale)
                 plotter.plot_HdMdH_log(app.AxesHdMdH, plot_components, show_grid);
+            else
+                plotter.plot_HdMdH(app.AxesHdMdH, plot_components, show_grid);
             end
+            app.apply_axis_scale(app.AxesHdMdH, axis_scale);
         end
         
         function results = get_time_string(~)
@@ -535,9 +573,10 @@ classdef app_exported < matlab.apps.AppBase
             s.susceptibility_residual_file_name = app.EditFieldFileNameResiduesSusceptibility.Value;
             s.semi_log_derivative_file_name = app.EditFieldFileNameResiduesSemiLogMagDerivative.Value;
 
-            s.log_checkbox = app.logCheckBoxInputPlot.Value;
-
-            s.fitting_log_checkbox = app.logCheckBoxHdMdH.Value;
+            s.input_axis_scale = app.InputAxisScaleDropDown.Value;
+            s.axis_scale_m = app.AxisScaleDropDownM.Value;
+            s.axis_scale_dMdH = app.AxisScaleDropDowndMdH.Value;
+            s.axis_scale_hdMdH = app.AxisScaleDropDownHdMdH.Value;
             s.fitting_show_grid_checkbox = app.ShowgridCheckBoxHdMdH.Value;
             s.fitting_plot_components_checkbox = app.PlotcomponentsCheckBoxHdMdH.Value;
             
@@ -641,18 +680,18 @@ classdef app_exported < matlab.apps.AppBase
             plot(app)
         end
 
-        % Value changed function: logCheckBoxM
-        function logCheckBoxMValueChanged(app, event)
+        % Value changed function: AxisScaleDropDownM
+        function AxisScaleDropDownMValueChanged(app, event)
             app.plot_M()
         end
 
-        % Value changed function: logCheckBoxdMdH
-        function logCheckBoxdMdHValueChanged(app, event)
+        % Value changed function: AxisScaleDropDowndMdH
+        function AxisScaleDropDowndMdHValueChanged(app, event)
             app.plot_dMdH()
         end
 
-        % Value changed function: logCheckBoxHdMdH
-        function logCheckBoxHdMdHValueChanged(app, event)
+        % Value changed function: AxisScaleDropDownHdMdH
+        function AxisScaleDropDownHdMdHValueChanged(app, event)
             app.plot_HdMdH()
         end
 
@@ -690,8 +729,8 @@ classdef app_exported < matlab.apps.AppBase
             calculate_parameters(app)
         end
 
-        % Value changed function: logCheckBoxInputPlot
-        function logCheckBoxInputPlotValueChanged(app, event)
+        % Value changed function: InputAxisScaleDropDown
+        function InputAxisScaleDropDownValueChanged(app, event)
             if app.InputDatasetPath.Value == ""
                 return
             end
@@ -702,7 +741,8 @@ classdef app_exported < matlab.apps.AppBase
         function ResidualplotButtonMPushed(app, event)
             residue_calculator = MagnetizationResidueCalculator(app.data_curve, app.modeled_curve);
             residue = residue_calculator.get_residue();
-            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.M, app.modeled_curve.H, app.modeled_curve.M, residue, app.logCheckBoxM.Value, "M [A/m]");
+            axis_scale = string(app.AxisScaleDropDownM.Value);
+            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.M, app.modeled_curve.H, app.modeled_curve.M, residue, app.axis_scale_has_x(axis_scale), "M [A/m]");
             residue_plotter.plot()
         end
 
@@ -710,7 +750,8 @@ classdef app_exported < matlab.apps.AppBase
         function ResidualplotButtondMdHPushed(app, event)
             residue_calculator = SusceptibilityResidueCalculator(app.data_curve, app.modeled_curve);
             residue = residue_calculator.get_residue();
-            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.dMdH, app.modeled_curve.H, app.modeled_curve.dMdH, residue, app.logCheckBoxdMdH.Value, "∂M/∂H");
+            axis_scale = string(app.AxisScaleDropDowndMdH.Value);
+            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.dMdH, app.modeled_curve.H, app.modeled_curve.dMdH, residue, app.axis_scale_has_x(axis_scale), "∂M/∂H");
             residue_plotter.plot()
         end
 
@@ -718,7 +759,8 @@ classdef app_exported < matlab.apps.AppBase
         function ResidualplotButtondHdMdHPushed(app, event)
             residue_calculator = SemilogDerivativeResidueCalculator(app.data_curve, app.modeled_curve);
             residue = residue_calculator.get_residue();
-            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.HdMdH, app.modeled_curve.H, app.modeled_curve.HdMdH, residue, app.logCheckBoxHdMdH.Value, "∂M/∂(logH) [A/m]");
+            axis_scale = string(app.AxisScaleDropDownHdMdH.Value);
+            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.HdMdH, app.modeled_curve.H, app.modeled_curve.HdMdH, residue, app.axis_scale_has_x(axis_scale), "∂M/∂(logH) [A/m]");
             residue_plotter.plot()
         end
 
@@ -785,26 +827,17 @@ classdef app_exported < matlab.apps.AppBase
 
         % Value changed function: ShowgridCheckBoxM
         function ShowgridCheckBoxMValueChanged(app, event)
-            grid(app.AxesM,"off");
-            if(app.ShowgridCheckBoxM.Value == 1)
-                grid(app.AxesM,"on");
-            end 
+            app.plot_M();
         end
 
         % Value changed function: ShowgridCheckBoxdMdH
         function ShowgridCheckBoxdMdHValueChanged(app, event)
-            grid(app.AxesdMdH,"off");
-            if(app.ShowgridCheckBoxdMdH.Value == 1)
-                grid(app.AxesdMdH,"on");
-            end
+            app.plot_dMdH();
         end
 
         % Value changed function: ShowgridCheckBoxHdMdH
         function ShowgridCheckBoxHdMdHValueChanged(app, event)
-            grid(app.AxesHdMdH,"off");
-            if(app.ShowgridCheckBoxHdMdH.Value == 1)
-                grid(app.AxesHdMdH,"on");
-            end
+            app.plot_HdMdH();
         end
 
         % Button pushed function: SetColorsButton
@@ -970,8 +1003,26 @@ classdef app_exported < matlab.apps.AppBase
             app.EditFieldFileNameResiduesSusceptibility.Value = s.susceptibility_residual_file_name;
             app.EditFieldFileNameResiduesSemiLogMagDerivative.Value = s.semi_log_derivative_file_name;
 
-            app.logCheckBoxInputPlot.Value = s.log_checkbox;
-            app.logCheckBoxHdMdH.Value = s.fitting_log_checkbox;
+            if isfield(s, 'input_axis_scale')
+                app.InputAxisScaleDropDown.Value = s.input_axis_scale;
+            else
+                app.InputAxisScaleDropDown.Value = 'None';
+            end
+            if isfield(s, 'axis_scale_m')
+                app.AxisScaleDropDownM.Value = s.axis_scale_m;
+            else
+                app.AxisScaleDropDownM.Value = 'X log';
+            end
+            if isfield(s, 'axis_scale_dMdH')
+                app.AxisScaleDropDowndMdH.Value = s.axis_scale_dMdH;
+            else
+                app.AxisScaleDropDowndMdH.Value = 'X log';
+            end
+            if isfield(s, 'axis_scale_hdMdH')
+                app.AxisScaleDropDownHdMdH.Value = s.axis_scale_hdMdH;
+            else
+                app.AxisScaleDropDownHdMdH.Value = 'X log';
+            end
             app.ShowgridCheckBoxHdMdH.Value = s.fitting_show_grid_checkbox;
             app.PlotcomponentsCheckBoxHdMdH.Value = s.fitting_plot_components_checkbox;
             app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Value = s.model_magnetization_checkbox;
@@ -1245,18 +1296,25 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayoutInputPlotLog
             app.GridLayoutInputPlotLog = uigridlayout(app.GridLayoutInputPlot);
-            app.GridLayoutInputPlotLog.ColumnWidth = {'11x', '1x'};
+            app.GridLayoutInputPlotLog.ColumnWidth = {'7x', '1x', '2.5x'};
             app.GridLayoutInputPlotLog.RowHeight = {'1x'};
             app.GridLayoutInputPlotLog.Padding = [0 0 0 0];
             app.GridLayoutInputPlotLog.Layout.Row = 2;
             app.GridLayoutInputPlotLog.Layout.Column = 1;
 
-            % Create logCheckBoxInputPlot
-            app.logCheckBoxInputPlot = uicheckbox(app.GridLayoutInputPlotLog);
-            app.logCheckBoxInputPlot.ValueChangedFcn = createCallbackFcn(app, @logCheckBoxInputPlotValueChanged, true);
-            app.logCheckBoxInputPlot.Text = 'log';
-            app.logCheckBoxInputPlot.Layout.Row = 1;
-            app.logCheckBoxInputPlot.Layout.Column = 2;
+            % Create InputAxisScaleLabel
+            app.InputAxisScaleLabel = uilabel(app.GridLayoutInputPlotLog);
+            app.InputAxisScaleLabel.Layout.Row = 1;
+            app.InputAxisScaleLabel.Layout.Column = 2;
+            app.InputAxisScaleLabel.Text = 'Axis scale';
+
+            % Create InputAxisScaleDropDown
+            app.InputAxisScaleDropDown = uidropdown(app.GridLayoutInputPlotLog);
+            app.InputAxisScaleDropDown.Items = {'None', 'X log', 'Y log', 'Both'};
+            app.InputAxisScaleDropDown.Layout.Row = 1;
+            app.InputAxisScaleDropDown.Layout.Column = 3;
+            app.InputAxisScaleDropDown.Value = 'None';
+            app.InputAxisScaleDropDown.ValueChangedFcn = createCallbackFcn(app, @InputAxisScaleDropDownValueChanged, true);
 
             % Create GridLayoutInputTipsAndPlotButton
             app.GridLayoutInputTipsAndPlotButton = uigridlayout(app.GridLayoutInputPlot);
@@ -1377,19 +1435,11 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
-            app.GridLayoutOptionsM.ColumnWidth = {'2.9x', '2.1x', '3x', '2x', '1x'};
+            app.GridLayoutOptionsM.ColumnWidth = {'2.6x', '2.1x', '3x', '2x', '1x', '1.3x'};
             app.GridLayoutOptionsM.RowHeight = {'1x'};
             app.GridLayoutOptionsM.Padding = [0 0 0 0];
             app.GridLayoutOptionsM.Layout.Row = 2;
             app.GridLayoutOptionsM.Layout.Column = 1;
-
-            % Create logCheckBoxM
-            app.logCheckBoxM = uicheckbox(app.GridLayoutOptionsM);
-            app.logCheckBoxM.ValueChangedFcn = createCallbackFcn(app, @logCheckBoxMValueChanged, true);
-            app.logCheckBoxM.Text = 'log';
-            app.logCheckBoxM.Layout.Row = 1;
-            app.logCheckBoxM.Layout.Column = 5;
-            app.logCheckBoxM.Value = true;
 
             % Create ResidualplotButtonM
             app.ResidualplotButtonM = uibutton(app.GridLayoutOptionsM, 'push');
@@ -1414,6 +1464,20 @@ classdef app_exported < matlab.apps.AppBase
             app.ShowgridCheckBoxM.Layout.Column = 4;
             app.ShowgridCheckBoxM.Value = true;
 
+            % Create AxisScaleLabelM
+            app.AxisScaleLabelM = uilabel(app.GridLayoutOptionsM);
+            app.AxisScaleLabelM.Text = 'Axis scale';
+            app.AxisScaleLabelM.Layout.Row = 1;
+            app.AxisScaleLabelM.Layout.Column = 5;
+
+            % Create AxisScaleDropDownM
+            app.AxisScaleDropDownM = uidropdown(app.GridLayoutOptionsM);
+            app.AxisScaleDropDownM.Items = {'None', 'X log', 'Y log', 'Both'};
+            app.AxisScaleDropDownM.Value = 'X log';
+            app.AxisScaleDropDownM.Layout.Row = 1;
+            app.AxisScaleDropDownM.Layout.Column = 6;
+            app.AxisScaleDropDownM.ValueChangedFcn = createCallbackFcn(app, @AxisScaleDropDownMValueChanged, true);
+
             % Create SetColorsButton
             app.SetColorsButton = uibutton(app.GridLayoutOptionsM, 'push');
             app.SetColorsButton.ButtonPushedFcn = createCallbackFcn(app, @SetColorsButtonPushed, true);
@@ -1423,19 +1487,25 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayoutOptionsdMdH
             app.GridLayoutOptionsdMdH = uigridlayout(app.GridLayoutAxes);
-            app.GridLayoutOptionsdMdH.ColumnWidth = {'2.9x', '2.1x', '3x', '2x', '1x'};
+            app.GridLayoutOptionsdMdH.ColumnWidth = {'2.6x', '2.1x', '3x', '2x', '1x', '1.3x'};
             app.GridLayoutOptionsdMdH.RowHeight = {'1x'};
             app.GridLayoutOptionsdMdH.Padding = [0 0 0 0];
             app.GridLayoutOptionsdMdH.Layout.Row = 4;
             app.GridLayoutOptionsdMdH.Layout.Column = 1;
 
-            % Create logCheckBoxdMdH
-            app.logCheckBoxdMdH = uicheckbox(app.GridLayoutOptionsdMdH);
-            app.logCheckBoxdMdH.ValueChangedFcn = createCallbackFcn(app, @logCheckBoxdMdHValueChanged, true);
-            app.logCheckBoxdMdH.Text = 'log';
-            app.logCheckBoxdMdH.Layout.Row = 1;
-            app.logCheckBoxdMdH.Layout.Column = 5;
-            app.logCheckBoxdMdH.Value = true;
+            % Create AxisScaleLabeldMdH
+            app.AxisScaleLabeldMdH = uilabel(app.GridLayoutOptionsdMdH);
+            app.AxisScaleLabeldMdH.Text = 'Axis scale';
+            app.AxisScaleLabeldMdH.Layout.Row = 1;
+            app.AxisScaleLabeldMdH.Layout.Column = 5;
+
+            % Create AxisScaleDropDowndMdH
+            app.AxisScaleDropDowndMdH = uidropdown(app.GridLayoutOptionsdMdH);
+            app.AxisScaleDropDowndMdH.Items = {'None', 'X log', 'Y log', 'Both'};
+            app.AxisScaleDropDowndMdH.Value = 'X log';
+            app.AxisScaleDropDowndMdH.Layout.Row = 1;
+            app.AxisScaleDropDowndMdH.Layout.Column = 6;
+            app.AxisScaleDropDowndMdH.ValueChangedFcn = createCallbackFcn(app, @AxisScaleDropDowndMdHValueChanged, true);
 
             % Create ResidualplotButtondMdH
             app.ResidualplotButtondMdH = uibutton(app.GridLayoutOptionsdMdH, 'push');
@@ -1462,19 +1532,25 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayoutOptionsHdMdH
             app.GridLayoutOptionsHdMdH = uigridlayout(app.GridLayoutAxes);
-            app.GridLayoutOptionsHdMdH.ColumnWidth = {'2.9x', '2.1x', '3x', '2x', '1x'};
+            app.GridLayoutOptionsHdMdH.ColumnWidth = {'2.6x', '2.1x', '3x', '2x', '1x', '1.3x'};
             app.GridLayoutOptionsHdMdH.RowHeight = {'1x'};
             app.GridLayoutOptionsHdMdH.Padding = [0 0 0 0];
             app.GridLayoutOptionsHdMdH.Layout.Row = 6;
             app.GridLayoutOptionsHdMdH.Layout.Column = 1;
 
-            % Create logCheckBoxHdMdH
-            app.logCheckBoxHdMdH = uicheckbox(app.GridLayoutOptionsHdMdH);
-            app.logCheckBoxHdMdH.ValueChangedFcn = createCallbackFcn(app, @logCheckBoxHdMdHValueChanged, true);
-            app.logCheckBoxHdMdH.Text = 'log';
-            app.logCheckBoxHdMdH.Layout.Row = 1;
-            app.logCheckBoxHdMdH.Layout.Column = 5;
-            app.logCheckBoxHdMdH.Value = true;
+            % Create AxisScaleLabelHdMdH
+            app.AxisScaleLabelHdMdH = uilabel(app.GridLayoutOptionsHdMdH);
+            app.AxisScaleLabelHdMdH.Text = 'Axis scale';
+            app.AxisScaleLabelHdMdH.Layout.Row = 1;
+            app.AxisScaleLabelHdMdH.Layout.Column = 5;
+
+            % Create AxisScaleDropDownHdMdH
+            app.AxisScaleDropDownHdMdH = uidropdown(app.GridLayoutOptionsHdMdH);
+            app.AxisScaleDropDownHdMdH.Items = {'None', 'X log', 'Y log', 'Both'};
+            app.AxisScaleDropDownHdMdH.Value = 'X log';
+            app.AxisScaleDropDownHdMdH.Layout.Row = 1;
+            app.AxisScaleDropDownHdMdH.Layout.Column = 6;
+            app.AxisScaleDropDownHdMdH.ValueChangedFcn = createCallbackFcn(app, @AxisScaleDropDownHdMdHValueChanged, true);
 
             % Create ResidualplotButtondHdMdH
             app.ResidualplotButtondHdMdH = uibutton(app.GridLayoutOptionsHdMdH, 'push');
