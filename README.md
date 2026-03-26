@@ -17,6 +17,7 @@
 11. [Acknowledgement](#acknowledgment)
  
  ## Authors
+  - Marina Zoe Petean
   - Matías Ignacio González
   - Tomás Francisco González
   - Josefina María Silveyra
