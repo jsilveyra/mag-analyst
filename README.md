@@ -37,11 +37,13 @@ We recommend using [GitHub Desktop](https://desktop.github.com/), which allows u
 
 After downloading the main folder and placing it in a suitable location, MagAnalyst is ready to use.
 
-We recommend using the C:\ drive for the proper functioning of the project samples here provided. Otherwise, after opening a sample project you will need to import the curve sample file again.
+MagAnalyst is platform-agnostic and works on Windows, macOS, or Linux. The GUI loads sample projects from paths relative to the toolbox root (for example `data/sampleData/`), so you can place the MagAnalyst folder anywhere you like; if you move it after opening a sample project you may need to re-import the curve file.
 
 To start using the application with the graphical user interface, simply run the `app.mlapp` file.
 
-If you prefer to run MagAnalyst using command lines, you can follow the instructions in the `mag-analyst\src\demo.m` and `mag-analyst\src\demo_2_components.m` files.
+If you prefer to run MagAnalyst using command lines, you can follow the instructions in the `mag-analyst/src/demo.m` and `mag-analyst/src/demo_2_components.m` files.
+
+Both demo scripts build their data paths with Matlab's `fullfile` helper (e.g., `fullfile('data','sampleData','Finemet - TA.csv')`), so they load the same files on Windows, macOS, and Linux without requiring manual path tweaks.
  
 MagAnalyst was implemented and tested with the Matlab 2022b version on Windows 10. Authors cannot guarantee that the code can run on previous versions.
 
@@ -77,7 +79,7 @@ In this [Explanation document](explanation-document.md), we provide additional d
 
 ## Examples
 
-These are the examples provided in the \data\sampleData folder with the current release:
+These are the examples provided in the `data/sampleData` folder with the current release:
 
 * Mn-Zn ferrite: A soft ferrite (Mn<sub>0.51</sub>Zn<sub>0.44</sub>Fe<sub>2.05</sub>O<sub>4</sub>) with very low anisotropy. Similar to the curve analyzed in [JMMM article](https://doi.org/10.1016/j.jmmm.2021.168430) and in [AIP Advances article](https://doi.org/10.1063/9.0000328). The example is illustrated by a video available in YouTube, fitted with [one component magnetization](https://youtu.be/r4jyjOQ61yY) and [two component magnetizations](https://youtu.be/7WqBK7YCKWY).
 * Finemet - TA: Finemet (r) alloy (Fe<sub>73.5</sub>Si<sub>13.5</sub>B<sub>9</sub>Nb<sub>3</sub>Cu<sub>1</sub>) nanocrystallized under transverse field annealing and measured along the longitudinal direction of the ribbon. Analyzed in [JOM article](https://doi.org/10.1007/s11837-023-05704-x).
