@@ -5,14 +5,19 @@ classdef Parser
         H_unit
         M_unit
         curve_type
+        number_points
     end
 
     methods (Access = public)
-        function obj = Parser(file_path, H_unit, M_unit, curve_type)
+        function obj = Parser(file_path, H_unit, M_unit, curve_type, number_points)
             obj.FilePath = file_path;
             obj.H_unit = H_unit;
             obj.M_unit = M_unit;
             obj.curve_type = curve_type;
+            if nargin < 5 || isempty(number_points)
+                number_points = 50;
+            end
+            obj.number_points = number_points;
         end
 
         function [H, M, H_raw, M_raw] = import(obj)
@@ -21,7 +26,7 @@ classdef Parser
             H_raw = transpose(A(:,1));
             M_raw = transpose(A(:,2));
             [H, M] = UnitConvertor().convert_H_M(H_raw, obj.H_unit, M_raw, obj.M_unit);
-            [H, M] = CurveConvertor().convert_curve(H, M, obj.curve_type);
+            [H, M] = CurveConvertor().convert_curve(H, M, obj.curve_type, obj.number_points);
         end
     end
 end

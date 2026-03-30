@@ -7,7 +7,7 @@ classdef CurveConvertor
         function obj = CurveConvertor()
         end
 
-        function [H, M] = convert_curve(~, X, Y, curve_type)
+        function [H, M] = convert_curve(~, X, Y, curve_type, number_points)
             H = X;
             M = Y;
             if(curve_type == "Anhysteretic curve")
@@ -56,7 +56,10 @@ classdef CurveConvertor
             F_right = griddedInterpolant(M_right_unique,H_right_unique,'linear','none');
             F_left = griddedInterpolant(M_left_unique,H_left_unique,'linear','none');
             
-            N_grid = 50; % number of points of the positive anhysteretic curve calculated from a symmetric hysteresis loop
+            if nargin < 5 || isempty(number_points)
+                number_points = 50;
+            end
+            N_grid = number_points;
             
             M_query = linspace(0,M_positive_tip,N_grid);
 
