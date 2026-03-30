@@ -20,17 +20,16 @@ classdef app_exported < matlab.apps.AppBase
         AxesRawInputData                matlab.ui.control.UIAxes
         AxesProcessedInputData          matlab.ui.control.UIAxes
         GridLayoutInputTipsAndPlotButton  matlab.ui.container.GridLayout
-        GridLayout2                     matlab.ui.container.GridLayout
         GridLayoutTips                  matlab.ui.container.GridLayout
         MTipField                       matlab.ui.control.EditField
         MtipAmLabel                     matlab.ui.control.Label
         HTipField                       matlab.ui.control.EditField
         HtipAmLabel                     matlab.ui.control.Label
         GridLayoutInputAxisScale        matlab.ui.container.GridLayout
-        InputApplyPointsButton          matlab.ui.control.Button
         AxisscaleLabel                  matlab.ui.control.Label
-        InputAxisScaleDropDown          matlab.ui.control.DropDown
+        InputApplyPointsButton          matlab.ui.control.Button
         InputNumberofPointsLabel        matlab.ui.control.Label
+        InputAxisScaleDropDown          matlab.ui.control.DropDown
         InputNumberofPointsEditField    matlab.ui.control.NumericEditField
         GridLayoutInput                 matlab.ui.container.GridLayout
         GridLayoutDatasetPath           matlab.ui.container.GridLayout
@@ -1092,7 +1091,7 @@ classdef app_exported < matlab.apps.AppBase
             app.apply_axis_scale(app.AxesRawInputData, value);
         end
 
-        % Callback function: not associated with a component
+        % Callback function
         function InputAxisScaleDropDownValueChanged(app, event)
             app.InputAxisScaleDropDown.Value;
             app.plot_HdMdH();
@@ -1120,6 +1119,25 @@ classdef app_exported < matlab.apps.AppBase
             
         end
 
+        % Callback function
+        function InputApplyPointsButtonPushed(app, event)
+            dataset_path = app.InputDatasetPath.Value;
+            if dataset_path == ""
+                app.write_message("Select a dataset before applying point count.");
+                return
+            end
+        
+            try
+                app.import_data(dataset_path);
+                update_components(app)
+                calculate_parameters(app)
+                app.plot_input();
+                app.write_message("Processed input data recalculated with " + string(app.InputNumberofPointsEditField.Value) + " points.");
+            catch e
+                app.write_message("Reprocessing failed: " + e.message);
+            end
+        end
+
         % Value changed function: CurveDropDown
         function CurveDropDownValueChanged(app, event)
             value = app.CurveDropDown.Value;
@@ -1141,7 +1159,7 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         % Button pushed function: InputApplyPointsButton
-        function InputApplyPointsButtonPushed(app, event)
+        function InputApplyPointsButtonPushed2(app, event)
             dataset_path = app.InputDatasetPath.Value;
             if dataset_path == ""
                 app.write_message("Select a dataset before applying point count.");
@@ -1357,7 +1375,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayoutInputAxisScale
             app.GridLayoutInputAxisScale = uigridlayout(app.GridLayoutInputPlot);
-            app.GridLayoutInputAxisScale.ColumnWidth = {'1x', '1x', '1x', '1x', '1x', '1x'};
+            app.GridLayoutInputAxisScale.ColumnWidth = {'0.7x', '0.3x', '0.5x', '1x', '0.5x'};
             app.GridLayoutInputAxisScale.RowHeight = {'2x'};
             app.GridLayoutInputAxisScale.Padding = [0 0 0 0];
             app.GridLayoutInputAxisScale.Layout.Row = 2;
@@ -1372,34 +1390,37 @@ classdef app_exported < matlab.apps.AppBase
             app.InputNumberofPointsEditField.Layout.Column = 2;
             app.InputNumberofPointsEditField.Value = 50;
 
-            % Create InputNumberofPointsLabel
-            app.InputNumberofPointsLabel = uilabel(app.GridLayoutInputAxisScale);
-            app.InputNumberofPointsLabel.FontWeight = 'bold';
-            app.InputNumberofPointsLabel.Layout.Row = 1;
-            app.InputNumberofPointsLabel.Layout.Column = 1;
-            app.InputNumberofPointsLabel.Text = 'Number of points';
-
             % Create InputAxisScaleDropDown
             app.InputAxisScaleDropDown = uidropdown(app.GridLayoutInputAxisScale);
             app.InputAxisScaleDropDown.Items = {'none', 'semilog-x', 'semilog-y', 'log-log'};
             app.InputAxisScaleDropDown.Tag = 'InputAxisScaleDropDown';
             app.InputAxisScaleDropDown.Layout.Row = 1;
-            app.InputAxisScaleDropDown.Layout.Column = 6;
+            app.InputAxisScaleDropDown.Layout.Column = 5;
             app.InputAxisScaleDropDown.Value = 'none';
 
-            % Create AxisscaleLabel
-            app.AxisscaleLabel = uilabel(app.GridLayoutInputAxisScale);
-            app.AxisscaleLabel.FontWeight = 'bold';
-            app.AxisscaleLabel.Layout.Row = 1;
-            app.AxisscaleLabel.Layout.Column = 5;
-            app.AxisscaleLabel.Text = 'Axis scale';
+            % Create InputNumberofPointsLabel
+            app.InputNumberofPointsLabel = uilabel(app.GridLayoutInputAxisScale);
+            app.InputNumberofPointsLabel.HorizontalAlignment = 'right';
+            app.InputNumberofPointsLabel.FontWeight = 'bold';
+            app.InputNumberofPointsLabel.Layout.Row = 1;
+            app.InputNumberofPointsLabel.Layout.Column = 1;
+            app.InputNumberofPointsLabel.Text = 'Number of points';
 
             % Create InputApplyPointsButton
             app.InputApplyPointsButton = uibutton(app.GridLayoutInputAxisScale, 'push');
-            app.InputApplyPointsButton.ButtonPushedFcn = createCallbackFcn(app, @InputApplyPointsButtonPushed, true);
+            app.InputApplyPointsButton.ButtonPushedFcn = createCallbackFcn(app, @InputApplyPointsButtonPushed2, true);
+            app.InputApplyPointsButton.FontWeight = 'bold';
             app.InputApplyPointsButton.Layout.Row = 1;
             app.InputApplyPointsButton.Layout.Column = 3;
             app.InputApplyPointsButton.Text = 'Apply';
+
+            % Create AxisscaleLabel
+            app.AxisscaleLabel = uilabel(app.GridLayoutInputAxisScale);
+            app.AxisscaleLabel.HorizontalAlignment = 'right';
+            app.AxisscaleLabel.FontWeight = 'bold';
+            app.AxisscaleLabel.Layout.Row = 1;
+            app.AxisscaleLabel.Layout.Column = 4;
+            app.AxisscaleLabel.Text = 'Axis scale';
 
             % Create GridLayoutInputTipsAndPlotButton
             app.GridLayoutInputTipsAndPlotButton = uigridlayout(app.GridLayoutInputPlot);
@@ -1445,11 +1466,6 @@ classdef app_exported < matlab.apps.AppBase
             app.MTipField.HorizontalAlignment = 'right';
             app.MTipField.Layout.Row = 3;
             app.MTipField.Layout.Column = 2;
-
-            % Create GridLayout2
-            app.GridLayout2 = uigridlayout(app.GridLayoutInputTipsAndPlotButton);
-            app.GridLayout2.Layout.Row = 1;
-            app.GridLayout2.Layout.Column = 2;
 
             % Create GridLayoutInputPlots
             app.GridLayoutInputPlots = uigridlayout(app.GridLayoutInputPlot);
