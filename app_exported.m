@@ -1706,7 +1706,7 @@ classdef app_exported < matlab.apps.AppBase
             app.AxisScaleDropDownM.Tag = 'InputAxisScaleDropDown';
             app.AxisScaleDropDownM.Layout.Row = 1;
             app.AxisScaleDropDownM.Layout.Column = 6;
-            app.AxisScaleDropDownM.Value = 'linear';
+            app.AxisScaleDropDownM.Value = 'semilog-x';
 
             % Create GridLayoutOptionsdMdH
             app.GridLayoutOptionsdMdH = uigridlayout(app.GridLayoutAxes);
@@ -1752,7 +1752,7 @@ classdef app_exported < matlab.apps.AppBase
             app.AxisScaleDropDowndMdH.Tag = 'InputAxisScaleDropDown';
             app.AxisScaleDropDowndMdH.Layout.Row = 1;
             app.AxisScaleDropDowndMdH.Layout.Column = 6;
-            app.AxisScaleDropDowndMdH.Value = 'linear';
+            app.AxisScaleDropDowndMdH.Value = 'semilog-x';
 
             % Create GridLayoutOptionsHdMdH
             app.GridLayoutOptionsHdMdH = uigridlayout(app.GridLayoutAxes);
@@ -1792,7 +1792,7 @@ classdef app_exported < matlab.apps.AppBase
             app.AxisScaleDropDownHdMdH.Tag = 'InputAxisScaleDropDown';
             app.AxisScaleDropDownHdMdH.Layout.Row = 1;
             app.AxisScaleDropDownHdMdH.Layout.Column = 6;
-            app.AxisScaleDropDownHdMdH.Value = 'linear';
+            app.AxisScaleDropDownHdMdH.Value = 'semilog-x';
 
             % Create AxisscaleLabel_4
             app.AxisscaleLabel_4 = uilabel(app.GridLayoutOptionsHdMdH);
