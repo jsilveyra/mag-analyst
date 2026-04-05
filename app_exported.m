@@ -95,9 +95,9 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesHdMdH                       matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesM                           matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesHdMdH                       matlab.ui.control.UIAxes
         MagnetizationoutputdataTab      matlab.ui.container.Tab
         GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
         GridLayoutExperimentalMagnetizationData  matlab.ui.container.GridLayout
@@ -184,6 +184,8 @@ classdef app_exported < matlab.apps.AppBase
         Colors
         ColorDialogApp
         ProjectPath
+        fitted_parameter_values
+        component_row_types
     end
     
     methods (Access = private)
@@ -195,15 +197,11 @@ classdef app_exported < matlab.apps.AppBase
 
             app.init_parameters_table(false);
             app.init_quantities_table(false);
-
+            
+            app.sync_fitted_parameter_values_from_components();
+            app.refresh_table_value_display();
             offset = (3*app.number_components - 1);
-            for i = 1:app.number_components
-                app.TableFittedParameters.Data(offset + 1 + (i-1)*2) = {app.format_short(app.Hcr(i))};
-                app.TableFittedParameters.Data(offset + 2 + (i-1)*2) = {app.format_long(app.mcr(i))};
-            end
-            for i = 1:(app.number_components-1)
-                app.TableFittedParameters.Data(offset + i + 2*app.number_components) = {app.format_short(app.Hx(i))};
-            end
+            
             for i = 1:offset
                 app.TableFittedParameters.Data(2*offset + i) = {app.format_short(str2double(app.TableFittedParameters.Data(2*offset + i)))};
                 app.TableFittedParameters.Data(3*offset + i) = {app.format_short(str2double(app.TableFittedParameters.Data(3*offset + i)))};
@@ -285,12 +283,24 @@ classdef app_exported < matlab.apps.AppBase
             app.mcr = zeros(1, app.number_components);
             app.Hx = zeros(1, max(app.number_components - 1, 0));
             offset = (3*app.number_components - 1);
-            for i = 1:app.number_components
-                app.Hcr(i) = str2double(app.TableFittedParameters.Data(offset + 1 + (i-1)*2));
-                app.mcr(i) = str2double(app.TableFittedParameters.Data(offset + 2 + (i-1)*2));
-            end
-            for i = 1:(app.number_components-1)
-                app.Hx(i) = str2double(app.TableFittedParameters.Data(offset + i + 2*app.number_components));
+            if offset > 0 && numel(app.fitted_parameter_values) >= offset && numel(app.component_row_types) >= offset
+                hcr_index = 1;
+                mcr_index = 1;
+                hx_index = 1;
+                for row = 1:offset
+                    value = app.fitted_parameter_values(row);
+                    switch app.component_row_types(row)
+                        case "Hcr"
+                            app.Hcr(hcr_index) = value;
+                            hcr_index = hcr_index + 1;
+                        case "m"
+                            app.mcr(mcr_index) = value;
+                            mcr_index = mcr_index + 1;
+                        case "Hx"
+                            app.Hx(hx_index) = value;
+                            hx_index = hx_index + 1;
+                    end
+                end
             end
             app.lb = zeros(1, offset);
             app.ub = zeros(1, offset);
@@ -308,13 +318,16 @@ classdef app_exported < matlab.apps.AppBase
             lb_col = zeros(row_count, 1);
             ub_col = zeros(row_count, 1);
             row_names = cell(row_count, 1);
+            row_types = strings(row_count, 1);
             for i = 1:app.number_components
                 s = 'Hcr' + string(char(8320 + i));
                 row_names(2*i - 1,:) = {convertStringsToChars(s + ' [A/m]')};
                 component_values(2*i-1) = 0.01*i;
+                row_types(2*i-1) = "Hcr";
                 s = 'm' + string(char(8320 + i)) + ' (' + s + ')';
                 row_names(2*i,:) = {convertStringsToChars(s)};
                 component_values(2*i) = 0.521657107787896;
+                row_types(2*i) = "m";
                 lb_col(2*i-1) = 0;
                 lb_col(2*i) = 0.4496;
                 ub_col(2*i-1) = 1000000;
@@ -322,19 +335,24 @@ classdef app_exported < matlab.apps.AppBase
             end
 
             for i = 1:(app.number_components-1)
+                row_index = i + 2*app.number_components;
                 s = 'Hx' + string(char(8320 + i)) + ' [A/m]';
-                row_names(i + 2*app.number_components,:) = {convertStringsToChars(s)};
-                component_values(i + 2*app.number_components) = i*0.015;
-                lb_col(i + 2*app.number_components) = 0;
-                ub_col(i + 2*app.number_components) = 1000000;
+                row_names(row_index,:) = {convertStringsToChars(s)};
+                component_values(row_index) = i*0.015;
+                row_types(row_index) = "Hx";
+                lb_col(row_index) = 0;
+                ub_col(row_index) = 1000000;
             end
-            component_values = arrayfun(@(x) {app.format_long(x)}, component_values);
+            app.component_row_types = row_types;
+            app.fitted_parameter_values = component_values;
+            component_values = num2cell(component_values);
             lb_col = arrayfun(@(x) {app.format_short(x)}, lb_col);
             ub_col = arrayfun(@(x) {app.format_short(x)}, ub_col);
             app.select_fit = cell(row_count, 1);
             app.select_fit(:) = {true};
             t = table(row_names, component_values, lb_col, ub_col, app.select_fit);
             app.TableFittedParameters.Data = table2cell(t);
+            app.refresh_table_value_display();
 
             app.init_parameters_table(true);
             app.init_quantities_table(true);
@@ -463,6 +481,70 @@ classdef app_exported < matlab.apps.AppBase
             ret = char(sprintf("%0.4e",v));
         end
 
+        function refresh_table_value_display(app)
+            row_count = size(app.TableFittedParameters.Data, 1);
+            if row_count == 0 || isempty(app.component_row_types) || isempty(app.fitted_parameter_values)
+                return;
+            end
+            valid_rows = min([row_count, numel(app.component_row_types), numel(app.fitted_parameter_values)]);
+            for row = 1:valid_rows
+                app.TableFittedParameters.Data(row, 2) = {app.format_value_for_display(row, app.fitted_parameter_values(row))};
+            end
+        end
+
+        function sync_fitted_parameter_values_from_components(app)
+            row_count = 3*app.number_components - 1;
+            if row_count <= 0 || isempty(app.component_row_types)
+                return;
+            end
+            values = zeros(row_count, 1);
+            idx = 1;
+            for i = 1:app.number_components
+                values(idx) = app.Hcr(i);
+                values(idx + 1) = app.mcr(i);
+                idx = idx + 2;
+            end
+            for i = 1:(app.number_components - 1)
+                values(idx) = app.Hx(i);
+                idx = idx + 1;
+            end
+            app.fitted_parameter_values = values;
+        end
+
+        function ret = format_value_for_display(app, row, value)
+            if row < 1 || row > numel(app.component_row_types)
+                ret = char(sprintf("%g", value));
+                return;
+            end
+            row_type = app.component_row_types(row);
+            switch row_type
+                case "m"
+                    ret = app.format_m_display(value);
+                otherwise
+                    ret = app.format_short(value);
+            end
+        end
+
+        function ret = format_value_for_edit(app, row)
+            if row < 1 || row > numel(app.fitted_parameter_values)
+                ret = "";
+                return;
+            end
+            ret = char(sprintf("%.16g", app.fitted_parameter_values(row)));
+        end
+
+        function ret = format_m_display(~, value)
+            ret = char(sprintf("%.2g", value));
+        end
+
+        function tf = is_m_row(app, row)
+            tf = false;
+            if row < 1 || row > numel(app.component_row_types)
+                return;
+            end
+            tf = app.component_row_types(row) == "m";
+        end
+
         function ret = format_thousands_only(~, v)
             string_value = char(sprintf("%d",round(v)));
             ret = fliplr(regexprep(fliplr(string_value),'\d{3}(?=\d)', '$0,'));
@@ -551,7 +633,7 @@ classdef app_exported < matlab.apps.AppBase
         function save(app)
             file = fopen(app.ProjectPath,'w');
 
-            s.fitted_parameters_value = app.TableFittedParameters.Data(:,2);
+            s.fitted_parameters_value = app.fitted_parameter_values(:);
             s.fitted_parameters_lower_bound = app.TableFittedParameters.Data(:,3);
             s.fitted_parameters_upper_bound = app.TableFittedParameters.Data(:,4);
             s.number_components = app.number_components;
@@ -644,7 +726,7 @@ classdef app_exported < matlab.apps.AppBase
             app.number_components = app.NumberofcomponentsSpinner.Value;
 
             app.init_components();
-            app.TableFittedParameters.ColumnFormat = {[] 'short' 'short' 'short' 'logical'};
+            app.TableFittedParameters.ColumnFormat = {[] 'char' 'short' 'short' 'logical'};
 
             app.init_parameters_table(true);
             for i=1:5
@@ -1160,8 +1242,7 @@ classdef app_exported < matlab.apps.AppBase
 
         % Value changed function: InputAxisScaleDropDown
         function InputAxisScaleDropDownValueChanged2(app, event)
-            value = app.InputAxisScaleDropDown.Value;
-            
+
             dataset_path = app.InputDatasetPath.Value;
             if dataset_path == ""
                 app.write_message("Select a dataset before applying point count.");
@@ -1176,6 +1257,45 @@ classdef app_exported < matlab.apps.AppBase
             catch e
                 app.write_message("Reprocessing failed: " + e.message);
             end
+        end
+
+        % Cell selection callback: TableFittedParameters
+        function TableFittedParametersCellSelection(app, event)
+            if isempty(event.Indices)
+                return
+            end
+            row = event.Indices(1,1);
+            col = event.Indices(1,2);
+            if row > size(app.TableFittedParameters.Data, 1)
+                return
+            end
+            app.refresh_table_value_display();
+            if col == 2 && app.is_m_row(row)
+                app.TableFittedParameters.Data(row, 2) = {app.format_value_for_edit(row)};
+            end
+        end
+
+        % Cell edit function: TableFittedParameters
+        function TableFittedParametersCellEdit(app, event)
+            if isempty(event.Indices)
+                return
+            end
+            row = event.Indices(1,1);
+            col = event.Indices(1,2);
+            if col ~= 2 || row > size(app.TableFittedParameters.Data, 1) || row > numel(app.fitted_parameter_values)
+                return
+            end
+            new_text = string(event.NewData);
+            new_text = strrep(new_text, ',', '');
+            new_value = str2double(new_text);
+            if isnan(new_value) || ~isfinite(new_value)
+                app.write_message("Invalid fitted parameter value");
+            else
+                app.fitted_parameter_values(row) = new_value;
+                update_components(app);
+            end
+            app.refresh_table_value_display();
+            
         end
     end
 
@@ -1508,14 +1628,14 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -1526,14 +1646,14 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
@@ -1695,6 +1815,7 @@ classdef app_exported < matlab.apps.AppBase
             app.TableFittedParameters.ColumnName = {'Parameter'; 'Value'; 'Lower bound'; 'Upper bound'; 'Fit'};
             app.TableFittedParameters.RowName = {};
             app.TableFittedParameters.ColumnEditable = [false true true true true];
+            app.TableFittedParameters.CellSelectionCallback = createCallbackFcn(app, @TableFittedParametersCellSelection, true);
             app.TableFittedParameters.Layout.Row = 4;
             app.TableFittedParameters.Layout.Column = 1;
 
