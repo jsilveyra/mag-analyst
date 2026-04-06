@@ -826,7 +826,8 @@ classdef app_exported < matlab.apps.AppBase
         function ResidualplotButtonMPushed(app, event)
             residue_calculator = MagnetizationResidueCalculator(app.data_curve, app.modeled_curve);
             residue = residue_calculator.get_residue();
-            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.M, app.modeled_curve.H, app.modeled_curve.M, residue, app.logCheckBoxM.Value, "M [A/m]");
+            log_flag = app.axis_scale_has_x(string(app.AxisScaleDropDownM.Value));
+            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.M, app.modeled_curve.H, app.modeled_curve.M, residue, log_flag, "M [A/m]");
             residue_plotter.plot()
         end
 
@@ -834,7 +835,8 @@ classdef app_exported < matlab.apps.AppBase
         function ResidualplotButtondMdHPushed(app, event)
             residue_calculator = SusceptibilityResidueCalculator(app.data_curve, app.modeled_curve);
             residue = residue_calculator.get_residue();
-            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.dMdH, app.modeled_curve.H, app.modeled_curve.dMdH, residue, app.logCheckBoxdMdH.Value, "∂M/∂H");
+            log_flag = app.axis_scale_has_x(string(app.AxisScaleDropDowndMdH.Value));
+            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.dMdH, app.modeled_curve.H, app.modeled_curve.dMdH, residue, log_flag, "∂M/∂H");
             residue_plotter.plot()
         end
 
@@ -842,7 +844,8 @@ classdef app_exported < matlab.apps.AppBase
         function ResidualplotButtondHdMdHPushed(app, event)
             residue_calculator = SemilogDerivativeResidueCalculator(app.data_curve, app.modeled_curve);
             residue = residue_calculator.get_residue();
-            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.HdMdH, app.modeled_curve.H, app.modeled_curve.HdMdH, residue, app.logCheckBoxHdMdH.Value, "∂M/∂(logH) [A/m]");
+            log_flag = app.axis_scale_has_x(string(app.AxisScaleDropDownHdMdH.Value));
+            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.HdMdH, app.modeled_curve.H, app.modeled_curve.HdMdH, residue, log_flag, "∂M/∂(logH) [A/m]");
             residue_plotter.plot()
         end
 
@@ -1094,8 +1097,6 @@ classdef app_exported < matlab.apps.AppBase
             app.EditFieldFileNameResiduesSusceptibility.Value = s.susceptibility_residual_file_name;
             app.EditFieldFileNameResiduesSemiLogMagDerivative.Value = s.semi_log_derivative_file_name;
 
-            app.logCheckBoxInputPlot.Value = s.log_checkbox;
-            app.logCheckBoxHdMdH.Value = s.fitting_log_checkbox;
             app.ShowgridCheckBoxHdMdH.Value = s.fitting_show_grid_checkbox;
             app.PlotcomponentsCheckBoxHdMdH.Value = s.fitting_plot_components_checkbox;
             app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Value = s.model_magnetization_checkbox;
