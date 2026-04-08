@@ -90,7 +90,7 @@ elseif len_diff < 0
     magnetization_residue = magnetization_residue(1:length(H_data));
 end
 
-% Initialize ResiduePlotter
+% Initialize ResiduePlotter (last argument controls marker size)
 residue_plotter = ResiduePlotter(H_data, data_curve.M, ...
                                  modeled_curve.H, modeled_curve.M, ...
                                  magnetization_residue, true, "M [A/m]");
@@ -106,7 +106,8 @@ semilog_derivative_residue = residue_calculator.get_residue();
 %% Plot examples
 % Set colors: [R G B; R G B], values 0-1
 colors = [0.58 0 0.70; 0.70 0 0]; 
-plotter = Plotter(data_curve, modeled_curve, Hcr, colors);
+% Plotter constructor accepts an optional marker size that follows the color array
+plotter = Plotter(data_curve, modeled_curve, Hcr, colors, 10);
 
 figure();
 ax = nexttile;
