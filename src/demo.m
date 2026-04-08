@@ -6,7 +6,8 @@ parser_constants = ParserConstants();
 % Build cross-platform path
 data_file = fullfile('data', 'sampleData', 'Finemet - TA.csv');
 
-% Initialize parser: parser = Parser(file_path, H_unit, M_unit, curve_type)
+% Initialize parser: parser = Parser(file_path, x_field_and_unit, y_field_and_unit, curve_type)
+% Refer to ParserConstants for the supported fields/units for both axes.
 % curve_type options:
 %   ANHYSTERETIC_CURVE_TYPE
 %   HYSTERESIS_LOOP_TYPE
