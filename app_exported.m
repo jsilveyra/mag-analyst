@@ -77,18 +77,21 @@ classdef app_exported < matlab.apps.AppBase
         TableFittedParameters           matlab.ui.control.Table
         GridLayoutAxes                  matlab.ui.container.GridLayout
         GridLayoutOptionsHdMdH          matlab.ui.container.GridLayout
+        ShowhcrCheckBoxHdMdH            matlab.ui.control.CheckBox
         AxisscaleLabel_4                matlab.ui.control.Label
         AxisScaleDropDownHdMdH          matlab.ui.control.DropDown
         ShowgridCheckBoxHdMdH           matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxHdMdH     matlab.ui.control.CheckBox
         ResidualplotButtondHdMdH        matlab.ui.control.Button
         GridLayoutOptionsdMdH           matlab.ui.container.GridLayout
+        ShowhcrCheckBoxdMdH             matlab.ui.control.CheckBox
         AxisScaleDropDowndMdH           matlab.ui.control.DropDown
         AxisscaleLabel_3                matlab.ui.control.Label
         ShowgridCheckBoxdMdH            matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxdMdH      matlab.ui.control.CheckBox
         ResidualplotButtondMdH          matlab.ui.control.Button
         GridLayoutOptionsM              matlab.ui.container.GridLayout
+        ShowhcrCheckBoxM                matlab.ui.control.CheckBox
         AxisScaleDropDownM              matlab.ui.control.DropDown
         AxisscaleLabel_2                matlab.ui.control.Label
         SetColorsButton                 matlab.ui.control.Button
@@ -168,7 +171,7 @@ classdef app_exported < matlab.apps.AppBase
     end
 
     
-    properties (Access = private)
+    properties (Access = private) 
  AppRoot
         H_raw
         M_raw
@@ -194,7 +197,7 @@ classdef app_exported < matlab.apps.AppBase
 
 
  function fullpath = safe_getfile(app, filter, startpath, dialogTitle)
- %SAFE_GETFILE Open a file selection dialog safely (cancel-safe, cross-OS paths).
+ %SAFE_GETFILE Open a file selection dialog safely (cancel-safe, cross-platform paths).
  %
  % Returns:
  %   fullpath (string scalar):
@@ -217,7 +220,7 @@ classdef app_exported < matlab.apps.AppBase
  end
  
  function fullpath = safe_putfile(app, filter, startpath, dialogTitle, defaultName)
- %SAFE_PUTFILE Open a save dialog safely (cancel-safe, cross-OS paths).
+ %SAFE_PUTFILE Open a save dialog safely (cancel-safe, cross-platform paths).
  %
  % Returns:
  %   fullpath (string scalar):
@@ -272,7 +275,6 @@ classdef app_exported < matlab.apps.AppBase
  %DEFAULT_DATA_FOLDER Return the default "data" folder (prefers app folder).
  %
  % This avoids hard-coded Windows path separators and makes the app portable.
- 
  base = "";
  try
  if ~isempty(app.AppRoot)
@@ -281,11 +283,9 @@ classdef app_exported < matlab.apps.AppBase
  catch
  base = "";
  end
- 
  if strlength(base) == 0 || ~isfolder(base)
  base = string(fullfile(pwd, "data"));
  end
- 
  folder = base;
  end
  
@@ -659,7 +659,11 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         function plot_M(app)
-            plotter = Plotter(app.data_curve, app.modeled_curve, app.Hcr, app.Colors);
+            hcr_values = [];
+            if app.ShowhcrCheckBoxM.Value == 1
+                hcr_values = app.Hcr;
+            end
+            plotter = Plotter(app.data_curve, app.modeled_curve, hcr_values, app.Colors);
             cla(app.AxesM,'reset');
             plot_components = app.PlotcomponentsCheckBoxM.Value == 1;
             show_grid = app.ShowgridCheckBoxM.Value == 1;
@@ -673,7 +677,11 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         function plot_dMdH(app)
-            plotter = Plotter(app.data_curve, app.modeled_curve, app.Hcr, app.Colors);
+            hcr_values = [];
+            if app.ShowhcrCheckBoxdMdH.Value == 1
+                hcr_values = app.Hcr;
+            end
+            plotter = Plotter(app.data_curve, app.modeled_curve, hcr_values, app.Colors);
             cla(app.AxesdMdH,'reset');
             plot_components = app.PlotcomponentsCheckBoxdMdH.Value == 1;
             show_grid = app.ShowgridCheckBoxdMdH.Value == 1;
@@ -687,7 +695,11 @@ classdef app_exported < matlab.apps.AppBase
         end
         
         function plot_HdMdH(app)
-            plotter = Plotter(app.data_curve, app.modeled_curve, app.Hcr, app.Colors);
+            hcr_values = [];
+            if app.ShowhcrCheckBoxHdMdH.Value == 1
+                hcr_values = app.Hcr;
+            end
+            plotter = Plotter(app.data_curve, app.modeled_curve, hcr_values, app.Colors);
             cla(app.AxesHdMdH,'reset');
             plot_components = app.PlotcomponentsCheckBoxHdMdH.Value == 1;
             show_grid = app.ShowgridCheckBoxHdMdH.Value == 1;
@@ -772,7 +784,7 @@ classdef app_exported < matlab.apps.AppBase
             s.axis_scale_hdMdH = app.AxisScaleDropDownHdMdH.Value;
             s.fitting_show_grid_checkbox = app.ShowgridCheckBoxHdMdH.Value;
             s.fitting_plot_components_checkbox = app.PlotcomponentsCheckBoxHdMdH.Value;
-            
+            s.fitting_show_hcr_checkbox = app.ShowhcrCheckBoxHdMdH.Value;
 
             s.model_magnetization_checkbox = app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Value;
             s.model_magnetization_components_checkbox = app.OutputSeparateComponentsCheckBox.Value;
@@ -938,7 +950,8 @@ classdef app_exported < matlab.apps.AppBase
         function ResidualplotButtonMPushed(app, event)
             residue_calculator = MagnetizationResidueCalculator(app.data_curve, app.modeled_curve);
             residue = residue_calculator.get_residue();
-            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.M, app.modeled_curve.H, app.modeled_curve.M, residue, app.logCheckBoxM.Value, "M [A/m]");
+            log_flag = app.axis_scale_has_x(string(app.AxisScaleDropDownM.Value));
+            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.M, app.modeled_curve.H, app.modeled_curve.M, residue, log_flag, "M [A/m]");
             residue_plotter.plot()
         end
 
@@ -946,7 +959,8 @@ classdef app_exported < matlab.apps.AppBase
         function ResidualplotButtondMdHPushed(app, event)
             residue_calculator = SusceptibilityResidueCalculator(app.data_curve, app.modeled_curve);
             residue = residue_calculator.get_residue();
-            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.dMdH, app.modeled_curve.H, app.modeled_curve.dMdH, residue, app.logCheckBoxdMdH.Value, "∂M/∂H");
+            log_flag = app.axis_scale_has_x(string(app.AxisScaleDropDowndMdH.Value));
+            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.dMdH, app.modeled_curve.H, app.modeled_curve.dMdH, residue, log_flag, "∂M/∂H");
             residue_plotter.plot()
         end
 
@@ -954,7 +968,8 @@ classdef app_exported < matlab.apps.AppBase
         function ResidualplotButtondHdMdHPushed(app, event)
             residue_calculator = SemilogDerivativeResidueCalculator(app.data_curve, app.modeled_curve);
             residue = residue_calculator.get_residue();
-            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.HdMdH, app.modeled_curve.H, app.modeled_curve.HdMdH, residue, app.logCheckBoxHdMdH.Value, "∂M/∂(logH) [A/m]");
+            log_flag = app.axis_scale_has_x(string(app.AxisScaleDropDownHdMdH.Value));
+            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.HdMdH, app.modeled_curve.H, app.modeled_curve.HdMdH, residue, log_flag, "∂M/∂(logH) [A/m]");
             residue_plotter.plot()
         end
 
@@ -995,7 +1010,7 @@ classdef app_exported < matlab.apps.AppBase
                     t.Properties.VariableNames = variable_names;
                 end
                 file_name = strcat(app.EditFieldFileNameModeledAnhystereticMagnetization.Value, app.DropDownOutputModeledAnhystereticMagnetizationExtension.Value);
-                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+                path = fullfile(app.OutputDatasetPath.Value, file_name);
                 writetable(t,path, 'Delimiter', ';');
                 app.write_message("Modeled data saved as " + file_name);
             end
@@ -1004,7 +1019,7 @@ classdef app_exported < matlab.apps.AppBase
                 t = table(transpose(app.data_curve.H), transpose(app.data_curve.M));
                 t.Properties.VariableNames(:) = {'H [A/m]' 'M [A/m]'};
                 file_name = strcat(app.EditFieldFileNameExperimentalMagnetizationData.Value, app.DropDownOutputExperimentalMagnetizationData.Value);
-                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+                path = fullfile(app.OutputDatasetPath.Value, file_name);
                 writetable(t,path, 'Delimiter', ';');
                 app.write_message("Experimental data saved as " + file_name);
             end
@@ -1068,7 +1083,7 @@ classdef app_exported < matlab.apps.AppBase
                 return;
             end
             file_name = strcat(app.EditFieldFileNameParameters.Value, app.DropDownOutputParametersExtension.Value);
-            path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+            path = fullfile(app.OutputDatasetPath.Value, file_name);
             file = fopen(path,'w');
             fprintf(file, "Parameters:" + newline);
             if(app.ExportFittedparametersCheckBox.Value == 1)
@@ -1138,7 +1153,7 @@ classdef app_exported < matlab.apps.AppBase
 
             if (app.CheckBoxExportPlotMagnetization.Value == 1)
                 file_name = strcat(app.EditFieldFileNamePlotMagnetization.Value, app.DropDownPlotMagnetizacionExtension.Value);
-                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+                path = fullfile(app.OutputDatasetPath.Value, file_name);
                 exportgraphics(app.AxesM,path,'Resolution',400);
                 message = strcat("Magnetization plots exported as ",file_name);
                 app.write_message(message);
@@ -1146,7 +1161,7 @@ classdef app_exported < matlab.apps.AppBase
 
             if (app.CheckBoxExportPlotSusceptibility.Value == 1)
                 file_name = strcat(app.EditFieldFileNamePlotSusceptibility.Value, app.DropDownPlotSusceptibilityExtension.Value);
-                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+                path = fullfile(app.OutputDatasetPath.Value, file_name);
                 exportgraphics(app.AxesdMdH,path,'Resolution',400);
                 message = strcat("Susceptibility plots exported as ",file_name);
                 app.write_message(message);
@@ -1154,7 +1169,7 @@ classdef app_exported < matlab.apps.AppBase
 
             if(app.CheckBoxExportPlotSemiLogMagDerivative.Value == 1)
                 file_name = strcat(app.EditFieldFileNamePlotSemiLogMagDerivative.Value, app.DropDownPlotSemiLogMagDerivativeExtension.Value);
-                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+                path = fullfile(app.OutputDatasetPath.Value, file_name);
                 exportgraphics(app.AxesHdMdH,path,'Resolution',400);
                 message = strcat("Semi-Log Magnetization Derivative plots exported as ",file_name);
                 app.write_message(message);
@@ -1220,10 +1235,16 @@ classdef app_exported < matlab.apps.AppBase
  app.EditFieldFileNameResiduesMagnetization.Value = s.magnetization_residual_file_name; 
  app.EditFieldFileNameResiduesSusceptibility.Value = s.susceptibility_residual_file_name; 
  app.EditFieldFileNameResiduesSemiLogMagDerivative.Value = s.semi_log_derivative_file_name; 
- app.logCheckBoxInputPlot.Value = s.log_checkbox; 
- app.logCheckBoxHdMdH.Value = s.fitting_log_checkbox; 
  app.ShowgridCheckBoxHdMdH.Value = s.fitting_show_grid_checkbox; 
  app.PlotcomponentsCheckBoxHdMdH.Value = s.fitting_plot_components_checkbox; 
+ if isfield(s, 'fitting_show_hcr_checkbox') 
+ show_hcr_value = s.fitting_show_hcr_checkbox; 
+ else 
+ show_hcr_value = 1; 
+ end 
+ app.ShowhcrCheckBoxM.Value = show_hcr_value; 
+ app.ShowhcrCheckBoxdMdH.Value = show_hcr_value; 
+ app.ShowhcrCheckBoxHdMdH.Value = show_hcr_value; 
  app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Value = s.model_magnetization_checkbox; 
  app.OutputSeparateComponentsCheckBox.Value = s.model_magnetization_components_checkbox; 
  app.ExportFittedparametersCheckBox.Value = s.fitted_parameters_checkbox; 
@@ -1382,23 +1403,7 @@ classdef app_exported < matlab.apps.AppBase
             end
         end
 
-        % Cell selection callback: TableFittedParameters
-        function TableFittedParametersCellSelection(app, event)
-            if isempty(event.Indices)
-                return
-            end
-            row = event.Indices(1,1);
-            col = event.Indices(1,2);
-            if row > size(app.TableFittedParameters.Data, 1)
-                return
-            end
-            app.refresh_table_value_display();
-            if col == 2 && app.is_m_row(row)
-                app.TableFittedParameters.Data(row, 2) = {app.format_value_for_edit(row)};
-            end
-        end
-
-        % Cell edit function: TableFittedParameters
+        % Cell edit callback: TableFittedParameters
         function TableFittedParametersCellEdit(app, event)
             if isempty(event.Indices)
                 return
@@ -1418,7 +1423,38 @@ classdef app_exported < matlab.apps.AppBase
                 update_components(app);
             end
             app.refresh_table_value_display();
+        end
+
+        % Cell selection callback: TableFittedParameters
+        function TableFittedParametersCellSelection(app, event)
+            if isempty(event.Indices)
+                return
+            end
+            row = event.Indices(1,1);
+            col = event.Indices(1,2);
+            if row > size(app.TableFittedParameters.Data, 1)
+                return
+            end
+            app.refresh_table_value_display();
+            if col == 2 && app.is_m_row(row)
+                app.TableFittedParameters.Data(row, 2) = {app.format_value_for_edit(row)};
+            end
             
+        end
+
+        % Value changed function: ShowhcrCheckBoxM
+        function ShowhcrCheckBoxMValueChanged(app, event)
+            app.plot_M()
+        end
+
+        % Value changed function: ShowhcrCheckBoxdMdH
+        function ShowhcrCheckBoxdMdHValueChanged(app, event)
+            app.plot_dMdH()
+        end
+
+        % Value changed function: ShowhcrCheckBoxHdMdH
+        function ShowhcrCheckBoxHdMdHValueChanged(app, event)
+            app.plot_HdMdH()
         end
     end
 
@@ -1780,7 +1816,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
-            app.GridLayoutOptionsM.ColumnWidth = {'2.9x', '2.1x', '3x', '2x', '1x', '1.3x'};
+            app.GridLayoutOptionsM.ColumnWidth = {'2.9x', '2.1x', '3x', '2x', '2x', '1x', '1.3x'};
             app.GridLayoutOptionsM.RowHeight = {'1x'};
             app.GridLayoutOptionsM.Padding = [0 0 0 0];
             app.GridLayoutOptionsM.Layout.Row = 2;
@@ -1819,7 +1855,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create AxisscaleLabel_2
             app.AxisscaleLabel_2 = uilabel(app.GridLayoutOptionsM);
             app.AxisscaleLabel_2.Layout.Row = 1;
-            app.AxisscaleLabel_2.Layout.Column = 5;
+            app.AxisscaleLabel_2.Layout.Column = 6;
             app.AxisscaleLabel_2.Text = 'Axis scale';
 
             % Create AxisScaleDropDownM
@@ -1828,12 +1864,20 @@ classdef app_exported < matlab.apps.AppBase
             app.AxisScaleDropDownM.ValueChangedFcn = createCallbackFcn(app, @AxisScaleDropDownMValueChanged, true);
             app.AxisScaleDropDownM.Tag = 'InputAxisScaleDropDown';
             app.AxisScaleDropDownM.Layout.Row = 1;
-            app.AxisScaleDropDownM.Layout.Column = 6;
+            app.AxisScaleDropDownM.Layout.Column = 7;
             app.AxisScaleDropDownM.Value = 'semilog-x';
+
+            % Create ShowhcrCheckBoxM
+            app.ShowhcrCheckBoxM = uicheckbox(app.GridLayoutOptionsM);
+            app.ShowhcrCheckBoxM.ValueChangedFcn = createCallbackFcn(app, @ShowhcrCheckBoxMValueChanged, true);
+            app.ShowhcrCheckBoxM.Text = 'Show Hcr';
+            app.ShowhcrCheckBoxM.Layout.Row = 1;
+            app.ShowhcrCheckBoxM.Layout.Column = 5;
+            app.ShowhcrCheckBoxM.Value = true;
 
             % Create GridLayoutOptionsdMdH
             app.GridLayoutOptionsdMdH = uigridlayout(app.GridLayoutAxes);
-            app.GridLayoutOptionsdMdH.ColumnWidth = {'2.9x', '2.1x', '3x', '2x', '1x', '1.3x'};
+            app.GridLayoutOptionsdMdH.ColumnWidth = {'2.9x', '2.1x', '3x', '2x', '2x', '1x', '1.3x'};
             app.GridLayoutOptionsdMdH.RowHeight = {'1x'};
             app.GridLayoutOptionsdMdH.Padding = [0 0 0 0];
             app.GridLayoutOptionsdMdH.Layout.Row = 4;
@@ -1865,7 +1909,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create AxisscaleLabel_3
             app.AxisscaleLabel_3 = uilabel(app.GridLayoutOptionsdMdH);
             app.AxisscaleLabel_3.Layout.Row = 1;
-            app.AxisscaleLabel_3.Layout.Column = 5;
+            app.AxisscaleLabel_3.Layout.Column = 6;
             app.AxisscaleLabel_3.Text = 'Axis scale';
 
             % Create AxisScaleDropDowndMdH
@@ -1874,12 +1918,20 @@ classdef app_exported < matlab.apps.AppBase
             app.AxisScaleDropDowndMdH.ValueChangedFcn = createCallbackFcn(app, @AxisScaleDropDowndMdHValueChanged, true);
             app.AxisScaleDropDowndMdH.Tag = 'InputAxisScaleDropDown';
             app.AxisScaleDropDowndMdH.Layout.Row = 1;
-            app.AxisScaleDropDowndMdH.Layout.Column = 6;
+            app.AxisScaleDropDowndMdH.Layout.Column = 7;
             app.AxisScaleDropDowndMdH.Value = 'semilog-x';
+
+            % Create ShowhcrCheckBoxdMdH
+            app.ShowhcrCheckBoxdMdH = uicheckbox(app.GridLayoutOptionsdMdH);
+            app.ShowhcrCheckBoxdMdH.ValueChangedFcn = createCallbackFcn(app, @ShowhcrCheckBoxdMdHValueChanged, true);
+            app.ShowhcrCheckBoxdMdH.Text = 'Show Hcr';
+            app.ShowhcrCheckBoxdMdH.Layout.Row = 1;
+            app.ShowhcrCheckBoxdMdH.Layout.Column = 5;
+            app.ShowhcrCheckBoxdMdH.Value = true;
 
             % Create GridLayoutOptionsHdMdH
             app.GridLayoutOptionsHdMdH = uigridlayout(app.GridLayoutAxes);
-            app.GridLayoutOptionsHdMdH.ColumnWidth = {'2.9x', '2.1x', '3x', '2x', '1x', '1.3x'};
+            app.GridLayoutOptionsHdMdH.ColumnWidth = {'2.9x', '2.1x', '3x', '2x', '2x', '1x', '1.3x'};
             app.GridLayoutOptionsHdMdH.RowHeight = {'1x'};
             app.GridLayoutOptionsHdMdH.Padding = [0 0 0 0];
             app.GridLayoutOptionsHdMdH.Layout.Row = 6;
@@ -1914,14 +1966,22 @@ classdef app_exported < matlab.apps.AppBase
             app.AxisScaleDropDownHdMdH.ValueChangedFcn = createCallbackFcn(app, @AxisScaleDropDownHdMdHValueChanged, true);
             app.AxisScaleDropDownHdMdH.Tag = 'InputAxisScaleDropDown';
             app.AxisScaleDropDownHdMdH.Layout.Row = 1;
-            app.AxisScaleDropDownHdMdH.Layout.Column = 6;
+            app.AxisScaleDropDownHdMdH.Layout.Column = 7;
             app.AxisScaleDropDownHdMdH.Value = 'semilog-x';
 
             % Create AxisscaleLabel_4
             app.AxisscaleLabel_4 = uilabel(app.GridLayoutOptionsHdMdH);
             app.AxisscaleLabel_4.Layout.Row = 1;
-            app.AxisscaleLabel_4.Layout.Column = 5;
+            app.AxisscaleLabel_4.Layout.Column = 6;
             app.AxisscaleLabel_4.Text = 'Axis scale';
+
+            % Create ShowhcrCheckBoxHdMdH
+            app.ShowhcrCheckBoxHdMdH = uicheckbox(app.GridLayoutOptionsHdMdH);
+            app.ShowhcrCheckBoxHdMdH.ValueChangedFcn = createCallbackFcn(app, @ShowhcrCheckBoxHdMdHValueChanged, true);
+            app.ShowhcrCheckBoxHdMdH.Text = 'Show Hcr';
+            app.ShowhcrCheckBoxHdMdH.Layout.Row = 1;
+            app.ShowhcrCheckBoxHdMdH.Layout.Column = 5;
+            app.ShowhcrCheckBoxHdMdH.Value = true;
 
             % Create GridLayoutNumbers
             app.GridLayoutNumbers = uigridlayout(app.AnhystereticmagnetizationfittingTabGridLayout);
@@ -1938,6 +1998,7 @@ classdef app_exported < matlab.apps.AppBase
             app.TableFittedParameters.ColumnName = {'Parameter'; 'Value'; 'Lower bound'; 'Upper bound'; 'Fit'};
             app.TableFittedParameters.RowName = {};
             app.TableFittedParameters.ColumnEditable = [false true true true true];
+            app.TableFittedParameters.CellEditCallback = createCallbackFcn(app, @TableFittedParametersCellEdit, true);
             app.TableFittedParameters.CellSelectionCallback = createCallbackFcn(app, @TableFittedParametersCellSelection, true);
             app.TableFittedParameters.Layout.Row = 4;
             app.TableFittedParameters.Layout.Column = 1;

@@ -6,7 +6,8 @@ parser_constants = ParserConstants();
 % Build cross-platform path
 data_file = fullfile('data', 'sampleData', 'Finemet - TA.csv');
 
-% Initialize parser: parser = Parser(file_path, H_unit, M_unit, curve_type)
+% Initialize parser: parser = Parser(file_path, x_field_and_unit, y_field_and_unit, curve_type)
+% Refer to ParserConstants for the supported fields/units for both axes.
 % curve_type options:
 %   ANHYSTERETIC_CURVE_TYPE
 %   HYSTERESIS_LOOP_TYPE
@@ -74,7 +75,7 @@ elseif len_diff < 0
     magnetization_residue = magnetization_residue(1:length(H_data));
 end
 
-% Initialize ResiduePlotter
+% Initialize ResiduePlotter (last argument controls marker size)
 residue_plotter = ResiduePlotter(H_data, data_curve.M, ...
                                  modeled_curve.H, modeled_curve.M, ...
                                  magnetization_residue, true, "M [A/m]");
@@ -89,6 +90,7 @@ semilog_derivative_residue = residue_calculator.get_residue();
 
 %% Plot examples
 colors = [0.58 0 0.70; 0.70 0 0; 0 0 0.70];
+% Plotter can take an optional marker size argument at the end
 plotter = Plotter(data_curve, modeled_curve, Hcr, colors);
 
 figure();
