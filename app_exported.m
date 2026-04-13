@@ -98,9 +98,9 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesM                           matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesHdMdH                       matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesM                           matlab.ui.control.UIAxes
         MagnetizationoutputdataTab      matlab.ui.container.Tab
         GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
         GridLayoutExperimentalMagnetizationData  matlab.ui.container.GridLayout
@@ -171,8 +171,8 @@ classdef app_exported < matlab.apps.AppBase
     end
 
     
-    properties (Access = private) 
- AppRoot
+    properties (Access = private)
+        AppRoot
         H_raw
         M_raw
         data_curve
@@ -194,110 +194,6 @@ classdef app_exported < matlab.apps.AppBase
     
     methods (Access = private)
         
-
-
- function fullpath = safe_getfile(app, filter, startpath, dialogTitle)
- %SAFE_GETFILE Open a file selection dialog safely (cancel-safe, cross-platform paths).
- %
- % Returns:
- %   fullpath (string scalar):
- %       ""  -> user cancelled
- %       otherwise -> full file path
- 
- if nargin < 4 || strlength(string(dialogTitle)) == 0
- dialogTitle = "Select file";
- end
- if nargin < 3 || strlength(string(startpath)) == 0
- startpath = pwd;
- end
- 
- [file, path] = uigetfile(filter, char(dialogTitle), char(startpath));
- if isequal(file, 0)
- fullpath = "";
- else
- fullpath = string(fullfile(path, file));
- end
- end
- 
- function fullpath = safe_putfile(app, filter, startpath, dialogTitle, defaultName)
- %SAFE_PUTFILE Open a save dialog safely (cancel-safe, cross-platform paths).
- %
- % Returns:
- %   fullpath (string scalar):
- %       ""  -> user cancelled
- %       otherwise -> full file path
- 
- if nargin < 5
- defaultName = "";
- end
- if nargin < 4 || strlength(string(dialogTitle)) == 0
- dialogTitle = "Save file";
- end
- if nargin < 3 || strlength(string(startpath)) == 0
- startpath = pwd;
- end
- if strlength(string(defaultName)) > 0
- startpath = fullfile(startpath, char(defaultName));
- end
- 
- [file, path] = uiputfile(filter, char(dialogTitle), char(startpath));
- if isequal(file, 0)
- fullpath = "";
- else
- fullpath = string(fullfile(path, file));
- end
- end
- 
- function folder = safe_getdir(app, startpath, dialogTitle)
- %SAFE_GETDIR Open a folder selection dialog safely (cancel-safe).
- %
- % Returns:
- %   folder (string scalar):
- %       ""  -> user cancelled
- %       otherwise -> selected folder
- 
- if nargin < 3 || strlength(string(dialogTitle)) == 0
- dialogTitle = "Select folder";
- end
- if nargin < 2 || strlength(string(startpath)) == 0
- startpath = pwd;
- end
- 
- p = uigetdir(char(startpath), char(dialogTitle));
- if isequal(p, 0)
- folder = "";
- else
- folder = string(p);
- end
- end
- 
- function folder = default_data_folder(app)
- %DEFAULT_DATA_FOLDER Return the default "data" folder (prefers app folder).
- %
- % This avoids hard-coded Windows path separators and makes the app portable.
- base = "";
- try
- if ~isempty(app.AppRoot)
- base = string(fullfile(app.AppRoot, "data"));
- end
- catch
- base = "";
- end
- if strlength(base) == 0 || ~isfolder(base)
- base = string(fullfile(pwd, "data"));
- end
- folder = base;
- end
- 
- function ensure_folder(~, folder)
- %ENSURE_FOLDER Create folder if it does not exist.
- if strlength(string(folder)) == 0
- return;
- end
- if ~isfolder(folder)
- mkdir(folder);
- end
- end
         function plot(app)
             app.plot_M();
             app.plot_dMdH();
@@ -751,7 +647,7 @@ classdef app_exported < matlab.apps.AppBase
         end
         
         function save(app)
-            file = fopen(char(app.ProjectPath),'w');
+            file = fopen(app.ProjectPath,'w');
 
             s.fitted_parameters_value = app.fitted_parameter_values(:);
             s.fitted_parameters_lower_bound = app.TableFittedParameters.Data(:,3);
@@ -837,42 +733,40 @@ classdef app_exported < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app) 
- % Determine the application root folder (where this .m file lives).
- app.AppRoot = string(fileparts(mfilename('fullpath')));
- 
- % Add the source folder to the MATLAB path (cross-platform).
- srcFolder = fullfile(app.AppRoot, "src");
- if isfolder(srcFolder)
- addpath(char(srcFolder));
- end
- 
- import_src(); 
- app.ProjectPath = ""; 
- app.number_components = app.NumberofcomponentsSpinner.Value; 
- app.init_components(); 
- app.TableFittedParameters.ColumnFormat = {[] 'char' 'short' 'short' 'logical'}; 
- app.init_parameters_table(true); 
- for i=1:5 
- addStyle(app.TableParameters, uistyle('HorizontalAlignment','right'), "column", i) 
- end 
- app.init_quantities_table(true); 
- for i=1:5 
- addStyle(app.TableQuantities, uistyle('HorizontalAlignment','right'), "column", i) 
- end 
- update_components(app) 
- % Each element from the array represents RGB on scale 0-1 
- app.Colors = [ 0.58 0 0.70; 0.70 0 0; 0 0 0.70; 0 0.70 0; 1 0.50 0]; 
- 
- % Default output folder is ./data relative to the app root (or current folder).
- outFolder = app.default_data_folder();
- app.ensure_folder(outFolder);
- app.OutputDatasetPath.Value = char(outFolder); 
- 
- msg = sprintf("[%s] %s", app.get_time_string(), "MagAnalyst 1.0.3-beta"); 
- app.MessagesTextArea.Value(end) = cellstr(msg); 
- end
- % Button pushed function: FitButton
+        function startupFcn(app)
+            addpath(".\src");
+            import_src();
+
+            app.ProjectPath = "";
+
+            app.number_components = app.NumberofcomponentsSpinner.Value;
+
+            app.init_components();
+            app.TableFittedParameters.ColumnFormat = {[] 'char' 'short' 'short' 'logical'};
+
+            app.init_parameters_table(true);
+            for i=1:5
+                addStyle(app.TableParameters, uistyle('HorizontalAlignment','right'), "column", i)
+            end
+            
+            app.init_quantities_table(true);
+            for i=1:5
+                addStyle(app.TableQuantities, uistyle('HorizontalAlignment','right'), "column", i)
+            end
+
+            update_components(app)
+            % Each element from the array represents RGB on scale 0-1 
+            app.Colors = [ 0.58 0 0.70; 0.70 0 0; 0 0 0.70; 0 0.70 0; 1 0.50 0];
+
+
+
+            app.OutputDatasetPath.Value = strcat(pwd(), '\data');
+            
+            msg = sprintf("[%s] %s", app.get_time_string(), "MagAnalyst 1.0.3-beta");
+            app.MessagesTextArea.Value(end) = cellstr(msg);
+        end
+
+        % Button pushed function: FitButton
         function FitButtonPushed(app, event)
             update_components(app)
             fit_parameters(app)
@@ -909,28 +803,26 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         % Button pushed function: InputBrowseButton
-        function InputBrowseButtonPushed(app, event) 
- % Browse for a CSV dataset file (cancel-safe).
- startFolder = app.default_data_folder();
- fullpath = app.safe_getfile('*.csv', startFolder, "Select dataset file");
- 
- % User cancelled -> do nothing.
- if fullpath == ""
- return;
- end
- 
- try 
- app.import_data(fullpath); 
- app.InputDatasetPath.Value = char(fullpath); 
- update_components(app) 
- calculate_parameters(app) 
- app.write_message("Imported " + string(fullpath)); 
- app.plot_input(); 
- catch e 
- app.write_message("Import failed: " + e.message); 
- end 
- end
- % Value changed function: InputDatasetPath
+        function InputBrowseButtonPushed(app, event)
+            [file,path] = uigetfile('*.csv','Select dataset file', '.\data');
+            if strcat(path, file) == ""
+                return
+            end
+
+            try
+                app.import_data(strcat(path, file));
+
+                app.InputDatasetPath.Value = strcat(path, file);
+                update_components(app)
+                calculate_parameters(app)
+                app.write_message("Imported " + file);
+                app.plot_input();
+            catch e
+                app.write_message("Import failed: " + e.message);
+            end
+        end
+
+        % Value changed function: InputDatasetPath
         function InputDatasetPathValueChanged(app, event)
             dataset_path = app.InputDatasetPath.Value;
             [app.H, app.M] = Parser(dataset_path).get_data_csv;
@@ -974,17 +866,11 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         % Button pushed function: OutputBrowseButton
-        function OutputBrowseButtonPushed(app, event) 
- % Browse for an output folder (cancel-safe).
- startFolder = string(app.OutputDatasetPath.Value);
- folder = app.safe_getdir(startFolder, "Select output folder");
- if folder == ""
- return;
- end
- app.ensure_folder(folder);
- app.OutputDatasetPath.Value = char(folder);
- end
- % Button pushed function: ExportdataButton
+        function OutputBrowseButtonPushed(app, event)
+            app.OutputDatasetPath.Value = uigetdir(app.OutputDatasetPath.Value,'Select output folder');
+        end
+
+        % Button pushed function: ExportdataButton
         function ExportdataButtonPushed(app, event)
             if (app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Value == 0 && app.CheckBoxExperimentalMagnetization.Value == 0)
                 app.write_message("No magnetization data was selected to be exported.");
@@ -1010,7 +896,7 @@ classdef app_exported < matlab.apps.AppBase
                     t.Properties.VariableNames = variable_names;
                 end
                 file_name = strcat(app.EditFieldFileNameModeledAnhystereticMagnetization.Value, app.DropDownOutputModeledAnhystereticMagnetizationExtension.Value);
-                path = fullfile(app.OutputDatasetPath.Value, file_name);
+                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
                 writetable(t,path, 'Delimiter', ';');
                 app.write_message("Modeled data saved as " + file_name);
             end
@@ -1019,7 +905,7 @@ classdef app_exported < matlab.apps.AppBase
                 t = table(transpose(app.data_curve.H), transpose(app.data_curve.M));
                 t.Properties.VariableNames(:) = {'H [A/m]' 'M [A/m]'};
                 file_name = strcat(app.EditFieldFileNameExperimentalMagnetizationData.Value, app.DropDownOutputExperimentalMagnetizationData.Value);
-                path = fullfile(app.OutputDatasetPath.Value, file_name);
+                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
                 writetable(t,path, 'Delimiter', ';');
                 app.write_message("Experimental data saved as " + file_name);
             end
@@ -1083,7 +969,7 @@ classdef app_exported < matlab.apps.AppBase
                 return;
             end
             file_name = strcat(app.EditFieldFileNameParameters.Value, app.DropDownOutputParametersExtension.Value);
-            path = fullfile(app.OutputDatasetPath.Value, file_name);
+            path = strcat(app.OutputDatasetPath.Value, '\', file_name);
             file = fopen(path,'w');
             fprintf(file, "Parameters:" + newline);
             if(app.ExportFittedparametersCheckBox.Value == 1)
@@ -1153,7 +1039,7 @@ classdef app_exported < matlab.apps.AppBase
 
             if (app.CheckBoxExportPlotMagnetization.Value == 1)
                 file_name = strcat(app.EditFieldFileNamePlotMagnetization.Value, app.DropDownPlotMagnetizacionExtension.Value);
-                path = fullfile(app.OutputDatasetPath.Value, file_name);
+                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
                 exportgraphics(app.AxesM,path,'Resolution',400);
                 message = strcat("Magnetization plots exported as ",file_name);
                 app.write_message(message);
@@ -1161,7 +1047,7 @@ classdef app_exported < matlab.apps.AppBase
 
             if (app.CheckBoxExportPlotSusceptibility.Value == 1)
                 file_name = strcat(app.EditFieldFileNamePlotSusceptibility.Value, app.DropDownPlotSusceptibilityExtension.Value);
-                path = fullfile(app.OutputDatasetPath.Value, file_name);
+                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
                 exportgraphics(app.AxesdMdH,path,'Resolution',400);
                 message = strcat("Susceptibility plots exported as ",file_name);
                 app.write_message(message);
@@ -1169,7 +1055,7 @@ classdef app_exported < matlab.apps.AppBase
 
             if(app.CheckBoxExportPlotSemiLogMagDerivative.Value == 1)
                 file_name = strcat(app.EditFieldFileNamePlotSemiLogMagDerivative.Value, app.DropDownPlotSemiLogMagDerivativeExtension.Value);
-                path = fullfile(app.OutputDatasetPath.Value, file_name);
+                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
                 exportgraphics(app.AxesHdMdH,path,'Resolution',400);
                 message = strcat("Semi-Log Magnetization Derivative plots exported as ",file_name);
                 app.write_message(message);
@@ -1177,95 +1063,90 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         % Menu selected function: SaveasMenu
-        function SaveasMenuSelected(app, event) 
- % Save project (cancel-safe).
- startFolder = app.default_data_folder();
- fullpath = app.safe_putfile('*.txt', startFolder, "Save project", "project.txt");
- if fullpath == ""
- return;
- end
- app.ProjectPath = fullpath;
- app.save(); 
- end
- % Menu selected function: OpenMenu
-        function OpenMenuSelected(app, event) 
- app.write_message("Opening new project"); 
- pause(0.01); 
- 
- startFolder = app.default_data_folder();
- fullpath = app.safe_getfile('*.txt', startFolder, "Select project");
- if fullpath == ""
- % User cancelled.
- app.write_message("Open cancelled");
- return;
- end
- if ~isfile(fullpath)
- app.write_message("Project file not found: " + fullpath);
- return;
- end
- 
- app.ProjectPath = fullpath; 
- data = fileread(char(app.ProjectPath)); 
- s = jsondecode(data); 
- app.number_components = s.number_components; 
- app.init_components(); 
- app.init_parameters_table(true); 
- app.init_quantities_table(true); 
- app.NumberofcomponentsSpinner.Value = app.number_components; 
- app.TableFittedParameters.Data(:,2) = s.fitted_parameters_value; 
- app.TableFittedParameters.Data(:,3) = s.fitted_parameters_lower_bound; 
- app.TableFittedParameters.Data(:,4) = s.fitted_parameters_upper_bound; 
- app.TableParameters.Data.(5) = cellstr(s.select_a); 
- app.TableParameters.Data.(5) = categorical(app.TableParameters.Data.(5), {'high', 'low'}, 'Ordinal', true); 
- app.NumberofpointsEditField.Value = s.number_points; 
- app.PointSpaceDropDown.Value = s.point_space; 
- app.ErrortominimizeDropDown.Value = s.error_type; 
- app.InputDatasetPath.Value = s.input_path; 
- app.HorizontalaxisfieldDropDown.Value = s.horizontal_axis; 
- app.VerticalaxisfieldDropDown.Value = s.vertical_axis; 
- app.CurveDropDown.Value = s.curve_type; 
- app.DescriptionTextArea.Value = s.description; 
- app.OutputDatasetPath.Value = s.data_set_path; 
- app.EditFieldFileNameExperimentalMagnetizationData.Value = s.experimental_anhysteretic_magnetization_file_name; 
- app.EditFieldFileNameModeledAnhystereticMagnetization.Value = s.magnetization_file_name; 
- app.EditFieldFileNameParameters.Value = s.parameters_file_name; 
- app.EditFieldFileNamePlotMagnetization.Value = s.magnetization_plots_file_name; 
- app.EditFieldFileNamePlotSusceptibility.Value = s.suceptibility_plots_file_name; 
- app.EditFieldFileNamePlotSemiLogMagDerivative.Value = s.magnetization_derivative_file_name; 
- app.EditFieldFileNameResiduesMagnetization.Value = s.magnetization_residual_file_name; 
- app.EditFieldFileNameResiduesSusceptibility.Value = s.susceptibility_residual_file_name; 
- app.EditFieldFileNameResiduesSemiLogMagDerivative.Value = s.semi_log_derivative_file_name; 
- app.ShowgridCheckBoxHdMdH.Value = s.fitting_show_grid_checkbox; 
- app.PlotcomponentsCheckBoxHdMdH.Value = s.fitting_plot_components_checkbox; 
- if isfield(s, 'fitting_show_hcr_checkbox') 
- show_hcr_value = s.fitting_show_hcr_checkbox; 
- else 
- show_hcr_value = 1; 
- end 
- app.ShowhcrCheckBoxM.Value = show_hcr_value; 
- app.ShowhcrCheckBoxdMdH.Value = show_hcr_value; 
- app.ShowhcrCheckBoxHdMdH.Value = show_hcr_value; 
- app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Value = s.model_magnetization_checkbox; 
- app.OutputSeparateComponentsCheckBox.Value = s.model_magnetization_components_checkbox; 
- app.ExportFittedparametersCheckBox.Value = s.fitted_parameters_checkbox; 
- app.ExportModelparametersCheckBox.Value = s.model_parameters_checkbox; 
- app.ExportOtherquantitiesCheckBox.Value = s.other_quantities_checkbox; 
- app.ExportErrorsCheckBox.Value = s.errors_checkbox; 
- app.CheckBoxExportPlotMagnetization.Value = s.magnetization_plots_checkbox; 
- app.CheckBoxExportPlotSusceptibility.Value = s.susceptibility_plots_checkbox; 
- app.CheckBoxExportPlotSemiLogMagDerivative.Value = s.magnetization_derivatives_checkbox; 
- app.CheckBoxExperimentalMagnetization.Value = s.experimental_anhysteretic_magnetization_checkbox; 
- app.CheckBoxExportResiduesMagnetization.Value = s.magnetization_residual_checkbox; 
- app.CheckBoxExportResiduesSusceptibility.Value = s.susceptibility_residual_checkbox; 
- app.CheckBoxExportResiduesSemiLogMagDerivative.Value = s.semi_log_derivative_residual_checkbox; 
- 
- if (app.calculate_and_plot() == -1) 
- return 
- end 
- app.CalculatePlotButtonPushed(); 
- app.write_message(string(fullpath) + " was opened successfully"); 
- end
- % Button pushed function: ExportResiduesButton
+        function SaveasMenuSelected(app, event)
+          [file,path] = uiputfile('*.txt','Save project', '.\data\project.txt');
+          app.ProjectPath = strcat(path, file);
+          app.save();
+        end
+
+        % Menu selected function: OpenMenu
+        function OpenMenuSelected(app, event)
+            app.write_message("Opening new project");
+            pause(0.01);
+            [file,path] = uigetfile('*.txt','Select project', '.\data');
+            app.ProjectPath = strcat(path, file);
+
+            data = fileread(app.ProjectPath);
+            s = jsondecode(data);
+
+            app.number_components = s.number_components;
+            app.init_components();
+            app.init_parameters_table(true);
+            app.init_quantities_table(true);
+            app.NumberofcomponentsSpinner.Value = app.number_components;
+
+            app.TableFittedParameters.Data(:,2) = s.fitted_parameters_value;
+            app.TableFittedParameters.Data(:,3) = s.fitted_parameters_lower_bound;
+            app.TableFittedParameters.Data(:,4) = s.fitted_parameters_upper_bound;
+
+
+            app.TableParameters.Data.(5) = cellstr(s.select_a);
+            app.TableParameters.Data.(5) = categorical(app.TableParameters.Data.(5), {'high', 'low'}, 'Ordinal', true);
+            
+            app.NumberofpointsEditField.Value = s.number_points;
+            app.PointSpaceDropDown.Value = s.point_space;
+            app.ErrortominimizeDropDown.Value = s.error_type;
+            app.InputDatasetPath.Value = s.input_path;
+            app.HorizontalaxisfieldDropDown.Value = s.horizontal_axis;
+            app.VerticalaxisfieldDropDown.Value = s.vertical_axis;
+            app.CurveDropDown.Value = s.curve_type;
+            app.DescriptionTextArea.Value = s.description;
+            
+            app.OutputDatasetPath.Value = s.data_set_path;
+            app.EditFieldFileNameExperimentalMagnetizationData.Value = s.experimental_anhysteretic_magnetization_file_name;
+            app.EditFieldFileNameModeledAnhystereticMagnetization.Value = s.magnetization_file_name; 
+            app.EditFieldFileNameParameters.Value = s.parameters_file_name;
+            app.EditFieldFileNamePlotMagnetization.Value = s.magnetization_plots_file_name;
+            app.EditFieldFileNamePlotSusceptibility.Value = s.suceptibility_plots_file_name;
+            app.EditFieldFileNamePlotSemiLogMagDerivative.Value = s.magnetization_derivative_file_name;
+            app.EditFieldFileNameResiduesMagnetization.Value = s.magnetization_residual_file_name;
+            app.EditFieldFileNameResiduesSusceptibility.Value = s.susceptibility_residual_file_name;
+            app.EditFieldFileNameResiduesSemiLogMagDerivative.Value = s.semi_log_derivative_file_name;
+
+            app.ShowgridCheckBoxHdMdH.Value = s.fitting_show_grid_checkbox;
+            app.PlotcomponentsCheckBoxHdMdH.Value = s.fitting_plot_components_checkbox;
+            if isfield(s, 'fitting_show_hcr_checkbox')
+                show_hcr_value = s.fitting_show_hcr_checkbox;
+            else
+                show_hcr_value = 1;
+            end
+            app.ShowhcrCheckBoxM.Value = show_hcr_value;
+            app.ShowhcrCheckBoxdMdH.Value = show_hcr_value;
+            app.ShowhcrCheckBoxHdMdH.Value = show_hcr_value;
+            app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Value = s.model_magnetization_checkbox;
+            app.OutputSeparateComponentsCheckBox.Value = s.model_magnetization_components_checkbox;
+            app.ExportFittedparametersCheckBox.Value = s.fitted_parameters_checkbox;
+            app.ExportModelparametersCheckBox.Value = s.model_parameters_checkbox;
+            app.ExportOtherquantitiesCheckBox.Value = s.other_quantities_checkbox;
+            app.ExportErrorsCheckBox.Value = s.errors_checkbox;
+            app.CheckBoxExportPlotMagnetization.Value = s.magnetization_plots_checkbox;
+            app.CheckBoxExportPlotSusceptibility.Value = s.susceptibility_plots_checkbox;
+            app.CheckBoxExportPlotSemiLogMagDerivative.Value = s.magnetization_derivatives_checkbox;
+
+            app.CheckBoxExperimentalMagnetization.Value = s.experimental_anhysteretic_magnetization_checkbox;
+            app.CheckBoxExportResiduesMagnetization.Value = s.magnetization_residual_checkbox;
+            app.CheckBoxExportResiduesSusceptibility.Value = s.susceptibility_residual_checkbox;
+            app.CheckBoxExportResiduesSemiLogMagDerivative.Value = s.semi_log_derivative_residual_checkbox;
+            
+           
+            if (app.calculate_and_plot() == -1)
+                return
+            end
+            app.CalculatePlotButtonPushed();
+            app.write_message(file + " was opened successfully");
+        end
+
+        % Button pushed function: ExportResiduesButton
         function ExportResiduesButtonPushed(app, event)
             if (app.CheckBoxExportResiduesMagnetization.Value == 0 && app.CheckBoxExportResiduesSusceptibility.Value == 0 && app.CheckBoxExportResiduesSemiLogMagDerivative.Value == 0)
                 app.write_message("No residual plots were selected to be exported");
@@ -1787,14 +1668,14 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -1805,14 +1686,14 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
