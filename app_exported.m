@@ -827,37 +827,6 @@ classdef app_exported < matlab.apps.AppBase
 
         % Code that executes after component creation
         function startupFcn(app)
-            % addpath(".\src");
-            % import_src();
-            % 
-            % app.ProjectPath = "";
-            % 
-            % app.number_components = app.NumberofcomponentsSpinner.Value;
-            % 
-            % app.init_components();
-            % app.TableFittedParameters.ColumnFormat = {[] 'char' 'short' 'short' 'logical'};
-            % 
-            % app.init_parameters_table(true);
-            % for i=1:5
-            %     addStyle(app.TableParameters, uistyle('HorizontalAlignment','right'), "column", i)
-            % end
-            % 
-            % app.init_quantities_table(true);
-            % for i=1:5
-            %     addStyle(app.TableQuantities, uistyle('HorizontalAlignment','right'), "column", i)
-            % end
-            % 
-            % update_components(app)
-            % % Each element from the array represents RGB on scale 0-1 
-            % app.Colors = [ 0.58 0 0.70; 0.70 0 0; 0 0 0.70; 0 0.70 0; 1 0.50 0];
-            % 
-            % 
-            % 
-            % app.OutputDatasetPath.Value = strcat(pwd(), '\data');
-            % 
-            % msg = sprintf("[%s] %s", app.get_time_string(), "MagAnalyst 1.0.3-beta");
-            % app.MessagesTextArea.Value(end) = cellstr(msg);
-
             % MOD (refactored). Startup function
 
             % Determine application root
@@ -905,6 +874,29 @@ classdef app_exported < matlab.apps.AppBase
             app.OutputDatasetPath.Value = char(outFolder);
 
             app.write_message("MagAnalyst 1.0.3-beta");
+
+            % --- asegurar que la figura ya está creada y visible ---
+            drawnow;
+            
+            % --- tamaño de pantalla ---
+            scr = get(groot, 'ScreenSize');   % [x y width height]
+            pos = app.MagAnalystUIFigure.Position;
+            
+            % --- limitar altura ---
+            maxHeight = scr(4) - 80;   % margen taskbar/menu
+            if pos(4) > maxHeight
+                pos(4) = maxHeight;
+            end
+            
+            % --- asegurar que no quede muy arriba ---
+            pos(2) = max(40, pos(2));
+            
+            app.MagAnalystUIFigure.Position = pos;
+            
+            % --- forzar foco/raise ---
+            figure(app.MagAnalystUIFigure);
+            drawnow;
+
         end
 
         % Button pushed function: FitButton
@@ -945,23 +937,6 @@ classdef app_exported < matlab.apps.AppBase
 
         % Button pushed function: InputBrowseButton
         function InputBrowseButtonPushed(app, event)
-            % [file,path] = uigetfile('*.csv','Select dataset file', '.\data');
-            % if strcat(path, file) == ""
-            %     return
-            % end
-            % 
-            % try
-            %     app.import_data(strcat(path, file));
-            % 
-            %     app.InputDatasetPath.Value = strcat(path, file);
-            %     update_components(app)
-            %     calculate_parameters(app)
-            %     app.write_message("Imported " + file);
-            %     app.plot_input();
-            % catch e
-            %     app.write_message("Import failed: " + e.message);
-            % end
-
             % MOD: Callback modified for safe file handling
             startFolder = app.default_data_folder();
             fullpath = app.safe_getfile('*.csv', startFolder, ...
@@ -1028,8 +1003,6 @@ classdef app_exported < matlab.apps.AppBase
 
         % Button pushed function: OutputBrowseButton
         function OutputBrowseButtonPushed(app, event)
-            % app.OutputDatasetPath.Value = uigetdir(app.OutputDatasetPath.Value,'Select output folder');
-
             % MOD: Callback modified for safe file handling
             startFolder = string(app.OutputDatasetPath.Value);
             folder = app.safe_getdir(startFolder, ...
@@ -1237,10 +1210,6 @@ classdef app_exported < matlab.apps.AppBase
 
         % Menu selected function: SaveasMenu
         function SaveasMenuSelected(app, event)
-          % [file,path] = uiputfile('*.txt','Save project', '.\data\project.txt');
-          % app.ProjectPath = strcat(path, file);
-          % app.save();
-
           % MOD: Callback modified for safe file handling
 
             startFolder = string(app.OutputDatasetPath.Value);
@@ -1259,8 +1228,6 @@ classdef app_exported < matlab.apps.AppBase
         function OpenMenuSelected(app, event)
             app.write_message("Opening new project");
             pause(0.01);
-            % [file,path] = uigetfile('*.txt','Select project', '.\data');
-            % app.ProjectPath = strcat(path, file);
             
             % MOD: Callback modified for safe file handling
             fullpath = app.safe_getfile('*.txt', ...
@@ -1342,8 +1309,6 @@ classdef app_exported < matlab.apps.AppBase
             end
             app.CalculatePlotButtonPushed();
 
-            % app.write_message(file + " was opened successfully");
-
             % MOD: Callback modified for safe file handling
             [~, name, ext] = fileparts(app.ProjectPath);
             app.write_message(name + ext + " was opened successfully");
@@ -1376,12 +1341,6 @@ classdef app_exported < matlab.apps.AppBase
 
         % Menu selected function: SaveMenu
         function SaveMenuSelected(app, event)
-            % if (app.ProjectPath == "")
-            %     app.SaveasMenuSelected();
-            % else
-            %     app.save();
-            % end
-
             % MOD: Callback modified for safe file handling
             startFolder = app.default_data_folder();
             fullpath = app.safe_putfile('*.txt', startFolder, ...
