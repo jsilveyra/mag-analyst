@@ -204,7 +204,7 @@ $$\begin{align}
 
 ## Optimization technique
 
-By default, MagAnalyst fits the anhysteretic curve by minimizing the mean orthogonal distance error between the data and modeled curve, also known as the diagonal distance error. This is done in a normalized $(X,Y) = \left( \log H,M \right)$ plane [[4]](#4) computing
+By default, MagAnalyst fits the anhysteretic curve by minimizing the mean orthogonal distance error between the data and modeled curve, also known as the diagonal distance error. In **Diagonal (sampled)**, the diagonal error is evaluated at the discrete, measured data points using analytical expressions. This is done either in a linear or a normalized $(X,Y) = \left( \log H,M \right)$ plane [[4]](#4) computing
 
 $$\begin{align}
 Diagonal\ error = \frac{1}{N}\sqrt{\sum_{i = 0}^{N}{\mathrm{\Delta}o}_{i}^{2}},
@@ -229,9 +229,11 @@ $$\begin{align}
 Horizontal\ error = \frac{1}{N}\frac{1}{X_{N}}\sqrt{\sum_{i = 0}^{N}\left( X_{i} - \widehat{X}\left( Y_{i} \right) \right)^{2}}.
 \end{align}$$
 
-However, the user has the option to optimize either of the traditional objective functions if desired (they are faster to compute). The toolbox utilizes the Matlab built-in `interp1` function [[11]](#11) to evaluate the data and modeled curves at fields that are not present in the set of values but are needed to calculate any of the errors. For interpolation and extrapolation, the default linear method is implemented.
+In constrast, **Diagonal (continuous)** computes the orthogonal distance assuming a continuous representation of both the data and modeled curves. This variant relies on the external MATLAB library `distance2curve` [[11]](#11) to numerically evaluate the minimum Euclidean distance between continuous parametric curves. While computationally more demanding, this formulation provides an idealized and geometrically exact definition of the diagonal error, which is useful for analytical comparison.
 
-Currently, MagAnalyst utilizes the Matlab function `minimize`, developed by Oldenhuis [[12]](#12), to find the constrained minimum of the objective function starting at the user's initial estimates. This function uses `fminsearch` [[13]](#13) as its engine, which is a Matlab built-in function that employs the Nelder-Mead simplex method, an heuristic search method. `minimize` shares the same syntaxis of `fmincon` [[14]](#14), which offers deterministic algorithms such like the interior-point method, but it has the advantage of being freely distributed (unlike `fmincon`, which requires Matlab's Optimization Toolbox).
+However, the user has the option to optimize either of the traditional objective functions if desired; **Vertical** or **Horizontal** (they are faster to compute). The toolbox utilizes the Matlab built-in `interp1` function [[12]](#12) to evaluate the data and modeled curves at fields that are not present in the set of values but are needed to calculate any of the errors. For interpolation and extrapolation, the default linear method is implemented.
+
+Currently, MagAnalyst utilizes the Matlab function `minimize`, developed by Oldenhuis [[13]](#13), to find the constrained minimum of the objective function starting at the user's initial estimates. This function uses `fminsearch` [[14]](#14) as its engine, which is a Matlab built-in function that employs the Nelder-Mead simplex method, an heuristic search method. `minimize` shares the same syntaxis of `fmincon` [[15]](#15), which offers deterministic algorithms such like the interior-point method, but it has the advantage of being freely distributed (unlike `fmincon`, which requires Matlab's Optimization Toolbox).
 
 ## Graphical user interface
 
@@ -239,9 +241,9 @@ We have developed the toolbox with a graphical user interface (GUI) to simplify 
 
 The software automatically converts the input data for analysis into $M\left\lbrack \frac{A}{m} \right\rbrack$ vs $H\left\lbrack \frac{A}{m} \right\rbrack$ for the analysis and fitting process, following the conversion formulae provided in Table I. If other field units are required for the input data, they can be made available upon request.
 
-The magnetization input data can be either an anhysteretic curve or a symmetric hysteresis loop. If a hysteresis loop is provided, the software calculates the anhysteretic curve as the mean of the left and right branches of the $M$ vs $H$ loop (input data can be noisy and begin at any point of the loop). MagAnalyst assumes that the anhysteretic curve exhibits odd symmetry and restricts the analysis to the first quadrant. The Matlab function `interparc`, developed by John D'Errico [[15]](#15), guarantees that the points are evenly spaced in a normalized M vs log(H) plane. The tab displays two plots: the raw and the processed input data plots, which can be viewed in linear or logarithmic scale for $H$ and are updated based on user selections. 
+The magnetization input data can be either an anhysteretic curve or a symmetric hysteresis loop. If a hysteresis loop is provided, the software calculates the anhysteretic curve as the mean of the left and right branches of the $M$ vs $H$ loop (input data can be noisy and begin at any point of the loop). MagAnalyst assumes that the anhysteretic curve exhibits odd symmetry and restricts the analysis to the first quadrant. The Matlab function `interparc`, developed by John D'Errico [[16]](#16), guarantees that the points are evenly spaced in a normalized M vs log(H) plane. The tab displays two plots: the raw and the processed input data plots, which can be viewed in linear or logarithmic scale for $H$ and are updated based on user selections. 
 
-To digitize data from figures from the literature, we recommend using WebPlotDigitizer 4.6 [[16]](#16).
+To digitize data from figures from the literature, we recommend using WebPlotDigitizer 4.6 [[17]](#17).
 
 The Residual plots, available for $M$ vs. $H$, $\frac{\partial M}{\partial H}$ vs. $H$, and $\frac{\partial M}{\partial\ln H}$ vs. $H$ graphs, display the arrays of vertical errors 
 
@@ -311,19 +313,22 @@ Matlab. fzero - Root of nonlinear function. Available: https://www.mathworks.com
 J. M. Silveyra and J. M. Conde Garrido, "On the modelling of the anhysteretic magnetization of homogeneous soft magnetic materials," Journal of Magnetism and Magnetic Materials, vol. 540, p. 168430, 2021. https://doi.org/10.1016/j.jmmm.2021.168430
 <br>
 <a id="11">[11]</a>
-Matlab. interp1 - 1-D data interpolation. Available: https://www.mathworks.com/help/matlab/ref/interp1.html. Access date: 03/11/2023
+Matlab. distance to curve. Available: https://www.mathworks.com/help/matlab/ref/interp1.html. Access date: 04/13/2026
 <br>
 <a id="12">[12]</a>
-Matlab. minimize - Minimize constrained functions with FMINSEARCH or FMINLBFGS, globally or locally. Available: https://www.mathworks.com/matlabcentral/fileexchange/24298-minimize, https://github.com/rodyo/FEX-minimize/releases/tag/v1.8. Access date: 03/11/2023
+Matlab. interp1 - 1-D data interpolation. Available: https://www.mathworks.com/help/matlab/ref/interp1.html. Access date: 03/11/2023
 <br>
 <a id="13">[13]</a>
-Matlab. fminsearch - Find minimum of unconstrained multivariable function using derivative-free method. Available: https://www.mathworks.com/help/matlab/ref/fminsearch.html. Access date: 03/11/2023
+Matlab. minimize - Minimize constrained functions with FMINSEARCH or FMINLBFGS, globally or locally. Available: https://www.mathworks.com/matlabcentral/fileexchange/24298-minimize, https://github.com/rodyo/FEX-minimize/releases/tag/v1.8. Access date: 03/11/2023
 <br>
 <a id="14">[14]</a>
-Matlab. fmincon - Find minimum of constrained nonlinear multivariable function. Available: https://www.mathworks.com/help/optim/ug/fmincon.html. Access date: 03/11/2023
+Matlab. fminsearch - Find minimum of unconstrained multivariable function using derivative-free method. Available: https://www.mathworks.com/help/matlab/ref/fminsearch.html. Access date: 03/11/2023
 <br>
 <a id="15">[15]</a>
-Matlab. interparc - Distance based interpolation along a general curve in space. Available: https://www.mathworks.com/help/matlab/ref/fminsearch.html. Access date: 21/07/2024
+Matlab. fmincon - Find minimum of constrained nonlinear multivariable function. Available: https://www.mathworks.com/help/optim/ug/fmincon.html. Access date: 03/11/2023
 <br>
 <a id="16">[16]</a>
+Matlab. interparc - Distance based interpolation along a general curve in space. Available: https://www.mathworks.com/help/matlab/ref/fminsearch.html. Access date: 21/07/2024
+<br>
+<a id="17">[17]</a>
 A. Rohatgi. WebPlotDigitizer. Available: https://automeris.io/WebPlotDigitizer. Access date: 19/9/2023
