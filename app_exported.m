@@ -1104,6 +1104,7 @@ classdef app_exported < matlab.apps.AppBase
             grid(app.AxesM,"off");
             if(app.ShowgridCheckBoxM.Value == 1)
                 grid(app.AxesM,"on");
+                app.AxesM.YMinorGrid = 'on';  % Restore minor grid explicitly (grid on does not re-enable it)
             end 
         end
 
@@ -1112,6 +1113,7 @@ classdef app_exported < matlab.apps.AppBase
             grid(app.AxesdMdH,"off");
             if(app.ShowgridCheckBoxdMdH.Value == 1)
                 grid(app.AxesdMdH,"on");
+                app.AxesdMdH.YMinorGrid = 'on';  % Restore minor grid explicitly (grid on does not re-enable it)
             end
         end
 
@@ -1120,6 +1122,7 @@ classdef app_exported < matlab.apps.AppBase
             grid(app.AxesHdMdH,"off");
             if(app.ShowgridCheckBoxHdMdH.Value == 1)
                 grid(app.AxesHdMdH,"on");
+                app.AxesHdMdH.YMinorGrid = 'on';  % Restore minor grid explicitly (grid on does not re-enable it)
             end
         end
 
