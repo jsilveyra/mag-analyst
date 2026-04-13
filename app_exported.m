@@ -78,7 +78,7 @@ classdef app_exported < matlab.apps.AppBase
         GridLayoutAxes                  matlab.ui.container.GridLayout
         GridLayoutOptionsHdMdH          matlab.ui.container.GridLayout
         ShowhcrCheckBoxHdMdH            matlab.ui.control.CheckBox
-        AxisscaleLabel_4                matlab.ui.control.Label
+        ScaleLabel_3                    matlab.ui.control.Label
         AxisScaleDropDownHdMdH          matlab.ui.control.DropDown
         ShowgridCheckBoxHdMdH           matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxHdMdH     matlab.ui.control.CheckBox
@@ -86,14 +86,14 @@ classdef app_exported < matlab.apps.AppBase
         GridLayoutOptionsdMdH           matlab.ui.container.GridLayout
         ShowhcrCheckBoxdMdH             matlab.ui.control.CheckBox
         AxisScaleDropDowndMdH           matlab.ui.control.DropDown
-        AxisscaleLabel_3                matlab.ui.control.Label
+        ScaleLabel_2                    matlab.ui.control.Label
         ShowgridCheckBoxdMdH            matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxdMdH      matlab.ui.control.CheckBox
         ResidualplotButtondMdH          matlab.ui.control.Button
         GridLayoutOptionsM              matlab.ui.container.GridLayout
         ShowhcrCheckBoxM                matlab.ui.control.CheckBox
         AxisScaleDropDownM              matlab.ui.control.DropDown
-        AxisscaleLabel_2                matlab.ui.control.Label
+        ScaleLabel                      matlab.ui.control.Label
         SetColorsButton                 matlab.ui.control.Button
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
@@ -286,7 +286,24 @@ classdef app_exported < matlab.apps.AppBase
                 mkdir(folder);
             end
         end
-%%    
+%%
+        function adjustWindow(app)
+        
+            scr = get(groot,'ScreenSize');
+            pos = app.MagAnalystUIFigure.Position;
+        
+            maxHeight = scr(4) * 0.85;
+            if pos(4) > maxHeight
+                pos(4) = maxHeight;
+            end
+        
+            pos(1) = max(40, (scr(3) - pos(3))/2);
+            pos(2) = max(40, (scr(4) - pos(4))/2);
+        
+            app.MagAnalystUIFigure.Position = pos;
+            figure(app.MagAnalystUIFigure);  % devolver foco
+        end
+
         function plot(app)
             app.plot_M();
             app.plot_dMdH();
@@ -875,27 +892,15 @@ classdef app_exported < matlab.apps.AppBase
 
             app.write_message("MagAnalyst 1.0.3-beta");
 
-            % --- asegurar que la figura ya está creada y visible ---
+            % app.MagAnalystUIFigure.WindowState = 'maximized';
+
             drawnow;
             
-            % --- tamaño de pantalla ---
-            scr = get(groot, 'ScreenSize');   % [x y width height]
-            pos = app.MagAnalystUIFigure.Position;
-            
-            % --- limitar altura ---
-            maxHeight = scr(4) - 80;   % margen taskbar/menu
-            if pos(4) > maxHeight
-                pos(4) = maxHeight;
-            end
-            
-            % --- asegurar que no quede muy arriba ---
-            pos(2) = max(40, pos(2));
-            
-            app.MagAnalystUIFigure.Position = pos;
-            
-            % --- forzar foco/raise ---
-            figure(app.MagAnalystUIFigure);
-            drawnow;
+            t = timer( ...
+                'StartDelay', 0.05, ...   % 50 ms
+                'ExecutionMode', 'singleShot', ...
+                'TimerFcn', @(~,~) adjustWindow(app) );
+            start(t);
 
         end
 
@@ -1941,7 +1946,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create PlotcomponentsCheckBoxM
             app.PlotcomponentsCheckBoxM = uicheckbox(app.GridLayoutOptionsM);
             app.PlotcomponentsCheckBoxM.ValueChangedFcn = createCallbackFcn(app, @PlotcomponentsCheckBoxMValueChanged, true);
-            app.PlotcomponentsCheckBoxM.Text = 'Plot components';
+            app.PlotcomponentsCheckBoxM.Text = 'Plot comp.';
             app.PlotcomponentsCheckBoxM.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.PlotcomponentsCheckBoxM.Layout.Row = 1;
             app.PlotcomponentsCheckBoxM.Layout.Column = 3;
@@ -1950,7 +1955,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create ShowgridCheckBoxM
             app.ShowgridCheckBoxM = uicheckbox(app.GridLayoutOptionsM);
             app.ShowgridCheckBoxM.ValueChangedFcn = createCallbackFcn(app, @ShowgridCheckBoxMValueChanged, true);
-            app.ShowgridCheckBoxM.Text = 'Show grid';
+            app.ShowgridCheckBoxM.Text = 'Grid';
             app.ShowgridCheckBoxM.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ShowgridCheckBoxM.Layout.Row = 1;
             app.ShowgridCheckBoxM.Layout.Column = 4;
@@ -1965,12 +1970,12 @@ classdef app_exported < matlab.apps.AppBase
             app.SetColorsButton.Layout.Column = 1;
             app.SetColorsButton.Text = 'Set Colors';
 
-            % Create AxisscaleLabel_2
-            app.AxisscaleLabel_2 = uilabel(app.GridLayoutOptionsM);
-            app.AxisscaleLabel_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.AxisscaleLabel_2.Layout.Row = 1;
-            app.AxisscaleLabel_2.Layout.Column = 6;
-            app.AxisscaleLabel_2.Text = 'Axis scale';
+            % Create ScaleLabel
+            app.ScaleLabel = uilabel(app.GridLayoutOptionsM);
+            app.ScaleLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
+            app.ScaleLabel.Layout.Row = 1;
+            app.ScaleLabel.Layout.Column = 6;
+            app.ScaleLabel.Text = 'Scale';
 
             % Create AxisScaleDropDownM
             app.AxisScaleDropDownM = uidropdown(app.GridLayoutOptionsM);
@@ -1986,7 +1991,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create ShowhcrCheckBoxM
             app.ShowhcrCheckBoxM = uicheckbox(app.GridLayoutOptionsM);
             app.ShowhcrCheckBoxM.ValueChangedFcn = createCallbackFcn(app, @ShowhcrCheckBoxMValueChanged, true);
-            app.ShowhcrCheckBoxM.Text = 'Show Hcr';
+            app.ShowhcrCheckBoxM.Text = 'Hcr,i';
             app.ShowhcrCheckBoxM.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ShowhcrCheckBoxM.Layout.Row = 1;
             app.ShowhcrCheckBoxM.Layout.Column = 5;
@@ -2013,7 +2018,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create PlotcomponentsCheckBoxdMdH
             app.PlotcomponentsCheckBoxdMdH = uicheckbox(app.GridLayoutOptionsdMdH);
             app.PlotcomponentsCheckBoxdMdH.ValueChangedFcn = createCallbackFcn(app, @PlotcomponentsCheckBoxdMdHValueChanged, true);
-            app.PlotcomponentsCheckBoxdMdH.Text = 'Plot components';
+            app.PlotcomponentsCheckBoxdMdH.Text = 'Plot comp.';
             app.PlotcomponentsCheckBoxdMdH.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.PlotcomponentsCheckBoxdMdH.Layout.Row = 1;
             app.PlotcomponentsCheckBoxdMdH.Layout.Column = 3;
@@ -2022,18 +2027,18 @@ classdef app_exported < matlab.apps.AppBase
             % Create ShowgridCheckBoxdMdH
             app.ShowgridCheckBoxdMdH = uicheckbox(app.GridLayoutOptionsdMdH);
             app.ShowgridCheckBoxdMdH.ValueChangedFcn = createCallbackFcn(app, @ShowgridCheckBoxdMdHValueChanged, true);
-            app.ShowgridCheckBoxdMdH.Text = 'Show grid';
+            app.ShowgridCheckBoxdMdH.Text = 'Grid';
             app.ShowgridCheckBoxdMdH.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ShowgridCheckBoxdMdH.Layout.Row = 1;
             app.ShowgridCheckBoxdMdH.Layout.Column = 4;
             app.ShowgridCheckBoxdMdH.Value = true;
 
-            % Create AxisscaleLabel_3
-            app.AxisscaleLabel_3 = uilabel(app.GridLayoutOptionsdMdH);
-            app.AxisscaleLabel_3.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.AxisscaleLabel_3.Layout.Row = 1;
-            app.AxisscaleLabel_3.Layout.Column = 6;
-            app.AxisscaleLabel_3.Text = 'Axis scale';
+            % Create ScaleLabel_2
+            app.ScaleLabel_2 = uilabel(app.GridLayoutOptionsdMdH);
+            app.ScaleLabel_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
+            app.ScaleLabel_2.Layout.Row = 1;
+            app.ScaleLabel_2.Layout.Column = 6;
+            app.ScaleLabel_2.Text = 'Scale';
 
             % Create AxisScaleDropDowndMdH
             app.AxisScaleDropDowndMdH = uidropdown(app.GridLayoutOptionsdMdH);
@@ -2049,7 +2054,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create ShowhcrCheckBoxdMdH
             app.ShowhcrCheckBoxdMdH = uicheckbox(app.GridLayoutOptionsdMdH);
             app.ShowhcrCheckBoxdMdH.ValueChangedFcn = createCallbackFcn(app, @ShowhcrCheckBoxdMdHValueChanged, true);
-            app.ShowhcrCheckBoxdMdH.Text = 'Show Hcr';
+            app.ShowhcrCheckBoxdMdH.Text = 'Hcr,i';
             app.ShowhcrCheckBoxdMdH.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ShowhcrCheckBoxdMdH.Layout.Row = 1;
             app.ShowhcrCheckBoxdMdH.Layout.Column = 5;
@@ -2076,7 +2081,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create PlotcomponentsCheckBoxHdMdH
             app.PlotcomponentsCheckBoxHdMdH = uicheckbox(app.GridLayoutOptionsHdMdH);
             app.PlotcomponentsCheckBoxHdMdH.ValueChangedFcn = createCallbackFcn(app, @PlotcomponentsCheckBoxHdMdHValueChanged, true);
-            app.PlotcomponentsCheckBoxHdMdH.Text = 'Plot components';
+            app.PlotcomponentsCheckBoxHdMdH.Text = 'Plot comp.';
             app.PlotcomponentsCheckBoxHdMdH.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.PlotcomponentsCheckBoxHdMdH.Layout.Row = 1;
             app.PlotcomponentsCheckBoxHdMdH.Layout.Column = 3;
@@ -2085,7 +2090,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create ShowgridCheckBoxHdMdH
             app.ShowgridCheckBoxHdMdH = uicheckbox(app.GridLayoutOptionsHdMdH);
             app.ShowgridCheckBoxHdMdH.ValueChangedFcn = createCallbackFcn(app, @ShowgridCheckBoxHdMdHValueChanged, true);
-            app.ShowgridCheckBoxHdMdH.Text = 'Show grid';
+            app.ShowgridCheckBoxHdMdH.Text = 'Grid';
             app.ShowgridCheckBoxHdMdH.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ShowgridCheckBoxHdMdH.Layout.Row = 1;
             app.ShowgridCheckBoxHdMdH.Layout.Column = 4;
@@ -2102,17 +2107,17 @@ classdef app_exported < matlab.apps.AppBase
             app.AxisScaleDropDownHdMdH.Layout.Column = 7;
             app.AxisScaleDropDownHdMdH.Value = 'semilog-x';
 
-            % Create AxisscaleLabel_4
-            app.AxisscaleLabel_4 = uilabel(app.GridLayoutOptionsHdMdH);
-            app.AxisscaleLabel_4.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.AxisscaleLabel_4.Layout.Row = 1;
-            app.AxisscaleLabel_4.Layout.Column = 6;
-            app.AxisscaleLabel_4.Text = 'Axis scale';
+            % Create ScaleLabel_3
+            app.ScaleLabel_3 = uilabel(app.GridLayoutOptionsHdMdH);
+            app.ScaleLabel_3.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
+            app.ScaleLabel_3.Layout.Row = 1;
+            app.ScaleLabel_3.Layout.Column = 6;
+            app.ScaleLabel_3.Text = 'Scale';
 
             % Create ShowhcrCheckBoxHdMdH
             app.ShowhcrCheckBoxHdMdH = uicheckbox(app.GridLayoutOptionsHdMdH);
             app.ShowhcrCheckBoxHdMdH.ValueChangedFcn = createCallbackFcn(app, @ShowhcrCheckBoxHdMdHValueChanged, true);
-            app.ShowhcrCheckBoxHdMdH.Text = 'Show Hcr';
+            app.ShowhcrCheckBoxHdMdH.Text = 'Hcr,i';
             app.ShowhcrCheckBoxHdMdH.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ShowhcrCheckBoxHdMdH.Layout.Row = 1;
             app.ShowhcrCheckBoxHdMdH.Layout.Column = 5;
