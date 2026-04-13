@@ -13,7 +13,7 @@ classdef app_exported < matlab.apps.AppBase
         MessagesGridLayout              matlab.ui.container.GridLayout
         MessagesTextArea                matlab.ui.control.TextArea
         TabGroup                        matlab.ui.container.TabGroup
-        MagnetizationinputdataTab       matlab.ui.container.Tab
+        InputmagnetizationdataTab       matlab.ui.container.Tab
         GridLayoutMagnetizationInputData  matlab.ui.container.GridLayout
         GridLayoutInputPlot             matlab.ui.container.GridLayout
         GridLayoutInputTipsAndPlotButton  matlab.ui.container.GridLayout
@@ -78,7 +78,6 @@ classdef app_exported < matlab.apps.AppBase
         GridLayoutAxes                  matlab.ui.container.GridLayout
         GridLayoutOptionsHdMdH          matlab.ui.container.GridLayout
         ShowhcrCheckBoxHdMdH            matlab.ui.control.CheckBox
-        ScaleLabel_3                    matlab.ui.control.Label
         AxisScaleDropDownHdMdH          matlab.ui.control.DropDown
         ShowgridCheckBoxHdMdH           matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxHdMdH     matlab.ui.control.CheckBox
@@ -86,22 +85,45 @@ classdef app_exported < matlab.apps.AppBase
         GridLayoutOptionsdMdH           matlab.ui.container.GridLayout
         ShowhcrCheckBoxdMdH             matlab.ui.control.CheckBox
         AxisScaleDropDowndMdH           matlab.ui.control.DropDown
-        ScaleLabel_2                    matlab.ui.control.Label
         ShowgridCheckBoxdMdH            matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxdMdH      matlab.ui.control.CheckBox
         ResidualplotButtondMdH          matlab.ui.control.Button
         GridLayoutOptionsM              matlab.ui.container.GridLayout
+        SetColorsButton                 matlab.ui.control.Button
         ShowhcrCheckBoxM                matlab.ui.control.CheckBox
         AxisScaleDropDownM              matlab.ui.control.DropDown
-        ScaleLabel                      matlab.ui.control.Label
-        SetColorsButton                 matlab.ui.control.Button
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
         AxesM                           matlab.ui.control.UIAxes
         AxesdMdH                        matlab.ui.control.UIAxes
         AxesHdMdH                       matlab.ui.control.UIAxes
-        MagnetizationoutputdataTab      matlab.ui.container.Tab
+        HystereticmagnetizationfittingTab  matlab.ui.container.Tab
+        ResidualplotButtondMdH_2        matlab.ui.control.Button
+        ShowgridCheckBoxM_2             matlab.ui.control.CheckBox
+        JsField_7                       matlab.ui.control.EditField
+        JsTEditFieldLabel_7             matlab.ui.control.Label
+        DrivingfieldLabel               matlab.ui.control.Label
+        RetrieveseedsButton             matlab.ui.control.Button
+        ErrorDisplay_2                  matlab.ui.control.EditField
+        ErrortominimizeDropDown_2       matlab.ui.control.DropDown
+        ErrortominimizeDropDownLabel_2  matlab.ui.control.Label
+        CalculatePlotButton_2           matlab.ui.control.Button
+        FitButton_2                     matlab.ui.control.Button
+        JsField_6                       matlab.ui.control.EditField
+        JsTEditFieldLabel_6             matlab.ui.control.Label
+        JsField_5                       matlab.ui.control.EditField
+        JsTEditFieldLabel_5             matlab.ui.control.Label
+        JsField_4                       matlab.ui.control.EditField
+        JsTEditFieldLabel_4             matlab.ui.control.Label
+        JsField_3                       matlab.ui.control.EditField
+        JsTEditFieldLabel_3             matlab.ui.control.Label
+        JsField_2                       matlab.ui.control.EditField
+        JsTEditFieldLabel_2             matlab.ui.control.Label
+        ModelparametersLabel            matlab.ui.control.Label
+        JilesAthertonmodelrateindependentLabel  matlab.ui.control.Label
+        AxesM_2                         matlab.ui.control.UIAxes
+        OutputmagnetizationdataTab      matlab.ui.container.Tab
         GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
         GridLayoutExperimentalMagnetizationData  matlab.ui.container.GridLayout
         DropDownOutputExperimentalMagnetizationData  matlab.ui.control.DropDown
@@ -1576,15 +1598,15 @@ classdef app_exported < matlab.apps.AppBase
             app.TabGroup.Layout.Row = 1;
             app.TabGroup.Layout.Column = 1;
 
-            % Create MagnetizationinputdataTab
-            app.MagnetizationinputdataTab = uitab(app.TabGroup);
-            app.MagnetizationinputdataTab.AutoResizeChildren = 'off';
-            app.MagnetizationinputdataTab.Title = 'Magnetization input data';
-            app.MagnetizationinputdataTab.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.MagnetizationinputdataTab.ForegroundColor = [0.129411764705882 0.129411764705882 0.129411764705882];
+            % Create InputmagnetizationdataTab
+            app.InputmagnetizationdataTab = uitab(app.TabGroup);
+            app.InputmagnetizationdataTab.AutoResizeChildren = 'off';
+            app.InputmagnetizationdataTab.Title = 'Input magnetization data';
+            app.InputmagnetizationdataTab.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
+            app.InputmagnetizationdataTab.ForegroundColor = [0.129411764705882 0.129411764705882 0.129411764705882];
 
             % Create GridLayoutMagnetizationInputData
-            app.GridLayoutMagnetizationInputData = uigridlayout(app.MagnetizationinputdataTab);
+            app.GridLayoutMagnetizationInputData = uigridlayout(app.InputmagnetizationdataTab);
             app.GridLayoutMagnetizationInputData.ColumnWidth = {'1x', '2x'};
             app.GridLayoutMagnetizationInputData.RowHeight = {'1x'};
             app.GridLayoutMagnetizationInputData.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
@@ -1941,7 +1963,7 @@ classdef app_exported < matlab.apps.AppBase
             app.ResidualplotButtonM.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ResidualplotButtonM.Layout.Row = 1;
             app.ResidualplotButtonM.Layout.Column = 2;
-            app.ResidualplotButtonM.Text = 'Residual plot';
+            app.ResidualplotButtonM.Text = 'Residuals';
 
             % Create PlotcomponentsCheckBoxM
             app.PlotcomponentsCheckBoxM = uicheckbox(app.GridLayoutOptionsM);
@@ -1961,22 +1983,6 @@ classdef app_exported < matlab.apps.AppBase
             app.ShowgridCheckBoxM.Layout.Column = 4;
             app.ShowgridCheckBoxM.Value = true;
 
-            % Create SetColorsButton
-            app.SetColorsButton = uibutton(app.GridLayoutOptionsM, 'push');
-            app.SetColorsButton.ButtonPushedFcn = createCallbackFcn(app, @SetColorsButtonPushed, true);
-            app.SetColorsButton.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.SetColorsButton.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.SetColorsButton.Layout.Row = 1;
-            app.SetColorsButton.Layout.Column = 1;
-            app.SetColorsButton.Text = 'Set Colors';
-
-            % Create ScaleLabel
-            app.ScaleLabel = uilabel(app.GridLayoutOptionsM);
-            app.ScaleLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.ScaleLabel.Layout.Row = 1;
-            app.ScaleLabel.Layout.Column = 6;
-            app.ScaleLabel.Text = 'Scale';
-
             % Create AxisScaleDropDownM
             app.AxisScaleDropDownM = uidropdown(app.GridLayoutOptionsM);
             app.AxisScaleDropDownM.Items = {'linear', 'semilog-x', 'semilog-y', 'log-log'};
@@ -1985,7 +1991,7 @@ classdef app_exported < matlab.apps.AppBase
             app.AxisScaleDropDownM.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.AxisScaleDropDownM.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.AxisScaleDropDownM.Layout.Row = 1;
-            app.AxisScaleDropDownM.Layout.Column = 7;
+            app.AxisScaleDropDownM.Layout.Column = [6 7];
             app.AxisScaleDropDownM.Value = 'semilog-x';
 
             % Create ShowhcrCheckBoxM
@@ -1996,6 +2002,15 @@ classdef app_exported < matlab.apps.AppBase
             app.ShowhcrCheckBoxM.Layout.Row = 1;
             app.ShowhcrCheckBoxM.Layout.Column = 5;
             app.ShowhcrCheckBoxM.Value = true;
+
+            % Create SetColorsButton
+            app.SetColorsButton = uibutton(app.GridLayoutOptionsM, 'push');
+            app.SetColorsButton.ButtonPushedFcn = createCallbackFcn(app, @SetColorsButtonPushed, true);
+            app.SetColorsButton.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
+            app.SetColorsButton.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
+            app.SetColorsButton.Layout.Row = 1;
+            app.SetColorsButton.Layout.Column = 1;
+            app.SetColorsButton.Text = 'Set Colors';
 
             % Create GridLayoutOptionsdMdH
             app.GridLayoutOptionsdMdH = uigridlayout(app.GridLayoutAxes);
@@ -2013,7 +2028,7 @@ classdef app_exported < matlab.apps.AppBase
             app.ResidualplotButtondMdH.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ResidualplotButtondMdH.Layout.Row = 1;
             app.ResidualplotButtondMdH.Layout.Column = 2;
-            app.ResidualplotButtondMdH.Text = 'Residual plot';
+            app.ResidualplotButtondMdH.Text = 'Residuals';
 
             % Create PlotcomponentsCheckBoxdMdH
             app.PlotcomponentsCheckBoxdMdH = uicheckbox(app.GridLayoutOptionsdMdH);
@@ -2033,13 +2048,6 @@ classdef app_exported < matlab.apps.AppBase
             app.ShowgridCheckBoxdMdH.Layout.Column = 4;
             app.ShowgridCheckBoxdMdH.Value = true;
 
-            % Create ScaleLabel_2
-            app.ScaleLabel_2 = uilabel(app.GridLayoutOptionsdMdH);
-            app.ScaleLabel_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.ScaleLabel_2.Layout.Row = 1;
-            app.ScaleLabel_2.Layout.Column = 6;
-            app.ScaleLabel_2.Text = 'Scale';
-
             % Create AxisScaleDropDowndMdH
             app.AxisScaleDropDowndMdH = uidropdown(app.GridLayoutOptionsdMdH);
             app.AxisScaleDropDowndMdH.Items = {'linear', 'semilog-x', 'semilog-y', 'log-log'};
@@ -2048,7 +2056,7 @@ classdef app_exported < matlab.apps.AppBase
             app.AxisScaleDropDowndMdH.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.AxisScaleDropDowndMdH.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.AxisScaleDropDowndMdH.Layout.Row = 1;
-            app.AxisScaleDropDowndMdH.Layout.Column = 7;
+            app.AxisScaleDropDowndMdH.Layout.Column = [6 7];
             app.AxisScaleDropDowndMdH.Value = 'semilog-x';
 
             % Create ShowhcrCheckBoxdMdH
@@ -2076,7 +2084,7 @@ classdef app_exported < matlab.apps.AppBase
             app.ResidualplotButtondHdMdH.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ResidualplotButtondHdMdH.Layout.Row = 1;
             app.ResidualplotButtondHdMdH.Layout.Column = 2;
-            app.ResidualplotButtondHdMdH.Text = 'Residual plot';
+            app.ResidualplotButtondHdMdH.Text = 'Residuals';
 
             % Create PlotcomponentsCheckBoxHdMdH
             app.PlotcomponentsCheckBoxHdMdH = uicheckbox(app.GridLayoutOptionsHdMdH);
@@ -2104,15 +2112,8 @@ classdef app_exported < matlab.apps.AppBase
             app.AxisScaleDropDownHdMdH.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.AxisScaleDropDownHdMdH.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.AxisScaleDropDownHdMdH.Layout.Row = 1;
-            app.AxisScaleDropDownHdMdH.Layout.Column = 7;
+            app.AxisScaleDropDownHdMdH.Layout.Column = [6 7];
             app.AxisScaleDropDownHdMdH.Value = 'semilog-x';
-
-            % Create ScaleLabel_3
-            app.ScaleLabel_3 = uilabel(app.GridLayoutOptionsHdMdH);
-            app.ScaleLabel_3.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.ScaleLabel_3.Layout.Row = 1;
-            app.ScaleLabel_3.Layout.Column = 6;
-            app.ScaleLabel_3.Text = 'Scale';
 
             % Create ShowhcrCheckBoxHdMdH
             app.ShowhcrCheckBoxHdMdH = uicheckbox(app.GridLayoutOptionsHdMdH);
@@ -2345,14 +2346,162 @@ classdef app_exported < matlab.apps.AppBase
             app.FittedparametersLabel.Layout.Column = 1;
             app.FittedparametersLabel.Text = 'Fitted parameters';
 
-            % Create MagnetizationoutputdataTab
-            app.MagnetizationoutputdataTab = uitab(app.TabGroup);
-            app.MagnetizationoutputdataTab.Title = 'Magnetization output data';
-            app.MagnetizationoutputdataTab.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.MagnetizationoutputdataTab.ForegroundColor = [0.129411764705882 0.129411764705882 0.129411764705882];
+            % Create HystereticmagnetizationfittingTab
+            app.HystereticmagnetizationfittingTab = uitab(app.TabGroup);
+            app.HystereticmagnetizationfittingTab.Title = 'Hysteretic magnetization fitting ';
+
+            % Create AxesM_2
+            app.AxesM_2 = uiaxes(app.HystereticmagnetizationfittingTab);
+            xlabel(app.AxesM_2, 'H [A/m]')
+            ylabel(app.AxesM_2, 'M [A/m]')
+            zlabel(app.AxesM_2, 'Z')
+            app.AxesM_2.Box = 'on';
+            app.AxesM_2.TickDir = 'in';
+            app.AxesM_2.Position = [8 51 469 469];
+
+            % Create JilesAthertonmodelrateindependentLabel
+            app.JilesAthertonmodelrateindependentLabel = uilabel(app.HystereticmagnetizationfittingTab);
+            app.JilesAthertonmodelrateindependentLabel.FontWeight = 'bold';
+            app.JilesAthertonmodelrateindependentLabel.Position = [8 518 1022 25];
+            app.JilesAthertonmodelrateindependentLabel.Text = 'Jiles-Atherton model (rate-independent)';
+
+            % Create ModelparametersLabel
+            app.ModelparametersLabel = uilabel(app.HystereticmagnetizationfittingTab);
+            app.ModelparametersLabel.FontWeight = 'bold';
+            app.ModelparametersLabel.Position = [505 498 486 22];
+            app.ModelparametersLabel.Text = 'Model parameters';
+
+            % Create JsTEditFieldLabel_2
+            app.JsTEditFieldLabel_2 = uilabel(app.HystereticmagnetizationfittingTab);
+            app.JsTEditFieldLabel_2.FontWeight = 'bold';
+            app.JsTEditFieldLabel_2.Position = [516 465 56 22];
+            app.JsTEditFieldLabel_2.Text = 'Ms [A/m]';
+
+            % Create JsField_2
+            app.JsField_2 = uieditfield(app.HystereticmagnetizationfittingTab, 'text');
+            app.JsField_2.Editable = 'off';
+            app.JsField_2.HorizontalAlignment = 'right';
+            app.JsField_2.Position = [582 468 97 19];
+
+            % Create JsTEditFieldLabel_3
+            app.JsTEditFieldLabel_3 = uilabel(app.HystereticmagnetizationfittingTab);
+            app.JsTEditFieldLabel_3.FontWeight = 'bold';
+            app.JsTEditFieldLabel_3.Position = [516 433 56 22];
+            app.JsTEditFieldLabel_3.Text = 'a [A/m]';
+
+            % Create JsField_3
+            app.JsField_3 = uieditfield(app.HystereticmagnetizationfittingTab, 'text');
+            app.JsField_3.Editable = 'off';
+            app.JsField_3.HorizontalAlignment = 'right';
+            app.JsField_3.Position = [582 436 97 19];
+
+            % Create JsTEditFieldLabel_4
+            app.JsTEditFieldLabel_4 = uilabel(app.HystereticmagnetizationfittingTab);
+            app.JsTEditFieldLabel_4.FontWeight = 'bold';
+            app.JsTEditFieldLabel_4.Position = [516 402 56 22];
+            app.JsTEditFieldLabel_4.Text = 'alpha';
+
+            % Create JsField_4
+            app.JsField_4 = uieditfield(app.HystereticmagnetizationfittingTab, 'text');
+            app.JsField_4.Editable = 'off';
+            app.JsField_4.HorizontalAlignment = 'right';
+            app.JsField_4.Position = [582 405 97 19];
+
+            % Create JsTEditFieldLabel_5
+            app.JsTEditFieldLabel_5 = uilabel(app.HystereticmagnetizationfittingTab);
+            app.JsTEditFieldLabel_5.FontWeight = 'bold';
+            app.JsTEditFieldLabel_5.Position = [516 372 56 22];
+            app.JsTEditFieldLabel_5.Text = 'c';
+
+            % Create JsField_5
+            app.JsField_5 = uieditfield(app.HystereticmagnetizationfittingTab, 'text');
+            app.JsField_5.Editable = 'off';
+            app.JsField_5.HorizontalAlignment = 'right';
+            app.JsField_5.Position = [582 375 97 19];
+
+            % Create JsTEditFieldLabel_6
+            app.JsTEditFieldLabel_6 = uilabel(app.HystereticmagnetizationfittingTab);
+            app.JsTEditFieldLabel_6.FontWeight = 'bold';
+            app.JsTEditFieldLabel_6.Position = [516 343 56 22];
+            app.JsTEditFieldLabel_6.Text = 'k [A/m]';
+
+            % Create JsField_6
+            app.JsField_6 = uieditfield(app.HystereticmagnetizationfittingTab, 'text');
+            app.JsField_6.Editable = 'off';
+            app.JsField_6.HorizontalAlignment = 'right';
+            app.JsField_6.Position = [582 346 97 19];
+
+            % Create FitButton_2
+            app.FitButton_2 = uibutton(app.HystereticmagnetizationfittingTab, 'push');
+            app.FitButton_2.Position = [970 23 60 29];
+            app.FitButton_2.Text = 'Fit';
+
+            % Create CalculatePlotButton_2
+            app.CalculatePlotButton_2 = uibutton(app.HystereticmagnetizationfittingTab, 'push');
+            app.CalculatePlotButton_2.WordWrap = 'on';
+            app.CalculatePlotButton_2.Position = [753 23 104 29];
+            app.CalculatePlotButton_2.Text = 'Calculate & Plot';
+
+            % Create ErrortominimizeDropDownLabel_2
+            app.ErrortominimizeDropDownLabel_2 = uilabel(app.HystereticmagnetizationfittingTab);
+            app.ErrortominimizeDropDownLabel_2.WordWrap = 'on';
+            app.ErrortominimizeDropDownLabel_2.FontWeight = 'bold';
+            app.ErrortominimizeDropDownLabel_2.Position = [488 23 57 29];
+            app.ErrortominimizeDropDownLabel_2.Text = 'Error to minimize';
+
+            % Create ErrortominimizeDropDown_2
+            app.ErrortominimizeDropDown_2 = uidropdown(app.HystereticmagnetizationfittingTab);
+            app.ErrortominimizeDropDown_2.Items = {'Diagonal', 'Vertical', 'Horizontal'};
+            app.ErrortominimizeDropDown_2.Position = [555 23 97 29];
+            app.ErrortominimizeDropDown_2.Value = 'Diagonal';
+
+            % Create ErrorDisplay_2
+            app.ErrorDisplay_2 = uieditfield(app.HystereticmagnetizationfittingTab, 'text');
+            app.ErrorDisplay_2.Editable = 'off';
+            app.ErrorDisplay_2.Position = [663 23 79 29];
+
+            % Create RetrieveseedsButton
+            app.RetrieveseedsButton = uibutton(app.HystereticmagnetizationfittingTab, 'push');
+            app.RetrieveseedsButton.Position = [866 23 95 29];
+            app.RetrieveseedsButton.Text = 'Retrieve seeds';
+
+            % Create DrivingfieldLabel
+            app.DrivingfieldLabel = uilabel(app.HystereticmagnetizationfittingTab);
+            app.DrivingfieldLabel.FontWeight = 'bold';
+            app.DrivingfieldLabel.Position = [505 296 486 22];
+            app.DrivingfieldLabel.Text = 'Driving field';
+
+            % Create JsTEditFieldLabel_7
+            app.JsTEditFieldLabel_7 = uilabel(app.HystereticmagnetizationfittingTab);
+            app.JsTEditFieldLabel_7.FontWeight = 'bold';
+            app.JsTEditFieldLabel_7.Position = [516 263 62 22];
+            app.JsTEditFieldLabel_7.Text = 'Htip [A/m]';
+
+            % Create JsField_7
+            app.JsField_7 = uieditfield(app.HystereticmagnetizationfittingTab, 'text');
+            app.JsField_7.Editable = 'off';
+            app.JsField_7.HorizontalAlignment = 'right';
+            app.JsField_7.Position = [582 266 97 19];
+
+            % Create ShowgridCheckBoxM_2
+            app.ShowgridCheckBoxM_2 = uicheckbox(app.HystereticmagnetizationfittingTab);
+            app.ShowgridCheckBoxM_2.Text = 'Grid';
+            app.ShowgridCheckBoxM_2.Position = [226 21 62 22];
+            app.ShowgridCheckBoxM_2.Value = true;
+
+            % Create ResidualplotButtondMdH_2
+            app.ResidualplotButtondMdH_2 = uibutton(app.HystereticmagnetizationfittingTab, 'push');
+            app.ResidualplotButtondMdH_2.Position = [47 24 65 22];
+            app.ResidualplotButtondMdH_2.Text = 'Residuals';
+
+            % Create OutputmagnetizationdataTab
+            app.OutputmagnetizationdataTab = uitab(app.TabGroup);
+            app.OutputmagnetizationdataTab.Title = 'Output magnetization data';
+            app.OutputmagnetizationdataTab.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
+            app.OutputmagnetizationdataTab.ForegroundColor = [0.129411764705882 0.129411764705882 0.129411764705882];
 
             % Create GridLayoutMagnetizationoutputdata
-            app.GridLayoutMagnetizationoutputdata = uigridlayout(app.MagnetizationoutputdataTab);
+            app.GridLayoutMagnetizationoutputdata = uigridlayout(app.OutputmagnetizationdataTab);
             app.GridLayoutMagnetizationoutputdata.ColumnWidth = {'1x'};
             app.GridLayoutMagnetizationoutputdata.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
             app.GridLayoutMagnetizationoutputdata.RowSpacing = 5;
