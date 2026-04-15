@@ -12,5 +12,4 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 
 Includes external libraries:
 - Minimize, Copyright 2018 Rody Oldenhuis. For licensing see /minimize/license.txt
-- distance2curve (MATLAB File Exchange, John D'Errico) used for continuous diagonal error distance calculations.
 - interparc, Copyright 2012 John D'Errico. For licensing see /src/interparc/license.txt
