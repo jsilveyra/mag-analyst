@@ -1,9 +1,13 @@
 function import_src()
-    addpath(fullfile(pwd(), 'src', 'minimize'))
-    addpath(fullfile(pwd(), 'src', 'ResidueCalculator'))
-    addpath(fullfile(pwd(), 'src', 'ErrorCalculator'))
-    addpath(fullfile(pwd(), 'src', 'AnhystereticCurve'))
-    addpath(fullfile(pwd(), 'src', 'Parser'))
-    addpath(fullfile(pwd(), 'src', 'Plotter'))
-    addpath(fullfile(pwd(), 'src', 'MagneticParameters'))
+    src_dir = fileparts(mfilename('fullpath'));
+
+    addpath(src_dir)
+    addpath(fullfile(src_dir, 'minimize'))
+    addpath(fullfile(src_dir, 'ResidueCalculator'))
+    addpath(fullfile(src_dir, 'ErrorCalculator'))
+    addpath(fullfile(src_dir, 'AnhystereticCurve'))
+    addpath(fullfile(src_dir, 'Parser'))
+    addpath(fullfile(src_dir, 'Plotter'))
+    addpath(fullfile(src_dir, 'MagneticParameters'))
+    addpath(fullfile(src_dir, 'interparc'))
 end

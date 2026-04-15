@@ -345,22 +345,7 @@ classdef app_exported < matlab.apps.AppBase
             app.JsField.Value = app.format_short(app.magnetic_parameters.Js);
             app.murinField.Value = app.format_engineering(app.magnetic_parameters.murin);
 
-            if (app.ErrortominimizeDropDown.Value == "Diagonal")
-                error_calculator = DiagonalErrorCalculator(app.data_curve, app.modeled_curve);
-            end
-            if (app.ErrortominimizeDropDown.Value == "Vertical")
-                error_calculator = VerticalErrorCalculator(app.data_curve, app.modeled_curve);
-            end
-            if (app.ErrortominimizeDropDown.Value == "Horizontal")
-                error_calculator = HorizontalErrorCalculator(app.data_curve, app.modeled_curve);
-            end
-            e = error_calculator.get_error();
-            app.ErrorDisplay.Value = app.format_engineering(e);
-        end
-
-        function calculate_parameters(app)
-            N = app.NofpointsEditField.Value;
-
+            
             utils = Utils();
 
             [HTip, ~] = utils.find_tip(app.data_curve.H, app.data_curve.M);
@@ -369,17 +354,76 @@ classdef app_exported < matlab.apps.AppBase
             app.magnetic_parameters = MagneticParameters(app.data_curve, app.Hcr, app.mcr, app.Hx, select_a);
 
 
-            
-            if(app.PointSpaceDropDown.Value == "log")
-                Hhat = logspace(log10(app.data_curve.H(2)),log10(HTip),N-1);
-            elseif(app.PointSpaceDropDown.Value == "linear")
-                Hhat = linspace(app.data_curve.H(2),HTip,N-1);
+            error_type = string(app.ErrortominimizeDropDown.Value);
+            if (error_type == "Diagonal (H, sampled)")
+                error_calculator = DiagonalErrorCalculator(app.data_curve, app.modeled_curve, false, false);
+            elseif (error_type == "Diagonal (H, continuous)")
+                error_calculator = DiagonalErrorCalculator(app.data_curve, app.modeled_curve, false, true);
+            elseif (error_type == "Diagonal (logH, sampled)") || (error_type == "Diagonal (sampled)")
+                error_calculator = DiagonalErrorCalculator(app.data_curve, app.modeled_curve, true, false);
+            elseif (error_type == "Diagonal (logH, continuous)") || (error_type == "Diagonal") || (error_type == "Diagonal (continuous)")
+                error_calculator = DiagonalErrorCalculator(app.data_curve, app.modeled_curve, true, true);
+            elseif (error_type == "Vertical")
+                error_calculator = VerticalErrorCalculator(app.data_curve, app.modeled_curve);
+            elseif (error_type == "Horizontal")
+                error_calculator = HorizontalErrorCalculator(app.data_curve, app.modeled_curve);
+            else
+                app.write_message("Unknown error type: " + error_type);
+                return;
             end
 
+            e = error_calculator.get_error();
+            app.ErrorDisplay.Value = app.format_engineering(e);
+        end
+
+        function calculate_parameters(app)
+            % Guard: no data yet
+            if ~isobject(app.data_curve) || ~isprop(app.data_curve, 'H') || isempty(app.data_curve.H)
+                return;
+            end
+        
+            N = max(2, round(app.NofpointsEditField.Value));
+        
+            H = app.data_curve.H(:).';
+            M = app.data_curve.M(:).';
+        
+            % Work only with positive H for log spacing
+            Hpos = H(H > 0);
+            if numel(Hpos) < 2
+                app.write_message("Not enough positive H points to build modeled curve.");
+                return;
+            end
+        
+            % Robust HTip default + safe tip detection
+            HTip = max(Hpos);
+            try
+                [HTip_tmp, ~] = Utils().find_tip(H, M);
+                if ~isempty(HTip_tmp) && isfinite(HTip_tmp) && (HTip_tmp > 0)
+                    HTip = HTip_tmp;
+                end
+            catch
+                % keep fallback HTip
+            end
+        
+            Hstart = Hpos(1);
+            if HTip <= Hstart
+                HTip = max(Hpos);
+            end
+        
+            select_a = app.TableParameters.Data{1:app.number_components,5};
+            app.magnetic_parameters = MagneticParameters(app.data_curve, app.Hcr, app.mcr, app.Hx, select_a);
+        
+            point_space = string(app.PointSpaceDropDown.Value);
+            if (point_space == "log") || (point_space == "Logarithmically spaced")
+                Hhat = logspace(log10(Hstart), log10(HTip), N-1);
+            else
+                Hhat = linspace(Hstart, HTip, N-1);
+            end
+        
             Hhat = [0, Hhat];
             app.modeled_curve = ModeledAnhystereticCurve(Hhat, app.magnetic_parameters);
         end
-        
+
         function fit_parameters(app)
             N = app.NofpointsEditField.Value;
             app.calculate_parameters()
@@ -840,6 +884,10 @@ classdef app_exported < matlab.apps.AppBase
         
         function set_colors_and_plot(app, colors)
             app.Colors = colors;
+            if ~isobject(app.data_curve) || ~isprop(app.data_curve, 'H') || isempty(app.data_curve.H)
+                app.write_message("Colors updated. Import data before recalculating.");
+                return;
+            end
             update_components(app)
             calculate_parameters(app)
             plot(app)
@@ -1290,7 +1338,17 @@ classdef app_exported < matlab.apps.AppBase
             
             app.NofpointsEditField.Value = s.number_points;
             app.PointSpaceDropDown.Value = s.point_space;
-            app.ErrortominimizeDropDown.Value = s.error_type;
+            loaded_error_type = string(s.error_type);
+            if (loaded_error_type == "Diagonal") || (loaded_error_type == "Diagonal (continuous)")
+                loaded_error_type = "Diagonal (logH, continuous)";
+            elseif (loaded_error_type == "Diagonal (sampled)")
+                loaded_error_type = "Diagonal (logH, sampled)";
+            end
+            if any(strcmp(app.ErrortominimizeDropDown.Items, char(loaded_error_type)))
+                app.ErrortominimizeDropDown.Value = char(loaded_error_type);
+            else
+                app.ErrortominimizeDropDown.Value = app.ErrortominimizeDropDown.Items{1};
+            end
             app.InputDatasetPath.Value = s.input_path;
             app.HorizontalaxisfieldDropDown.Value = s.horizontal_axis;
             app.VerticalaxisfieldDropDown.Value = s.vertical_axis;
@@ -2111,10 +2169,10 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create ErrortominimizeDropDown
             app.ErrortominimizeDropDown = uidropdown(app.GridLayoutButtons);
-            app.ErrortominimizeDropDown.Items = {'Diagonal', 'Vertical', 'Horizontal'};
+            app.ErrortominimizeDropDown.Items = {'Diagonal (H, sampled)', 'Diagonal (H, continuous)', 'Diagonal (logH, sampled)', 'Diagonal (logH, continuous)', 'Vertical', 'Horizontal'};
             app.ErrortominimizeDropDown.Layout.Row = 1;
             app.ErrortominimizeDropDown.Layout.Column = 2;
-            app.ErrortominimizeDropDown.Value = 'Diagonal';
+            app.ErrortominimizeDropDown.Value = 'Diagonal (logH, continuous)';
 
             % Create ErrorDisplay
             app.ErrorDisplay = uieditfield(app.GridLayoutButtons, 'text');
@@ -2344,9 +2402,9 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create ErrortominimizeDropDown_2
             app.ErrortominimizeDropDown_2 = uidropdown(app.HystereticmagnetizationfittingTab);
-            app.ErrortominimizeDropDown_2.Items = {'Diagonal', 'Vertical', 'Horizontal'};
+            app.ErrortominimizeDropDown_2.Items = {'Diagonal (H, sampled)', 'Diagonal (H, continuous)', 'Diagonal (logH, sampled)', 'Diagonal (logH, continuous)', 'Vertical', 'Horizontal'};
             app.ErrortominimizeDropDown_2.Position = [555 23 97 29];
-            app.ErrortominimizeDropDown_2.Value = 'Diagonal';
+            app.ErrortominimizeDropDown_2.Value = 'Diagonal (H, sampled)';
 
             % Create ErrorDisplay_2
             app.ErrorDisplay_2 = uieditfield(app.HystereticmagnetizationfittingTab, 'text');

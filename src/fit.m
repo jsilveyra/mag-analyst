@@ -31,14 +31,20 @@ function [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub,
         magnetic_parameters = MagneticParameters(data_curve, Hcr_fit, mcr_fit, Hx_fit, select_a);
         
         modeled_curve = ModeledAnhystereticCurve(Hhat, magnetic_parameters);
-        if (error_type == "Diagonal")
-            error_calculator = DiagonalErrorCalculator(data_curve, modeled_curve);
-        end
-        if (error_type == "Vertical")
+        if (error_type == "Diagonal (H, sampled)")
+            error_calculator = DiagonalErrorCalculator(data_curve, modeled_curve, false, false);
+        elseif (error_type == "Diagonal (H, continuous)")
+            error_calculator = DiagonalErrorCalculator(data_curve, modeled_curve, false, true);
+        elseif (error_type == "Diagonal (logH, sampled)") || (error_type == "Diagonal (sampled)")
+            error_calculator = DiagonalErrorCalculator(data_curve, modeled_curve, true, false);
+        elseif (error_type == "Diagonal (logH, continuous)") || (error_type == "Diagonal") || (error_type == "Diagonal (continuous)")
+            error_calculator = DiagonalErrorCalculator(data_curve, modeled_curve, true, true);
+        elseif (error_type == "Vertical")
             error_calculator = VerticalErrorCalculator(data_curve, modeled_curve);
-        end
-        if (error_type == "Horizontal")
+        elseif (error_type == "Horizontal")
             error_calculator = HorizontalErrorCalculator(data_curve, modeled_curve);
+        else
+            error('Unknown error type: %s', error_type);
         end
 
         ret = error_calculator.get_error();

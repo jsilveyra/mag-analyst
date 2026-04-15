@@ -72,6 +72,7 @@ MagAnalyst was implemented and tested with the Matlab 2022b version on Windows 1
 MagAnalyst currently uses the following third-party libraries:
 * [minimize](https://www.mathworks.com/matlabcentral/fileexchange/24298-minimize) to find the constrained minimum of the objective function starting at the user’s initial estimates.
 * [interparc](https://in.mathworks.com/matlabcentral/fileexchange/34874-interparc) to calculate a set of equally spaced points from an original curve with unevenly spaced points.
+* [distance2curve](https://la.mathworks.com/matlabcentral/fileexchange/34869-distance2curve) to compute minimum Euclidean distance from data points to the modeled curve for the continuous diagonal error modes.
 
 ## Explanation document
 
