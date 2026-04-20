@@ -6,12 +6,8 @@ classdef DiagonalErrorCalculator < ErrorCalculator
         end
 
         function e = get_error(obj)
-            obj.X = obj.X(1:end);
-            obj.Y = obj.Y(1:end);
-%             Ydat = obj.Y(1:end-1);    % it was not necessary to remove last element; it is better to add the if && structure. Clean code!!
-%             Xdat = obj.X(1:end-1);
-            Ydat = obj.Y(1:end);
-            Xdat = obj.X(1:end);
+            Ydat = obj.Y;
+            Xdat = obj.X;
 
             e = 0;
             for i = 1:length(Ydat)
