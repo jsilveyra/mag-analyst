@@ -95,34 +95,9 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesM                           matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesHdMdH                       matlab.ui.control.UIAxes
-        HystereticmagnetizationfittingTab  matlab.ui.container.Tab
-        ResidualplotButtondMdH_2        matlab.ui.control.Button
-        ShowgridCheckBoxM_2             matlab.ui.control.CheckBox
-        JsField_7                       matlab.ui.control.EditField
-        JsTEditFieldLabel_7             matlab.ui.control.Label
-        DrivingfieldLabel               matlab.ui.control.Label
-        RetrieveseedsButton             matlab.ui.control.Button
-        ErrorDisplay_2                  matlab.ui.control.EditField
-        ErrortominimizeDropDown_2       matlab.ui.control.DropDown
-        ErrortominimizeDropDownLabel_2  matlab.ui.control.Label
-        CalculatePlotButton_2           matlab.ui.control.Button
-        FitButton_2                     matlab.ui.control.Button
-        JsField_6                       matlab.ui.control.EditField
-        JsTEditFieldLabel_6             matlab.ui.control.Label
-        JsField_5                       matlab.ui.control.EditField
-        JsTEditFieldLabel_5             matlab.ui.control.Label
-        JsField_4                       matlab.ui.control.EditField
-        JsTEditFieldLabel_4             matlab.ui.control.Label
-        JsField_3                       matlab.ui.control.EditField
-        JsTEditFieldLabel_3             matlab.ui.control.Label
-        JsField_2                       matlab.ui.control.EditField
-        JsTEditFieldLabel_2             matlab.ui.control.Label
-        ModelparametersLabel            matlab.ui.control.Label
-        JilesAthertonmodelrateindependentLabel  matlab.ui.control.Label
-        AxesM_2                         matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesM                           matlab.ui.control.UIAxes
         OutputmagnetizationdataTab      matlab.ui.container.Tab
         GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
         GridLayoutExperimentalMagnetizationData  matlab.ui.container.GridLayout
@@ -1930,14 +1905,14 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -1948,14 +1923,14 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
@@ -2297,153 +2272,6 @@ classdef app_exported < matlab.apps.AppBase
             app.FittedparametersLabel.Layout.Row = 3;
             app.FittedparametersLabel.Layout.Column = 1;
             app.FittedparametersLabel.Text = 'Fitted parameters';
-
-            % Create HystereticmagnetizationfittingTab
-            app.HystereticmagnetizationfittingTab = uitab(app.TabGroup);
-            app.HystereticmagnetizationfittingTab.Title = 'Hysteretic magnetization fitting ';
-
-            % Create AxesM_2
-            app.AxesM_2 = uiaxes(app.HystereticmagnetizationfittingTab);
-            xlabel(app.AxesM_2, 'H [A/m]')
-            ylabel(app.AxesM_2, 'M [A/m]')
-            zlabel(app.AxesM_2, 'Z')
-            app.AxesM_2.Box = 'on';
-            app.AxesM_2.Position = [8 51 469 469];
-
-            % Create JilesAthertonmodelrateindependentLabel
-            app.JilesAthertonmodelrateindependentLabel = uilabel(app.HystereticmagnetizationfittingTab);
-            app.JilesAthertonmodelrateindependentLabel.FontWeight = 'bold';
-            app.JilesAthertonmodelrateindependentLabel.Position = [8 518 1022 25];
-            app.JilesAthertonmodelrateindependentLabel.Text = 'Jiles-Atherton model (rate-independent)';
-
-            % Create ModelparametersLabel
-            app.ModelparametersLabel = uilabel(app.HystereticmagnetizationfittingTab);
-            app.ModelparametersLabel.FontWeight = 'bold';
-            app.ModelparametersLabel.Position = [505 498 486 22];
-            app.ModelparametersLabel.Text = 'Model parameters';
-
-            % Create JsTEditFieldLabel_2
-            app.JsTEditFieldLabel_2 = uilabel(app.HystereticmagnetizationfittingTab);
-            app.JsTEditFieldLabel_2.FontWeight = 'bold';
-            app.JsTEditFieldLabel_2.Position = [516 465 56 22];
-            app.JsTEditFieldLabel_2.Text = 'Ms [A/m]';
-
-            % Create JsField_2
-            app.JsField_2 = uieditfield(app.HystereticmagnetizationfittingTab, 'text');
-            app.JsField_2.Editable = 'off';
-            app.JsField_2.HorizontalAlignment = 'right';
-            app.JsField_2.Position = [582 468 97 19];
-
-            % Create JsTEditFieldLabel_3
-            app.JsTEditFieldLabel_3 = uilabel(app.HystereticmagnetizationfittingTab);
-            app.JsTEditFieldLabel_3.FontWeight = 'bold';
-            app.JsTEditFieldLabel_3.Position = [516 433 56 22];
-            app.JsTEditFieldLabel_3.Text = 'a [A/m]';
-
-            % Create JsField_3
-            app.JsField_3 = uieditfield(app.HystereticmagnetizationfittingTab, 'text');
-            app.JsField_3.Editable = 'off';
-            app.JsField_3.HorizontalAlignment = 'right';
-            app.JsField_3.Position = [582 436 97 19];
-
-            % Create JsTEditFieldLabel_4
-            app.JsTEditFieldLabel_4 = uilabel(app.HystereticmagnetizationfittingTab);
-            app.JsTEditFieldLabel_4.FontWeight = 'bold';
-            app.JsTEditFieldLabel_4.Position = [516 402 56 22];
-            app.JsTEditFieldLabel_4.Text = 'alpha';
-
-            % Create JsField_4
-            app.JsField_4 = uieditfield(app.HystereticmagnetizationfittingTab, 'text');
-            app.JsField_4.Editable = 'off';
-            app.JsField_4.HorizontalAlignment = 'right';
-            app.JsField_4.Position = [582 405 97 19];
-
-            % Create JsTEditFieldLabel_5
-            app.JsTEditFieldLabel_5 = uilabel(app.HystereticmagnetizationfittingTab);
-            app.JsTEditFieldLabel_5.FontWeight = 'bold';
-            app.JsTEditFieldLabel_5.Position = [516 372 56 22];
-            app.JsTEditFieldLabel_5.Text = 'c';
-
-            % Create JsField_5
-            app.JsField_5 = uieditfield(app.HystereticmagnetizationfittingTab, 'text');
-            app.JsField_5.Editable = 'off';
-            app.JsField_5.HorizontalAlignment = 'right';
-            app.JsField_5.Position = [582 375 97 19];
-
-            % Create JsTEditFieldLabel_6
-            app.JsTEditFieldLabel_6 = uilabel(app.HystereticmagnetizationfittingTab);
-            app.JsTEditFieldLabel_6.FontWeight = 'bold';
-            app.JsTEditFieldLabel_6.Position = [516 343 56 22];
-            app.JsTEditFieldLabel_6.Text = 'k [A/m]';
-
-            % Create JsField_6
-            app.JsField_6 = uieditfield(app.HystereticmagnetizationfittingTab, 'text');
-            app.JsField_6.Editable = 'off';
-            app.JsField_6.HorizontalAlignment = 'right';
-            app.JsField_6.Position = [582 346 97 19];
-
-            % Create FitButton_2
-            app.FitButton_2 = uibutton(app.HystereticmagnetizationfittingTab, 'push');
-            app.FitButton_2.Position = [970 23 60 29];
-            app.FitButton_2.Text = 'Fit';
-
-            % Create CalculatePlotButton_2
-            app.CalculatePlotButton_2 = uibutton(app.HystereticmagnetizationfittingTab, 'push');
-            app.CalculatePlotButton_2.WordWrap = 'on';
-            app.CalculatePlotButton_2.Position = [753 23 104 29];
-            app.CalculatePlotButton_2.Text = 'Calculate & Plot';
-
-            % Create ErrortominimizeDropDownLabel_2
-            app.ErrortominimizeDropDownLabel_2 = uilabel(app.HystereticmagnetizationfittingTab);
-            app.ErrortominimizeDropDownLabel_2.WordWrap = 'on';
-            app.ErrortominimizeDropDownLabel_2.FontWeight = 'bold';
-            app.ErrortominimizeDropDownLabel_2.Position = [488 23 57 29];
-            app.ErrortominimizeDropDownLabel_2.Text = 'Error to minimize';
-
-            % Create ErrortominimizeDropDown_2
-            app.ErrortominimizeDropDown_2 = uidropdown(app.HystereticmagnetizationfittingTab);
-            app.ErrortominimizeDropDown_2.Items = {'Diagonal (H, sampled)', 'Diagonal (H, continuous)', 'Diagonal (logH, sampled)', 'Diagonal (logH, continuous)', 'Vertical', 'Horizontal'};
-            app.ErrortominimizeDropDown_2.Position = [555 23 97 29];
-            app.ErrortominimizeDropDown_2.Value = 'Diagonal (H, sampled)';
-
-            % Create ErrorDisplay_2
-            app.ErrorDisplay_2 = uieditfield(app.HystereticmagnetizationfittingTab, 'text');
-            app.ErrorDisplay_2.Editable = 'off';
-            app.ErrorDisplay_2.Position = [663 23 79 29];
-
-            % Create RetrieveseedsButton
-            app.RetrieveseedsButton = uibutton(app.HystereticmagnetizationfittingTab, 'push');
-            app.RetrieveseedsButton.Position = [866 23 95 29];
-            app.RetrieveseedsButton.Text = 'Retrieve seeds';
-
-            % Create DrivingfieldLabel
-            app.DrivingfieldLabel = uilabel(app.HystereticmagnetizationfittingTab);
-            app.DrivingfieldLabel.FontWeight = 'bold';
-            app.DrivingfieldLabel.Position = [505 296 486 22];
-            app.DrivingfieldLabel.Text = 'Driving field';
-
-            % Create JsTEditFieldLabel_7
-            app.JsTEditFieldLabel_7 = uilabel(app.HystereticmagnetizationfittingTab);
-            app.JsTEditFieldLabel_7.FontWeight = 'bold';
-            app.JsTEditFieldLabel_7.Position = [516 263 62 22];
-            app.JsTEditFieldLabel_7.Text = 'Htip [A/m]';
-
-            % Create JsField_7
-            app.JsField_7 = uieditfield(app.HystereticmagnetizationfittingTab, 'text');
-            app.JsField_7.Editable = 'off';
-            app.JsField_7.HorizontalAlignment = 'right';
-            app.JsField_7.Position = [582 266 97 19];
-
-            % Create ShowgridCheckBoxM_2
-            app.ShowgridCheckBoxM_2 = uicheckbox(app.HystereticmagnetizationfittingTab);
-            app.ShowgridCheckBoxM_2.Text = 'Grid';
-            app.ShowgridCheckBoxM_2.Position = [226 21 62 22];
-            app.ShowgridCheckBoxM_2.Value = true;
-
-            % Create ResidualplotButtondMdH_2
-            app.ResidualplotButtondMdH_2 = uibutton(app.HystereticmagnetizationfittingTab, 'push');
-            app.ResidualplotButtondMdH_2.Position = [47 24 65 22];
-            app.ResidualplotButtondMdH_2.Text = 'Residuals';
 
             % Create OutputmagnetizationdataTab
             app.OutputmagnetizationdataTab = uitab(app.TabGroup);
