@@ -37,7 +37,7 @@ classdef ResiduePlotter
             xlabel(ax, 'H (A/m)');
             ylabel(ax, 'Residual');
             if obj.Log
-                set(gca,'xscal','log');
+                set(ax,'xscal','log');
             end
             set(ax,'yticklabels',[]);
         end
@@ -50,7 +50,7 @@ classdef ResiduePlotter
             ylabel(ax, obj.Label);
             hold( ax, 'off' );
             if obj.Log
-                set(gca,'xscal','log');
+                set(ax,'xscal','log');
             end
         end
 

@@ -86,11 +86,7 @@ classdef DiagonalErrorCalculator < ErrorCalculator
 
                 delta_x = abs(x_on_model - Xdat(i))/x_scale;
                 delta_y = abs(y_on_data - Ydat(i))/y_scale;
-                if (delta_x == 0) && (delta_y == 0)
-                    delta_o = 0;
-                else
-                    delta_o = delta_y*cos(atan(delta_y/delta_x));
-                end
+                delta_o = delta_y * cos(atan2(delta_y, delta_x));
                 e = e + (delta_o^2);
             end
             e = sqrt(e)/length(Ydat);

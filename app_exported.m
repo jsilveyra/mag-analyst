@@ -799,6 +799,10 @@ classdef app_exported < matlab.apps.AppBase
         
         function save(app)
             file = fopen(app.ProjectPath,'w');
+            if file == -1
+                app.write_message("Could not open file for writing: " + app.ProjectPath);
+                return;
+            end
 
             s.fitted_parameters_value = app.fitted_parameter_values(:);
             s.fitted_parameters_lower_bound = app.TableFittedParameters.Data(:,3);
@@ -829,7 +833,11 @@ classdef app_exported < matlab.apps.AppBase
             s.axis_scale_m = app.AxisScaleDropDownM.Value;
             s.axis_scale_dMdH = app.AxisScaleDropDowndMdH.Value;
             s.axis_scale_hdMdH = app.AxisScaleDropDownHdMdH.Value;
+            s.fitting_show_grid_m_checkbox = app.ShowgridCheckBoxM.Value;
+            s.fitting_show_grid_dmdh_checkbox = app.ShowgridCheckBoxdMdH.Value;
             s.fitting_show_grid_checkbox = app.ShowgridCheckBoxHdMdH.Value;
+            s.fitting_plot_components_m_checkbox = app.PlotcomponentsCheckBoxM.Value;
+            s.fitting_plot_components_dmdh_checkbox = app.PlotcomponentsCheckBoxdMdH.Value;
             s.fitting_plot_components_checkbox = app.PlotcomponentsCheckBoxHdMdH.Value;
             s.fitting_show_hcr_checkbox = app.ShowhcrCheckBoxHdMdH.Value;
 
@@ -1011,9 +1019,17 @@ classdef app_exported < matlab.apps.AppBase
         % Value changed function: InputDatasetPath
         function InputDatasetPathValueChanged(app, event)
             dataset_path = app.InputDatasetPath.Value;
-            [app.H, app.M] = Parser(dataset_path).get_data_csv;
-            update_components(app)
-            calculate_parameters(app)
+            if dataset_path == "" || ~isfile(dataset_path)
+                return
+            end
+            try
+                app.import_data(dataset_path);
+                update_components(app)
+                calculate_parameters(app)
+                app.plot_input();
+            catch e
+                app.write_message("Import failed: " + e.message);
+            end
         end
 
         % Callback function
@@ -1092,7 +1108,7 @@ classdef app_exported < matlab.apps.AppBase
                     t.Properties.VariableNames = variable_names;
                 end
                 file_name = strcat(app.EditFieldFileNameModeledAnhystereticMagnetization.Value, app.DropDownOutputModeledAnhystereticMagnetizationExtension.Value);
-                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+                path = fullfile(app.OutputDatasetPath.Value, file_name);
                 writetable(t,path, 'Delimiter', ';');
                 app.write_message("Modeled data saved as " + file_name);
             end
@@ -1101,7 +1117,7 @@ classdef app_exported < matlab.apps.AppBase
                 t = table(transpose(app.data_curve.H), transpose(app.data_curve.M));
                 t.Properties.VariableNames(:) = {'H [A/m]' 'M [A/m]'};
                 file_name = strcat(app.EditFieldFileNameExperimentalMagnetizationData.Value, app.DropDownOutputExperimentalMagnetizationData.Value);
-                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+                path = fullfile(app.OutputDatasetPath.Value, file_name);
                 writetable(t,path, 'Delimiter', ';');
                 app.write_message("Experimental data saved as " + file_name);
             end
@@ -1157,7 +1173,9 @@ classdef app_exported < matlab.apps.AppBase
 
         % Close request function: MagAnalystUIFigure
         function MagAnalystUIFigureCloseRequest(app, event)
-            delete(app.ColorDialogApp)
+            if ~isempty(app.ColorDialogApp) && isvalid(app.ColorDialogApp)
+                delete(app.ColorDialogApp)
+            end
             delete(app)
         end
 
@@ -1168,8 +1186,12 @@ classdef app_exported < matlab.apps.AppBase
                 return;
             end
             file_name = strcat(app.EditFieldFileNameParameters.Value, app.DropDownOutputParametersExtension.Value);
-            path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+            path = fullfile(app.OutputDatasetPath.Value, file_name);
             file = fopen(path,'w');
+            if file == -1
+                app.write_message("Could not open file for writing: " + path);
+                return;
+            end
             fprintf(file, "Parameters:" + newline);
             if(app.ExportFittedparametersCheckBox.Value == 1)
                 fprintf(file, "Fitted Parameters:" + newline);
@@ -1238,7 +1260,7 @@ classdef app_exported < matlab.apps.AppBase
 
             if (app.CheckBoxExportPlotMagnetization.Value == 1)
                 file_name = strcat(app.EditFieldFileNamePlotMagnetization.Value, app.DropDownPlotMagnetizacionExtension.Value);
-                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+                path = fullfile(app.OutputDatasetPath.Value, file_name);
                 exportgraphics(app.AxesM,path,'Resolution',400);
                 message = strcat("Magnetization plots exported as ",file_name);
                 app.write_message(message);
@@ -1246,7 +1268,7 @@ classdef app_exported < matlab.apps.AppBase
 
             if (app.CheckBoxExportPlotSusceptibility.Value == 1)
                 file_name = strcat(app.EditFieldFileNamePlotSusceptibility.Value, app.DropDownPlotSusceptibilityExtension.Value);
-                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+                path = fullfile(app.OutputDatasetPath.Value, file_name);
                 exportgraphics(app.AxesdMdH,path,'Resolution',400);
                 message = strcat("Susceptibility plots exported as ",file_name);
                 app.write_message(message);
@@ -1254,7 +1276,7 @@ classdef app_exported < matlab.apps.AppBase
 
             if(app.CheckBoxExportPlotSemiLogMagDerivative.Value == 1)
                 file_name = strcat(app.EditFieldFileNamePlotSemiLogMagDerivative.Value, app.DropDownPlotSemiLogMagDerivativeExtension.Value);
-                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+                path = fullfile(app.OutputDatasetPath.Value, file_name);
                 exportgraphics(app.AxesHdMdH,path,'Resolution',400);
                 message = strcat("Semi-Log Magnetization Derivative plots exported as ",file_name);
                 app.write_message(message);
@@ -1341,7 +1363,31 @@ classdef app_exported < matlab.apps.AppBase
             app.EditFieldFileNameResiduesSusceptibility.Value = s.susceptibility_residual_file_name;
             app.EditFieldFileNameResiduesSemiLogMagDerivative.Value = s.semi_log_derivative_file_name;
 
+            if isfield(s, 'input_axis_scale')
+                app.InputAxisScaleDropDown.Value = s.input_axis_scale;
+            end
+            if isfield(s, 'axis_scale_m')
+                app.AxisScaleDropDownM.Value = s.axis_scale_m;
+            end
+            if isfield(s, 'axis_scale_dMdH')
+                app.AxisScaleDropDowndMdH.Value = s.axis_scale_dMdH;
+            end
+            if isfield(s, 'axis_scale_hdMdH')
+                app.AxisScaleDropDownHdMdH.Value = s.axis_scale_hdMdH;
+            end
+            if isfield(s, 'fitting_show_grid_m_checkbox')
+                app.ShowgridCheckBoxM.Value = s.fitting_show_grid_m_checkbox;
+            end
+            if isfield(s, 'fitting_show_grid_dmdh_checkbox')
+                app.ShowgridCheckBoxdMdH.Value = s.fitting_show_grid_dmdh_checkbox;
+            end
             app.ShowgridCheckBoxHdMdH.Value = s.fitting_show_grid_checkbox;
+            if isfield(s, 'fitting_plot_components_m_checkbox')
+                app.PlotcomponentsCheckBoxM.Value = s.fitting_plot_components_m_checkbox;
+            end
+            if isfield(s, 'fitting_plot_components_dmdh_checkbox')
+                app.PlotcomponentsCheckBoxdMdH.Value = s.fitting_plot_components_dmdh_checkbox;
+            end
             app.PlotcomponentsCheckBoxHdMdH.Value = s.fitting_plot_components_checkbox;
             if isfield(s, 'fitting_show_hcr_checkbox')
                 show_hcr_value = s.fitting_show_hcr_checkbox;
@@ -1435,32 +1481,22 @@ classdef app_exported < matlab.apps.AppBase
             app.apply_axis_scale(app.AxesRawInputData, value);
         end
 
-        % Callback function
-        function InputAxisScaleDropDownValueChanged(app, event)
-            app.InputAxisScaleDropDown.Value;
-            app.plot_HdMdH();
-            axis_scale = string(app.AxisScaleDropDownHdMdH.Value);
-            app.apply_axis_scale(app.AxesHdMdH, axis_scale);
-        end
-
         % Value changed function: AxisScaleDropDownM
         function AxisScaleDropDownMValueChanged(app, event)
-            app.AxisScaleDropDownM.Value;
             axis_scale = string(app.AxisScaleDropDownM.Value);
             app.apply_axis_scale(app.AxesM, axis_scale);
         end
 
         % Value changed function: AxisScaleDropDowndMdH
         function AxisScaleDropDowndMdHValueChanged(app, event)
-            app.AxisScaleDropDowndMdH.Value;
             axis_scale = string(app.AxisScaleDropDowndMdH.Value);
-            app.apply_axis_scale(app.AxesdMdH, axis_scale); 
+            app.apply_axis_scale(app.AxesdMdH, axis_scale);
         end
 
         % Value changed function: AxisScaleDropDownHdMdH
         function AxisScaleDropDownHdMdHValueChanged(app, event)
-            app.AxisScaleDropDownHdMdH.Value;
-            
+            axis_scale = string(app.AxisScaleDropDownHdMdH.Value);
+            app.apply_axis_scale(app.AxesHdMdH, axis_scale);
         end
 
         % Value changed function: CurveDropDown

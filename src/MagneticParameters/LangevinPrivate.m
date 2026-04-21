@@ -13,7 +13,7 @@ classdef LangevinPrivate
         end
 
         function ret = inverse(~, m)
-            if m == 1
+            if abs(m - 1) < 1e-10
                 error('Langevin:inverse m cannot be equal to one');
             end
 

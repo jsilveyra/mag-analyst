@@ -9,12 +9,7 @@ classdef ResidueCalculator
     methods (Access = public)
         function residue = get_residue(obj)
             Yint = interp1(obj.Xhat, obj.Yhat, obj.X, 'linear', 'extrap');
-            Yint = Yint(1:end);
-            Ydat = obj.Y(1:end);
-            residue = zeros(1, length(Ydat));
-            for i = 1:length(Yint)
-                residue(i) = Ydat(i) - Yint(i);
-            end
+            residue = obj.Y - Yint;
         end
     end
 end

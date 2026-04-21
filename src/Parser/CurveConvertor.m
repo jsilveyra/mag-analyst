@@ -11,14 +11,10 @@ classdef CurveConvertor
             H = X;
             M = Y;
             if(curve_type == "Anhysteretic curve")
-                new_index = -1;
-                for i = 1:length(H)
-                    if( H(i) >= 0 )
-                        new_index = i;
-                        break;
-                    end
+                new_index = find(H >= 0, 1);
+                if isempty(new_index)
+                    error('CurveConvertor:noPositiveH', 'No non-negative H values found in the Anhysteretic curve data.');
                 end
-
                 H = H(new_index:end);
                 M = M(new_index:end);
                 return;
@@ -69,19 +65,14 @@ classdef CurveConvertor
             H = 1/2*(H_right_query + H_left_query);
             M = M_query;
 
-            new_index = -1;
-
             if (H(1)<10^-6 || M(1)<10^-6) % this is because sometimes we obtained, for example (H;M)=(1.77635683940025e-14;0) as the first point
                 H(1)=0;
             end
 
-            for i = 1:length(H)
-              if( H(i) >= 0 )
-                new_index = i;
-                break;
-              end
+            new_index = find(H >= 0, 1);
+            if isempty(new_index)
+                error('CurveConvertor:noPositiveH', 'No non-negative H values found after initial processing.');
             end
-
             H = H(new_index:end);
             M = M(new_index:end);
 
@@ -104,19 +95,14 @@ classdef CurveConvertor
             H = 1/2*(H_right_query + H_left_query);
             M = M_query;
             
-            new_index = -1;
-
             if (H(1)<10^-6 || M(1)<10^-6) % this is because sometimes we obtained, for example (H;M)=(1.77635683940025e-14;0) as the first point
                 H(1)=0;
             end
 
-            for i = 1:length(H)
-              if( H(i) >= 0 )
-                new_index = i;
-                break;
-              end
+            new_index = find(H >= 0, 1);
+            if isempty(new_index)
+                error('CurveConvertor:noPositiveH', 'No non-negative H values found after resampling.');
             end
-
             H = H(new_index:end);
             M = M(new_index:end);
         end
