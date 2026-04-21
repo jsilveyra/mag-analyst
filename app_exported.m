@@ -401,7 +401,7 @@ classdef app_exported < matlab.apps.AppBase
 
         function fit_parameters(app)
             N = app.NofpointsEditField.Value;
-            app.calculate_parameters()
+            app.calculate_parameters();
             select_a = app.TableParameters.Data{1:app.number_components,5};
             fit_lb = zeros(app.number_components*3 - 1, 1);
             fit_ub = zeros(app.number_components*3 - 1, 1);

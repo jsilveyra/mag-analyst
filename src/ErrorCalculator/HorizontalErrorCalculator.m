@@ -7,7 +7,9 @@ classdef HorizontalErrorCalculator < ErrorCalculator
 
         function e = get_error(obj)
             Xint = interp1(obj.Yhat, obj.Xhat, obj.Y, 'linear', 'extrap');
-            e = sqrt(sum((obj.X - Xint).^2)) / max(obj.X) / length(obj.X);
+            x_max = max(obj.X);
+            if x_max == 0, x_max = 1; end
+            e = sqrt(sum((obj.X - Xint).^2)) / x_max / length(obj.X);
         end
     end
 end
