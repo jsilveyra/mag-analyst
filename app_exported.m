@@ -95,9 +95,9 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesHdMdH                       matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesM                           matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesHdMdH                       matlab.ui.control.UIAxes
         OutputmagnetizationdataTab      matlab.ui.container.Tab
         GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
         GridLayoutExperimentalMagnetizationData  matlab.ui.container.GridLayout
@@ -1341,8 +1341,12 @@ classdef app_exported < matlab.apps.AppBase
             app.EditFieldFileNameResiduesSusceptibility.Value = s.susceptibility_residual_file_name;
             app.EditFieldFileNameResiduesSemiLogMagDerivative.Value = s.semi_log_derivative_file_name;
 
-            app.ShowgridCheckBoxHdMdH.Value = s.fitting_show_grid_checkbox;
-            app.PlotcomponentsCheckBoxHdMdH.Value = s.fitting_plot_components_checkbox;
+            if isfield(s, 'fitting_show_grid_checkbox')
+                app.ShowgridCheckBoxHdMdH.Value = s.fitting_show_grid_checkbox;
+            end
+            if isfield(s, 'fitting_plot_components_checkbox')
+                app.PlotcomponentsCheckBoxHdMdH.Value = s.fitting_plot_components_checkbox;
+            end
             if isfield(s, 'fitting_show_hcr_checkbox')
                 show_hcr_value = s.fitting_show_hcr_checkbox;
             else
@@ -1905,14 +1909,14 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -1923,14 +1927,14 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
@@ -2216,7 +2220,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayoutModeledCurve
             app.GridLayoutModeledCurve = uigridlayout(app.GridLayoutNumbers);
-            app.GridLayoutModeledCurve.ColumnWidth = {'1x', '0.32x', '0.75x', '0.32x', '1x', '0.6x'};
+            app.GridLayoutModeledCurve.ColumnWidth = {'1x', '0.5x', '0.7x', '0.6x', '0.6x', '1x'};
             app.GridLayoutModeledCurve.RowHeight = {'1x'};
             app.GridLayoutModeledCurve.ColumnSpacing = 3;
             app.GridLayoutModeledCurve.Padding = [0 0 0 0];
@@ -2240,7 +2244,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create NofpointsEditFieldLabel
             app.NofpointsEditFieldLabel = uilabel(app.GridLayoutModeledCurve);
             app.NofpointsEditFieldLabel.Layout.Row = 1;
-            app.NofpointsEditFieldLabel.Layout.Column = 3;
+            app.NofpointsEditFieldLabel.Layout.Column = 4;
             app.NofpointsEditFieldLabel.Text = 'N. of points';
 
             % Create NofpointsEditField
@@ -2248,7 +2252,7 @@ classdef app_exported < matlab.apps.AppBase
             app.NofpointsEditField.Limits = [0 Inf];
             app.NofpointsEditField.ValueDisplayFormat = '%.0f';
             app.NofpointsEditField.Layout.Row = 1;
-            app.NofpointsEditField.Layout.Column = 4;
+            app.NofpointsEditField.Layout.Column = 5;
             app.NofpointsEditField.Value = 100;
 
             % Create PointSpaceDropDown
@@ -2256,14 +2260,14 @@ classdef app_exported < matlab.apps.AppBase
             app.PointSpaceDropDown.Items = {'Logarithmically spaced', 'Lineraly spaced'};
             app.PointSpaceDropDown.ItemsData = {'log', 'linear'};
             app.PointSpaceDropDown.Layout.Row = 1;
-            app.PointSpaceDropDown.Layout.Column = 5;
+            app.PointSpaceDropDown.Layout.Column = 6;
             app.PointSpaceDropDown.Value = 'log';
 
             % Create SetColorsButton
             app.SetColorsButton = uibutton(app.GridLayoutModeledCurve, 'push');
             app.SetColorsButton.ButtonPushedFcn = createCallbackFcn(app, @SetColorsButtonPushed, true);
             app.SetColorsButton.Layout.Row = 1;
-            app.SetColorsButton.Layout.Column = 6;
+            app.SetColorsButton.Layout.Column = 3;
             app.SetColorsButton.Text = 'Set Colors';
 
             % Create FittedparametersLabel

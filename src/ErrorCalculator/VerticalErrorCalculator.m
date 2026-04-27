@@ -7,14 +7,11 @@ classdef VerticalErrorCalculator < ErrorCalculator
 
         function e = get_error(obj)
             Yint = interp1(obj.Xhat, obj.Yhat, obj.X, 'linear', 'extrap');
-            Yint = Yint(1:end);
-            Ydat = obj.Y(1:end);
-            e = 0;
-            for i = 1:length(Yint)
-                aux = Ydat(i) - Yint(i);
-                e = e + (aux^2);
+            y_max = max(abs(obj.Y));
+            if isempty(y_max) || y_max == 0
+                y_max = 1;
             end
-            e = (sqrt(e)/max(obj.Y))/length(obj.Y);
+            e = sqrt(sum((obj.Y - Yint).^2)) / y_max / length(obj.Y);
         end
     end
 end
