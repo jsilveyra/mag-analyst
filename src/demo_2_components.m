@@ -1,10 +1,17 @@
 %% demo_2_components.m
 clc; clear; close all;
 
+%% Bootstrap paths (run from anywhere)
+src_dir = fileparts(mfilename('fullpath'));
+if isempty(src_dir)
+    src_dir = pwd;
+end
+run(fullfile(src_dir, 'import_src.m'));
+project_root = fileparts(src_dir);
+
 %% Parser
 parser_constants = ParserConstants();
-% Build cross-platform path
-data_file = fullfile('data', 'sampleData', 'Finemet - TA.csv');
+data_file = fullfile(project_root, 'data', 'sampleData', 'Finemet - TA.csv');
 
 % Initialize parser: parser = Parser(file_path, x_field_and_unit, y_field_and_unit, curve_type)
 % Refer to ParserConstants for the supported fields/units for both axes.
@@ -22,10 +29,10 @@ data_curve = DataAnhystereticCurve(H, M);
 
 %% Fit parameters
 seed = [1.5000 6.0000 0.5000 0.5000 3.7500]; 
-lower_bound = [0; 0; 0.4496; 0.4496; 0];
-upper_bound = [5; 10; 1; 1; 14]; 
-select_fit = {true; true; true; true; true};
-select_a = categorical({'low';'low'});
+lower_bound = [0 0 0.4496 0.4496 0];
+upper_bound = [5 10 1 1 14]; 
+select_fit = {true true true true true};
+select_a = ["low" "low"];
 fit_constants = FitConstants();
 
 [Hcr, mcr, Hx] = fit(data_curve, seed, 100, select_a, ...
