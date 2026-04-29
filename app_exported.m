@@ -95,9 +95,9 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesM                           matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesHdMdH                       matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesM                           matlab.ui.control.UIAxes
         HystereticmagnetizationfittingTab  matlab.ui.container.Tab
         ResidualplotButtondMdH_2        matlab.ui.control.Button
         ShowgridCheckBoxM_2             matlab.ui.control.CheckBox
@@ -197,6 +197,7 @@ classdef app_exported < matlab.apps.AppBase
         AppRoot string                % MOD: root folder of the app
         H_raw
         M_raw
+        imported_curve_type string = ""
         data_curve
         modeled_curve
         Hcr
@@ -798,9 +799,164 @@ classdef app_exported < matlab.apps.AppBase
             H_unit = app.HorizontalaxisfieldDropDown.Value;
             M_unit = app.VerticalaxisfieldDropDown.Value;
             curve_type = app.CurveDropDown.Value;
+            app.imported_curve_type = string(curve_type);
             [H, M, app.H_raw, app.M_raw] = Parser(path, H_unit, M_unit, curve_type, number_of_points).import();
             
             app.data_curve = DataAnhystereticCurve(H, M);
+        end
+        
+        function is_anhysteretic = is_last_import_anhysteretic(app)
+            parser_constants = ParserConstants();
+            curve_type = string(app.imported_curve_type);
+            if strlength(curve_type) == 0
+                curve_type = string(app.CurveDropDown.Value);
+            end
+            is_anhysteretic = curve_type == parser_constants.ANHYSTERETIC_CURVE_TYPE;
+        end
+
+        function [H_left, M_left] = extract_left_branch_uniform_arc(~, H_in, M_in, number_points)
+            H = H_in(:)';
+            M = M_in(:)';
+            valid = isfinite(H) & isfinite(M);
+            H = H(valid);
+            M = M(valid);
+
+            if numel(H) < 2
+                H_left = H;
+                M_left = M;
+                return;
+            end
+
+            [~, H_min_index] = min(H);
+            H_sorted = [H(H_min_index:end) H(1:H_min_index)];
+            M_sorted = [M(H_min_index:end) M(1:H_min_index)];
+
+            denom_H = max(H_sorted.^2);
+            denom_M = max(M_sorted.^2);
+            if denom_H == 0
+                denom_H = 1;
+            end
+            if denom_M == 0
+                denom_M = 1;
+            end
+
+            H2M2 = sign(H_sorted).*(H_sorted).^2./denom_H + sign(M_sorted).*(M_sorted).^2./denom_M;
+            [~, max_index] = max(H2M2);
+            H_left_raw = H_sorted(max_index:end);
+            M_left_raw = M_sorted(max_index:end);
+
+            if nargin < 4 || isempty(number_points) || number_points < 2
+                number_points = numel(H_left_raw);
+            end
+
+            ds = hypot(diff(H_left_raw), diff(M_left_raw));
+            s = [0 cumsum(ds)];
+            [s_unique, idx_unique] = unique(s, 'stable');
+
+            if numel(s_unique) < 2
+                H_left = H_left_raw;
+                M_left = M_left_raw;
+                return;
+            end
+
+            H_unique = H_left_raw(idx_unique);
+            M_unique = M_left_raw(idx_unique);
+            s_query = linspace(s_unique(1), s_unique(end), round(number_points));
+            H_left = interp1(s_unique, H_unique, s_query, 'linear');
+            M_left = interp1(s_unique, M_unique, s_query, 'linear');
+        end
+
+        function [H_cycle, M_cycle] = build_ja_data_cycle(app)
+            H_unit = app.HorizontalaxisfieldDropDown.Value;
+            M_unit = app.VerticalaxisfieldDropDown.Value;
+            [H_conv, M_conv] = UnitConvertor().convert_H_M(app.H_raw, H_unit, app.M_raw, M_unit);
+
+            n_left = max(2, round(app.InputNumberofPointsEditField.Value));
+            [H_left, M_left] = app.extract_left_branch_uniform_arc(H_conv, M_conv, n_left);
+            H_right = -H_left;
+            M_right = -M_left;
+
+            H_cycle = [H_left H_right(2:end)];
+            M_cycle = [M_left M_right(2:end)];
+        end
+
+        function plot_hysteretic_tab_data(app)
+            ax = app.AxesM_2;
+            cla(ax, 'reset');
+            hold(ax, 'on');
+
+            has_raw_data = ~isempty(app.H_raw) && ~isempty(app.M_raw);
+            if has_raw_data && app.is_last_import_anhysteretic()
+                plot(app, ax, app.data_curve.H, app.data_curve.M, '.-', 'Color', [0 0 0], 'LineWidth', 1.0, 'MarkerSize', 7);
+                app.write_message("Warning: Anhysteretic magnetization data detected. The curve can be used for Jiles–Atherton (rate‑independent) model testing, but parameter fitting is not possible.");
+            elseif has_raw_data
+                [H_plot, M_plot] = app.build_ja_data_cycle();
+                plot(app, ax, H_plot, M_plot, '.-', 'Color', [0 0 0], 'LineWidth', 1.0, 'MarkerSize', 7);
+                app.write_message("Hysteresis loop data in M (A/m) vs H (A/m) successfully retrieved.");
+            else
+                app.write_message("Warning: No hysteresis loop data is currently available.");
+            end
+
+            xline(ax, 0, 'k-', 'LineWidth', 1.2);
+            yline(ax, 0, 'k-', 'LineWidth', 1.2);
+            if app.ShowgridCheckBoxM_2.Value == 1
+                grid(ax, 'on');
+            else
+                grid(ax, 'off');
+            end
+            xlabel(ax, 'H [A/m]');
+            ylabel(ax, 'M [A/m]');
+            box(ax, 'on');
+            ax.LineWidth = 1.2;
+            hold(ax, 'off');
+        end
+
+        function [ms_seed, a_seed, alpha_seed, has_seeds] = get_first_anhysteretic_seeds(app)
+            has_seeds = false;
+            ms_seed = "";
+            a_seed = "";
+            alpha_seed = "";
+
+            if isempty(app.TableParameters.Data) || height(app.TableParameters.Data) < 1
+                return;
+            end
+
+            ms_raw = string(app.TableParameters.Data{1,2});
+            alpha_raw = string(app.TableParameters.Data{1,3});
+            a_raw = string(app.TableParameters.Data{1,4});
+
+            if strlength(ms_raw) == 0 || strlength(alpha_raw) == 0 || strlength(a_raw) == 0
+                return;
+            end
+
+            ms_num = str2double(replace(ms_raw, ",", ""));
+            a_num = str2double(replace(a_raw, ",", ""));
+            alpha_num = str2double(replace(alpha_raw, ",", ""));
+            if isnan(ms_num) || isnan(a_num) || isnan(alpha_num)
+                return;
+            end
+
+            ms_seed = ms_raw;
+            a_seed = a_raw;
+            alpha_seed = alpha_raw;
+            has_seeds = true;
+        end
+
+        function retrieve_ja_seeds(app)
+            [ms_seed, a_seed, alpha_seed, has_seeds] = app.get_first_anhysteretic_seeds();
+
+            app.JsField_5.Value = char(sprintf("%.4f", 1/3));
+
+            if has_seeds
+                app.write_message("Warning: No anhysteretic magnetization model is currently available.");
+                app.write_message("Jiles–Atherton seeds could not be retrieved; only the coupling parameter c was set to 1/3.");
+            else
+                app.JsField_2.Value = "";
+                app.JsField_3.Value = "";
+                app.JsField_4.Value = "";
+                app.write_message("Warning: No anhysteretic magnetization modelling has been performed.");
+                app.write_message("Jiles–Atherton seeds for Ms, a, and α were not initialized; the coupling parameter c was set to 1/3.");
+            end
         end
 
         function ret = subscript_to_number(~, str)
@@ -1599,6 +1755,32 @@ classdef app_exported < matlab.apps.AppBase
         function ShowhcrCheckBoxHdMdHValueChanged(app, event)
             app.plot_HdMdH()
         end
+
+        % Button pushed function: CalculatePlotButton_2
+        function CalculatePlotButton_2Pushed(app, event)
+            path = app.InputDatasetPath.Value;
+            if isfile(path)
+                app.import_data(path);
+                app.plot_hysteretic_tab_data();
+            else
+                app.write_message(path + " was not found, please browse the dataseth path again");
+            end
+        end
+
+        % Value changed function: ShowgridCheckBoxM_2
+        function ShowgridCheckBoxM_2ValueChanged(app, event)
+            if app.ShowgridCheckBoxM_2.Value == 1
+                grid(app.AxesM_2, 'on');
+            else
+                grid(app.AxesM_2, 'off');
+            end
+            
+        end
+
+        % Button pushed function: RetrieveseedsButton
+        function RetrieveseedsButtonPushed(app, event)
+            app.retrieve_ja_seeds();
+        end
     end
 
     % Component initialization
@@ -1930,14 +2112,14 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -1948,14 +2130,14 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
@@ -2389,6 +2571,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create CalculatePlotButton_2
             app.CalculatePlotButton_2 = uibutton(app.HystereticmagnetizationfittingTab, 'push');
+            app.CalculatePlotButton_2.ButtonPushedFcn = createCallbackFcn(app, @CalculatePlotButton_2Pushed, true);
             app.CalculatePlotButton_2.WordWrap = 'on';
             app.CalculatePlotButton_2.Position = [753 23 104 29];
             app.CalculatePlotButton_2.Text = 'Calculate & Plot';
@@ -2413,6 +2596,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create RetrieveseedsButton
             app.RetrieveseedsButton = uibutton(app.HystereticmagnetizationfittingTab, 'push');
+            app.RetrieveseedsButton.ButtonPushedFcn = createCallbackFcn(app, @RetrieveseedsButtonPushed, true);
             app.RetrieveseedsButton.Position = [866 23 95 29];
             app.RetrieveseedsButton.Text = 'Retrieve seeds';
 
@@ -2436,6 +2620,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create ShowgridCheckBoxM_2
             app.ShowgridCheckBoxM_2 = uicheckbox(app.HystereticmagnetizationfittingTab);
+            app.ShowgridCheckBoxM_2.ValueChangedFcn = createCallbackFcn(app, @ShowgridCheckBoxM_2ValueChanged, true);
             app.ShowgridCheckBoxM_2.Text = 'Grid';
             app.ShowgridCheckBoxM_2.Position = [226 21 62 22];
             app.ShowgridCheckBoxM_2.Value = true;
