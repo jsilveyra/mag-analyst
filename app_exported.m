@@ -95,9 +95,9 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesHdMdH                       matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesM                           matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesHdMdH                       matlab.ui.control.UIAxes
         HystereticmagnetizationfittingTab  matlab.ui.container.Tab
         ResidualplotButtondMdH_2        matlab.ui.control.Button
         ShowgridCheckBoxM_2             matlab.ui.control.CheckBox
@@ -887,11 +887,11 @@ classdef app_exported < matlab.apps.AppBase
 
             has_raw_data = ~isempty(app.H_raw) && ~isempty(app.M_raw);
             if has_raw_data && app.is_last_import_anhysteretic()
-                plot(app, ax, app.data_curve.H, app.data_curve.M, '.-', 'Color', [0 0 0], 'LineWidth', 1.0, 'MarkerSize', 7);
+                plot(ax, app.data_curve.H, app.data_curve.M, '.-', 'Color', [0 0 0], 'LineWidth', 1.0, 'MarkerSize', 7);
                 app.write_message("Warning: Anhysteretic magnetization data detected. The curve can be used for Jiles–Atherton (rate‑independent) model testing, but parameter fitting is not possible.");
             elseif has_raw_data
                 [H_plot, M_plot] = app.build_ja_data_cycle();
-                plot(app, ax, H_plot, M_plot, '.-', 'Color', [0 0 0], 'LineWidth', 1.0, 'MarkerSize', 7);
+                plot(ax, H_plot, M_plot, '.-', 'Color', [0 0 0], 'LineWidth', 1.0, 'MarkerSize', 7);
                 app.write_message("Hysteresis loop data in M (A/m) vs H (A/m) successfully retrieved.");
             else
                 app.write_message("Warning: No hysteresis loop data is currently available.");
@@ -2112,14 +2112,14 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -2130,14 +2130,14 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
