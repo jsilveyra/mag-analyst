@@ -1,10 +1,17 @@
 %% demo.m
 clc; clear; close all;
 
+%% Bootstrap paths (run from anywhere)
+src_dir = fileparts(mfilename('fullpath'));
+if isempty(src_dir)
+    src_dir = pwd;
+end
+run(fullfile(src_dir, 'import_src.m'));
+project_root = fileparts(src_dir);
+
 %% Parser
 parser_constants = ParserConstants();
-% Build cross-platform path
-data_file = fullfile('data', 'sampleData', 'Finemet - TA.csv');
+data_file = fullfile(project_root, 'data', 'sampleData', 'Finemet - TA.csv');
 
 % Initialize parser: parser = Parser(file_path, x_field_and_unit, y_field_and_unit, curve_type)
 % Refer to ParserConstants for the supported fields/units for both axes.
