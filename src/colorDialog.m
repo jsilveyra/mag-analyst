@@ -29,8 +29,18 @@ classdef colorDialog < matlab.apps.AppBase
         function set_color(app, i)
             c = uisetcolor;
             app.Colors(i,:) = c;
-            
-            app.MainApp.set_colors_and_plot(app.Colors);
+
+            try
+                app.MainApp.set_colors_and_plot(app.Colors);
+            catch ME
+                if contains(ME.message, 'Dot indexing is not supported for variables of this type.')
+                    if ismethod(app.MainApp, 'write_message')
+                        app.MainApp.write_message("Colors updated. Import data before recalculating.");
+                    end
+                    return;
+                end
+                rethrow(ME);
+            end
         end
     end
     

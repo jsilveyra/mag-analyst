@@ -50,21 +50,28 @@ MagAnalyst was implemented and tested with the Matlab 2022b version on Windows 1
 ## Description of the files and directory structure
 
 ```tree
-├── app.mlapp                     # App controller
-├── data                          # IO data
-├── assets                        # Logos
-├── articles                      # Articles
-└── src
-    ├── AnhystereticCurve         # Data and modeled anhyesteretic curve
-    ├── ErrorCalculator
-    ├── MagneticParameters
-    ├── Parser                    # Input parser
-    ├── Plotter
-    ├── ResidueCalculator
-    ├── minimize                  # minimize library files
-    ├── interparc                 # interparc library files
-    ├── colorDialog.mlapp
-    └── fit.m
+├── app.mlapp                      # Main App Designer GUI
+├── app_exported.m                 # Exported app code (reference/debug)
+├── data/                          # Input/output datasets and sample projects
+├── assets/                        # Images, logos, and UI assets
+├── articles/                      # Reference papers and supporting material
+├── explanation-document.md        # Methodology and model explanation
+├── README.md
+├── license.txt
+└── src/
+    ├── AnhystereticCurve/         # Data/model curve classes
+    ├── ErrorCalculator/           # Error metrics (vertical, horizontal, diagonal)
+    ├── MagneticParameters/        # Magnetic parameter estimation and utilities
+    ├── Parser/                    # Data import and unit conversion
+    ├── Plotter/                   # Plot generation utilities
+    ├── ResidueCalculator/         # Residual calculations
+    ├── minimize/                  # External library: constrained minimization
+    ├── interparc/                 # External library: curve resampling
+    ├── distance2curve.m           # External library: point-to-curve distance
+    ├── import_src.m               # Adds project source folders to MATLAB path
+    ├── fit.m                      # Main fitting entry point
+    ├── colorDialog.m              # Color selection dialog
+    └── license.txt                # Third-party license notices
 ```
 
 ## External libraries
@@ -72,6 +79,7 @@ MagAnalyst was implemented and tested with the Matlab 2022b version on Windows 1
 MagAnalyst currently uses the following third-party libraries:
 * [minimize](https://www.mathworks.com/matlabcentral/fileexchange/24298-minimize) to find the constrained minimum of the objective function starting at the user’s initial estimates.
 * [interparc](https://in.mathworks.com/matlabcentral/fileexchange/34874-interparc) to calculate a set of equally spaced points from an original curve with unevenly spaced points.
+* [distance2curve](https://la.mathworks.com/matlabcentral/fileexchange/34869-distance2curve) to compute minimum Euclidean distance from data points to the modeled curve for the continuous diagonal error modes.
 
 ## Explanation document
 

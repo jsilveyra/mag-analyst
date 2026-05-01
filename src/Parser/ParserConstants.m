@@ -4,7 +4,7 @@ classdef ParserConstants
         ANHYSTERETIC_CURVE_TYPE
         HYSTERESIS_LOOP_TYPE
 
-        % H supported units
+        % X-axis supported fields and units
         H_AMPERE_PER_METER
         H_KILO_AMPERE_PER_METER
         H_OERSTED
@@ -13,7 +13,7 @@ classdef ParserConstants
         BEXT_GAUSS
         BEXT_KILO_GAUSS
 
-        % M supported units
+        % Y-axis supported fields and units
         M_AMPERE_PER_METER
         M_KILO_AMPERE_PER_METER
         M_MEGA_AMPERE_PER_METER
