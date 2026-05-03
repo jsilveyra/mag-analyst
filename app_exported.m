@@ -95,10 +95,13 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesM                           matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesHdMdH                       matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesM                           matlab.ui.control.UIAxes
         HystereticmagnetizationfittingTab  matlab.ui.container.Tab
+        GridLayout2                     matlab.ui.container.GridLayout
+        JsField_8                       matlab.ui.control.EditField
+        JsTEditFieldLabel_8             matlab.ui.control.Label
         ResidualplotButtondMdH_2        matlab.ui.control.Button
         ShowgridCheckBoxM_2             matlab.ui.control.CheckBox
         JsField_7                       matlab.ui.control.EditField
@@ -544,7 +547,8 @@ classdef app_exported < matlab.apps.AppBase
             [HTip, MTip] = Utils().find_tip(app.data_curve.H, app.data_curve.M);
             app.MTipField.Value = app.format_short(MTip);
             app.HTipField.Value = app.format_short(HTip);
-
+            app.JsField_7.Value = app.format_short(HTip);
+            app.JsField_8.Value = app.format_short(MTip);
             cla(app.AxesProcessedInputData, 'reset')
             cla(app.AxesRawInputData, 'reset')
             plotter = Plotter(app.data_curve, app.modeled_curve, [], app.Colors, 5);
@@ -660,6 +664,21 @@ classdef app_exported < matlab.apps.AppBase
 
         function ret = format_engineering(~, v)
             ret = char(sprintf("%0.4e",v));
+        end
+
+        function ret = format_k_seed_display(app, v)
+            if ~isfinite(v)
+                ret = "not available";
+                return;
+            end
+            if abs(v) < 5e-5
+                v = 0;
+            end
+            if abs(v) < 1e-3 && v ~= 0
+                ret = string(sprintf("%0.4e", v));
+            else
+                ret = string(app.format_short(v));
+            end
         end
 
         function refresh_table_value_display(app)
@@ -946,16 +965,131 @@ classdef app_exported < matlab.apps.AppBase
             [ms_seed, a_seed, alpha_seed, has_seeds] = app.get_first_anhysteretic_seeds();
 
             app.JsField_5.Value = char(sprintf("%.4f", 1/3));
+            c_seed = 1/3;
 
+            has_curve_data = false;
+            try
+                has_curve_data = ~isempty(app.data_curve) && ~isempty(app.data_curve.H) && ~isempty(app.data_curve.M);
+            catch
+                has_curve_data = false;
+            end
+            if has_curve_data
+                [HTip, MTip] = Utils().find_tip(app.data_curve.H, app.data_curve.M);
+                app.JsField_7.Value = app.format_short(HTip);
+                app.JsField_8.Value = app.format_short(MTip);
+            else
+                app.JsField_7.Value = "";
+                app.JsField_8.Value = "";
+            end
             if has_seeds
-                app.write_message("Warning: No anhysteretic magnetization model is currently available.");
-                app.write_message("Jiles–Atherton seeds could not be retrieved; only the coupling parameter c was set to 1/3.");
+                app.JsField_2.Value = char(ms_seed);
+                app.JsField_3.Value = char(a_seed);
+                app.JsField_4.Value = char(alpha_seed);
+
+                ms_num = str2double(replace(ms_seed, ",", ""));
+                a_num = str2double(replace(a_seed, ",", ""));
+                alpha_num = str2double(replace(alpha_seed, ",", ""));
+
+                k_value = NaN;
+                if has_curve_data && isfinite(ms_num) && isfinite(a_num) && isfinite(alpha_num) && a_num ~= 0
+                    try
+                        [H_cycle, M_cycle] = app.build_ja_data_cycle();
+                        n_left = max(2, round(app.InputNumberofPointsEditField.Value));
+                        [H_left, M_left] = app.extract_left_branch_uniform_arc(H_cycle, M_cycle, n_left);
+                        k_value = app.estimateK_fromCoercivePoint(H_left, M_left, ms_num, a_num, alpha_num, c_seed);
+                    catch ME
+                        k_value = NaN;
+                        app.write_message("k-seed debug: " + string(ME.message));
+                    end
+                end
+
+                if isfinite(k_value)
+                    k_display = app.format_k_seed_display(k_value);
+                    app.JsField_6.Value = char(k_display);
+                    app.write_message("Jiles–Atherton seeds retrieved: Ms=" + ms_seed + ", a=" + a_seed + ", α=" + alpha_seed + ", c=" + app.format_short(c_seed) + ", k=" + k_display + ".");
+                else
+                    app.JsField_6.Value = "";
+                    app.write_message("Jiles–Atherton seeds retrieved: Ms=" + ms_seed + ", a=" + a_seed + ", α=" + alpha_seed + ", c=" + app.format_short(c_seed) + ", k=not available.");
+                end
             else
                 app.JsField_2.Value = "";
                 app.JsField_3.Value = "";
                 app.JsField_4.Value = "";
+                app.JsField_6.Value = "";
                 app.write_message("Warning: No anhysteretic magnetization modelling has been performed.");
-                app.write_message("Jiles–Atherton seeds for Ms, a, and α were not initialized; the coupling parameter c was set to 1/3.");
+                app.write_message("Jiles–Atherton seeds for Ms, a, α, and k were not initialized; the coupling parameter c was set to 1/3.");
+            end
+        end
+
+        function k_est = estimateK_fromCoercivePoint(app, Hleft, Mleft, Ms, a, alpha, c)
+            Hleft = Hleft(:);
+            Mleft = Mleft(:);
+
+            valid = isfinite(Hleft) & isfinite(Mleft);
+            Hleft = Hleft(valid);
+            Mleft = Mleft(valid);
+
+            if numel(Hleft) < 3 || numel(Mleft) < 3
+                error('Insufficient left-branch points to estimate k.');
+            end
+
+            [Mleft, idxSort] = sort(Mleft, 'ascend');
+            Hleft = Hleft(idxSort);
+
+            Hc = -interp1(Mleft, Hleft, 0, 'linear', 'extrap');
+
+            polyOrder = 3;
+            W = 21;
+
+            [~, i0] = min(abs(Mleft));
+            N = numel(Mleft);
+            half = floor(W/2);
+            i1 = max(1, i0 - half);
+            i2 = min(N, i0 + half);
+
+            if (i2 - i1 + 1) < W
+                if i1 == 1
+                    i2 = min(N, i1 + W - 1);
+                elseif i2 == N
+                    i1 = max(1, i2 - W + 1);
+                end
+            end
+
+            Mseg = Mleft(i1:i2);
+            Hseg = Hleft(i1:i2);
+            pOrd = min(polyOrder, numel(Mseg) - 1);
+
+            M0 = mean(Mseg);
+            Mscl = max(abs(Mseg - M0));
+            if Mscl == 0
+                error('Degenerate magnetization window near coercive point.');
+            end
+
+            x = (Mseg - M0) / Mscl;
+            y = Hseg;
+
+            p = polyfit(x, y, pOrd);
+            dp = polyder(p);
+            chi_inv_c = polyval(dp, (0 - M0)/Mscl) / Mscl;
+            if ~isfinite(chi_inv_c)
+                error('chi_inv_c is not finite.');
+            end
+
+            h = -Hc / a;
+            Lh = Langevin(h, 0);
+            dLdh = Langevin(h, 1);
+            if ~isfinite(Lh) || ~isfinite(dLdh)
+                error('Langevin terms are not finite.');
+            end
+
+            num = Ms * Lh;
+            den = c * (Ms/a) * dLdh - 1/(chi_inv_c + alpha);
+            if ~isfinite(den) || abs(den) < eps
+                error("Invalid denominator in k estimation. Hc=" + string(Hc) + ", chi_inv_c=" + string(chi_inv_c) + ", alpha=" + string(alpha));
+            end
+            k_est = num / den;
+            if ~isfinite(k_est)
+                error("k_est is not finite. num=" + string(num) + ", den=" + string(den));
             end
         end
 
@@ -2112,14 +2246,14 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -2130,14 +2264,14 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
@@ -2484,151 +2618,197 @@ classdef app_exported < matlab.apps.AppBase
             app.HystereticmagnetizationfittingTab = uitab(app.TabGroup);
             app.HystereticmagnetizationfittingTab.Title = 'Hysteretic magnetization fitting ';
 
+            % Create GridLayout2
+            app.GridLayout2 = uigridlayout(app.HystereticmagnetizationfittingTab);
+            app.GridLayout2.ColumnWidth = {39.01, 65, 114.01, 61.99, 188.99, 61.99, 27, 96.99, 78.99, '1x', '1x'};
+            app.GridLayout2.RowHeight = {25, 21.99, 21.99, 21.99, 21.99, 21.99, 21.99, '1x', 21.99, 21.99, '1x', '8.56x', 28.99};
+            app.GridLayout2.ColumnSpacing = 2.77317164494441;
+            app.GridLayout2.RowSpacing = 6.31337694021372;
+            app.GridLayout2.Padding = [2.77317164494441 6.31337694021372 2.77317164494441 6.31337694021372];
+
             % Create AxesM_2
-            app.AxesM_2 = uiaxes(app.HystereticmagnetizationfittingTab);
+            app.AxesM_2 = uiaxes(app.GridLayout2);
             xlabel(app.AxesM_2, 'H [A/m]')
             ylabel(app.AxesM_2, 'M [A/m]')
             zlabel(app.AxesM_2, 'Z')
             app.AxesM_2.Box = 'on';
-            app.AxesM_2.Position = [8 51 469 469];
+            app.AxesM_2.Layout.Row = [2 12];
+            app.AxesM_2.Layout.Column = [1 5];
 
             % Create JilesAthertonmodelrateindependentLabel
-            app.JilesAthertonmodelrateindependentLabel = uilabel(app.HystereticmagnetizationfittingTab);
+            app.JilesAthertonmodelrateindependentLabel = uilabel(app.GridLayout2);
             app.JilesAthertonmodelrateindependentLabel.FontWeight = 'bold';
-            app.JilesAthertonmodelrateindependentLabel.Position = [8 518 1022 25];
+            app.JilesAthertonmodelrateindependentLabel.Layout.Row = 1;
+            app.JilesAthertonmodelrateindependentLabel.Layout.Column = [1 11];
             app.JilesAthertonmodelrateindependentLabel.Text = 'Jiles-Atherton model (rate-independent)';
 
             % Create ModelparametersLabel
-            app.ModelparametersLabel = uilabel(app.HystereticmagnetizationfittingTab);
+            app.ModelparametersLabel = uilabel(app.GridLayout2);
             app.ModelparametersLabel.FontWeight = 'bold';
-            app.ModelparametersLabel.Position = [505 498 486 22];
+            app.ModelparametersLabel.Layout.Row = 2;
+            app.ModelparametersLabel.Layout.Column = [6 11];
             app.ModelparametersLabel.Text = 'Model parameters';
 
             % Create JsTEditFieldLabel_2
-            app.JsTEditFieldLabel_2 = uilabel(app.HystereticmagnetizationfittingTab);
+            app.JsTEditFieldLabel_2 = uilabel(app.GridLayout2);
             app.JsTEditFieldLabel_2.FontWeight = 'bold';
-            app.JsTEditFieldLabel_2.Position = [516 465 56 22];
+            app.JsTEditFieldLabel_2.Layout.Row = 3;
+            app.JsTEditFieldLabel_2.Layout.Column = 6;
             app.JsTEditFieldLabel_2.Text = 'Ms [A/m]';
 
             % Create JsField_2
-            app.JsField_2 = uieditfield(app.HystereticmagnetizationfittingTab, 'text');
+            app.JsField_2 = uieditfield(app.GridLayout2, 'text');
             app.JsField_2.Editable = 'off';
             app.JsField_2.HorizontalAlignment = 'right';
-            app.JsField_2.Position = [582 468 97 19];
+            app.JsField_2.Layout.Row = 3;
+            app.JsField_2.Layout.Column = 8;
 
             % Create JsTEditFieldLabel_3
-            app.JsTEditFieldLabel_3 = uilabel(app.HystereticmagnetizationfittingTab);
+            app.JsTEditFieldLabel_3 = uilabel(app.GridLayout2);
             app.JsTEditFieldLabel_3.FontWeight = 'bold';
-            app.JsTEditFieldLabel_3.Position = [516 433 56 22];
+            app.JsTEditFieldLabel_3.Layout.Row = 4;
+            app.JsTEditFieldLabel_3.Layout.Column = 6;
             app.JsTEditFieldLabel_3.Text = 'a [A/m]';
 
             % Create JsField_3
-            app.JsField_3 = uieditfield(app.HystereticmagnetizationfittingTab, 'text');
+            app.JsField_3 = uieditfield(app.GridLayout2, 'text');
             app.JsField_3.Editable = 'off';
             app.JsField_3.HorizontalAlignment = 'right';
-            app.JsField_3.Position = [582 436 97 19];
+            app.JsField_3.Layout.Row = 4;
+            app.JsField_3.Layout.Column = 8;
 
             % Create JsTEditFieldLabel_4
-            app.JsTEditFieldLabel_4 = uilabel(app.HystereticmagnetizationfittingTab);
+            app.JsTEditFieldLabel_4 = uilabel(app.GridLayout2);
             app.JsTEditFieldLabel_4.FontWeight = 'bold';
-            app.JsTEditFieldLabel_4.Position = [516 402 56 22];
+            app.JsTEditFieldLabel_4.Layout.Row = 5;
+            app.JsTEditFieldLabel_4.Layout.Column = 6;
             app.JsTEditFieldLabel_4.Text = 'alpha';
 
             % Create JsField_4
-            app.JsField_4 = uieditfield(app.HystereticmagnetizationfittingTab, 'text');
+            app.JsField_4 = uieditfield(app.GridLayout2, 'text');
             app.JsField_4.Editable = 'off';
             app.JsField_4.HorizontalAlignment = 'right';
-            app.JsField_4.Position = [582 405 97 19];
+            app.JsField_4.Layout.Row = 5;
+            app.JsField_4.Layout.Column = 8;
 
             % Create JsTEditFieldLabel_5
-            app.JsTEditFieldLabel_5 = uilabel(app.HystereticmagnetizationfittingTab);
+            app.JsTEditFieldLabel_5 = uilabel(app.GridLayout2);
             app.JsTEditFieldLabel_5.FontWeight = 'bold';
-            app.JsTEditFieldLabel_5.Position = [516 372 56 22];
+            app.JsTEditFieldLabel_5.Layout.Row = 6;
+            app.JsTEditFieldLabel_5.Layout.Column = 6;
             app.JsTEditFieldLabel_5.Text = 'c';
 
             % Create JsField_5
-            app.JsField_5 = uieditfield(app.HystereticmagnetizationfittingTab, 'text');
+            app.JsField_5 = uieditfield(app.GridLayout2, 'text');
             app.JsField_5.Editable = 'off';
             app.JsField_5.HorizontalAlignment = 'right';
-            app.JsField_5.Position = [582 375 97 19];
+            app.JsField_5.Layout.Row = 6;
+            app.JsField_5.Layout.Column = 8;
 
             % Create JsTEditFieldLabel_6
-            app.JsTEditFieldLabel_6 = uilabel(app.HystereticmagnetizationfittingTab);
+            app.JsTEditFieldLabel_6 = uilabel(app.GridLayout2);
             app.JsTEditFieldLabel_6.FontWeight = 'bold';
-            app.JsTEditFieldLabel_6.Position = [516 343 56 22];
+            app.JsTEditFieldLabel_6.Layout.Row = 7;
+            app.JsTEditFieldLabel_6.Layout.Column = 6;
             app.JsTEditFieldLabel_6.Text = 'k [A/m]';
 
             % Create JsField_6
-            app.JsField_6 = uieditfield(app.HystereticmagnetizationfittingTab, 'text');
+            app.JsField_6 = uieditfield(app.GridLayout2, 'text');
             app.JsField_6.Editable = 'off';
             app.JsField_6.HorizontalAlignment = 'right';
-            app.JsField_6.Position = [582 346 97 19];
+            app.JsField_6.Layout.Row = 7;
+            app.JsField_6.Layout.Column = 8;
 
             % Create FitButton_2
-            app.FitButton_2 = uibutton(app.HystereticmagnetizationfittingTab, 'push');
-            app.FitButton_2.Position = [970 23 60 29];
+            app.FitButton_2 = uibutton(app.GridLayout2, 'push');
+            app.FitButton_2.Layout.Row = 13;
+            app.FitButton_2.Layout.Column = 11;
             app.FitButton_2.Text = 'Fit';
 
             % Create CalculatePlotButton_2
-            app.CalculatePlotButton_2 = uibutton(app.HystereticmagnetizationfittingTab, 'push');
+            app.CalculatePlotButton_2 = uibutton(app.GridLayout2, 'push');
             app.CalculatePlotButton_2.ButtonPushedFcn = createCallbackFcn(app, @CalculatePlotButton_2Pushed, true);
             app.CalculatePlotButton_2.WordWrap = 'on';
-            app.CalculatePlotButton_2.Position = [753 23 104 29];
+            app.CalculatePlotButton_2.Layout.Row = 13;
+            app.CalculatePlotButton_2.Layout.Column = 10;
             app.CalculatePlotButton_2.Text = 'Calculate & Plot';
 
             % Create ErrortominimizeDropDownLabel_2
-            app.ErrortominimizeDropDownLabel_2 = uilabel(app.HystereticmagnetizationfittingTab);
+            app.ErrortominimizeDropDownLabel_2 = uilabel(app.GridLayout2);
             app.ErrortominimizeDropDownLabel_2.WordWrap = 'on';
             app.ErrortominimizeDropDownLabel_2.FontWeight = 'bold';
-            app.ErrortominimizeDropDownLabel_2.Position = [488 23 57 29];
+            app.ErrortominimizeDropDownLabel_2.Layout.Row = 13;
+            app.ErrortominimizeDropDownLabel_2.Layout.Column = 6;
             app.ErrortominimizeDropDownLabel_2.Text = 'Error to minimize';
 
             % Create ErrortominimizeDropDown_2
-            app.ErrortominimizeDropDown_2 = uidropdown(app.HystereticmagnetizationfittingTab);
+            app.ErrortominimizeDropDown_2 = uidropdown(app.GridLayout2);
             app.ErrortominimizeDropDown_2.Items = {'Diagonal (H, sampled)', 'Diagonal (H, continuous)', 'Diagonal (logH, sampled)', 'Diagonal (logH, continuous)', 'Vertical', 'Horizontal'};
-            app.ErrortominimizeDropDown_2.Position = [555 23 97 29];
+            app.ErrortominimizeDropDown_2.Layout.Row = 13;
+            app.ErrortominimizeDropDown_2.Layout.Column = [7 8];
             app.ErrortominimizeDropDown_2.Value = 'Diagonal (H, sampled)';
 
             % Create ErrorDisplay_2
-            app.ErrorDisplay_2 = uieditfield(app.HystereticmagnetizationfittingTab, 'text');
+            app.ErrorDisplay_2 = uieditfield(app.GridLayout2, 'text');
             app.ErrorDisplay_2.Editable = 'off';
-            app.ErrorDisplay_2.Position = [663 23 79 29];
+            app.ErrorDisplay_2.Layout.Row = 13;
+            app.ErrorDisplay_2.Layout.Column = 9;
 
             % Create RetrieveseedsButton
-            app.RetrieveseedsButton = uibutton(app.HystereticmagnetizationfittingTab, 'push');
+            app.RetrieveseedsButton = uibutton(app.GridLayout2, 'push');
             app.RetrieveseedsButton.ButtonPushedFcn = createCallbackFcn(app, @RetrieveseedsButtonPushed, true);
-            app.RetrieveseedsButton.Position = [866 23 95 29];
+            app.RetrieveseedsButton.Layout.Row = 2;
+            app.RetrieveseedsButton.Layout.Column = 11;
             app.RetrieveseedsButton.Text = 'Retrieve seeds';
 
             % Create DrivingfieldLabel
-            app.DrivingfieldLabel = uilabel(app.HystereticmagnetizationfittingTab);
+            app.DrivingfieldLabel = uilabel(app.GridLayout2);
             app.DrivingfieldLabel.FontWeight = 'bold';
-            app.DrivingfieldLabel.Position = [505 296 486 22];
+            app.DrivingfieldLabel.Layout.Row = 9;
+            app.DrivingfieldLabel.Layout.Column = [6 11];
             app.DrivingfieldLabel.Text = 'Driving field';
 
             % Create JsTEditFieldLabel_7
-            app.JsTEditFieldLabel_7 = uilabel(app.HystereticmagnetizationfittingTab);
+            app.JsTEditFieldLabel_7 = uilabel(app.GridLayout2);
             app.JsTEditFieldLabel_7.FontWeight = 'bold';
-            app.JsTEditFieldLabel_7.Position = [516 263 62 22];
+            app.JsTEditFieldLabel_7.Layout.Row = 10;
+            app.JsTEditFieldLabel_7.Layout.Column = 6;
             app.JsTEditFieldLabel_7.Text = 'Htip [A/m]';
 
             % Create JsField_7
-            app.JsField_7 = uieditfield(app.HystereticmagnetizationfittingTab, 'text');
+            app.JsField_7 = uieditfield(app.GridLayout2, 'text');
             app.JsField_7.Editable = 'off';
             app.JsField_7.HorizontalAlignment = 'right';
-            app.JsField_7.Position = [582 266 97 19];
+            app.JsField_7.Layout.Row = 10;
+            app.JsField_7.Layout.Column = 8;
 
             % Create ShowgridCheckBoxM_2
-            app.ShowgridCheckBoxM_2 = uicheckbox(app.HystereticmagnetizationfittingTab);
+            app.ShowgridCheckBoxM_2 = uicheckbox(app.GridLayout2);
             app.ShowgridCheckBoxM_2.ValueChangedFcn = createCallbackFcn(app, @ShowgridCheckBoxM_2ValueChanged, true);
             app.ShowgridCheckBoxM_2.Text = 'Grid';
-            app.ShowgridCheckBoxM_2.Position = [226 21 62 22];
+            app.ShowgridCheckBoxM_2.Layout.Row = 13;
+            app.ShowgridCheckBoxM_2.Layout.Column = 4;
             app.ShowgridCheckBoxM_2.Value = true;
 
             % Create ResidualplotButtondMdH_2
-            app.ResidualplotButtondMdH_2 = uibutton(app.HystereticmagnetizationfittingTab, 'push');
-            app.ResidualplotButtondMdH_2.Position = [47 24 65 22];
+            app.ResidualplotButtondMdH_2 = uibutton(app.GridLayout2, 'push');
+            app.ResidualplotButtondMdH_2.Layout.Row = 13;
+            app.ResidualplotButtondMdH_2.Layout.Column = 2;
             app.ResidualplotButtondMdH_2.Text = 'Residuals';
+
+            % Create JsTEditFieldLabel_8
+            app.JsTEditFieldLabel_8 = uilabel(app.GridLayout2);
+            app.JsTEditFieldLabel_8.FontWeight = 'bold';
+            app.JsTEditFieldLabel_8.Layout.Row = 11;
+            app.JsTEditFieldLabel_8.Layout.Column = 6;
+            app.JsTEditFieldLabel_8.Text = 'Mtip [A/m]';
+
+            % Create JsField_8
+            app.JsField_8 = uieditfield(app.GridLayout2, 'text');
+            app.JsField_8.Editable = 'off';
+            app.JsField_8.HorizontalAlignment = 'right';
+            app.JsField_8.Layout.Row = 11;
+            app.JsField_8.Layout.Column = 8;
 
             % Create OutputmagnetizationdataTab
             app.OutputmagnetizationdataTab = uitab(app.TabGroup);
