@@ -95,9 +95,9 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesHdMdH                       matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesM                           matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesHdMdH                       matlab.ui.control.UIAxes
         HystereticmagnetizationfittingTab  matlab.ui.container.Tab
         GridLayout2                     matlab.ui.container.GridLayout
         JsField_8                       matlab.ui.control.EditField
@@ -1163,6 +1163,14 @@ classdef app_exported < matlab.apps.AppBase
             s.susceptibility_residual_checkbox = app.CheckBoxExportResiduesSusceptibility.Value;
             s.semi_log_derivative_residual_checkbox = app.CheckBoxExportResiduesSemiLogMagDerivative.Value;
 
+            s.params = struct( ...
+                'Ms', app.JsField_2.Value, ...
+                'a', app.JsField_3.Value, ...
+                'alpha', app.JsField_4.Value, ...
+                'c', app.JsField_5.Value, ...
+                'k', app.JsField_6.Value ...
+            );
+
             data = jsonencode(s, PrettyPrint=true);
             fprintf(file, "%s", data);
             fclose(file);
@@ -1680,6 +1688,14 @@ classdef app_exported < matlab.apps.AppBase
             app.CheckBoxExportResiduesMagnetization.Value = s.magnetization_residual_checkbox;
             app.CheckBoxExportResiduesSusceptibility.Value = s.susceptibility_residual_checkbox;
             app.CheckBoxExportResiduesSemiLogMagDerivative.Value = s.semi_log_derivative_residual_checkbox;
+
+            if isfield(s, 'params')
+                if isfield(s.params, 'Ms'); app.JsField_2.Value = char(string(s.params.Ms)); end
+                if isfield(s.params, 'a'); app.JsField_3.Value = char(string(s.params.a)); end
+                if isfield(s.params, 'alpha'); app.JsField_4.Value = char(string(s.params.alpha)); end
+                if isfield(s.params, 'c'); app.JsField_5.Value = char(string(s.params.c)); end
+                if isfield(s.params, 'k'); app.JsField_6.Value = char(string(s.params.k)); end
+            end
             
            
             if (app.calculate_and_plot() == -1)
@@ -2246,14 +2262,14 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -2264,14 +2280,14 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
