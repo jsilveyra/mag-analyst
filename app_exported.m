@@ -834,6 +834,10 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         function [H_left, M_left] = extract_left_branch_uniform_arc(~, H_in, M_in, number_points)
+            % MagAnalyst already relies on this branch implicitly:
+            % the anhysteretic curve is built from averaging left and right
+            % hysteresis branches, so robust left-branch extraction here
+            % directly improves that downstream anhysteretic construction.
             H = H_in(:)';
             M = M_in(:)';
             valid = isfinite(H) & isfinite(M);
@@ -906,18 +910,34 @@ classdef app_exported < matlab.apps.AppBase
 
             has_raw_data = ~isempty(app.H_raw) && ~isempty(app.M_raw);
             if has_raw_data && app.is_last_import_anhysteretic()
-                plot(ax, app.data_curve.H, app.data_curve.M, '.-', 'Color', [0 0 0], 'LineWidth', 1.0, 'MarkerSize', 7);
+                plot(ax, app.data_curve.H, app.data_curve.M, '.-', 'Color', [0 0 0], 'LineWidth', 1.0, 'MarkerSize', 7, 'DisplayName', 'Measured');
                 app.write_message("Warning: Anhysteretic magnetization data detected. The curve can be used for Jiles–Atherton (rate‑independent) model testing, but parameter fitting is not possible.");
             elseif has_raw_data
                 [H_plot, M_plot] = app.build_ja_data_cycle();
-                plot(ax, H_plot, M_plot, '.-', 'Color', [0 0 0], 'LineWidth', 1.0, 'MarkerSize', 7);
+                plot(ax, H_plot, M_plot, '.-', 'Color', [0 0 0], 'LineWidth', 1.0, 'MarkerSize', 7, 'DisplayName', 'Measured');
                 app.write_message("Hysteresis loop data in M (A/m) vs H (A/m) successfully retrieved.");
             else
                 app.write_message("Warning: No hysteresis loop data is currently available.");
             end
 
+            [params, has_params] = app.get_ja_params_from_tab();
+            [Htip, Mtip, has_tip] = app.get_ja_tip_from_tab_or_data();
+            if has_params && has_tip
+                try
+                    opts = odeset('RelTol', 1e-7, 'AbsTol', 1e-6);
+                    [Hsim, Msim] = solveJA_fromTip(Htip, Mtip, params, opts);
+                    plot(ax, Hsim, Msim, 'r--', 'LineWidth', 1.2, 'DisplayName', 'JA simulated');
+                catch ME
+                    app.write_message("Warning: JA simulation could not be plotted (" + string(ME.message) + ").");
+                end
+            end
+
             xline(ax, 0, 'k-', 'LineWidth', 1.2);
             yline(ax, 0, 'k-', 'LineWidth', 1.2);
+            hx0 = xline(ax, 0, 'k-', 'LineWidth', 1.2);
+            hy0 = yline(ax, 0, 'k-', 'LineWidth', 1.2);
+            hx0.Annotation.LegendInformation.IconDisplayStyle = 'off';
+            hy0.Annotation.LegendInformation.IconDisplayStyle = 'off';
             if app.ShowgridCheckBoxM_2.Value == 1
                 grid(ax, 'on');
             else
@@ -927,7 +947,50 @@ classdef app_exported < matlab.apps.AppBase
             ylabel(ax, 'M [A/m]');
             box(ax, 'on');
             ax.LineWidth = 1.2;
+            legend(ax, 'show');
             hold(ax, 'off');
+        end
+        
+        function [params, ok] = get_ja_params_from_tab(app)
+            params = struct('Ms', NaN, 'a', NaN, 'alpha', NaN, 'k', NaN, 'c', NaN);
+            ok = false;
+
+            Ms = str2double(replace(string(app.JsField_2.Value), ",", ""));
+            a = str2double(replace(string(app.JsField_3.Value), ",", ""));
+            alpha = str2double(replace(string(app.JsField_4.Value), ",", ""));
+            c = str2double(replace(string(app.JsField_5.Value), ",", ""));
+            k = str2double(replace(string(app.JsField_6.Value), ",", ""));
+
+            if any(~isfinite([Ms, a, alpha, c, k])) || a == 0
+                return;
+            end
+
+            params = struct('Ms', Ms, 'a', a, 'alpha', alpha, 'k', k, 'c', c);
+            ok = true;
+        end
+
+        function [Htip, Mtip, ok] = get_ja_tip_from_tab_or_data(app)
+            ok = false;
+            Htip = NaN;
+            Mtip = NaN;
+
+            Htip_tab = str2double(replace(string(app.JsField_7.Value), ",", ""));
+            Mtip_tab = str2double(replace(string(app.JsField_8.Value), ",", ""));
+            if isfinite(Htip_tab) && isfinite(Mtip_tab)
+                Htip = Htip_tab;
+                Mtip = Mtip_tab;
+                ok = true;
+                return;
+            end
+
+            try
+                if ~isempty(app.data_curve) && ~isempty(app.data_curve.H) && ~isempty(app.data_curve.M)
+                    [Htip, Mtip] = Utils().find_tip(app.data_curve.H, app.data_curve.M);
+                    ok = isfinite(Htip) && isfinite(Mtip);
+                end
+            catch
+                ok = false;
+            end
         end
 
         function [ms_seed, a_seed, alpha_seed, has_seeds] = get_first_anhysteretic_seeds(app)
@@ -1930,6 +1993,7 @@ classdef app_exported < matlab.apps.AppBase
         % Button pushed function: RetrieveseedsButton
         function RetrieveseedsButtonPushed(app, event)
             app.retrieve_ja_seeds();
+            
         end
     end
 
