@@ -95,11 +95,31 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesM                           matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesHdMdH                       matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesM                           matlab.ui.control.UIAxes
         HystereticmagnetizationfittingTab  matlab.ui.container.Tab
         GridLayout2                     matlab.ui.container.GridLayout
+        kConstrainedCheckBox_2          matlab.ui.control.CheckBox
+        Label                           matlab.ui.control.Label
+        FitkCheckBox                    matlab.ui.control.CheckBox
+        CheckBox_4                      matlab.ui.control.CheckBox
+        CheckBox_3                      matlab.ui.control.CheckBox
+        CheckBox_2                      matlab.ui.control.CheckBox
+        CheckBox                        matlab.ui.control.CheckBox
+        FitLabel                        matlab.ui.control.Label
+        UpperboundLabel                 matlab.ui.control.Label
+        LowerboundLabel                 matlab.ui.control.Label
+        kUpperField_2                   matlab.ui.control.EditField
+        kLowerField_2                   matlab.ui.control.EditField
+        cUpperField_2                   matlab.ui.control.EditField
+        cLowerField_2                   matlab.ui.control.EditField
+        alphaUpperField_2               matlab.ui.control.EditField
+        alphaLowerField_2               matlab.ui.control.EditField
+        aUpperField_2                   matlab.ui.control.EditField
+        aLowerField_2                   matlab.ui.control.EditField
+        MsUpperField_2                  matlab.ui.control.EditField
+        MsLowerField_2                  matlab.ui.control.EditField
         JsField_8                       matlab.ui.control.EditField
         JsTEditFieldLabel_8             matlab.ui.control.Label
         ResidualplotButtondMdH_2        matlab.ui.control.Button
@@ -1069,6 +1089,16 @@ classdef app_exported < matlab.apps.AppBase
                 if isfinite(k_value)
                     k_display = app.format_k_seed_display(k_value);
                     app.JsField_6.Value = char(k_display);
+                    app.MsLowerField_2.Value = app.format_short(0.5 * ms_num);
+                    app.MsUpperField_2.Value = app.format_short(1.5 * ms_num);
+                    app.aLowerField_2.Value = app.format_short(0.5 * a_num);
+                    app.aUpperField_2.Value = app.format_short(1.5 * a_num);
+                    app.alphaLowerField_2.Value = app.format_short(0.5 * alpha_num);
+                    app.alphaUpperField_2.Value = app.format_short(1.5 * alpha_num);
+                    app.cLowerField_2.Value = app.format_short(1e-6);
+                    app.cUpperField_2.Value = app.format_short(0.999999);
+                    app.kLowerField_2.Value = app.format_short(0.5 * k_value);
+                    app.kUpperField_2.Value = app.format_short(1.5 * k_value);
                     app.write_message("Jiles–Atherton seeds retrieved: Ms=" + ms_seed + ", a=" + a_seed + ", α=" + alpha_seed + ", c=" + app.format_short(c_seed) + ", k=" + k_display + ".");
                 else
                     app.JsField_6.Value = "";
@@ -1079,8 +1109,193 @@ classdef app_exported < matlab.apps.AppBase
                 app.JsField_3.Value = "";
                 app.JsField_4.Value = "";
                 app.JsField_6.Value = "";
+                app.MsLowerField_2.Value = "";
+                app.MsUpperField_2.Value = "";
+                app.aLowerField_2.Value = "";
+                app.aUpperField_2.Value = "";
+                app.alphaLowerField_2.Value = "";
+                app.alphaUpperField_2.Value = "";
+                app.cLowerField_2.Value = "";
+                app.cUpperField_2.Value = "";
+                app.kLowerField_2.Value = "";
+                app.kUpperField_2.Value = "";
                 app.write_message("Warning: No anhysteretic magnetization modelling has been performed.");
                 app.write_message("Jiles–Atherton seeds for Ms, a, α, and k were not initialized; the coupling parameter c was set to 1/3.");
+            end
+        end
+
+        function [J, ok] = compute_ja_left_branch_error_core(~, error_type, Hleft, Mleft, Hhat, Mhat)
+            BIG = 1e6;
+            J = BIG;
+            ok = false;
+            try
+                Hleft = Hleft(:);
+                Mleft = Mleft(:);
+                Hhat = Hhat(:);
+                Mhat = Mhat(:);
+
+                valid_data = isfinite(Hleft) & isfinite(Mleft);
+                valid_model = isfinite(Hhat) & isfinite(Mhat);
+                Hleft = Hleft(valid_data);
+                Mleft = Mleft(valid_data);
+                Hhat = Hhat(valid_model);
+                Mhat = Mhat(valid_model);
+                if numel(Hleft) < 2 || numel(Hhat) < 2
+                    return;
+                end
+
+                if error_type == "Diagonal (H, continuous)"
+                    Sx = range(Hleft) / 2;
+                    Sy = range(Mleft) / 2;
+                    if Sx <= 0 || ~isfinite(Sx), Sx = 1; end
+                    if Sy <= 0 || ~isfinite(Sy), Sy = 1; end
+                    curv = [Hhat / Sx, Mhat / Sy];
+                    data = [Hleft / Sx, Mleft / Sy];
+                    [~, d] = distance2curve(curv, data, 'linear');
+                    J = sqrt(mean(d.^2));
+                elseif error_type == "Vertical"
+                    [Hhat_s, idxH] = sort(Hhat, 'ascend');
+                    Mhat_s = Mhat(idxH);
+                    [Hhat_u, idxHu] = unique(Hhat_s, 'stable');
+                    Mhat_u = Mhat_s(idxHu);
+                    Minterp = interp1(Hhat_u, Mhat_u, Hleft, 'linear', 'extrap');
+                    J = sqrt(mean((Mleft - Minterp).^2));
+                elseif error_type == "Horizontal"
+                    [Mhat_s, idxM] = sort(Mhat, 'ascend');
+                    Hhat_s = Hhat(idxM);
+                    [Mhat_u, idxMu] = unique(Mhat_s, 'stable');
+                    Hhat_u = Hhat_s(idxMu);
+                    Hinterp = interp1(Mhat_u, Hhat_u, Mleft, 'linear', 'extrap');
+                    J = sqrt(mean((Hleft - Hinterp).^2));
+                else
+                    return;
+                end
+
+                if ~isfinite(J)
+                    J = BIG;
+                    return;
+                end
+                ok = true;
+            catch
+                J = BIG;
+                ok = false;
+            end
+        end
+
+        function [v, ok] = read_numeric_field(~, fieldHandle)
+            s = string(fieldHandle.Value);
+            v = str2double(replace(s, ",", ""));
+            ok = isfinite(v);
+        end
+
+        function sync_k_fit_mode_ui(app)
+            if app.kConstrainedCheckBox_2.Value
+                app.FitkCheckBox.Value = false;
+                app.FitkCheckBox.Enable = 'off';
+            else
+                app.FitkCheckBox.Enable = 'on';
+            end
+        end
+
+        function fit_ja_parameters(app)
+            BIG = 1e6;
+            [params0, has_params] = app.get_ja_params_from_tab();
+            [Htip, Mtip, has_tip] = app.get_ja_tip_from_tab_or_data();
+            has_raw_data = ~isempty(app.H_raw) && ~isempty(app.M_raw);
+            if ~has_params || ~has_tip || ~has_raw_data
+                app.write_message("JA fit skipped: missing parameters, tip, or input data.");
+                return;
+            end
+
+            H_unit = app.HorizontalaxisfieldDropDown.Value;
+            M_unit = app.VerticalaxisfieldDropDown.Value;
+            [H_conv, M_conv] = UnitConvertor().convert_H_M(app.H_raw, H_unit, app.M_raw, M_unit);
+            n_left = max(2, round(app.InputNumberofPointsEditField.Value));
+            [Hleft, Mleft] = app.extract_left_branch_uniform_arc(H_conv, M_conv, n_left);
+
+            [msLB, ok1] = app.read_numeric_field(app.MsLowerField_2);
+            [msUB, ok2] = app.read_numeric_field(app.MsUpperField_2);
+            [aLB, ok3] = app.read_numeric_field(app.aLowerField_2);
+            [aUB, ok4] = app.read_numeric_field(app.aUpperField_2);
+            [alphaLB, ok5] = app.read_numeric_field(app.alphaLowerField_2);
+            [alphaUB, ok6] = app.read_numeric_field(app.alphaUpperField_2);
+            [cLB, ok7] = app.read_numeric_field(app.cLowerField_2);
+            [cUB, ok8] = app.read_numeric_field(app.cUpperField_2);
+            [kLB, ok9] = app.read_numeric_field(app.kLowerField_2);
+            [kUB, ok10] = app.read_numeric_field(app.kUpperField_2);
+
+            % Fallback bounds if user leaves fields empty
+            if ~(ok1 && ok2), msLB = max(eps, 0.5 * params0.Ms); msUB = 1.5 * params0.Ms; end
+            if ~(ok3 && ok4), aLB = max(eps, 0.5 * params0.a); aUB = 1.5 * params0.a; end
+            if ~(ok5 && ok6), alphaLB = 0.5 * params0.alpha; alphaUB = 1.5 * params0.alpha; end
+            if ~(ok7 && ok8), cLB = 1e-6; cUB = 0.999999; end
+            if ~(ok9 && ok10), kLB = max(eps, 0.5 * params0.k); kUB = 1.5 * params0.k; end
+
+            fitMs = app.FitMsCheckBox_2.Value;
+            fita = app.FitaCheckBox_2.Value;
+            fitalpha = app.FitalphaCheckBox_2.Value;
+            fitc = app.FitcCheckBox_2.Value;
+            kDependent = app.kConstrainedCheckBox_2.Value;
+            fitk = app.FitkCheckBox.Value && ~kDependent;
+
+            x0 = [params0.Ms, params0.a, params0.alpha, params0.c, params0.k];
+            lb = [msLB, aLB, alphaLB, cLB, kLB];
+            ub = [msUB, aUB, alphaUB, cUB, kUB];
+            fitmask = [fitMs, fita, fitalpha, fitc, fitk];
+
+            epsilon = 1e-8;
+            for i = 1:numel(fitmask)
+                if ~fitmask(i)
+                    lb(i) = x0(i) - epsilon;
+                    ub(i) = x0(i) + epsilon;
+                end
+            end
+
+            error_type = string(app.ErrortominimizeDropDown_2.Value);
+            opts = odeset('RelTol', 1e-7, 'AbsTol', 1e-6);
+
+            function J = obj(x)
+                params = struct('Ms', x(1), 'a', x(2), 'alpha', x(3), 'c', x(4), 'k', x(5));
+                if kDependent
+                    try
+                        params.k = app.estimateK_fromCoercivePoint(Hleft, Mleft, params.Ms, params.a, params.alpha, params.c);
+                    catch
+                        J = BIG; return;
+                    end
+                end
+                if params.Ms <= 0 || params.a <= 0 || params.k <= 0 || params.c <= 0 || params.c >= 1
+                    J = BIG; return;
+                end
+                try
+                    [Hhat, Mhat] = solveJA_monotonic(Htip, -Htip, Mtip, params, -1, opts);
+                    [J, okJ] = app.compute_ja_left_branch_error_core(error_type, Hleft, Mleft, Hhat, Mhat);
+                    if ~okJ, J = BIG; end
+                catch
+                    J = BIG;
+                end
+            end
+
+            try
+                options = optimset('MaxIter', 800, 'MaxFunEvals', 4000);
+                xfit = minimize(@obj, x0, [], [], [], [], lb, ub, [], options);
+                paramsFit = struct('Ms', xfit(1), 'a', xfit(2), 'alpha', xfit(3), 'c', xfit(4), 'k', xfit(5));
+                if kDependent
+                    paramsFit.k = app.estimateK_fromCoercivePoint(Hleft, Mleft, paramsFit.Ms, paramsFit.a, paramsFit.alpha, paramsFit.c);
+                end
+                app.JsField_2.Value = app.format_short(paramsFit.Ms);
+                app.JsField_3.Value = app.format_short(paramsFit.a);
+                app.JsField_4.Value = app.format_short(paramsFit.alpha);
+                app.JsField_5.Value = app.format_short(paramsFit.c);
+                app.JsField_6.Value = app.format_short(paramsFit.k);
+                app.plot_hysteretic_tab_data();
+                [Jfinal, okFinal] = app.compute_ja_left_branch_error(error_type);
+                if okFinal
+                    app.ErrorDisplay_2.Value = app.format_engineering(Jfinal);
+                else
+                    app.ErrorDisplay_2.Value = app.format_engineering(BIG);
+                end
+            catch ME
+                app.write_message("JA fit failed: " + string(ME.message));
             end
         end
 
@@ -1306,6 +1521,7 @@ classdef app_exported < matlab.apps.AppBase
             end
 
             update_components(app);
+            app.sync_k_fit_mode_ui();
 
             % Default colors
             app.Colors = [
@@ -1995,6 +2211,22 @@ classdef app_exported < matlab.apps.AppBase
             app.retrieve_ja_seeds();
             
         end
+
+        % Button pushed function: FitButton_2
+        function FitButton_2Pushed(app, event)
+            path = app.InputDatasetPath.Value;
+            if isfile(path)
+                app.import_data(path);
+                app.fit_ja_parameters();
+            else
+                app.write_message(path + " was not found, please browse the dataseth path again");
+            end
+        end
+
+        % Value changed function: kConstrainedCheckBox_2
+        function kConstrainedCheckBox_2ValueChanged(app, event)
+            app.sync_k_fit_mode_ui();
+        end
     end
 
     % Component initialization
@@ -2326,14 +2558,14 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -2344,14 +2576,14 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
@@ -2700,7 +2932,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayout2
             app.GridLayout2 = uigridlayout(app.HystereticmagnetizationfittingTab);
-            app.GridLayout2.ColumnWidth = {39.01, 65, 114.01, 61.99, 188.99, 61.99, 27, 96.99, 78.99, '1x', '1x'};
+            app.GridLayout2.ColumnWidth = {39.01, 65, 114.01, 61.99, 188.99, 61.99, '1x', '1x', '1x', '0.2x', '1x', '1x'};
             app.GridLayout2.RowHeight = {25, 21.99, 21.99, 21.99, 21.99, 21.99, 21.99, '1x', 21.99, 21.99, '1x', '8.56x', 28.99};
             app.GridLayout2.ColumnSpacing = 2.77317164494441;
             app.GridLayout2.RowSpacing = 6.31337694021372;
@@ -2726,7 +2958,7 @@ classdef app_exported < matlab.apps.AppBase
             app.ModelparametersLabel = uilabel(app.GridLayout2);
             app.ModelparametersLabel.FontWeight = 'bold';
             app.ModelparametersLabel.Layout.Row = 2;
-            app.ModelparametersLabel.Layout.Column = [6 11];
+            app.ModelparametersLabel.Layout.Column = [6 7];
             app.ModelparametersLabel.Text = 'Model parameters';
 
             % Create JsTEditFieldLabel_2
@@ -2738,10 +2970,9 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create JsField_2
             app.JsField_2 = uieditfield(app.GridLayout2, 'text');
-            app.JsField_2.Editable = 'off';
             app.JsField_2.HorizontalAlignment = 'right';
             app.JsField_2.Layout.Row = 3;
-            app.JsField_2.Layout.Column = 8;
+            app.JsField_2.Layout.Column = 7;
 
             % Create JsTEditFieldLabel_3
             app.JsTEditFieldLabel_3 = uilabel(app.GridLayout2);
@@ -2752,10 +2983,9 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create JsField_3
             app.JsField_3 = uieditfield(app.GridLayout2, 'text');
-            app.JsField_3.Editable = 'off';
             app.JsField_3.HorizontalAlignment = 'right';
             app.JsField_3.Layout.Row = 4;
-            app.JsField_3.Layout.Column = 8;
+            app.JsField_3.Layout.Column = 7;
 
             % Create JsTEditFieldLabel_4
             app.JsTEditFieldLabel_4 = uilabel(app.GridLayout2);
@@ -2766,10 +2996,9 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create JsField_4
             app.JsField_4 = uieditfield(app.GridLayout2, 'text');
-            app.JsField_4.Editable = 'off';
             app.JsField_4.HorizontalAlignment = 'right';
             app.JsField_4.Layout.Row = 5;
-            app.JsField_4.Layout.Column = 8;
+            app.JsField_4.Layout.Column = 7;
 
             % Create JsTEditFieldLabel_5
             app.JsTEditFieldLabel_5 = uilabel(app.GridLayout2);
@@ -2780,10 +3009,9 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create JsField_5
             app.JsField_5 = uieditfield(app.GridLayout2, 'text');
-            app.JsField_5.Editable = 'off';
             app.JsField_5.HorizontalAlignment = 'right';
             app.JsField_5.Layout.Row = 6;
-            app.JsField_5.Layout.Column = 8;
+            app.JsField_5.Layout.Column = 7;
 
             % Create JsTEditFieldLabel_6
             app.JsTEditFieldLabel_6 = uilabel(app.GridLayout2);
@@ -2794,15 +3022,15 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create JsField_6
             app.JsField_6 = uieditfield(app.GridLayout2, 'text');
-            app.JsField_6.Editable = 'off';
             app.JsField_6.HorizontalAlignment = 'right';
             app.JsField_6.Layout.Row = 7;
-            app.JsField_6.Layout.Column = 8;
+            app.JsField_6.Layout.Column = 7;
 
             % Create FitButton_2
             app.FitButton_2 = uibutton(app.GridLayout2, 'push');
+            app.FitButton_2.ButtonPushedFcn = createCallbackFcn(app, @FitButton_2Pushed, true);
             app.FitButton_2.Layout.Row = 13;
-            app.FitButton_2.Layout.Column = 11;
+            app.FitButton_2.Layout.Column = 12;
             app.FitButton_2.Text = 'Fit';
 
             % Create CalculatePlotButton_2
@@ -2810,7 +3038,7 @@ classdef app_exported < matlab.apps.AppBase
             app.CalculatePlotButton_2.ButtonPushedFcn = createCallbackFcn(app, @CalculatePlotButton_2Pushed, true);
             app.CalculatePlotButton_2.WordWrap = 'on';
             app.CalculatePlotButton_2.Layout.Row = 13;
-            app.CalculatePlotButton_2.Layout.Column = 10;
+            app.CalculatePlotButton_2.Layout.Column = 11;
             app.CalculatePlotButton_2.Text = 'Calculate & Plot';
 
             % Create ErrortominimizeDropDownLabel_2
@@ -2823,10 +3051,10 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create ErrortominimizeDropDown_2
             app.ErrortominimizeDropDown_2 = uidropdown(app.GridLayout2);
-            app.ErrortominimizeDropDown_2.Items = {'Diagonal (H, sampled)', 'Diagonal (H, continuous)', 'Diagonal (logH, sampled)', 'Diagonal (logH, continuous)', 'Vertical', 'Horizontal'};
+            app.ErrortominimizeDropDown_2.Items = {'Diagonal (H, continuous)', 'Vertical', 'Horizontal'};
             app.ErrortominimizeDropDown_2.Layout.Row = 13;
             app.ErrortominimizeDropDown_2.Layout.Column = [7 8];
-            app.ErrortominimizeDropDown_2.Value = 'Diagonal (H, sampled)';
+            app.ErrortominimizeDropDown_2.Value = 'Diagonal (H, continuous)';
 
             % Create ErrorDisplay_2
             app.ErrorDisplay_2 = uieditfield(app.GridLayout2, 'text');
@@ -2889,6 +3117,133 @@ classdef app_exported < matlab.apps.AppBase
             app.JsField_8.HorizontalAlignment = 'right';
             app.JsField_8.Layout.Row = 11;
             app.JsField_8.Layout.Column = 8;
+
+            % Create MsLowerField_2
+            app.MsLowerField_2 = uieditfield(app.GridLayout2, 'text');
+            app.MsLowerField_2.HorizontalAlignment = 'right';
+            app.MsLowerField_2.Layout.Row = 3;
+            app.MsLowerField_2.Layout.Column = 8;
+
+            % Create MsUpperField_2
+            app.MsUpperField_2 = uieditfield(app.GridLayout2, 'text');
+            app.MsUpperField_2.HorizontalAlignment = 'right';
+            app.MsUpperField_2.Layout.Row = 3;
+            app.MsUpperField_2.Layout.Column = 9;
+
+            % Create aLowerField_2
+            app.aLowerField_2 = uieditfield(app.GridLayout2, 'text');
+            app.aLowerField_2.HorizontalAlignment = 'right';
+            app.aLowerField_2.Layout.Row = 4;
+            app.aLowerField_2.Layout.Column = 8;
+
+            % Create aUpperField_2
+            app.aUpperField_2 = uieditfield(app.GridLayout2, 'text');
+            app.aUpperField_2.HorizontalAlignment = 'right';
+            app.aUpperField_2.Layout.Row = 4;
+            app.aUpperField_2.Layout.Column = 9;
+
+            % Create alphaLowerField_2
+            app.alphaLowerField_2 = uieditfield(app.GridLayout2, 'text');
+            app.alphaLowerField_2.HorizontalAlignment = 'right';
+            app.alphaLowerField_2.Layout.Row = 5;
+            app.alphaLowerField_2.Layout.Column = 8;
+
+            % Create alphaUpperField_2
+            app.alphaUpperField_2 = uieditfield(app.GridLayout2, 'text');
+            app.alphaUpperField_2.HorizontalAlignment = 'right';
+            app.alphaUpperField_2.Layout.Row = 5;
+            app.alphaUpperField_2.Layout.Column = 9;
+
+            % Create cLowerField_2
+            app.cLowerField_2 = uieditfield(app.GridLayout2, 'text');
+            app.cLowerField_2.HorizontalAlignment = 'right';
+            app.cLowerField_2.Layout.Row = 6;
+            app.cLowerField_2.Layout.Column = 8;
+
+            % Create cUpperField_2
+            app.cUpperField_2 = uieditfield(app.GridLayout2, 'text');
+            app.cUpperField_2.HorizontalAlignment = 'right';
+            app.cUpperField_2.Layout.Row = 6;
+            app.cUpperField_2.Layout.Column = 9;
+
+            % Create kLowerField_2
+            app.kLowerField_2 = uieditfield(app.GridLayout2, 'text');
+            app.kLowerField_2.HorizontalAlignment = 'right';
+            app.kLowerField_2.Layout.Row = 7;
+            app.kLowerField_2.Layout.Column = 8;
+
+            % Create kUpperField_2
+            app.kUpperField_2 = uieditfield(app.GridLayout2, 'text');
+            app.kUpperField_2.HorizontalAlignment = 'right';
+            app.kUpperField_2.Layout.Row = 7;
+            app.kUpperField_2.Layout.Column = 9;
+
+            % Create LowerboundLabel
+            app.LowerboundLabel = uilabel(app.GridLayout2);
+            app.LowerboundLabel.Layout.Row = 2;
+            app.LowerboundLabel.Layout.Column = 8;
+            app.LowerboundLabel.Text = 'Lower bound';
+
+            % Create UpperboundLabel
+            app.UpperboundLabel = uilabel(app.GridLayout2);
+            app.UpperboundLabel.Layout.Row = 2;
+            app.UpperboundLabel.Layout.Column = 9;
+            app.UpperboundLabel.Text = 'Upper bound';
+
+            % Create FitLabel
+            app.FitLabel = uilabel(app.GridLayout2);
+            app.FitLabel.Layout.Row = 2;
+            app.FitLabel.Layout.Column = 10;
+            app.FitLabel.Text = 'Fit';
+
+            % Create CheckBox
+            app.CheckBox = uicheckbox(app.GridLayout2);
+            app.CheckBox.Text = '';
+            app.CheckBox.Layout.Row = 3;
+            app.CheckBox.Layout.Column = 10;
+            app.CheckBox.Value = true;
+
+            % Create CheckBox_2
+            app.CheckBox_2 = uicheckbox(app.GridLayout2);
+            app.CheckBox_2.Text = '';
+            app.CheckBox_2.Layout.Row = 4;
+            app.CheckBox_2.Layout.Column = 10;
+            app.CheckBox_2.Value = true;
+
+            % Create CheckBox_3
+            app.CheckBox_3 = uicheckbox(app.GridLayout2);
+            app.CheckBox_3.Text = '';
+            app.CheckBox_3.Layout.Row = 5;
+            app.CheckBox_3.Layout.Column = 10;
+            app.CheckBox_3.Value = true;
+
+            % Create CheckBox_4
+            app.CheckBox_4 = uicheckbox(app.GridLayout2);
+            app.CheckBox_4.Text = '';
+            app.CheckBox_4.Layout.Row = 6;
+            app.CheckBox_4.Layout.Column = 10;
+            app.CheckBox_4.Value = true;
+
+            % Create FitkCheckBox
+            app.FitkCheckBox = uicheckbox(app.GridLayout2);
+            app.FitkCheckBox.Text = '';
+            app.FitkCheckBox.Layout.Row = 7;
+            app.FitkCheckBox.Layout.Column = 10;
+            app.FitkCheckBox.Value = true;
+
+            % Create Label
+            app.Label = uilabel(app.GridLayout2);
+            app.Label.Layout.Row = 2;
+            app.Label.Layout.Column = 12;
+            app.Label.Text = '';
+
+            % Create kConstrainedCheckBox_2
+            app.kConstrainedCheckBox_2 = uicheckbox(app.GridLayout2);
+            app.kConstrainedCheckBox_2.ValueChangedFcn = createCallbackFcn(app, @kConstrainedCheckBox_2ValueChanged, true);
+            app.kConstrainedCheckBox_2.Text = 'Constrained by Hc';
+            app.kConstrainedCheckBox_2.Layout.Row = 7;
+            app.kConstrainedCheckBox_2.Layout.Column = [11 12];
+            app.kConstrainedCheckBox_2.Value = true;
 
             % Create OutputmagnetizationdataTab
             app.OutputmagnetizationdataTab = uitab(app.TabGroup);
