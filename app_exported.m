@@ -95,9 +95,9 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesHdMdH                       matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesM                           matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesHdMdH                       matlab.ui.control.UIAxes
         HystereticmagnetizationfittingTab  matlab.ui.container.Tab
         GridLayout2                     matlab.ui.container.GridLayout
         kConstrainedCheckBox_2          matlab.ui.control.CheckBox
@@ -930,11 +930,11 @@ classdef app_exported < matlab.apps.AppBase
 
             has_raw_data = ~isempty(app.H_raw) && ~isempty(app.M_raw);
             if has_raw_data && app.is_last_import_anhysteretic()
-                plot(ax, app.data_curve.H, app.data_curve.M, '.-', 'Color', [0 0 0], 'LineWidth', 1.0, 'MarkerSize', 7, 'DisplayName', 'Measured');
+                plot(ax, app.data_curve.H, app.data_curve.M, '.', 'Color', [0 0 0], 'LineWidth', 1.0, 'MarkerSize', 7, 'DisplayName', 'Measured');
                 app.write_message("Warning: Anhysteretic magnetization data detected. The curve can be used for Jiles–Atherton (rate‑independent) model testing, but parameter fitting is not possible.");
             elseif has_raw_data
                 [H_plot, M_plot] = app.build_ja_data_cycle();
-                plot(ax, H_plot, M_plot, '.-', 'Color', [0 0 0], 'LineWidth', 1.0, 'MarkerSize', 7, 'DisplayName', 'Measured');
+                plot(ax, H_plot, M_plot, '.', 'Color', [0 0 0], 'LineWidth', 1.0, 'MarkerSize', 7, 'DisplayName', 'Measured');
                 app.write_message("Hysteresis loop data in M (A/m) vs H (A/m) successfully retrieved.");
             else
                 app.write_message("Warning: No hysteresis loop data is currently available.");
@@ -946,7 +946,7 @@ classdef app_exported < matlab.apps.AppBase
                 try
                     opts = odeset('RelTol', 1e-7, 'AbsTol', 1e-6);
                     [Hsim, Msim] = solveJA_fromTip(Htip, Mtip, params, opts);
-                    plot(ax, Hsim, Msim, 'r--', 'LineWidth', 1.2, 'DisplayName', 'JA simulated');
+                    plot(ax, Hsim, Msim, 'r-', 'LineWidth', 1.2, 'DisplayName', 'JA simulated');
                 catch ME
                     app.write_message("Warning: JA simulation could not be plotted (" + string(ME.message) + ").");
                 end
@@ -967,7 +967,7 @@ classdef app_exported < matlab.apps.AppBase
             ylabel(ax, 'M [A/m]');
             box(ax, 'on');
             ax.LineWidth = 1.2;
-            legend(ax, 'show');
+            legend(ax, 'off');
             hold(ax, 'off');
         end
         
@@ -1046,33 +1046,22 @@ classdef app_exported < matlab.apps.AppBase
 
         function retrieve_ja_seeds(app)
             [ms_seed, a_seed, alpha_seed, has_seeds] = app.get_first_anhysteretic_seeds();
-
-            app.JsField_5.Value = char(sprintf("%.4f", 1/3));
             c_seed = 1/3;
-
-            has_curve_data = false;
-            try
-                has_curve_data = ~isempty(app.data_curve) && ~isempty(app.data_curve.H) && ~isempty(app.data_curve.M);
-            catch
-                has_curve_data = false;
-            end
-            if has_curve_data
-                [HTip, MTip] = Utils().find_tip(app.data_curve.H, app.data_curve.M);
-                app.JsField_7.Value = app.format_short(HTip);
-                app.JsField_8.Value = app.format_short(MTip);
-            else
-                app.JsField_7.Value = "";
-                app.JsField_8.Value = "";
-            end
-            if has_seeds
+            parser_constants = ParserConstants();
+        
+            has_curve_data = ~isempty(app.data_curve) && ~isempty(app.data_curve.H) && ~isempty(app.data_curve.M);
+            is_hysteretic_context = ~app.is_last_import_anhysteretic() || ...
+                (strlength(string(app.CurveDropDown.Value)) > 0 && string(app.CurveDropDown.Value) ~= parser_constants.ANHYSTERETIC_CURVE_TYPE);
+        
+            if has_seeds && is_hysteretic_context
                 app.JsField_2.Value = char(ms_seed);
                 app.JsField_3.Value = char(a_seed);
                 app.JsField_4.Value = char(alpha_seed);
-
+        
                 ms_num = str2double(replace(ms_seed, ",", ""));
                 a_num = str2double(replace(a_seed, ",", ""));
                 alpha_num = str2double(replace(alpha_seed, ",", ""));
-
+        
                 k_value = NaN;
                 if has_curve_data && isfinite(ms_num) && isfinite(a_num) && isfinite(alpha_num) && a_num ~= 0
                     try
@@ -1085,24 +1074,26 @@ classdef app_exported < matlab.apps.AppBase
                         app.write_message("k-seed debug: " + string(ME.message));
                     end
                 end
-
+        
                 if isfinite(k_value)
                     k_display = app.format_k_seed_display(k_value);
                     app.JsField_6.Value = char(k_display);
-                    app.MsLowerField_2.Value = app.format_short(0.5 * ms_num);
-                    app.MsUpperField_2.Value = app.format_short(1.5 * ms_num);
-                    app.aLowerField_2.Value = app.format_short(0.5 * a_num);
-                    app.aUpperField_2.Value = app.format_short(1.5 * a_num);
-                    app.alphaLowerField_2.Value = app.format_short(0.5 * alpha_num);
-                    app.alphaUpperField_2.Value = app.format_short(1.5 * alpha_num);
-                    app.cLowerField_2.Value = app.format_short(1e-6);
-                    app.cUpperField_2.Value = app.format_short(0.999999);
-                    app.kLowerField_2.Value = app.format_short(0.5 * k_value);
-                    app.kUpperField_2.Value = app.format_short(1.5 * k_value);
-                    app.write_message("Jiles–Atherton seeds retrieved: Ms=" + ms_seed + ", a=" + a_seed + ", α=" + alpha_seed + ", c=" + app.format_short(c_seed) + ", k=" + k_display + ".");
+                    app.JsField_5.Value = app.format_short(c_seed);
+                    app.MsLowerField_2.Value = "0";
+                    app.MsUpperField_2.Value = "Inf";
+                    app.aLowerField_2.Value = "0";
+                    app.aUpperField_2.Value = "Inf";
+                    app.alphaLowerField_2.Value = "0";
+                    app.alphaUpperField_2.Value = "Inf";
+                    app.cLowerField_2.Value = "0";
+                    app.cUpperField_2.Value = "Inf";
+                    app.kLowerField_2.Value = "0";
+                    app.kUpperField_2.Value = "Inf";
+                    app.write_message("Jiles–Atherton seeds retrieved: Ms=" + ms_seed + " [A/m], a=" + a_seed + " [A/m], α=" + alpha_seed + ", c=" + app.format_short(c_seed) + ", k=" + k_display + " [A/m].");
                 else
                     app.JsField_6.Value = "";
-                    app.write_message("Jiles–Atherton seeds retrieved: Ms=" + ms_seed + ", a=" + a_seed + ", α=" + alpha_seed + ", c=" + app.format_short(c_seed) + ", k=not available.");
+                    app.JsField_5.Value = app.format_short(c_seed);
+                    app.write_message("Jiles–Atherton seeds retrieved: Ms=" + ms_seed + " [A/m], a=" + a_seed + " [A/m], α=" + alpha_seed + ", c=" + app.format_short(c_seed) + ", k=not available.");
                 end
             else
                 app.JsField_2.Value = "";
@@ -1119,9 +1110,11 @@ classdef app_exported < matlab.apps.AppBase
                 app.cUpperField_2.Value = "";
                 app.kLowerField_2.Value = "";
                 app.kUpperField_2.Value = "";
+                app.JsField_5.Value = app.format_short(c_seed);
                 app.write_message("Warning: No anhysteretic magnetization modelling has been performed.");
                 app.write_message("Jiles–Atherton seeds for Ms, a, α, and k were not initialized; the coupling parameter c was set to 1/3.");
             end
+            drawnow;
         end
 
         function [J, ok] = compute_ja_left_branch_error_core(~, error_type, Hleft, Mleft, Hhat, Mhat)
@@ -1198,104 +1191,112 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         function fit_ja_parameters(app)
-            BIG = 1e6;
-            [params0, has_params] = app.get_ja_params_from_tab();
+            mask = struct( ...
+                'fitMs', logical(app.CheckBox.Value), ...
+                'fita', logical(app.CheckBox_2.Value), ...
+                'fitalpha', logical(app.CheckBox_3.Value), ...
+                'fitc', logical(app.CheckBox_4.Value), ...
+                'kDependent', logical(app.kConstrainedCheckBox_2.Value), ...
+                'fitk', logical(app.FitkCheckBox.Value) && ~logical(app.kConstrainedCheckBox_2.Value));
+
+            [params_seed, has_params] = app.get_ja_params_from_tab();
+            if ~has_params && mask.kDependent
+                [msVal, okMs] = app.read_numeric_field(app.JsField_2);
+                [aVal, okA] = app.read_numeric_field(app.JsField_3);
+                [alphaVal, okAlpha] = app.read_numeric_field(app.JsField_4);
+                [cVal, okC] = app.read_numeric_field(app.JsField_5);
+                if okMs && okA && okAlpha && okC && aVal ~= 0
+                    params_seed = struct('Ms', msVal, 'a', aVal, 'alpha', alphaVal, 'c', cVal, 'k', 1);
+                    has_params = true;
+                end
+            end
+
             [Htip, Mtip, has_tip] = app.get_ja_tip_from_tab_or_data();
-            has_raw_data = ~isempty(app.H_raw) && ~isempty(app.M_raw);
-            if ~has_params || ~has_tip || ~has_raw_data
+            has_fit_data = false;
+            H_cycle = [];
+            M_cycle = [];
+            try
+                [H_cycle, M_cycle] = app.build_ja_data_cycle();
+                has_fit_data = ~isempty(H_cycle) && ~isempty(M_cycle) && numel(H_cycle) >= 2 && numel(M_cycle) >= 2;
+            catch
+                has_fit_data = false;
+            end
+
+            if ~has_tip && has_fit_data
+                try
+                    [Htip, Mtip] = Utils().find_tip(H_cycle, M_cycle);
+                    has_tip = isfinite(Htip) && isfinite(Mtip);
+                catch
+                    has_tip = false;
+                end
+            end
+
+            if ~has_params || ~has_tip || ~has_fit_data
                 app.write_message("JA fit skipped: missing parameters, tip, or input data.");
                 return;
             end
 
-            H_unit = app.HorizontalaxisfieldDropDown.Value;
-            M_unit = app.VerticalaxisfieldDropDown.Value;
-            [H_conv, M_conv] = UnitConvertor().convert_H_M(app.H_raw, H_unit, app.M_raw, M_unit);
+            [H_conv, M_conv] = deal(H_cycle, M_cycle);
             n_left = max(2, round(app.InputNumberofPointsEditField.Value));
             [Hleft, Mleft] = app.extract_left_branch_uniform_arc(H_conv, M_conv, n_left);
-
-            [msLB, ok1] = app.read_numeric_field(app.MsLowerField_2);
-            [msUB, ok2] = app.read_numeric_field(app.MsUpperField_2);
-            [aLB, ok3] = app.read_numeric_field(app.aLowerField_2);
-            [aUB, ok4] = app.read_numeric_field(app.aUpperField_2);
-            [alphaLB, ok5] = app.read_numeric_field(app.alphaLowerField_2);
-            [alphaUB, ok6] = app.read_numeric_field(app.alphaUpperField_2);
-            [cLB, ok7] = app.read_numeric_field(app.cLowerField_2);
-            [cUB, ok8] = app.read_numeric_field(app.cUpperField_2);
-            [kLB, ok9] = app.read_numeric_field(app.kLowerField_2);
-            [kUB, ok10] = app.read_numeric_field(app.kUpperField_2);
-
-            % Fallback bounds if user leaves fields empty
-            if ~(ok1 && ok2), msLB = max(eps, 0.5 * params0.Ms); msUB = 1.5 * params0.Ms; end
-            if ~(ok3 && ok4), aLB = max(eps, 0.5 * params0.a); aUB = 1.5 * params0.a; end
-            if ~(ok5 && ok6), alphaLB = 0.5 * params0.alpha; alphaUB = 1.5 * params0.alpha; end
-            if ~(ok7 && ok8), cLB = 1e-6; cUB = 0.999999; end
-            if ~(ok9 && ok10), kLB = max(eps, 0.5 * params0.k); kUB = 1.5 * params0.k; end
-
-            fitMs = app.FitMsCheckBox_2.Value;
-            fita = app.FitaCheckBox_2.Value;
-            fitalpha = app.FitalphaCheckBox_2.Value;
-            fitc = app.FitcCheckBox_2.Value;
-            kDependent = app.kConstrainedCheckBox_2.Value;
-            fitk = app.FitkCheckBox.Value && ~kDependent;
-
-            x0 = [params0.Ms, params0.a, params0.alpha, params0.c, params0.k];
-            lb = [msLB, aLB, alphaLB, cLB, kLB];
-            ub = [msUB, aUB, alphaUB, cUB, kUB];
-            fitmask = [fitMs, fita, fitalpha, fitc, fitk];
-
-            epsilon = 1e-8;
-            for i = 1:numel(fitmask)
-                if ~fitmask(i)
-                    lb(i) = x0(i) - epsilon;
-                    ub(i) = x0(i) + epsilon;
-                end
+        
+            [msLB, ok1] = JAFitUtils.readBoundFieldValue(app.MsLowerField_2);
+            [msUB, ok2] = JAFitUtils.readBoundFieldValue(app.MsUpperField_2);
+            [aLB, ok3] = JAFitUtils.readBoundFieldValue(app.aLowerField_2);
+            [aUB, ok4] = JAFitUtils.readBoundFieldValue(app.aUpperField_2);
+            [alphaLB, ok5] = JAFitUtils.readBoundFieldValue(app.alphaLowerField_2);
+            [alphaUB, ok6] = JAFitUtils.readBoundFieldValue(app.alphaUpperField_2);
+            [cLB, ok7] = JAFitUtils.readBoundFieldValue(app.cLowerField_2);
+            [cUB, ok8] = JAFitUtils.readBoundFieldValue(app.cUpperField_2);
+            [kLB, ok9] = JAFitUtils.readBoundFieldValue(app.kLowerField_2);
+            [kUB, ok10] = JAFitUtils.readBoundFieldValue(app.kUpperField_2);
+        
+            if ~(ok1 && ok2 && ok3 && ok4 && ok5 && ok6 && ok7 && ok8 && ok9 && ok10)
+                app.write_message("JA fit skipped: invalid bounds.");
+                return;
             end
-
+        
+            bounds = struct( ...
+                'Ms', JAFitUtils.makeBoundPair(msLB, msUB), ...
+                'a', JAFitUtils.makeBoundPair(aLB, aUB), ...
+                'alpha', JAFitUtils.makeBoundPair(alphaLB, alphaUB), ...
+                'c', JAFitUtils.makeBoundPair(cLB, cUB), ...
+                'k', JAFitUtils.makeBoundPair(kLB, kUB));
+        
+            [lb, ub] = JAFitUtils.packBounds(bounds, mask);
+            if any(lb > ub)
+                app.write_message("JA fit skipped: lower bound is greater than upper bound.");
+                return;
+            end
+        
             error_type = string(app.ErrortominimizeDropDown_2.Value);
-            opts = odeset('RelTol', 1e-7, 'AbsTol', 1e-6);
-
-            function J = obj(x)
-                params = struct('Ms', x(1), 'a', x(2), 'alpha', x(3), 'c', x(4), 'k', x(5));
-                if kDependent
-                    try
-                        params.k = app.estimateK_fromCoercivePoint(Hleft, Mleft, params.Ms, params.a, params.alpha, params.c);
-                    catch
-                        J = BIG; return;
-                    end
-                end
-                if params.Ms <= 0 || params.a <= 0 || params.k <= 0 || params.c <= 0 || params.c >= 1
-                    J = BIG; return;
-                end
-                try
-                    [Hhat, Mhat] = solveJA_monotonic(Htip, -Htip, Mtip, params, -1, opts);
-                    [J, okJ] = app.compute_ja_left_branch_error_core(error_type, Hleft, Mleft, Hhat, Mhat);
-                    if ~okJ, J = BIG; end
-                catch
-                    J = BIG;
-                end
-            end
-
+        
+            fit_timer = tic;
             try
-                options = optimset('MaxIter', 800, 'MaxFunEvals', 4000);
-                xfit = minimize(@obj, x0, [], [], [], [], lb, ub, [], options);
-                paramsFit = struct('Ms', xfit(1), 'a', xfit(2), 'alpha', xfit(3), 'c', xfit(4), 'k', xfit(5));
-                if kDependent
-                    paramsFit.k = app.estimateK_fromCoercivePoint(Hleft, Mleft, paramsFit.Ms, paramsFit.a, paramsFit.alpha, paramsFit.c);
+                fit_result = JAFitter.fit( ...
+                    params_seed, mask, bounds, Hleft, Mleft, Htip, Mtip, error_type, ...
+                    @(p) app.estimateK_fromCoercivePoint(Hleft, Mleft, p.Ms, p.a, p.alpha, p.c), ...
+                    @(errType, hL, mL, hHat, mHat) app.compute_ja_left_branch_error_core(errType, hL, mL, hHat, mHat));
+        
+                if ~fit_result.ok
+                    error(char(fit_result.errorMessage));
                 end
-                app.JsField_2.Value = app.format_short(paramsFit.Ms);
-                app.JsField_3.Value = app.format_short(paramsFit.a);
-                app.JsField_4.Value = app.format_short(paramsFit.alpha);
-                app.JsField_5.Value = app.format_short(paramsFit.c);
-                app.JsField_6.Value = app.format_short(paramsFit.k);
+        
+                params_opt = fit_result.params_opt;
+                app.JsField_2.Value = app.format_short(params_opt.Ms);
+                app.JsField_3.Value = app.format_short(params_opt.a);
+                app.JsField_4.Value = app.format_short(params_opt.alpha);
+                app.JsField_5.Value = app.format_short(params_opt.c);
+                app.JsField_6.Value = app.format_short(params_opt.k);
+        
                 app.plot_hysteretic_tab_data();
-                [Jfinal, okFinal] = app.compute_ja_left_branch_error(error_type);
-                if okFinal
-                    app.ErrorDisplay_2.Value = app.format_engineering(Jfinal);
-                else
-                    app.ErrorDisplay_2.Value = app.format_engineering(BIG);
-                end
+                app.ErrorDisplay_2.Value = app.format_engineering(fit_result.Jopt);
+        
+                t = toc(fit_timer);
+                app.write_message("Fitting finished after " + app.format_short(t) + " s");
             catch ME
-                app.write_message("JA fit failed: " + string(ME.message));
+                t = toc(fit_timer);
+                app.write_message("Fitting failed after " + app.format_short(t) + " s: " + string(ME.message));
             end
         end
 
@@ -1494,35 +1495,35 @@ classdef app_exported < matlab.apps.AppBase
 
             % Determine application root
             app.AppRoot = string(fileparts(mfilename('fullpath')));
-
+        
             % Add src folder (portable)
             srcFolder = fullfile(app.AppRoot, "src");
             if isfolder(srcFolder)
-                addpath(char(srcFolder));
+                addpath(genpath(char(srcFolder)));
             end
             import_src();
-
+        
             app.ProjectPath = "";
             app.number_components = app.NofcomponentsSpinner.Value;
-
+        
             app.init_components();
             app.TableFittedParameters.ColumnFormat = {[] 'char' 'short' 'short' 'logical'};
-
+        
             app.init_parameters_table(true);
             for i = 1:5
                 addStyle(app.TableParameters, ...
                     uistyle('HorizontalAlignment','right'), "column", i);
             end
-
+        
             app.init_quantities_table(true);
             for i = 1:5
                 addStyle(app.TableQuantities, ...
                     uistyle('HorizontalAlignment','right'), "column", i);
             end
-
+        
             update_components(app);
             app.sync_k_fit_mode_ui();
-
+        
             % Default colors
             app.Colors = [
                 0.58 0    0.70
@@ -1531,20 +1532,18 @@ classdef app_exported < matlab.apps.AppBase
                 0    0.70 0
                 1    0.50 0
             ];
-
+        
             % Default output folder
             outFolder = app.default_data_folder();
             app.ensure_folder(outFolder);
             app.OutputDatasetPath.Value = char(outFolder);
-
+        
             app.write_message("MagAnalyst 1.0.3-beta");
-
-            % app.MagAnalystUIFigure.WindowState = 'maximized';
-
+        
             drawnow;
             
             t = timer( ...
-                'StartDelay', 0.05, ...   % 50 ms
+                'StartDelay', 0.05, ...
                 'ExecutionMode', 'singleShot', ...
                 'TimerFcn', @(~,~) adjustWindow(app) );
             start(t);
@@ -2214,6 +2213,8 @@ classdef app_exported < matlab.apps.AppBase
 
         % Button pushed function: FitButton_2
         function FitButton_2Pushed(app, event)
+            app.write_message("Fitting started");
+            drawnow;
             path = app.InputDatasetPath.Value;
             if isfile(path)
                 app.import_data(path);
@@ -2558,14 +2559,14 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -2576,14 +2577,14 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
