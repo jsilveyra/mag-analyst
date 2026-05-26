@@ -95,9 +95,9 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesM                           matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesHdMdH                       matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesM                           matlab.ui.control.UIAxes
         HystereticmagnetizationfittingTab  matlab.ui.container.Tab
         GridLayout2                     matlab.ui.container.GridLayout
         kConstrainedCheckBox_2          matlab.ui.control.CheckBox
@@ -1076,18 +1076,19 @@ classdef app_exported < matlab.apps.AppBase
                 end
         
                 if isfinite(k_value)
+                    % Default bounds are set here (unbounded: -Inf to +Inf).
                     k_display = app.format_k_seed_display(k_value);
                     app.JsField_6.Value = char(k_display);
                     app.JsField_5.Value = app.format_short(c_seed);
-                    app.MsLowerField_2.Value = "0";
+                    app.MsLowerField_2.Value = "-Inf";
                     app.MsUpperField_2.Value = "Inf";
-                    app.aLowerField_2.Value = "0";
+                    app.aLowerField_2.Value = "-Inf";
                     app.aUpperField_2.Value = "Inf";
-                    app.alphaLowerField_2.Value = "0";
+                    app.alphaLowerField_2.Value = "-Inf";
                     app.alphaUpperField_2.Value = "Inf";
                     app.cLowerField_2.Value = "0";
-                    app.cUpperField_2.Value = "Inf";
-                    app.kLowerField_2.Value = "0";
+                    app.cUpperField_2.Value = "1";
+                    app.kLowerField_2.Value = "-Inf";
                     app.kUpperField_2.Value = "Inf";
                     app.write_message("Jiles–Atherton seeds retrieved: Ms=" + ms_seed + " [A/m], a=" + a_seed + " [A/m], α=" + alpha_seed + ", c=" + app.format_short(c_seed) + ", k=" + k_display + " [A/m].");
                 else
@@ -2559,14 +2560,14 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -2577,14 +2578,14 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
