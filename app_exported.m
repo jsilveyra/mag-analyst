@@ -95,9 +95,9 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesHdMdH                       matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesM                           matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesHdMdH                       matlab.ui.control.UIAxes
         HystereticfittingTab            matlab.ui.container.Tab
         GridLayout2                     matlab.ui.container.GridLayout
         kConstrainedCheckBox_2          matlab.ui.control.CheckBox
@@ -164,20 +164,21 @@ classdef app_exported < matlab.apps.AppBase
         StartingpointDropDown_3         matlab.ui.control.DropDown
         StartingpointDropDown_3Label    matlab.ui.control.Label
         MinorloopPanel                  matlab.ui.container.Panel
-        StartingpointDropDown_2         matlab.ui.control.DropDown
-        StartingpointDropDown_2Label    matlab.ui.control.Label
+        ReltoleranceEditField_2         matlab.ui.control.NumericEditField
+        ReltoleranceEditField_2Label    matlab.ui.control.Label
+        StopcriterionDropDown_4         matlab.ui.control.DropDown
+        StopcriterionDropDown_4Label    matlab.ui.control.Label
+        RepetitionsEditField_2          matlab.ui.control.NumericEditField
+        RepetitionsEditFieldLabel_2     matlab.ui.control.Label
+        StopcriterionDropDown_2Label_3  matlab.ui.control.Label
+        StopcriterionDropDown_2Label_2  matlab.ui.control.Label
         UITable                         matlab.ui.control.Table
         PlotDropDown_2                  matlab.ui.control.DropDown
         PlotDropDown_2Label             matlab.ui.control.Label
-        ReltoleranceEditField_2         matlab.ui.control.NumericEditField
-        ReltoleranceEditField_2Label    matlab.ui.control.Label
-        RepetitionsEditField_2          matlab.ui.control.NumericEditField
-        RepetitionsEditField_2Label     matlab.ui.control.Label
-        StopcriterionDropDown_2         matlab.ui.control.DropDown
-        StopcriterionDropDown_2Label    matlab.ui.control.Label
         ShowgridCheckBoxM_5             matlab.ui.control.CheckBox
-        GenerateHPathButton             matlab.ui.control.Button
         MajorloopPanel                  matlab.ui.container.Panel
+        HamplitudeAmEditField           matlab.ui.control.NumericEditField
+        HamplitudeAmEditFieldLabel      matlab.ui.control.Label
         HstartAmEditField               matlab.ui.control.NumericEditField
         HstartAmEditFieldLabel          matlab.ui.control.Label
         MstartAmEditField               matlab.ui.control.NumericEditField
@@ -210,7 +211,6 @@ classdef app_exported < matlab.apps.AppBase
         ModelparametersLabel_2          matlab.ui.control.Label
         JilesAthertonmodelrateindependentLabel_2  matlab.ui.control.Label
         AxesM_5                         matlab.ui.control.UIAxes
-        AxesM_4                         matlab.ui.control.UIAxes
         OutputdataTab                   matlab.ui.container.Tab
         GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
         GridLayoutExperimentalMagnetizationData  matlab.ui.container.GridLayout
@@ -2675,15 +2675,14 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Column = 1;
             app.GridLayoutAxes.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.Box = 'on';
-            app.AxesM.TickDir = 'in';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -2694,14 +2693,15 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.Box = 'on';
+            app.AxesM.TickDir = 'in';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
@@ -3479,15 +3479,6 @@ classdef app_exported < matlab.apps.AppBase
             app.PlaygroundTab = uitab(app.TabGroup);
             app.PlaygroundTab.Title = 'Playground';
 
-            % Create AxesM_4
-            app.AxesM_4 = uiaxes(app.PlaygroundTab);
-            xlabel(app.AxesM_4, 'index')
-            ylabel(app.AxesM_4, 'H (index) [A/m]')
-            zlabel(app.AxesM_4, 'Z')
-            app.AxesM_4.Box = 'on';
-            app.AxesM_4.TickDir = 'in';
-            app.AxesM_4.Position = [20 17 140 174];
-
             % Create AxesM_5
             app.AxesM_5 = uiaxes(app.PlaygroundTab);
             xlabel(app.AxesM_5, 'H [A/m]')
@@ -3495,7 +3486,7 @@ classdef app_exported < matlab.apps.AppBase
             zlabel(app.AxesM_5, 'Z')
             app.AxesM_5.Box = 'on';
             app.AxesM_5.TickDir = 'in';
-            app.AxesM_5.Position = [760 61 257 303];
+            app.AxesM_5.Position = [722 61 295 430];
 
             % Create JilesAthertonmodelrateindependentLabel_2
             app.JilesAthertonmodelrateindependentLabel_2 = uilabel(app.PlaygroundTab);
@@ -3595,90 +3586,95 @@ classdef app_exported < matlab.apps.AppBase
             % Create MajorloopPanel
             app.MajorloopPanel = uipanel(app.PlaygroundTab);
             app.MajorloopPanel.Title = 'Major loop';
-            app.MajorloopPanel.Position = [184 264 238 221];
+            app.MajorloopPanel.Position = [184 250 238 235];
 
             % Create StopcriterionDropDownLabel
             app.StopcriterionDropDownLabel = uilabel(app.MajorloopPanel);
-            app.StopcriterionDropDownLabel.HorizontalAlignment = 'right';
-            app.StopcriterionDropDownLabel.Position = [12 90 76 22];
+            app.StopcriterionDropDownLabel.Position = [6 84 76 22];
             app.StopcriterionDropDownLabel.Text = 'Stop criterion';
 
             % Create StopcriterionDropDown
             app.StopcriterionDropDown = uidropdown(app.MajorloopPanel);
             app.StopcriterionDropDown.Items = {'Until convergence', 'Fixed repetitions'};
-            app.StopcriterionDropDown.Position = [102 90 130 22];
-            app.StopcriterionDropDown.Value = 'Until convergence';
+            app.StopcriterionDropDown.Position = [102 84 130 22];
+            app.StopcriterionDropDown.Value = 'Fixed repetitions';
 
             % Create RepetitionsEditFieldLabel
             app.RepetitionsEditFieldLabel = uilabel(app.MajorloopPanel);
-            app.RepetitionsEditFieldLabel.Position = [57 39 88 22];
+            app.RepetitionsEditFieldLabel.Position = [47 56 88 22];
             app.RepetitionsEditFieldLabel.Text = 'Repetitions';
 
             % Create RepetitionsEditField
             app.RepetitionsEditField = uieditfield(app.MajorloopPanel, 'numeric');
-            app.RepetitionsEditField.Position = [147 39 54 22];
+            app.RepetitionsEditField.Limits = [0 Inf];
+            app.RepetitionsEditField.RoundFractionalValues = 'on';
+            app.RepetitionsEditField.Position = [137 56 54 22];
             app.RepetitionsEditField.Value = 1;
 
             % Create ReltoleranceEditFieldLabel
             app.ReltoleranceEditFieldLabel = uilabel(app.MajorloopPanel);
-            app.ReltoleranceEditFieldLabel.Position = [57 65 79 22];
+            app.ReltoleranceEditFieldLabel.Position = [46 32 79 22];
             app.ReltoleranceEditFieldLabel.Text = 'Rel. tolerance';
 
             % Create ReltoleranceEditField
             app.ReltoleranceEditField = uieditfield(app.MajorloopPanel, 'numeric');
+            app.ReltoleranceEditField.Limits = [0 Inf];
             app.ReltoleranceEditField.ValueDisplayFormat = '%.0e\n';
-            app.ReltoleranceEditField.Position = [151 65 51 22];
+            app.ReltoleranceEditField.Position = [140 32 51 22];
             app.ReltoleranceEditField.Value = 0.001;
 
             % Create PlotDropDownLabel
             app.PlotDropDownLabel = uilabel(app.MajorloopPanel);
             app.PlotDropDownLabel.HorizontalAlignment = 'right';
-            app.PlotDropDownLabel.Position = [12 10 26 22];
+            app.PlotDropDownLabel.Position = [12 4 26 22];
             app.PlotDropDownLabel.Text = 'Plot';
 
             % Create PlotDropDown
             app.PlotDropDown = uidropdown(app.MajorloopPanel);
             app.PlotDropDown.Items = {'Last loop only', 'Full history'};
-            app.PlotDropDown.Position = [102 10 109 22];
+            app.PlotDropDown.Position = [102 4 109 22];
             app.PlotDropDown.Value = 'Last loop only';
 
             % Create StartingpointDropDownLabel
             app.StartingpointDropDownLabel = uilabel(app.MajorloopPanel);
-            app.StartingpointDropDownLabel.HorizontalAlignment = 'right';
-            app.StartingpointDropDownLabel.Position = [6 171 76 22];
+            app.StartingpointDropDownLabel.Position = [6 185 76 22];
             app.StartingpointDropDownLabel.Text = 'Starting point';
 
             % Create StartingpointDropDown
             app.StartingpointDropDown = uidropdown(app.MajorloopPanel);
             app.StartingpointDropDown.Items = {'Demagnetized', 'Tip point (data)', 'User-defined'};
-            app.StartingpointDropDown.Position = [97 171 131 22];
+            app.StartingpointDropDown.Position = [97 185 131 22];
             app.StartingpointDropDown.Value = 'Demagnetized';
 
             % Create MstartAmEditFieldLabel
             app.MstartAmEditFieldLabel = uilabel(app.MajorloopPanel);
             app.MstartAmEditFieldLabel.HorizontalAlignment = 'right';
-            app.MstartAmEditFieldLabel.Position = [40 146 70 22];
+            app.MstartAmEditFieldLabel.Position = [40 160 70 22];
             app.MstartAmEditFieldLabel.Text = 'Mstart [A/m]';
 
             % Create MstartAmEditField
             app.MstartAmEditField = uieditfield(app.MajorloopPanel, 'numeric');
-            app.MstartAmEditField.Position = [125 146 77 22];
+            app.MstartAmEditField.Position = [125 160 77 22];
 
             % Create HstartAmEditFieldLabel
             app.HstartAmEditFieldLabel = uilabel(app.MajorloopPanel);
             app.HstartAmEditFieldLabel.HorizontalAlignment = 'right';
-            app.HstartAmEditFieldLabel.Position = [42 117 68 22];
+            app.HstartAmEditFieldLabel.Position = [42 135 68 22];
             app.HstartAmEditFieldLabel.Text = 'Hstart [A/m]';
 
             % Create HstartAmEditField
             app.HstartAmEditField = uieditfield(app.MajorloopPanel, 'numeric');
-            app.HstartAmEditField.Position = [125 117 77 22];
+            app.HstartAmEditField.Position = [125 135 77 22];
 
-            % Create GenerateHPathButton
-            app.GenerateHPathButton = uibutton(app.PlaygroundTab, 'push');
-            app.GenerateHPathButton.WordWrap = 'on';
-            app.GenerateHPathButton.Position = [46 200 103 23];
-            app.GenerateHPathButton.Text = 'Generate H Path';
+            % Create HamplitudeAmEditFieldLabel
+            app.HamplitudeAmEditFieldLabel = uilabel(app.MajorloopPanel);
+            app.HamplitudeAmEditFieldLabel.Position = [6 109 100 22];
+            app.HamplitudeAmEditFieldLabel.Text = 'H amplitude [A/m]';
+
+            % Create HamplitudeAmEditField
+            app.HamplitudeAmEditField = uieditfield(app.MajorloopPanel, 'numeric');
+            app.HamplitudeAmEditField.Limits = [0 Inf];
+            app.HamplitudeAmEditField.Position = [118 112 73 16];
 
             % Create ShowgridCheckBoxM_5
             app.ShowgridCheckBoxM_5 = uicheckbox(app.PlaygroundTab);
@@ -3691,73 +3687,73 @@ classdef app_exported < matlab.apps.AppBase
             app.MinorloopPanel = uipanel(app.PlaygroundTab);
             app.MinorloopPanel.Title = 'Minor loop';
             app.MinorloopPanel.Scrollable = 'on';
-            app.MinorloopPanel.Position = [184 35 238 221];
-
-            % Create StopcriterionDropDown_2Label
-            app.StopcriterionDropDown_2Label = uilabel(app.MinorloopPanel);
-            app.StopcriterionDropDown_2Label.HorizontalAlignment = 'right';
-            app.StopcriterionDropDown_2Label.Position = [8 88 76 22];
-            app.StopcriterionDropDown_2Label.Text = 'Stop criterion';
-
-            % Create StopcriterionDropDown_2
-            app.StopcriterionDropDown_2 = uidropdown(app.MinorloopPanel);
-            app.StopcriterionDropDown_2.Items = {'Until convergence', 'Fixed repetitions'};
-            app.StopcriterionDropDown_2.Position = [98 88 130 22];
-            app.StopcriterionDropDown_2.Value = 'Until convergence';
-
-            % Create RepetitionsEditField_2Label
-            app.RepetitionsEditField_2Label = uilabel(app.MinorloopPanel);
-            app.RepetitionsEditField_2Label.Position = [58 29 88 22];
-            app.RepetitionsEditField_2Label.Text = 'Repetitions';
-
-            % Create RepetitionsEditField_2
-            app.RepetitionsEditField_2 = uieditfield(app.MinorloopPanel, 'numeric');
-            app.RepetitionsEditField_2.Position = [161 37 36 22];
-            app.RepetitionsEditField_2.Value = 1;
-
-            % Create ReltoleranceEditField_2Label
-            app.ReltoleranceEditField_2Label = uilabel(app.MinorloopPanel);
-            app.ReltoleranceEditField_2Label.Position = [58 63 74 22];
-            app.ReltoleranceEditField_2Label.Text = 'Rel. tolerance';
-
-            % Create ReltoleranceEditField_2
-            app.ReltoleranceEditField_2 = uieditfield(app.MinorloopPanel, 'numeric');
-            app.ReltoleranceEditField_2.ValueDisplayFormat = '%.0e\n';
-            app.ReltoleranceEditField_2.Position = [147 63 51 22];
-            app.ReltoleranceEditField_2.Value = 0.001;
+            app.MinorloopPanel.Position = [184 7 238 236];
 
             % Create PlotDropDown_2Label
             app.PlotDropDown_2Label = uilabel(app.MinorloopPanel);
             app.PlotDropDown_2Label.HorizontalAlignment = 'right';
-            app.PlotDropDown_2Label.Position = [8 8 26 22];
+            app.PlotDropDown_2Label.Position = [14 4 26 22];
             app.PlotDropDown_2Label.Text = 'Plot';
 
             % Create PlotDropDown_2
             app.PlotDropDown_2 = uidropdown(app.MinorloopPanel);
-            app.PlotDropDown_2.Items = {'Last loop only', 'Full history'};
-            app.PlotDropDown_2.Position = [98 8 109 22];
-            app.PlotDropDown_2.Value = 'Last loop only';
+            app.PlotDropDown_2.Items = {'Last loops only', 'Full history'};
+            app.PlotDropDown_2.Position = [104 4 113 22];
+            app.PlotDropDown_2.Value = 'Last loops only';
 
             % Create UITable
             app.UITable = uitable(app.MinorloopPanel);
-            app.UITable.ColumnName = {'Htip_i [A/m]'};
+            app.UITable.ColumnName = {'Htip_i'};
             app.UITable.ColumnRearrangeable = 'on';
             app.UITable.RowName = {};
             app.UITable.ColumnSortable = true;
             app.UITable.ColumnEditable = true;
-            app.UITable.Position = [125 117 103 74];
+            app.UITable.Position = [125 117 92 61];
 
-            % Create StartingpointDropDown_2Label
-            app.StartingpointDropDown_2Label = uilabel(app.MinorloopPanel);
-            app.StartingpointDropDown_2Label.HorizontalAlignment = 'right';
-            app.StartingpointDropDown_2Label.Position = [1 164 76 22];
-            app.StartingpointDropDown_2Label.Text = 'Starting point';
+            % Create StopcriterionDropDown_2Label_2
+            app.StopcriterionDropDown_2Label_2 = uilabel(app.MinorloopPanel);
+            app.StopcriterionDropDown_2Label_2.Position = [19 156 100 22];
+            app.StopcriterionDropDown_2Label_2.Text = 'H amplitude [A/m]';
 
-            % Create StartingpointDropDown_2
-            app.StartingpointDropDown_2 = uidropdown(app.MinorloopPanel);
-            app.StartingpointDropDown_2.Items = {'Demagnetized', 'Tip point (data)'};
-            app.StartingpointDropDown_2.Position = [14 143 111 22];
-            app.StartingpointDropDown_2.Value = 'Demagnetized';
+            % Create StopcriterionDropDown_2Label_3
+            app.StopcriterionDropDown_2Label_3 = uilabel(app.MinorloopPanel);
+            app.StopcriterionDropDown_2Label_3.Position = [19 186 160 22];
+            app.StopcriterionDropDown_2Label_3.Text = 'Starting point: Demagnetized';
+
+            % Create RepetitionsEditFieldLabel_2
+            app.RepetitionsEditFieldLabel_2 = uilabel(app.MinorloopPanel);
+            app.RepetitionsEditFieldLabel_2.Position = [49 59 88 22];
+            app.RepetitionsEditFieldLabel_2.Text = 'Repetitions';
+
+            % Create RepetitionsEditField_2
+            app.RepetitionsEditField_2 = uieditfield(app.MinorloopPanel, 'numeric');
+            app.RepetitionsEditField_2.Limits = [0 Inf];
+            app.RepetitionsEditField_2.RoundFractionalValues = 'on';
+            app.RepetitionsEditField_2.Position = [139 59 54 22];
+            app.RepetitionsEditField_2.Value = 1;
+
+            % Create StopcriterionDropDown_4Label
+            app.StopcriterionDropDown_4Label = uilabel(app.MinorloopPanel);
+            app.StopcriterionDropDown_4Label.Position = [8 87 76 22];
+            app.StopcriterionDropDown_4Label.Text = 'Stop criterion';
+
+            % Create StopcriterionDropDown_4
+            app.StopcriterionDropDown_4 = uidropdown(app.MinorloopPanel);
+            app.StopcriterionDropDown_4.Items = {'Until convergence', 'Fixed repetitions'};
+            app.StopcriterionDropDown_4.Position = [104 87 130 22];
+            app.StopcriterionDropDown_4.Value = 'Fixed repetitions';
+
+            % Create ReltoleranceEditField_2Label
+            app.ReltoleranceEditField_2Label = uilabel(app.MinorloopPanel);
+            app.ReltoleranceEditField_2Label.Position = [48 35 79 22];
+            app.ReltoleranceEditField_2Label.Text = 'Rel. tolerance';
+
+            % Create ReltoleranceEditField_2
+            app.ReltoleranceEditField_2 = uieditfield(app.MinorloopPanel, 'numeric');
+            app.ReltoleranceEditField_2.Limits = [0 Inf];
+            app.ReltoleranceEditField_2.ValueDisplayFormat = '%.0e\n';
+            app.ReltoleranceEditField_2.Position = [142 35 51 22];
+            app.ReltoleranceEditField_2.Value = 0.001;
 
             % Create DegaussingPanel
             app.DegaussingPanel = uipanel(app.PlaygroundTab);
@@ -3824,6 +3820,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create InitialamplitudeAmEditField
             app.InitialamplitudeAmEditField = uieditfield(app.DegaussingPanel, 'numeric');
+            app.InitialamplitudeAmEditField.Limits = [0 Inf];
             app.InitialamplitudeAmEditField.Position = [173 142 54 22];
             app.InitialamplitudeAmEditField.Value = 1;
 
@@ -3834,12 +3831,13 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create FinalamplitudeAmEditField
             app.FinalamplitudeAmEditField = uieditfield(app.DegaussingPanel, 'numeric');
+            app.FinalamplitudeAmEditField.Limits = [0 Inf];
             app.FinalamplitudeAmEditField.Position = [173 110 54 22];
             app.FinalamplitudeAmEditField.Value = 1;
 
             % Create UITable_2
             app.UITable_2 = uitable(app.DegaussingPanel);
-            app.UITable_2.ColumnName = {'H_i [A/m]'};
+            app.UITable_2.ColumnName = {'Htip_i [A/m]'};
             app.UITable_2.ColumnRearrangeable = 'on';
             app.UITable_2.RowName = {};
             app.UITable_2.ColumnSortable = true;
