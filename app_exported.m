@@ -95,9 +95,9 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesM                           matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesHdMdH                       matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesM                           matlab.ui.control.UIAxes
         HystereticfittingTab            matlab.ui.container.Tab
         GridLayout2                     matlab.ui.container.GridLayout
         kConstrainedCheckBox_2          matlab.ui.control.CheckBox
@@ -147,6 +147,11 @@ classdef app_exported < matlab.apps.AppBase
         JilesAthertonmodelrateindependentLabel  matlab.ui.control.Label
         AxesM_2                         matlab.ui.control.UIAxes
         PlaygroundTab                   matlab.ui.container.Tab
+        VerticalaxisfieldDropDown_2     matlab.ui.control.DropDown
+        VerticalaxisfieldDropDown_2Label  matlab.ui.control.Label
+        HorizontalaxisfieldDropDown_2   matlab.ui.control.DropDown
+        HorizontalaxisfieldDropDown_2Label  matlab.ui.control.Label
+        CalculatePlotButton_3           matlab.ui.control.Button
         DegaussingPanel                 matlab.ui.container.Panel
         UITable_2                       matlab.ui.control.Table
         FinalamplitudeAmEditField       matlab.ui.control.NumericEditField
@@ -197,7 +202,6 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM_4             matlab.ui.control.CheckBox
         DrivingfieldLabel_2             matlab.ui.control.Label
         RetrieveparametersButton        matlab.ui.control.Button
-        SimulateMHButton                matlab.ui.control.Button
         JsField_13                      matlab.ui.control.EditField
         JsTEditFieldLabel_13            matlab.ui.control.Label
         JsField_12                      matlab.ui.control.EditField
@@ -2675,14 +2679,15 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Column = 1;
             app.GridLayoutAxes.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.Box = 'on';
+            app.AxesM.TickDir = 'in';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -2693,15 +2698,14 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.Box = 'on';
-            app.AxesM.TickDir = 'in';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
@@ -3486,7 +3490,7 @@ classdef app_exported < matlab.apps.AppBase
             zlabel(app.AxesM_5, 'Z')
             app.AxesM_5.Box = 'on';
             app.AxesM_5.TickDir = 'in';
-            app.AxesM_5.Position = [722 61 295 430];
+            app.AxesM_5.Position = [722 61 295 390];
 
             % Create JilesAthertonmodelrateindependentLabel_2
             app.JilesAthertonmodelrateindependentLabel_2 = uilabel(app.PlaygroundTab);
@@ -3554,12 +3558,6 @@ classdef app_exported < matlab.apps.AppBase
             app.JsField_13 = uieditfield(app.PlaygroundTab, 'text');
             app.JsField_13.HorizontalAlignment = 'right';
             app.JsField_13.Position = [73 316 91 22];
-
-            % Create SimulateMHButton
-            app.SimulateMHButton = uibutton(app.PlaygroundTab, 'push');
-            app.SimulateMHButton.WordWrap = 'on';
-            app.SimulateMHButton.Position = [923 23 91 23];
-            app.SimulateMHButton.Text = 'Simulate M(H)';
 
             % Create RetrieveparametersButton
             app.RetrieveparametersButton = uibutton(app.PlaygroundTab, 'push');
@@ -3843,6 +3841,44 @@ classdef app_exported < matlab.apps.AppBase
             app.UITable_2.ColumnSortable = true;
             app.UITable_2.ColumnEditable = true;
             app.UITable_2.Position = [56 28 168 74];
+
+            % Create CalculatePlotButton_3
+            app.CalculatePlotButton_3 = uibutton(app.PlaygroundTab, 'push');
+            app.CalculatePlotButton_3.WordWrap = 'on';
+            app.CalculatePlotButton_3.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
+            app.CalculatePlotButton_3.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
+            app.CalculatePlotButton_3.Position = [928 20 91 29];
+            app.CalculatePlotButton_3.Text = 'Calculate & Plot';
+
+            % Create HorizontalaxisfieldDropDown_2Label
+            app.HorizontalaxisfieldDropDown_2Label = uilabel(app.PlaygroundTab);
+            app.HorizontalaxisfieldDropDown_2Label.FontWeight = 'bold';
+            app.HorizontalaxisfieldDropDown_2Label.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
+            app.HorizontalaxisfieldDropDown_2Label.Position = [727 501 128 31];
+            app.HorizontalaxisfieldDropDown_2Label.Text = 'Horizontal axis field';
+
+            % Create HorizontalaxisfieldDropDown_2
+            app.HorizontalaxisfieldDropDown_2 = uidropdown(app.PlaygroundTab);
+            app.HorizontalaxisfieldDropDown_2.Items = {'H [A/m]', 'H [kA/m]', 'H [Oe]', 'H [kOe]', 'Bext [T]', 'Bext [G]', 'Bext [kG]'};
+            app.HorizontalaxisfieldDropDown_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
+            app.HorizontalaxisfieldDropDown_2.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
+            app.HorizontalaxisfieldDropDown_2.Position = [721 466 135 31];
+            app.HorizontalaxisfieldDropDown_2.Value = 'H [A/m]';
+
+            % Create VerticalaxisfieldDropDown_2Label
+            app.VerticalaxisfieldDropDown_2Label = uilabel(app.PlaygroundTab);
+            app.VerticalaxisfieldDropDown_2Label.FontWeight = 'bold';
+            app.VerticalaxisfieldDropDown_2Label.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
+            app.VerticalaxisfieldDropDown_2Label.Position = [866 501 128 31];
+            app.VerticalaxisfieldDropDown_2Label.Text = 'Vertical axis field';
+
+            % Create VerticalaxisfieldDropDown_2
+            app.VerticalaxisfieldDropDown_2 = uidropdown(app.PlaygroundTab);
+            app.VerticalaxisfieldDropDown_2.Items = {'M [A/m]', 'M [kA/m]', 'M [MA/m]', 'M [emu/cm^3]', 'J [T]', 'B [T]', 'B [G]', 'B [kG]'};
+            app.VerticalaxisfieldDropDown_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
+            app.VerticalaxisfieldDropDown_2.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
+            app.VerticalaxisfieldDropDown_2.Position = [866 464 118 31];
+            app.VerticalaxisfieldDropDown_2.Value = 'M [A/m]';
 
             % Create OutputdataTab
             app.OutputdataTab = uitab(app.TabGroup);
