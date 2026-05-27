@@ -147,7 +147,25 @@ classdef app_exported < matlab.apps.AppBase
         JilesAthertonmodelrateindependentLabel  matlab.ui.control.Label
         AxesM_2                         matlab.ui.control.UIAxes
         PlaygroundTab                   matlab.ui.container.Tab
+        DegaussingPanel                 matlab.ui.container.Panel
+        UITable_2                       matlab.ui.control.Table
+        FinalamplitudeAmEditField       matlab.ui.control.NumericEditField
+        FinalamplitudeAmEditFieldLabel  matlab.ui.control.Label
+        InitialamplitudeAmEditField     matlab.ui.control.NumericEditField
+        InitialamplitudeAmEditFieldLabel  matlab.ui.control.Label
+        NofstepsEditField               matlab.ui.control.NumericEditField
+        NofstepsEditFieldLabel          matlab.ui.control.Label
+        HamplitudeDropDown              matlab.ui.control.DropDown
+        HamplitudeDropDownLabel         matlab.ui.control.Label
+        HstartAmEditField_2             matlab.ui.control.NumericEditField
+        HstartAmEditField_2Label        matlab.ui.control.Label
+        MstartAmEditField_2             matlab.ui.control.NumericEditField
+        MstartAmEditField_2Label        matlab.ui.control.Label
+        StartingpointDropDown_3         matlab.ui.control.DropDown
+        StartingpointDropDown_3Label    matlab.ui.control.Label
         MinorloopPanel                  matlab.ui.container.Panel
+        StartingpointDropDown_2         matlab.ui.control.DropDown
+        StartingpointDropDown_2Label    matlab.ui.control.Label
         UITable                         matlab.ui.control.Table
         PlotDropDown_2                  matlab.ui.control.DropDown
         PlotDropDown_2Label             matlab.ui.control.Label
@@ -157,11 +175,15 @@ classdef app_exported < matlab.apps.AppBase
         RepetitionsEditField_2Label     matlab.ui.control.Label
         StopcriterionDropDown_2         matlab.ui.control.DropDown
         StopcriterionDropDown_2Label    matlab.ui.control.Label
-        MinitialDropDown_2              matlab.ui.control.DropDown
-        MinitialDropDown_2Label         matlab.ui.control.Label
         ShowgridCheckBoxM_5             matlab.ui.control.CheckBox
         GenerateHPathButton             matlab.ui.control.Button
         MajorloopPanel                  matlab.ui.container.Panel
+        HstartAmEditField               matlab.ui.control.NumericEditField
+        HstartAmEditFieldLabel          matlab.ui.control.Label
+        MstartAmEditField               matlab.ui.control.NumericEditField
+        MstartAmEditFieldLabel          matlab.ui.control.Label
+        StartingpointDropDown           matlab.ui.control.DropDown
+        StartingpointDropDownLabel      matlab.ui.control.Label
         PlotDropDown                    matlab.ui.control.DropDown
         PlotDropDownLabel               matlab.ui.control.Label
         ReltoleranceEditField           matlab.ui.control.NumericEditField
@@ -170,12 +192,6 @@ classdef app_exported < matlab.apps.AppBase
         RepetitionsEditFieldLabel       matlab.ui.control.Label
         StopcriterionDropDown           matlab.ui.control.DropDown
         StopcriterionDropDownLabel      matlab.ui.control.Label
-        HmaxDropDownLabel_2             matlab.ui.control.Label
-        EditField                       matlab.ui.control.NumericEditField
-        HtipDropDown                    matlab.ui.control.DropDown
-        HtipDropDownLabel               matlab.ui.control.Label
-        MinitialDropDown                matlab.ui.control.DropDown
-        MinitialDropDownLabel           matlab.ui.control.Label
         HcaseDropDown                   matlab.ui.control.DropDown
         ShowgridCheckBoxM_4             matlab.ui.control.CheckBox
         DrivingfieldLabel_2             matlab.ui.control.Label
@@ -3479,7 +3495,7 @@ classdef app_exported < matlab.apps.AppBase
             zlabel(app.AxesM_5, 'Z')
             app.AxesM_5.Box = 'on';
             app.AxesM_5.TickDir = 'in';
-            app.AxesM_5.Position = [537 61 480 472];
+            app.AxesM_5.Position = [760 61 257 303];
 
             % Create JilesAthertonmodelrateindependentLabel_2
             app.JilesAthertonmodelrateindependentLabel_2 = uilabel(app.PlaygroundTab);
@@ -3562,60 +3578,24 @@ classdef app_exported < matlab.apps.AppBase
             % Create DrivingfieldLabel_2
             app.DrivingfieldLabel_2 = uilabel(app.PlaygroundTab);
             app.DrivingfieldLabel_2.FontWeight = 'bold';
-            app.DrivingfieldLabel_2.Position = [260 490 89 19];
+            app.DrivingfieldLabel_2.Position = [183 495 89 19];
             app.DrivingfieldLabel_2.Text = 'Driving field';
 
             % Create ShowgridCheckBoxM_4
             app.ShowgridCheckBoxM_4 = uicheckbox(app.PlaygroundTab);
             app.ShowgridCheckBoxM_4.Text = 'Data curve';
-            app.ShowgridCheckBoxM_4.Position = [580 25 80 29];
+            app.ShowgridCheckBoxM_4.Position = [823 21 80 29];
 
             % Create HcaseDropDown
             app.HcaseDropDown = uidropdown(app.PlaygroundTab);
             app.HcaseDropDown.Items = {'Major Loop', 'Minor Loops', 'Degaussing', 'Major Loop with harmonics'};
-            app.HcaseDropDown.Position = [248 464 100 22];
+            app.HcaseDropDown.Position = [282 492 100 22];
             app.HcaseDropDown.Value = 'Major Loop';
 
             % Create MajorloopPanel
             app.MajorloopPanel = uipanel(app.PlaygroundTab);
             app.MajorloopPanel.Title = 'Major loop';
-            app.MajorloopPanel.Position = [187 237 301 221];
-
-            % Create MinitialDropDownLabel
-            app.MinitialDropDownLabel = uilabel(app.MajorloopPanel);
-            app.MinitialDropDownLabel.HorizontalAlignment = 'right';
-            app.MinitialDropDownLabel.FontWeight = 'bold';
-            app.MinitialDropDownLabel.Position = [4 175 50 22];
-            app.MinitialDropDownLabel.Text = 'Minitial ';
-
-            % Create MinitialDropDown
-            app.MinitialDropDown = uidropdown(app.MajorloopPanel);
-            app.MinitialDropDown.Items = {'0 A/m', 'Mtip from data'};
-            app.MinitialDropDown.Position = [12 152 138 22];
-            app.MinitialDropDown.Value = '0 A/m';
-
-            % Create HtipDropDownLabel
-            app.HtipDropDownLabel = uilabel(app.MajorloopPanel);
-            app.HtipDropDownLabel.HorizontalAlignment = 'right';
-            app.HtipDropDownLabel.FontWeight = 'bold';
-            app.HtipDropDownLabel.Position = [224 178 28 22];
-            app.HtipDropDownLabel.Text = 'Htip';
-
-            % Create HtipDropDown
-            app.HtipDropDown = uidropdown(app.MajorloopPanel);
-            app.HtipDropDown.Items = {'User-defined', 'Htip from data'};
-            app.HtipDropDown.Position = [186 152 107 22];
-            app.HtipDropDown.Value = 'User-defined';
-
-            % Create EditField
-            app.EditField = uieditfield(app.MajorloopPanel, 'numeric');
-            app.EditField.Position = [210 124 44 19];
-
-            % Create HmaxDropDownLabel_2
-            app.HmaxDropDownLabel_2 = uilabel(app.MajorloopPanel);
-            app.HmaxDropDownLabel_2.HorizontalAlignment = 'right';
-            app.HmaxDropDownLabel_2.Position = [256 123 26 22];
-            app.HmaxDropDownLabel_2.Text = 'A/m';
+            app.MajorloopPanel.Position = [184 264 238 221];
 
             % Create StopcriterionDropDownLabel
             app.StopcriterionDropDownLabel = uilabel(app.MajorloopPanel);
@@ -3662,10 +3642,42 @@ classdef app_exported < matlab.apps.AppBase
             app.PlotDropDown.Position = [102 10 109 22];
             app.PlotDropDown.Value = 'Last loop only';
 
+            % Create StartingpointDropDownLabel
+            app.StartingpointDropDownLabel = uilabel(app.MajorloopPanel);
+            app.StartingpointDropDownLabel.HorizontalAlignment = 'right';
+            app.StartingpointDropDownLabel.Position = [6 171 76 22];
+            app.StartingpointDropDownLabel.Text = 'Starting point';
+
+            % Create StartingpointDropDown
+            app.StartingpointDropDown = uidropdown(app.MajorloopPanel);
+            app.StartingpointDropDown.Items = {'Demagnetized', 'Tip point (data)', 'User-defined'};
+            app.StartingpointDropDown.Position = [97 171 131 22];
+            app.StartingpointDropDown.Value = 'Demagnetized';
+
+            % Create MstartAmEditFieldLabel
+            app.MstartAmEditFieldLabel = uilabel(app.MajorloopPanel);
+            app.MstartAmEditFieldLabel.HorizontalAlignment = 'right';
+            app.MstartAmEditFieldLabel.Position = [40 146 70 22];
+            app.MstartAmEditFieldLabel.Text = 'Mstart [A/m]';
+
+            % Create MstartAmEditField
+            app.MstartAmEditField = uieditfield(app.MajorloopPanel, 'numeric');
+            app.MstartAmEditField.Position = [125 146 77 22];
+
+            % Create HstartAmEditFieldLabel
+            app.HstartAmEditFieldLabel = uilabel(app.MajorloopPanel);
+            app.HstartAmEditFieldLabel.HorizontalAlignment = 'right';
+            app.HstartAmEditFieldLabel.Position = [42 117 68 22];
+            app.HstartAmEditFieldLabel.Text = 'Hstart [A/m]';
+
+            % Create HstartAmEditField
+            app.HstartAmEditField = uieditfield(app.MajorloopPanel, 'numeric');
+            app.HstartAmEditField.Position = [125 117 77 22];
+
             % Create GenerateHPathButton
             app.GenerateHPathButton = uibutton(app.PlaygroundTab, 'push');
             app.GenerateHPathButton.WordWrap = 'on';
-            app.GenerateHPathButton.Position = [13 230 103 23];
+            app.GenerateHPathButton.Position = [46 200 103 23];
             app.GenerateHPathButton.Text = 'Generate H Path';
 
             % Create ShowgridCheckBoxM_5
@@ -3679,19 +3691,7 @@ classdef app_exported < matlab.apps.AppBase
             app.MinorloopPanel = uipanel(app.PlaygroundTab);
             app.MinorloopPanel.Title = 'Minor loop';
             app.MinorloopPanel.Scrollable = 'on';
-            app.MinorloopPanel.Position = [187 8 301 221];
-
-            % Create MinitialDropDown_2Label
-            app.MinitialDropDown_2Label = uilabel(app.MinorloopPanel);
-            app.MinitialDropDown_2Label.HorizontalAlignment = 'right';
-            app.MinitialDropDown_2Label.Position = [16 163 46 22];
-            app.MinitialDropDown_2Label.Text = 'Minitial ';
-
-            % Create MinitialDropDown_2
-            app.MinitialDropDown_2 = uidropdown(app.MinorloopPanel);
-            app.MinitialDropDown_2.Items = {'0 A/m', 'Mtip from data'};
-            app.MinitialDropDown_2.Position = [16 142 92 22];
-            app.MinitialDropDown_2.Value = '0 A/m';
+            app.MinorloopPanel.Position = [184 35 238 221];
 
             % Create StopcriterionDropDown_2Label
             app.StopcriterionDropDown_2Label = uilabel(app.MinorloopPanel);
@@ -3745,7 +3745,106 @@ classdef app_exported < matlab.apps.AppBase
             app.UITable.RowName = {};
             app.UITable.ColumnSortable = true;
             app.UITable.ColumnEditable = true;
-            app.UITable.Position = [170 116 114 74];
+            app.UITable.Position = [125 117 103 74];
+
+            % Create StartingpointDropDown_2Label
+            app.StartingpointDropDown_2Label = uilabel(app.MinorloopPanel);
+            app.StartingpointDropDown_2Label.HorizontalAlignment = 'right';
+            app.StartingpointDropDown_2Label.Position = [1 164 76 22];
+            app.StartingpointDropDown_2Label.Text = 'Starting point';
+
+            % Create StartingpointDropDown_2
+            app.StartingpointDropDown_2 = uidropdown(app.MinorloopPanel);
+            app.StartingpointDropDown_2.Items = {'Demagnetized', 'Tip point (data)'};
+            app.StartingpointDropDown_2.Position = [14 143 111 22];
+            app.StartingpointDropDown_2.Value = 'Demagnetized';
+
+            % Create DegaussingPanel
+            app.DegaussingPanel = uipanel(app.PlaygroundTab);
+            app.DegaussingPanel.Title = 'Degaussing';
+            app.DegaussingPanel.Position = [431 154 281 328];
+
+            % Create StartingpointDropDown_3Label
+            app.StartingpointDropDown_3Label = uilabel(app.DegaussingPanel);
+            app.StartingpointDropDown_3Label.HorizontalAlignment = 'right';
+            app.StartingpointDropDown_3Label.Position = [6 278 76 22];
+            app.StartingpointDropDown_3Label.Text = 'Starting point';
+
+            % Create StartingpointDropDown_3
+            app.StartingpointDropDown_3 = uidropdown(app.DegaussingPanel);
+            app.StartingpointDropDown_3.Items = {'Remanence (data)', 'Tip point (data)', 'User-defined'};
+            app.StartingpointDropDown_3.Position = [97 278 141 22];
+            app.StartingpointDropDown_3.Value = 'Remanence (data)';
+
+            % Create MstartAmEditField_2Label
+            app.MstartAmEditField_2Label = uilabel(app.DegaussingPanel);
+            app.MstartAmEditField_2Label.HorizontalAlignment = 'right';
+            app.MstartAmEditField_2Label.Position = [40 253 70 22];
+            app.MstartAmEditField_2Label.Text = 'Mstart [A/m]';
+
+            % Create MstartAmEditField_2
+            app.MstartAmEditField_2 = uieditfield(app.DegaussingPanel, 'numeric');
+            app.MstartAmEditField_2.Position = [125 253 77 22];
+
+            % Create HstartAmEditField_2Label
+            app.HstartAmEditField_2Label = uilabel(app.DegaussingPanel);
+            app.HstartAmEditField_2Label.HorizontalAlignment = 'right';
+            app.HstartAmEditField_2Label.Position = [42 224 68 22];
+            app.HstartAmEditField_2Label.Text = 'Hstart [A/m]';
+
+            % Create HstartAmEditField_2
+            app.HstartAmEditField_2 = uieditfield(app.DegaussingPanel, 'numeric');
+            app.HstartAmEditField_2.Position = [125 224 77 22];
+
+            % Create HamplitudeDropDownLabel
+            app.HamplitudeDropDownLabel = uilabel(app.DegaussingPanel);
+            app.HamplitudeDropDownLabel.Position = [11 193 69 22];
+            app.HamplitudeDropDownLabel.Text = 'H amplitude';
+
+            % Create HamplitudeDropDown
+            app.HamplitudeDropDown = uidropdown(app.DegaussingPanel);
+            app.HamplitudeDropDown.Items = {'Automatic', 'User-defined'};
+            app.HamplitudeDropDown.Position = [95 193 141 22];
+            app.HamplitudeDropDown.Value = 'Automatic';
+
+            % Create NofstepsEditFieldLabel
+            app.NofstepsEditFieldLabel = uilabel(app.DegaussingPanel);
+            app.NofstepsEditFieldLabel.Position = [58 169 88 22];
+            app.NofstepsEditFieldLabel.Text = 'N° of steps';
+
+            % Create NofstepsEditField
+            app.NofstepsEditField = uieditfield(app.DegaussingPanel, 'numeric');
+            app.NofstepsEditField.Position = [173 169 54 22];
+            app.NofstepsEditField.Value = 1;
+
+            % Create InitialamplitudeAmEditFieldLabel
+            app.InitialamplitudeAmEditFieldLabel = uilabel(app.DegaussingPanel);
+            app.InitialamplitudeAmEditFieldLabel.Position = [58 142 120 22];
+            app.InitialamplitudeAmEditFieldLabel.Text = 'Initial amplitude [A/m]';
+
+            % Create InitialamplitudeAmEditField
+            app.InitialamplitudeAmEditField = uieditfield(app.DegaussingPanel, 'numeric');
+            app.InitialamplitudeAmEditField.Position = [173 142 54 22];
+            app.InitialamplitudeAmEditField.Value = 1;
+
+            % Create FinalamplitudeAmEditFieldLabel
+            app.FinalamplitudeAmEditFieldLabel = uilabel(app.DegaussingPanel);
+            app.FinalamplitudeAmEditFieldLabel.Position = [58 110 118 22];
+            app.FinalamplitudeAmEditFieldLabel.Text = 'Final amplitude [A/m]';
+
+            % Create FinalamplitudeAmEditField
+            app.FinalamplitudeAmEditField = uieditfield(app.DegaussingPanel, 'numeric');
+            app.FinalamplitudeAmEditField.Position = [173 110 54 22];
+            app.FinalamplitudeAmEditField.Value = 1;
+
+            % Create UITable_2
+            app.UITable_2 = uitable(app.DegaussingPanel);
+            app.UITable_2.ColumnName = {'H_i [A/m]'};
+            app.UITable_2.ColumnRearrangeable = 'on';
+            app.UITable_2.RowName = {};
+            app.UITable_2.ColumnSortable = true;
+            app.UITable_2.ColumnEditable = true;
+            app.UITable_2.Position = [56 28 168 74];
 
             % Create OutputdataTab
             app.OutputdataTab = uitab(app.TabGroup);
