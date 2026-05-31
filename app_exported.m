@@ -95,9 +95,9 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesHdMdH                       matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesM                           matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesHdMdH                       matlab.ui.control.UIAxes
         HystereticfittingTab            matlab.ui.container.Tab
         GridLayout2                     matlab.ui.container.GridLayout
         kConstrainedCheckBox_2          matlab.ui.control.CheckBox
@@ -1124,6 +1124,10 @@ classdef app_exported < matlab.apps.AppBase
 
             params = struct('Ms', Ms, 'a', a, 'alpha', alpha, 'k', k, 'c', c);
             ok = true;
+        end
+        
+        function [params, ok] = get_playground_hysteretic_params(app)
+            [params, ok] = app.get_ja_params_from_tab();
         end
 
         function [Htip, Mtip, ok] = get_ja_tip_from_tab_or_data(app)
@@ -2371,6 +2375,33 @@ classdef app_exported < matlab.apps.AppBase
         function ResidualplotButtondMdH_2Pushed(app, event)
             app.plot_hysteretic_residuals();
         end
+
+        % Button pushed function: RetrieveparametersButton
+        function RetrieveparametersButtonPushed(app, event)
+            [~, has_hysteretic_params] = app.get_playground_hysteretic_params();
+            if has_hysteretic_params
+                app.JsField_9.Value = app.JsField_2.Value;
+                app.JsField_10.Value = app.JsField_3.Value;
+                app.JsField_11.Value = app.JsField_4.Value;
+                app.JsField_12.Value = app.JsField_5.Value;
+                app.JsField_13.Value = app.JsField_6.Value;
+                app.write_message("Jiles-Atherton parameters retrieved from Hysteretic Fitting tab.");
+                return;
+            end
+
+            [ms_seed, a_seed, alpha_seed, has_seeds] = app.get_first_anhysteretic_seeds();
+            if has_seeds
+                app.JsField_9.Value = ms_seed;
+                app.JsField_10.Value = a_seed;
+                app.JsField_11.Value = alpha_seed;
+                app.JsField_12.Value = "0";
+                app.JsField_13.Value = "0";
+                app.write_message("Anhysteretic parameters retrieved from Anhysteretic Fitting tab.");
+                return;
+            end
+
+            app.write_message("No parameters available to retrieve.");
+        end
     end
 
     % Component initialization
@@ -2702,14 +2733,14 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -2720,14 +2751,14 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
@@ -3471,6 +3502,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create RetrieveparametersButton
             app.RetrieveparametersButton = uibutton(app.PlaygroundTab, 'push');
+            app.RetrieveparametersButton.ButtonPushedFcn = createCallbackFcn(app, @RetrieveparametersButtonPushed, true);
             app.RetrieveparametersButton.Position = [22 463 124 23];
             app.RetrieveparametersButton.Text = 'Retrieve parameters';
 
