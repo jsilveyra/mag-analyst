@@ -95,9 +95,9 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesHdMdH                       matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesM                           matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesHdMdH                       matlab.ui.control.UIAxes
         HystereticmagnetizationfittingTab  matlab.ui.container.Tab
         GridLayout2                     matlab.ui.container.GridLayout
         kConstrainedCheckBox_2          matlab.ui.control.CheckBox
@@ -921,6 +921,74 @@ classdef app_exported < matlab.apps.AppBase
 
             H_cycle = [H_left H_right(2:end)];
             M_cycle = [M_left M_right(2:end)];
+        end
+
+        function [H_left, M_left] = get_hysteretic_left_branch_data(app)
+            H_unit = app.HorizontalaxisfieldDropDown.Value;
+            M_unit = app.VerticalaxisfieldDropDown.Value;
+            [H_conv, M_conv] = UnitConvertor().convert_H_M(app.H_raw, H_unit, app.M_raw, M_unit);
+
+            n_left = max(2, round(app.InputNumberofPointsEditField.Value));
+            [H_left, M_left] = app.extract_left_branch_uniform_arc(H_conv, M_conv, n_left);
+        end
+
+        function [H_model_left, M_model_left, has_model] = get_hysteretic_left_branch_model(app)
+            [params, has_params] = app.get_ja_params_from_tab();
+            [Htip, Mtip, has_tip] = app.get_ja_tip_from_tab_or_data();
+
+            has_model = has_params && has_tip;
+            H_model_left = [];
+            M_model_left = [];
+            if ~has_model
+                return;
+            end
+
+            try
+                opts = odeset('RelTol', 1e-7, 'AbsTol', 1e-6);
+                [Hsim, Msim] = solveJA_fromTip(Htip, Mtip, params, opts);
+                if isempty(Hsim) || isempty(Msim)
+                    has_model = false;
+                    return;
+                end
+
+                min_index = find(Hsim == min(Hsim), 1, 'first');
+                if isempty(min_index)
+                    min_index = numel(Hsim);
+                end
+
+                H_model_left = Hsim(1:min_index);
+                M_model_left = Msim(1:min_index);
+                has_model = numel(H_model_left) >= 2 && numel(M_model_left) >= 2;
+            catch
+                H_model_left = [];
+                M_model_left = [];
+                has_model = false;
+            end
+        end
+
+        function plot_hysteretic_residuals(app)
+            has_raw_data = ~isempty(app.H_raw) && ~isempty(app.M_raw);
+            if ~has_raw_data
+                app.write_message("Warning: No hysteresis loop data is currently available.");
+                return;
+            end
+
+            if app.is_last_import_anhysteretic()
+                app.write_message("Warning: Hysteretic residuals require a hysteresis loop dataset.");
+                return;
+            end
+
+            [H_left, M_left] = app.get_hysteretic_left_branch_data();
+            [H_model_left, M_model_left, has_model] = app.get_hysteretic_left_branch_model();
+            if ~has_model
+                app.write_message("Warning: No hysteretic modeled curve is available.");
+                return;
+            end
+
+            residue_calculator = HystereticLeftBranchResidueCalculator(H_left, M_left, H_model_left, M_model_left);
+            residue = residue_calculator.get_residue();
+            residue_plotter = ResiduePlotter(H_left, M_left, H_model_left, M_model_left, residue, false, "M [A/m]", 5, [0 0 0], [1 0 0]);
+            residue_plotter.plot()
         end
 
         function plot_hysteretic_tab_data(app)
@@ -2229,6 +2297,11 @@ classdef app_exported < matlab.apps.AppBase
         function kConstrainedCheckBox_2ValueChanged(app, event)
             app.sync_k_fit_mode_ui();
         end
+
+        % Button pushed function: ResidualplotButtondMdH_2
+        function ResidualplotButtondMdH_2Pushed(app, event)
+            app.plot_hysteretic_residuals();
+        end
     end
 
     % Component initialization
@@ -2560,14 +2633,14 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -2578,14 +2651,14 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
@@ -3102,6 +3175,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create ResidualplotButtondMdH_2
             app.ResidualplotButtondMdH_2 = uibutton(app.GridLayout2, 'push');
+            app.ResidualplotButtondMdH_2.ButtonPushedFcn = createCallbackFcn(app, @ResidualplotButtondMdH_2Pushed, true);
             app.ResidualplotButtondMdH_2.Layout.Row = 13;
             app.ResidualplotButtondMdH_2.Layout.Column = 2;
             app.ResidualplotButtondMdH_2.Text = 'Residuals';

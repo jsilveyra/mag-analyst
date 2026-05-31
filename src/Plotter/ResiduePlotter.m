@@ -10,18 +10,21 @@ classdef ResiduePlotter
         Label
 
         MarkerSize
+        DataColor
+        ModelColor
+        ResidueColor
     end
 
     methods (Access = public)
         function obj = ResiduePlotter(X, Y, Xhat, Yhat, Residue, Log, Label, varargin)
             numvarargs = length(varargin);
-            if numvarargs > 1
-                error('ResiduePlotter:constructor:TooManyOptionalParameters: requires at most 1 optional parameter');
+            if numvarargs > 3
+                error('ResiduePlotter:constructor:TooManyOptionalParameters: requires at most 3 optional parameters');
             end
 
-            optargs = {5};
+            optargs = {5, [0 0 0], [0 0 0], [0 0 0]};
             optargs(1:numvarargs) = varargin;
-            [obj.MarkerSize] = optargs{:};
+            [obj.MarkerSize, obj.DataColor, obj.ModelColor, obj.ResidueColor] = optargs{:};
           
             obj.X = X;
             obj.Y = Y;
@@ -33,7 +36,7 @@ classdef ResiduePlotter
         end
 
         function plot_stem(obj, ax)
-            stem(ax, obj.X, obj.Residue, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
+            stem(ax, obj.X, obj.Residue, '.', 'markersize', obj.MarkerSize, "Color", obj.ResidueColor);
             xlabel(ax, 'H (A/m)');
             ylabel(ax, 'Residual');
             if obj.Log
@@ -44,8 +47,8 @@ classdef ResiduePlotter
 
         function plot_dots(obj, ax)
             hold( ax, 'on' );
-            plot(ax, obj.X, obj.Y, '.', 'markersize', obj.MarkerSize, "Color",[0, 0, 0]);
-            plot(ax, obj.Xhat, obj.Yhat, "Color",[0,0,0]);
+            plot(ax, obj.X, obj.Y, '.', 'markersize', obj.MarkerSize, "Color", obj.DataColor);
+            plot(ax, obj.Xhat, obj.Yhat, "Color", obj.ModelColor);
             xlabel(ax, 'H (A/m)');
             ylabel(ax, obj.Label);
             hold( ax, 'off' );
