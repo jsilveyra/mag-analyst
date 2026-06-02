@@ -106,8 +106,8 @@ classdef app_exported < matlab.apps.AppBase
         RepetitionsEditField_3Label     matlab.ui.control.Label
         StopcriterionDropDown_5         matlab.ui.control.DropDown
         StopcriterionDropDown_5Label    matlab.ui.control.Label
-        FittingRegionDropDown           matlab.ui.control.DropDown
-        FittingRegionDropDownLabel      matlab.ui.control.Label
+        FittingregionDropDown           matlab.ui.control.DropDown
+        FittingregionDropDownLabel      matlab.ui.control.Label
         StartingpointDropDown_4         matlab.ui.control.DropDown
         StartingpointDropDown_4Label    matlab.ui.control.Label
         kConstrainedCheckBox_2          matlab.ui.control.CheckBox
@@ -3607,18 +3607,18 @@ classdef app_exported < matlab.apps.AppBase
             app.StartingpointDropDown_4.Layout.Column = [11 12];
             app.StartingpointDropDown_4.Value = 'Demagnetized';
 
-            % Create FittingRegionDropDownLabel
-            app.FittingRegionDropDownLabel = uilabel(app.GridLayout2);
-            app.FittingRegionDropDownLabel.Layout.Row = 10;
-            app.FittingRegionDropDownLabel.Layout.Column = 9;
-            app.FittingRegionDropDownLabel.Text = 'Fitting Region';
+            % Create FittingregionDropDownLabel
+            app.FittingregionDropDownLabel = uilabel(app.GridLayout2);
+            app.FittingregionDropDownLabel.Layout.Row = 10;
+            app.FittingregionDropDownLabel.Layout.Column = 9;
+            app.FittingregionDropDownLabel.Text = 'Fitting region';
 
-            % Create FittingRegionDropDown
-            app.FittingRegionDropDown = uidropdown(app.GridLayout2);
-            app.FittingRegionDropDown.Items = {'Left branch only', 'Entire loop'};
-            app.FittingRegionDropDown.Layout.Row = 10;
-            app.FittingRegionDropDown.Layout.Column = [11 12];
-            app.FittingRegionDropDown.Value = 'Entire loop';
+            % Create FittingregionDropDown
+            app.FittingregionDropDown = uidropdown(app.GridLayout2);
+            app.FittingregionDropDown.Items = {'Left branch only', 'Entire loop'};
+            app.FittingregionDropDown.Layout.Row = 10;
+            app.FittingregionDropDown.Layout.Column = [11 12];
+            app.FittingregionDropDown.Value = 'Entire loop';
 
             % Create StopcriterionDropDown_5Label
             app.StopcriterionDropDown_5Label = uilabel(app.GridLayout2);
