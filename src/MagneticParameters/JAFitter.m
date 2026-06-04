@@ -1,8 +1,12 @@
 classdef JAFitter
     methods (Static)
-        function result = fit(params_seed, mask, bounds, Hleft, Mleft, Htip, Mtip, error_type, estimateKFn, errorCoreFn)
+        function result = fit(params_seed, mask, bounds, Hleft, Mleft, Htip, Mtip, error_type, estimateKFn, modelFn, errorCoreFn)
             BIG = 1e6;
             opts = odeset('RelTol', 1e-7, 'AbsTol', 1e-6);
+
+            if nargin < 11 || isempty(modelFn)
+                modelFn = @(params) solveJA_monotonic(Htip, -Htip, Mtip, params, -1, opts);
+            end
 
             result = struct( ...
                 'ok', false, ...
@@ -27,7 +31,7 @@ classdef JAFitter
                     J = BIG; return;
                 end
                 try
-                    [Hhat, Mhat] = solveJA_monotonic(Htip, -Htip, Mtip, params, -1, opts);
+                    [Hhat, Mhat] = modelFn(params);
                     [J, okJ] = errorCoreFn(error_type, Hleft, Mleft, Hhat, Mhat);
                     if ~okJ, J = BIG; end
                 catch
