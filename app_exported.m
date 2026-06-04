@@ -100,6 +100,8 @@ classdef app_exported < matlab.apps.AppBase
         AxesHdMdH                       matlab.ui.control.UIAxes
         HystereticfittingTab            matlab.ui.container.Tab
         GridLayout2                     matlab.ui.container.GridLayout
+        MaxrepetitionsEditField_3       matlab.ui.control.NumericEditField
+        MaxrepetitionsEditFieldLabel    matlab.ui.control.Label
         ReltoleranceEditField_3         matlab.ui.control.NumericEditField
         ReltoleranceEditField_3Label    matlab.ui.control.Label
         RepetitionsEditField_3          matlab.ui.control.NumericEditField
@@ -1012,36 +1014,130 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         function [H_model_left, M_model_left, has_model] = get_hysteretic_left_branch_model(app)
+            [H_model_left, M_model_left, has_model] = app.get_hysteretic_modeled_region();
+            if ~has_model
+                H_model_left = [];
+                M_model_left = [];
+            end
+        end
+
+        function [H_model, M_model, has_model] = get_hysteretic_modeled_region(app)
             [params, has_params] = app.get_ja_params_from_tab();
             [Htip, Mtip, has_tip] = app.get_ja_tip_from_tab_or_data();
 
             has_model = has_params && has_tip;
-            H_model_left = [];
-            M_model_left = [];
+            H_model = [];
+            M_model = [];
             if ~has_model
                 return;
             end
 
             try
                 opts = odeset('RelTol', 1e-7, 'AbsTol', 1e-6);
-                [Hsim, Msim] = solveJA_fromTip(Htip, Mtip, params, opts);
+                [Hsim, Msim] = solveJA_hysteretic_region( ...
+                    Htip, Mtip, params, ...
+                    app.StartingpointDropDown_4.Value, ...
+                    app.FittingregionDropDown.Value, ...
+                    app.StopcriterionDropDown_5.Value, ...
+                    app.get_hysteretic_repetition_value(), ...
+                    app.ReltoleranceEditField_3.Value, ...
+                    app.get_hysteretic_max_repetitions_value(), ...
+                    opts);
                 if isempty(Hsim) || isempty(Msim)
                     has_model = false;
                     return;
                 end
 
-                min_index = find(Hsim == min(Hsim), 1, 'first');
-                if isempty(min_index)
-                    min_index = numel(Hsim);
-                end
-
-                H_model_left = Hsim(1:min_index);
-                M_model_left = Msim(1:min_index);
-                has_model = numel(H_model_left) >= 2 && numel(M_model_left) >= 2;
+                H_model = Hsim;
+                M_model = Msim;
+                has_model = numel(H_model) >= 2 && numel(M_model) >= 2;
             catch
-                H_model_left = [];
-                M_model_left = [];
+                H_model = [];
+                M_model = [];
                 has_model = false;
+            end
+        end
+
+        function repetitions = get_hysteretic_repetition_value(app)
+            repetitions = max(1, round(app.RepetitionsEditField_3.Value));
+        end
+
+        function max_repetitions = get_hysteretic_max_repetitions_value(app)
+            max_repetitions = max(1, round(app.MaxrepetitionsEditField_3.Value));
+        end
+
+        function sync_hysteretic_fitting_ui(app)
+            is_entire_loop = string(app.FittingregionDropDown.Value) == "Entire loop";
+
+            if is_entire_loop
+                app.StopcriterionDropDown_5Label.Enable = 'on';
+                app.StopcriterionDropDown_5.Enable = 'on';
+            else
+                app.StopcriterionDropDown_5Label.Enable = 'off';
+                app.StopcriterionDropDown_5.Enable = 'off';
+            end
+
+            app.RepetitionsEditField_3Label.Enable = 'off';
+            app.RepetitionsEditField_3.Enable = 'off';
+            app.ReltoleranceEditField_3Label.Enable = 'off';
+            app.ReltoleranceEditField_3.Enable = 'off';
+            if isprop(app, 'MaxrepetitionsEditField_3Label')
+                app.MaxrepetitionsEditField_3Label.Enable = 'off';
+            end
+            if isprop(app, 'MaxrepetitionsEditField_3')
+                app.MaxrepetitionsEditField_3.Enable = 'off';
+            end
+
+            if is_entire_loop
+                app.sync_hysteretic_stop_criterion_ui();
+            end
+        end
+
+        function sync_hysteretic_stop_criterion_ui(app)
+            is_entire_loop = string(app.FittingregionDropDown.Value) == "Entire loop";
+            is_fixed = string(app.StopcriterionDropDown_5.Value) == "Fixed repetitions";
+
+            if ~is_entire_loop
+                app.StopcriterionDropDown_5Label.Enable = 'off';
+                app.StopcriterionDropDown_5.Enable = 'off';
+                app.RepetitionsEditField_3Label.Enable = 'off';
+                app.RepetitionsEditField_3.Enable = 'off';
+                app.ReltoleranceEditField_3Label.Enable = 'off';
+                app.ReltoleranceEditField_3.Enable = 'off';
+                if isprop(app, 'MaxrepetitionsEditField_3Label')
+                    app.MaxrepetitionsEditField_3Label.Enable = 'off';
+                end
+                if isprop(app, 'MaxrepetitionsEditField_3')
+                    app.MaxrepetitionsEditField_3.Enable = 'off';
+                end
+                return;
+            end
+
+            app.StopcriterionDropDown_5Label.Enable = 'on';
+            app.StopcriterionDropDown_5.Enable = 'on';
+
+            if is_fixed
+                app.RepetitionsEditField_3Label.Enable = 'on';
+                app.RepetitionsEditField_3.Enable = 'on';
+                app.ReltoleranceEditField_3Label.Enable = 'off';
+                app.ReltoleranceEditField_3.Enable = 'off';
+                if isprop(app, 'MaxrepetitionsEditField_3Label')
+                    app.MaxrepetitionsEditField_3Label.Enable = 'off';
+                end
+                if isprop(app, 'MaxrepetitionsEditField_3')
+                    app.MaxrepetitionsEditField_3.Enable = 'off';
+                end
+            else
+                app.RepetitionsEditField_3Label.Enable = 'off';
+                app.RepetitionsEditField_3.Enable = 'off';
+                app.ReltoleranceEditField_3Label.Enable = 'on';
+                app.ReltoleranceEditField_3.Enable = 'on';
+                if isprop(app, 'MaxrepetitionsEditField_3Label')
+                    app.MaxrepetitionsEditField_3Label.Enable = 'on';
+                end
+                if isprop(app, 'MaxrepetitionsEditField_3')
+                    app.MaxrepetitionsEditField_3.Enable = 'on';
+                end
             end
         end
 
@@ -1051,14 +1147,19 @@ classdef app_exported < matlab.apps.AppBase
                 app.write_message("Warning: No hysteresis loop data is currently available.");
                 return;
             end
-
             if app.is_last_import_anhysteretic()
                 app.write_message("Warning: Hysteretic residuals require a hysteresis loop dataset.");
                 return;
             end
 
-            [H_left, M_left] = app.get_hysteretic_left_branch_data();
-            [H_model_left, M_model_left, has_model] = app.get_hysteretic_left_branch_model();
+            fitting_region = string(app.FittingregionDropDown.Value);
+            if fitting_region == "Left branch only"
+                [H_left, M_left] = app.get_hysteretic_left_branch_data();
+            else
+                [H_left, M_left] = app.build_ja_data_cycle();
+            end
+
+            [H_model_left, M_model_left, has_model] = app.get_hysteretic_modeled_region();
             if ~has_model
                 app.write_message("Warning: No hysteretic modeled curve is available.");
                 return;
@@ -1087,18 +1188,10 @@ classdef app_exported < matlab.apps.AppBase
                 app.write_message("Warning: No hysteresis loop data is currently available.");
             end
 
-            [params, has_params] = app.get_ja_params_from_tab();
-            [Htip, Mtip, has_tip] = app.get_ja_tip_from_tab_or_data();
-            if has_params && has_tip
-                try
-                    opts = odeset('RelTol', 1e-7, 'AbsTol', 1e-6);
-                    [Hsim, Msim] = solveJA_fromTip(Htip, Mtip, params, opts);
-                    plot(ax, Hsim, Msim, 'r-', 'LineWidth', 1.2, 'DisplayName', 'JA simulated');
-                catch ME
-                    app.write_message("Warning: JA simulation could not be plotted (" + string(ME.message) + ").");
-                end
+            [Hsim, Msim, has_model] = app.get_hysteretic_modeled_region();
+            if has_model
+                plot(ax, Hsim, Msim, 'r-', 'LineWidth', 1.2, 'DisplayName', 'JA simulated');
             end
-
             xline(ax, 0, 'k-', 'LineWidth', 1.2);
             yline(ax, 0, 'k-', 'LineWidth', 1.2);
             hx0 = xline(ax, 0, 'k-', 'LineWidth', 1.2);
@@ -1391,6 +1484,20 @@ classdef app_exported < matlab.apps.AppBase
             [H_conv, M_conv] = deal(H_cycle, M_cycle);
             n_left = max(2, round(app.InputNumberofPointsEditField.Value));
             [Hleft, Mleft] = app.extract_left_branch_uniform_arc(H_conv, M_conv, n_left);
+            fitting_region = string(app.FittingregionDropDown.Value);
+            start_mode = string(app.StartingpointDropDown_4.Value);
+            stop_criterion = string(app.StopcriterionDropDown_5.Value);
+            repetitions = app.get_hysteretic_repetition_value();
+            rel_tolerance = app.ReltoleranceEditField_3.Value;
+            max_repetitions = app.get_hysteretic_max_repetitions_value();
+            opts = odeset('RelTol', 1e-7, 'AbsTol', 1e-6);
+            if fitting_region == "Left branch only"
+                HfitData = Hleft;
+                MfitData = Mleft;
+            else
+                HfitData = H_cycle;
+                MfitData = M_cycle;
+            end
         
             [msLB, ok1] = JAFitUtils.readBoundFieldValue(app.MsLowerField_2);
             [msUB, ok2] = JAFitUtils.readBoundFieldValue(app.MsUpperField_2);
@@ -1421,13 +1528,18 @@ classdef app_exported < matlab.apps.AppBase
                 return;
             end
         
-            error_type = string(app.ErrortominimizeDropDown_2.Value);
-        
+             error_type = string(app.ErrortominimizeDropDown_2.Value);
+
             fit_timer = tic;
             try
+                modelFn = @(p) solveJA_hysteretic_region( ...
+                    Htip, Mtip, p, start_mode, fitting_region, stop_criterion, ...
+                    repetitions, rel_tolerance, max_repetitions, opts);
+
                 fit_result = JAFitter.fit( ...
-                    params_seed, mask, bounds, Hleft, Mleft, Htip, Mtip, error_type, ...
+                    params_seed, mask, bounds, HfitData, MfitData, Htip, Mtip, error_type, ...
                     @(p) app.estimateK_fromCoercivePoint(Hleft, Mleft, p.Ms, p.a, p.alpha, p.c), ...
+                    modelFn, ...
                     @(errType, hL, mL, hHat, mHat) app.compute_ja_left_branch_error_core(errType, hL, mL, hHat, mHat));
         
                 if ~fit_result.ok
@@ -1675,6 +1787,7 @@ classdef app_exported < matlab.apps.AppBase
         
             update_components(app);
             app.sync_k_fit_mode_ui();
+            app.sync_hysteretic_fitting_ui();
         
             % Default colors
             app.Colors = [
@@ -2126,8 +2239,21 @@ classdef app_exported < matlab.apps.AppBase
                 if isfield(s.params, 'c'); app.JsField_5.Value = char(string(s.params.c)); end
                 if isfield(s.params, 'k'); app.JsField_6.Value = char(string(s.params.k)); end
             end
+
+            if isfield(s, 'hysteretic_starting_point'); app.StartingpointDropDown_4.Value = s.hysteretic_starting_point; end
+            if isfield(s, 'hysteretic_fitting_region'); app.FittingregionDropDown.Value = s.hysteretic_fitting_region; end
+            if isfield(s, 'hysteretic_stop_criterion'); app.StopcriterionDropDown_5.Value = s.hysteretic_stop_criterion; end
+            if isfield(s, 'hysteretic_repetitions')
+                app.RepetitionsEditField_3.Value = max(1, round(s.hysteretic_repetitions));
+            end
+            if isfield(s, 'hysteretic_rel_tolerance')
+                app.ReltoleranceEditField_3.Value = max(0, s.hysteretic_rel_tolerance);
+            end
+            if isfield(s, 'hysteretic_max_repetitions')
+                app.MaxrepetitionsEditField_3.Value = max(1, round(s.hysteretic_max_repetitions));
+            end
+            app.sync_hysteretic_fitting_ui();
             
-           
             if (app.calculate_and_plot() == -1)
                 return
             end
@@ -2411,6 +2537,38 @@ classdef app_exported < matlab.apps.AppBase
             end
 
             app.write_message("No parameters available to retrieve.");
+        end
+
+        % Value changed function: RepetitionsEditField_3
+        function RepetitionsEditField_3ValueChanged(app, event)
+            app.plot_hysteretic_tab_data()
+        end
+
+        % Value changed function: ReltoleranceEditField_3
+        function ReltoleranceEditField_3ValueChanged(app, event)
+            app.plot_hysteretic_tab_data()
+        end
+
+        % Value changed function: StartingpointDropDown_4
+        function StartingpointDropDown_4ValueChanged(app, event)
+            app.plot_hysteretic_tab_data()
+        end
+
+        % Value changed function: FittingregionDropDown
+        function FittingregionDropDownValueChanged(app, event)
+            app.sync_hysteretic_fitting_ui();
+            app.plot_hysteretic_tab_data();
+        end
+
+        % Value changed function: StopcriterionDropDown_5
+        function StopcriterionDropDown_5ValueChanged(app, event)
+            app.sync_hysteretic_stop_criterion_ui();
+            app.plot_hysteretic_tab_data();
+        end
+
+        % Value changed function: MaxrepetitionsEditField_3
+        function MaxrepetitionsEditField_3ValueChanged(app, event)
+            app.plot_hysteretic_tab_data();
         end
     end
 
@@ -3118,7 +3276,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create GridLayout2
             app.GridLayout2 = uigridlayout(app.HystereticfittingTab);
             app.GridLayout2.ColumnWidth = {39.01, 65, 114.01, 61.99, 188.99, 61.99, '1x', '1x', '1x', '0.2x', '1x', '1x'};
-            app.GridLayout2.RowHeight = {25, 21.99, 21.99, 21.99, 21.99, 21.99, 21.99, '1x', 21.99, 21.99, '1x', '8.56x', 28.99};
+            app.GridLayout2.RowHeight = {25, 21.99, 21.99, 21.99, 21.99, 21.99, 21.99, '1x', '1x', '1x', '1x', '1x', '1x', '1x', 28.99};
             app.GridLayout2.ColumnSpacing = 2.77317164494441;
             app.GridLayout2.RowSpacing = 6.31337694021372;
             app.GridLayout2.Padding = [2.77317164494441 6.31337694021372 2.77317164494441 6.31337694021372];
@@ -3129,7 +3287,7 @@ classdef app_exported < matlab.apps.AppBase
             ylabel(app.AxesM_2, 'M [A/m]')
             zlabel(app.AxesM_2, 'Z')
             app.AxesM_2.Box = 'on';
-            app.AxesM_2.Layout.Row = [2 12];
+            app.AxesM_2.Layout.Row = [2 14];
             app.AxesM_2.Layout.Column = [1 5];
 
             % Create JilesAthertonmodelrateindependentLabel
@@ -3214,7 +3372,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create FitButton_2
             app.FitButton_2 = uibutton(app.GridLayout2, 'push');
             app.FitButton_2.ButtonPushedFcn = createCallbackFcn(app, @FitButton_2Pushed, true);
-            app.FitButton_2.Layout.Row = 13;
+            app.FitButton_2.Layout.Row = 15;
             app.FitButton_2.Layout.Column = 12;
             app.FitButton_2.Text = 'Fit';
 
@@ -3222,7 +3380,7 @@ classdef app_exported < matlab.apps.AppBase
             app.CalculatePlotButton_2 = uibutton(app.GridLayout2, 'push');
             app.CalculatePlotButton_2.ButtonPushedFcn = createCallbackFcn(app, @CalculatePlotButton_2Pushed, true);
             app.CalculatePlotButton_2.WordWrap = 'on';
-            app.CalculatePlotButton_2.Layout.Row = 13;
+            app.CalculatePlotButton_2.Layout.Row = 15;
             app.CalculatePlotButton_2.Layout.Column = 11;
             app.CalculatePlotButton_2.Text = 'Calculate & Plot';
 
@@ -3230,21 +3388,21 @@ classdef app_exported < matlab.apps.AppBase
             app.ErrortominimizeDropDownLabel_2 = uilabel(app.GridLayout2);
             app.ErrortominimizeDropDownLabel_2.WordWrap = 'on';
             app.ErrortominimizeDropDownLabel_2.FontWeight = 'bold';
-            app.ErrortominimizeDropDownLabel_2.Layout.Row = 13;
+            app.ErrortominimizeDropDownLabel_2.Layout.Row = 15;
             app.ErrortominimizeDropDownLabel_2.Layout.Column = 6;
             app.ErrortominimizeDropDownLabel_2.Text = 'Error to minimize';
 
             % Create ErrortominimizeDropDown_2
             app.ErrortominimizeDropDown_2 = uidropdown(app.GridLayout2);
             app.ErrortominimizeDropDown_2.Items = {'Diagonal (H, continuous)', 'Vertical', 'Horizontal'};
-            app.ErrortominimizeDropDown_2.Layout.Row = 13;
+            app.ErrortominimizeDropDown_2.Layout.Row = 15;
             app.ErrortominimizeDropDown_2.Layout.Column = [7 8];
             app.ErrortominimizeDropDown_2.Value = 'Diagonal (H, continuous)';
 
             % Create ErrorDisplay_2
             app.ErrorDisplay_2 = uieditfield(app.GridLayout2, 'text');
             app.ErrorDisplay_2.Editable = 'off';
-            app.ErrorDisplay_2.Layout.Row = 13;
+            app.ErrorDisplay_2.Layout.Row = 15;
             app.ErrorDisplay_2.Layout.Column = 9;
 
             % Create RetrieveseedsButton
@@ -3279,14 +3437,14 @@ classdef app_exported < matlab.apps.AppBase
             app.ShowgridCheckBoxM_2 = uicheckbox(app.GridLayout2);
             app.ShowgridCheckBoxM_2.ValueChangedFcn = createCallbackFcn(app, @ShowgridCheckBoxM_2ValueChanged, true);
             app.ShowgridCheckBoxM_2.Text = 'Grid';
-            app.ShowgridCheckBoxM_2.Layout.Row = 13;
+            app.ShowgridCheckBoxM_2.Layout.Row = 15;
             app.ShowgridCheckBoxM_2.Layout.Column = 4;
             app.ShowgridCheckBoxM_2.Value = true;
 
             % Create ResidualplotButtondMdH_2
             app.ResidualplotButtondMdH_2 = uibutton(app.GridLayout2, 'push');
             app.ResidualplotButtondMdH_2.ButtonPushedFcn = createCallbackFcn(app, @ResidualplotButtondMdH_2Pushed, true);
-            app.ResidualplotButtondMdH_2.Layout.Row = 13;
+            app.ResidualplotButtondMdH_2.Layout.Row = 15;
             app.ResidualplotButtondMdH_2.Layout.Column = 2;
             app.ResidualplotButtondMdH_2.Text = 'Residuals';
 
@@ -3440,6 +3598,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create StartingpointDropDown_4
             app.StartingpointDropDown_4 = uidropdown(app.GridLayout2);
             app.StartingpointDropDown_4.Items = {'Demagnetized', 'Tip point'};
+            app.StartingpointDropDown_4.ValueChangedFcn = createCallbackFcn(app, @StartingpointDropDown_4ValueChanged, true);
             app.StartingpointDropDown_4.Layout.Row = 9;
             app.StartingpointDropDown_4.Layout.Column = [11 12];
             app.StartingpointDropDown_4.Value = 'Demagnetized';
@@ -3453,6 +3612,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create FittingregionDropDown
             app.FittingregionDropDown = uidropdown(app.GridLayout2);
             app.FittingregionDropDown.Items = {'Left branch only', 'Entire loop'};
+            app.FittingregionDropDown.ValueChangedFcn = createCallbackFcn(app, @FittingregionDropDownValueChanged, true);
             app.FittingregionDropDown.Layout.Row = 10;
             app.FittingregionDropDown.Layout.Column = [11 12];
             app.FittingregionDropDown.Value = 'Entire loop';
@@ -3466,6 +3626,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create StopcriterionDropDown_5
             app.StopcriterionDropDown_5 = uidropdown(app.GridLayout2);
             app.StopcriterionDropDown_5.Items = {'Fixed repetitions', 'Until convergence'};
+            app.StopcriterionDropDown_5.ValueChangedFcn = createCallbackFcn(app, @StopcriterionDropDown_5ValueChanged, true);
             app.StopcriterionDropDown_5.Layout.Row = 11;
             app.StopcriterionDropDown_5.Layout.Column = [11 12];
             app.StopcriterionDropDown_5.Value = 'Fixed repetitions';
@@ -3480,13 +3641,14 @@ classdef app_exported < matlab.apps.AppBase
             app.RepetitionsEditField_3 = uieditfield(app.GridLayout2, 'numeric');
             app.RepetitionsEditField_3.Limits = [0 Inf];
             app.RepetitionsEditField_3.RoundFractionalValues = 'on';
+            app.RepetitionsEditField_3.ValueChangedFcn = createCallbackFcn(app, @RepetitionsEditField_3ValueChanged, true);
             app.RepetitionsEditField_3.Layout.Row = 12;
             app.RepetitionsEditField_3.Layout.Column = 10;
             app.RepetitionsEditField_3.Value = 1;
 
             % Create ReltoleranceEditField_3Label
             app.ReltoleranceEditField_3Label = uilabel(app.GridLayout2);
-            app.ReltoleranceEditField_3Label.Layout.Row = 12;
+            app.ReltoleranceEditField_3Label.Layout.Row = 13;
             app.ReltoleranceEditField_3Label.Layout.Column = 11;
             app.ReltoleranceEditField_3Label.Text = 'Rel. tolerance';
 
@@ -3494,9 +3656,25 @@ classdef app_exported < matlab.apps.AppBase
             app.ReltoleranceEditField_3 = uieditfield(app.GridLayout2, 'numeric');
             app.ReltoleranceEditField_3.Limits = [0 Inf];
             app.ReltoleranceEditField_3.ValueDisplayFormat = '%.0e\n';
-            app.ReltoleranceEditField_3.Layout.Row = 12;
+            app.ReltoleranceEditField_3.ValueChangedFcn = createCallbackFcn(app, @ReltoleranceEditField_3ValueChanged, true);
+            app.ReltoleranceEditField_3.Layout.Row = 13;
             app.ReltoleranceEditField_3.Layout.Column = 12;
             app.ReltoleranceEditField_3.Value = 0.001;
+
+            % Create MaxrepetitionsEditFieldLabel
+            app.MaxrepetitionsEditFieldLabel = uilabel(app.GridLayout2);
+            app.MaxrepetitionsEditFieldLabel.Layout.Row = 13;
+            app.MaxrepetitionsEditFieldLabel.Layout.Column = 9;
+            app.MaxrepetitionsEditFieldLabel.Text = 'Max. repetitions';
+
+            % Create MaxrepetitionsEditField_3
+            app.MaxrepetitionsEditField_3 = uieditfield(app.GridLayout2, 'numeric');
+            app.MaxrepetitionsEditField_3.Limits = [0 Inf];
+            app.MaxrepetitionsEditField_3.RoundFractionalValues = 'on';
+            app.MaxrepetitionsEditField_3.ValueChangedFcn = createCallbackFcn(app, @MaxrepetitionsEditField_3ValueChanged, true);
+            app.MaxrepetitionsEditField_3.Layout.Row = 13;
+            app.MaxrepetitionsEditField_3.Layout.Column = 10;
+            app.MaxrepetitionsEditField_3.Value = 1;
 
             % Create PlaygroundTab
             app.PlaygroundTab = uitab(app.TabGroup);
