@@ -95,9 +95,9 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesHdMdH                       matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesM                           matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesHdMdH                       matlab.ui.control.UIAxes
         HystereticfittingTab            matlab.ui.container.Tab
         GridLayout2                     matlab.ui.container.GridLayout
         ReltoleranceEditField_3         matlab.ui.control.NumericEditField
@@ -2425,7 +2425,6 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create MagAnalystUIFigure and hide until all components are created
             app.MagAnalystUIFigure = uifigure('Visible', 'off');
-            app.MagAnalystUIFigure.Color = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.MagAnalystUIFigure.Position = [100 100 1044 768];
             app.MagAnalystUIFigure.Name = 'MagAnalyst';
             app.MagAnalystUIFigure.Icon = fullfile(pathToMLAPP, 'assets', 'logo.png');
@@ -2433,13 +2432,11 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create ProjectMenu
             app.ProjectMenu = uimenu(app.MagAnalystUIFigure);
-            app.ProjectMenu.ForegroundColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ProjectMenu.Text = 'Project';
 
             % Create OpenMenu
             app.OpenMenu = uimenu(app.ProjectMenu);
             app.OpenMenu.MenuSelectedFcn = createCallbackFcn(app, @OpenMenuSelected, true);
-            app.OpenMenu.ForegroundColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.OpenMenu.Separator = 'on';
             app.OpenMenu.Accelerator = 'O';
             app.OpenMenu.Text = 'Open...';
@@ -2447,14 +2444,12 @@ classdef app_exported < matlab.apps.AppBase
             % Create SaveMenu
             app.SaveMenu = uimenu(app.ProjectMenu);
             app.SaveMenu.MenuSelectedFcn = createCallbackFcn(app, @SaveMenuSelected, true);
-            app.SaveMenu.ForegroundColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.SaveMenu.Accelerator = 'S';
             app.SaveMenu.Text = 'Save';
 
             % Create SaveasMenu
             app.SaveasMenu = uimenu(app.ProjectMenu);
             app.SaveasMenu.MenuSelectedFcn = createCallbackFcn(app, @SaveasMenuSelected, true);
-            app.SaveasMenu.ForegroundColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.SaveasMenu.Separator = 'on';
             app.SaveasMenu.Text = 'Save as...';
 
@@ -2464,7 +2459,6 @@ classdef app_exported < matlab.apps.AppBase
             app.AppGridLayout.RowHeight = {'3x', '1x'};
             app.AppGridLayout.RowSpacing = 0;
             app.AppGridLayout.Padding = [0 0 0 0];
-            app.AppGridLayout.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create TabGroup
             app.TabGroup = uitabgroup(app.AppGridLayout);
@@ -2476,14 +2470,11 @@ classdef app_exported < matlab.apps.AppBase
             app.InputdataTab = uitab(app.TabGroup);
             app.InputdataTab.AutoResizeChildren = 'off';
             app.InputdataTab.Title = 'Input data';
-            app.InputdataTab.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.InputdataTab.ForegroundColor = [0.129411764705882 0.129411764705882 0.129411764705882];
 
             % Create GridLayoutMagnetizationInputData
             app.GridLayoutMagnetizationInputData = uigridlayout(app.InputdataTab);
             app.GridLayoutMagnetizationInputData.ColumnWidth = {'1x', '2x'};
             app.GridLayoutMagnetizationInputData.RowHeight = {'1x'};
-            app.GridLayoutMagnetizationInputData.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create GridLayoutInput
             app.GridLayoutInput = uigridlayout(app.GridLayoutMagnetizationInputData);
@@ -2491,7 +2482,6 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutInput.RowHeight = {'1x', '1x', '1x', '1x', '1x', '10x'};
             app.GridLayoutInput.Layout.Row = 1;
             app.GridLayoutInput.Layout.Column = 1;
-            app.GridLayoutInput.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create GridLayoutInputHorizontalAxis
             app.GridLayoutInputHorizontalAxis = uigridlayout(app.GridLayoutInput);
@@ -2500,12 +2490,10 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutInputHorizontalAxis.Padding = [0 0 0 0];
             app.GridLayoutInputHorizontalAxis.Layout.Row = 2;
             app.GridLayoutInputHorizontalAxis.Layout.Column = 1;
-            app.GridLayoutInputHorizontalAxis.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create HorizontalaxisfieldDropDownLabel
             app.HorizontalaxisfieldDropDownLabel = uilabel(app.GridLayoutInputHorizontalAxis);
             app.HorizontalaxisfieldDropDownLabel.FontWeight = 'bold';
-            app.HorizontalaxisfieldDropDownLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.HorizontalaxisfieldDropDownLabel.Layout.Row = 1;
             app.HorizontalaxisfieldDropDownLabel.Layout.Column = 1;
             app.HorizontalaxisfieldDropDownLabel.Text = 'Horizontal axis field';
@@ -2514,8 +2502,6 @@ classdef app_exported < matlab.apps.AppBase
             app.HorizontalaxisfieldDropDown = uidropdown(app.GridLayoutInputHorizontalAxis);
             app.HorizontalaxisfieldDropDown.Items = {'H [A/m]', 'H [kA/m]', 'H [Oe]', 'H [kOe]', 'Bext [T]', 'Bext [G]', 'Bext [kG]'};
             app.HorizontalaxisfieldDropDown.ValueChangedFcn = createCallbackFcn(app, @HorizontalaxisfieldDropDownValueChanged, true);
-            app.HorizontalaxisfieldDropDown.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.HorizontalaxisfieldDropDown.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.HorizontalaxisfieldDropDown.Layout.Row = 1;
             app.HorizontalaxisfieldDropDown.Layout.Column = 2;
             app.HorizontalaxisfieldDropDown.Value = 'H [A/m]';
@@ -2527,12 +2513,10 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutInputVerticalAxis.Padding = [0 0 0 0];
             app.GridLayoutInputVerticalAxis.Layout.Row = 3;
             app.GridLayoutInputVerticalAxis.Layout.Column = 1;
-            app.GridLayoutInputVerticalAxis.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create VerticalaxisfieldDropDownLabel
             app.VerticalaxisfieldDropDownLabel = uilabel(app.GridLayoutInputVerticalAxis);
             app.VerticalaxisfieldDropDownLabel.FontWeight = 'bold';
-            app.VerticalaxisfieldDropDownLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.VerticalaxisfieldDropDownLabel.Layout.Row = 1;
             app.VerticalaxisfieldDropDownLabel.Layout.Column = 1;
             app.VerticalaxisfieldDropDownLabel.Text = 'Vertical axis field';
@@ -2541,8 +2525,6 @@ classdef app_exported < matlab.apps.AppBase
             app.VerticalaxisfieldDropDown = uidropdown(app.GridLayoutInputVerticalAxis);
             app.VerticalaxisfieldDropDown.Items = {'M [A/m]', 'M [kA/m]', 'M [MA/m]', 'M [emu/cm^3]', 'J [T]', 'B [T]', 'B [G]', 'B [kG]'};
             app.VerticalaxisfieldDropDown.ValueChangedFcn = createCallbackFcn(app, @VerticalaxisfieldDropDownValueChanged, true);
-            app.VerticalaxisfieldDropDown.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.VerticalaxisfieldDropDown.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.VerticalaxisfieldDropDown.Layout.Row = 1;
             app.VerticalaxisfieldDropDown.Layout.Column = 2;
             app.VerticalaxisfieldDropDown.Value = 'M [A/m]';
@@ -2554,12 +2536,10 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutInputCurve.Padding = [0 0 0 0];
             app.GridLayoutInputCurve.Layout.Row = 4;
             app.GridLayoutInputCurve.Layout.Column = 1;
-            app.GridLayoutInputCurve.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create CurveDropDownLabel
             app.CurveDropDownLabel = uilabel(app.GridLayoutInputCurve);
             app.CurveDropDownLabel.FontWeight = 'bold';
-            app.CurveDropDownLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.CurveDropDownLabel.Layout.Row = 1;
             app.CurveDropDownLabel.Layout.Column = 1;
             app.CurveDropDownLabel.Text = 'Curve';
@@ -2568,8 +2548,6 @@ classdef app_exported < matlab.apps.AppBase
             app.CurveDropDown = uidropdown(app.GridLayoutInputCurve);
             app.CurveDropDown.Items = {'Anhysteretic curve', 'Hysteresis loop'};
             app.CurveDropDown.ValueChangedFcn = createCallbackFcn(app, @CurveDropDownValueChanged, true);
-            app.CurveDropDown.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.CurveDropDown.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.CurveDropDown.Layout.Row = 1;
             app.CurveDropDown.Layout.Column = 2;
             app.CurveDropDown.Value = 'Anhysteretic curve';
@@ -2581,18 +2559,15 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayout.Padding = [0 0 0 0];
             app.GridLayout.Layout.Row = 6;
             app.GridLayout.Layout.Column = 1;
-            app.GridLayout.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create DescriptionTextArea
             app.DescriptionTextArea = uitextarea(app.GridLayout);
-            app.DescriptionTextArea.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.DescriptionTextArea.Layout.Row = 1;
             app.DescriptionTextArea.Layout.Column = 1;
 
             % Create DescriptionLabel
             app.DescriptionLabel = uilabel(app.GridLayoutInput);
             app.DescriptionLabel.FontWeight = 'bold';
-            app.DescriptionLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.DescriptionLabel.Layout.Row = 5;
             app.DescriptionLabel.Layout.Column = 1;
             app.DescriptionLabel.Text = 'Description';
@@ -2604,12 +2579,10 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutDatasetPath.Padding = [0 0 0 0];
             app.GridLayoutDatasetPath.Layout.Row = 1;
             app.GridLayoutDatasetPath.Layout.Column = 1;
-            app.GridLayoutDatasetPath.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create InputDatasetpathLabel
             app.InputDatasetpathLabel = uilabel(app.GridLayoutDatasetPath);
             app.InputDatasetpathLabel.FontWeight = 'bold';
-            app.InputDatasetpathLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.InputDatasetpathLabel.Layout.Row = 1;
             app.InputDatasetpathLabel.Layout.Column = 1;
             app.InputDatasetpathLabel.Text = 'Dataset path';
@@ -2617,8 +2590,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create InputBrowseButton
             app.InputBrowseButton = uibutton(app.GridLayoutDatasetPath, 'push');
             app.InputBrowseButton.ButtonPushedFcn = createCallbackFcn(app, @InputBrowseButtonPushed, true);
-            app.InputBrowseButton.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.InputBrowseButton.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.InputBrowseButton.Layout.Row = 1;
             app.InputBrowseButton.Layout.Column = 3;
             app.InputBrowseButton.Text = 'Browse';
@@ -2626,7 +2597,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create InputDatasetPath
             app.InputDatasetPath = uieditfield(app.GridLayoutDatasetPath, 'text');
             app.InputDatasetPath.ValueChangedFcn = createCallbackFcn(app, @InputDatasetPathValueChanged, true);
-            app.InputDatasetPath.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.InputDatasetPath.Layout.Row = 1;
             app.InputDatasetPath.Layout.Column = 2;
 
@@ -2638,7 +2608,6 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutInputPlot.Padding = [0 10 0 0];
             app.GridLayoutInputPlot.Layout.Row = 1;
             app.GridLayoutInputPlot.Layout.Column = 2;
-            app.GridLayoutInputPlot.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create GridLayoutInputAxisScale
             app.GridLayoutInputAxisScale = uigridlayout(app.GridLayoutInputPlot);
@@ -2647,15 +2616,12 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutInputAxisScale.Padding = [0 0 0 0];
             app.GridLayoutInputAxisScale.Layout.Row = 2;
             app.GridLayoutInputAxisScale.Layout.Column = 1;
-            app.GridLayoutInputAxisScale.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create InputAxisScaleDropDown
             app.InputAxisScaleDropDown = uidropdown(app.GridLayoutInputAxisScale);
             app.InputAxisScaleDropDown.Items = {'linear', 'semilog-x', 'semilog-y', 'log-log'};
             app.InputAxisScaleDropDown.ValueChangedFcn = createCallbackFcn(app, @InputAxisScaleDropDownValueChanged2, true);
             app.InputAxisScaleDropDown.Tag = 'InputAxisScaleDropDown';
-            app.InputAxisScaleDropDown.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.InputAxisScaleDropDown.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.InputAxisScaleDropDown.Layout.Row = 1;
             app.InputAxisScaleDropDown.Layout.Column = 5;
             app.InputAxisScaleDropDown.Value = 'linear';
@@ -2664,7 +2630,6 @@ classdef app_exported < matlab.apps.AppBase
             app.InputNumberofPointsLabel = uilabel(app.GridLayoutInputAxisScale);
             app.InputNumberofPointsLabel.HorizontalAlignment = 'right';
             app.InputNumberofPointsLabel.FontWeight = 'bold';
-            app.InputNumberofPointsLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.InputNumberofPointsLabel.Layout.Row = 1;
             app.InputNumberofPointsLabel.Layout.Column = 1;
             app.InputNumberofPointsLabel.Text = 'Number of points';
@@ -2673,7 +2638,6 @@ classdef app_exported < matlab.apps.AppBase
             app.AxisscaleLabel = uilabel(app.GridLayoutInputAxisScale);
             app.AxisscaleLabel.HorizontalAlignment = 'right';
             app.AxisscaleLabel.FontWeight = 'bold';
-            app.AxisscaleLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.AxisscaleLabel.Layout.Row = 1;
             app.AxisscaleLabel.Layout.Column = 4;
             app.AxisscaleLabel.Text = 'Axis scale';
@@ -2681,9 +2645,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create InputApplyPointsButton
             app.InputApplyPointsButton = uibutton(app.GridLayoutInputAxisScale, 'push');
             app.InputApplyPointsButton.ButtonPushedFcn = createCallbackFcn(app, @InputApplyPointsButtonPushed, true);
-            app.InputApplyPointsButton.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.InputApplyPointsButton.FontWeight = 'bold';
-            app.InputApplyPointsButton.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.InputApplyPointsButton.Layout.Row = 1;
             app.InputApplyPointsButton.Layout.Column = 3;
             app.InputApplyPointsButton.Text = 'Apply';
@@ -2693,7 +2655,6 @@ classdef app_exported < matlab.apps.AppBase
             app.InputNumberofPointsEditField.Limits = [2 Inf];
             app.InputNumberofPointsEditField.RoundFractionalValues = 'on';
             app.InputNumberofPointsEditField.ValueDisplayFormat = '%.0f';
-            app.InputNumberofPointsEditField.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.InputNumberofPointsEditField.Layout.Row = 1;
             app.InputNumberofPointsEditField.Layout.Column = 2;
             app.InputNumberofPointsEditField.Value = 50;
@@ -2703,7 +2664,6 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutInputPlots.RowHeight = {'1x'};
             app.GridLayoutInputPlots.Layout.Row = 1;
             app.GridLayoutInputPlots.Layout.Column = 1;
-            app.GridLayoutInputPlots.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create AxesProcessedInputData
             app.AxesProcessedInputData = uiaxes(app.GridLayoutInputPlots);
@@ -2726,7 +2686,6 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutInputTipsAndPlotButton.Padding = [0 0 0 0];
             app.GridLayoutInputTipsAndPlotButton.Layout.Row = 3;
             app.GridLayoutInputTipsAndPlotButton.Layout.Column = 1;
-            app.GridLayoutInputTipsAndPlotButton.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create GridLayoutTips
             app.GridLayoutTips = uigridlayout(app.GridLayoutInputTipsAndPlotButton);
@@ -2735,13 +2694,11 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutTips.Padding = [0 0 0 0];
             app.GridLayoutTips.Layout.Row = 1;
             app.GridLayoutTips.Layout.Column = 1;
-            app.GridLayoutTips.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create HtipAmLabel
             app.HtipAmLabel = uilabel(app.GridLayoutTips);
             app.HtipAmLabel.HorizontalAlignment = 'right';
             app.HtipAmLabel.FontWeight = 'bold';
-            app.HtipAmLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.HtipAmLabel.Layout.Row = 2;
             app.HtipAmLabel.Layout.Column = 1;
             app.HtipAmLabel.Text = 'Htip [A/m]';
@@ -2750,7 +2707,6 @@ classdef app_exported < matlab.apps.AppBase
             app.HTipField = uieditfield(app.GridLayoutTips, 'text');
             app.HTipField.Editable = 'off';
             app.HTipField.HorizontalAlignment = 'right';
-            app.HTipField.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.HTipField.Layout.Row = 2;
             app.HTipField.Layout.Column = 2;
 
@@ -2758,7 +2714,6 @@ classdef app_exported < matlab.apps.AppBase
             app.MtipAmLabel = uilabel(app.GridLayoutTips);
             app.MtipAmLabel.HorizontalAlignment = 'right';
             app.MtipAmLabel.FontWeight = 'bold';
-            app.MtipAmLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.MtipAmLabel.Layout.Row = 3;
             app.MtipAmLabel.Layout.Column = 1;
             app.MtipAmLabel.Text = 'Mtip [A/m]';
@@ -2767,7 +2722,6 @@ classdef app_exported < matlab.apps.AppBase
             app.MTipField = uieditfield(app.GridLayoutTips, 'text');
             app.MTipField.Editable = 'off';
             app.MTipField.HorizontalAlignment = 'right';
-            app.MTipField.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.MTipField.Layout.Row = 3;
             app.MTipField.Layout.Column = 2;
 
@@ -2775,13 +2729,10 @@ classdef app_exported < matlab.apps.AppBase
             app.AnhystereticfittingTab = uitab(app.TabGroup);
             app.AnhystereticfittingTab.AutoResizeChildren = 'off';
             app.AnhystereticfittingTab.Title = 'Anhysteretic fitting';
-            app.AnhystereticfittingTab.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.AnhystereticfittingTab.ForegroundColor = [0.129411764705882 0.129411764705882 0.129411764705882];
 
             % Create AnhystereticmagnetizationfittingTabGridLayout
             app.AnhystereticmagnetizationfittingTabGridLayout = uigridlayout(app.AnhystereticfittingTab);
             app.AnhystereticmagnetizationfittingTabGridLayout.RowHeight = {'1x'};
-            app.AnhystereticmagnetizationfittingTabGridLayout.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create GridLayoutAxes
             app.GridLayoutAxes = uigridlayout(app.AnhystereticmagnetizationfittingTabGridLayout);
@@ -2791,26 +2742,6 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutAxes.Padding = [0 0 0 0];
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
-            app.GridLayoutAxes.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.Box = 'on';
-            app.AxesM.TickDir = 'in';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
-
-            % Create AxesdMdH
-            app.AxesdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesdMdH, 'H [A/m]')
-            ylabel(app.AxesdMdH, '∂M/∂H')
-            zlabel(app.AxesdMdH, 'Z')
-            app.AxesdMdH.Box = 'on';
-            app.AxesdMdH.Layout.Row = 3;
-            app.AxesdMdH.Layout.Column = 1;
 
             % Create AxesHdMdH
             app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
@@ -2821,6 +2752,24 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesHdMdH.Layout.Row = 5;
             app.AxesHdMdH.Layout.Column = 1;
 
+            % Create AxesdMdH
+            app.AxesdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesdMdH, 'H [A/m]')
+            ylabel(app.AxesdMdH, '∂M/∂H')
+            zlabel(app.AxesdMdH, 'Z')
+            app.AxesdMdH.Box = 'on';
+            app.AxesdMdH.Layout.Row = 3;
+            app.AxesdMdH.Layout.Column = 1;
+
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
+
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
             app.GridLayoutOptionsM.ColumnWidth = {'2.9x', '2.1x', '3x', '2x', '2x', '1x', '1.3x'};
@@ -2828,13 +2777,10 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutOptionsM.Padding = [0 0 0 0];
             app.GridLayoutOptionsM.Layout.Row = 2;
             app.GridLayoutOptionsM.Layout.Column = 1;
-            app.GridLayoutOptionsM.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create ResidualplotButtonM
             app.ResidualplotButtonM = uibutton(app.GridLayoutOptionsM, 'push');
             app.ResidualplotButtonM.ButtonPushedFcn = createCallbackFcn(app, @ResidualplotButtonMPushed, true);
-            app.ResidualplotButtonM.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.ResidualplotButtonM.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ResidualplotButtonM.Layout.Row = 1;
             app.ResidualplotButtonM.Layout.Column = 2;
             app.ResidualplotButtonM.Text = 'Residuals';
@@ -2843,7 +2789,6 @@ classdef app_exported < matlab.apps.AppBase
             app.PlotcomponentsCheckBoxM = uicheckbox(app.GridLayoutOptionsM);
             app.PlotcomponentsCheckBoxM.ValueChangedFcn = createCallbackFcn(app, @PlotcomponentsCheckBoxMValueChanged, true);
             app.PlotcomponentsCheckBoxM.Text = 'Plot comp.';
-            app.PlotcomponentsCheckBoxM.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.PlotcomponentsCheckBoxM.Layout.Row = 1;
             app.PlotcomponentsCheckBoxM.Layout.Column = 3;
             app.PlotcomponentsCheckBoxM.Value = true;
@@ -2852,7 +2797,6 @@ classdef app_exported < matlab.apps.AppBase
             app.ShowgridCheckBoxM = uicheckbox(app.GridLayoutOptionsM);
             app.ShowgridCheckBoxM.ValueChangedFcn = createCallbackFcn(app, @ShowgridCheckBoxMValueChanged, true);
             app.ShowgridCheckBoxM.Text = 'Grid';
-            app.ShowgridCheckBoxM.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ShowgridCheckBoxM.Layout.Row = 1;
             app.ShowgridCheckBoxM.Layout.Column = 4;
             app.ShowgridCheckBoxM.Value = true;
@@ -2862,8 +2806,6 @@ classdef app_exported < matlab.apps.AppBase
             app.AxisScaleDropDownM.Items = {'linear', 'semilog-x', 'semilog-y', 'log-log'};
             app.AxisScaleDropDownM.ValueChangedFcn = createCallbackFcn(app, @AxisScaleDropDownMValueChanged, true);
             app.AxisScaleDropDownM.Tag = 'InputAxisScaleDropDown';
-            app.AxisScaleDropDownM.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.AxisScaleDropDownM.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.AxisScaleDropDownM.Layout.Row = 1;
             app.AxisScaleDropDownM.Layout.Column = [6 7];
             app.AxisScaleDropDownM.Value = 'semilog-x';
@@ -2872,7 +2814,6 @@ classdef app_exported < matlab.apps.AppBase
             app.ShowhcrCheckBoxM = uicheckbox(app.GridLayoutOptionsM);
             app.ShowhcrCheckBoxM.ValueChangedFcn = createCallbackFcn(app, @ShowhcrCheckBoxMValueChanged, true);
             app.ShowhcrCheckBoxM.Text = 'Hcr,i';
-            app.ShowhcrCheckBoxM.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ShowhcrCheckBoxM.Layout.Row = 1;
             app.ShowhcrCheckBoxM.Layout.Column = 5;
             app.ShowhcrCheckBoxM.Value = true;
@@ -2884,13 +2825,10 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutOptionsdMdH.Padding = [0 0 0 0];
             app.GridLayoutOptionsdMdH.Layout.Row = 4;
             app.GridLayoutOptionsdMdH.Layout.Column = 1;
-            app.GridLayoutOptionsdMdH.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create ResidualplotButtondMdH
             app.ResidualplotButtondMdH = uibutton(app.GridLayoutOptionsdMdH, 'push');
             app.ResidualplotButtondMdH.ButtonPushedFcn = createCallbackFcn(app, @ResidualplotButtondMdHPushed, true);
-            app.ResidualplotButtondMdH.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.ResidualplotButtondMdH.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ResidualplotButtondMdH.Layout.Row = 1;
             app.ResidualplotButtondMdH.Layout.Column = 2;
             app.ResidualplotButtondMdH.Text = 'Residuals';
@@ -2899,7 +2837,6 @@ classdef app_exported < matlab.apps.AppBase
             app.PlotcomponentsCheckBoxdMdH = uicheckbox(app.GridLayoutOptionsdMdH);
             app.PlotcomponentsCheckBoxdMdH.ValueChangedFcn = createCallbackFcn(app, @PlotcomponentsCheckBoxdMdHValueChanged, true);
             app.PlotcomponentsCheckBoxdMdH.Text = 'Plot comp.';
-            app.PlotcomponentsCheckBoxdMdH.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.PlotcomponentsCheckBoxdMdH.Layout.Row = 1;
             app.PlotcomponentsCheckBoxdMdH.Layout.Column = 3;
             app.PlotcomponentsCheckBoxdMdH.Value = true;
@@ -2908,7 +2845,6 @@ classdef app_exported < matlab.apps.AppBase
             app.ShowgridCheckBoxdMdH = uicheckbox(app.GridLayoutOptionsdMdH);
             app.ShowgridCheckBoxdMdH.ValueChangedFcn = createCallbackFcn(app, @ShowgridCheckBoxdMdHValueChanged, true);
             app.ShowgridCheckBoxdMdH.Text = 'Grid';
-            app.ShowgridCheckBoxdMdH.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ShowgridCheckBoxdMdH.Layout.Row = 1;
             app.ShowgridCheckBoxdMdH.Layout.Column = 4;
             app.ShowgridCheckBoxdMdH.Value = true;
@@ -2918,8 +2854,6 @@ classdef app_exported < matlab.apps.AppBase
             app.AxisScaleDropDowndMdH.Items = {'linear', 'semilog-x', 'semilog-y', 'log-log'};
             app.AxisScaleDropDowndMdH.ValueChangedFcn = createCallbackFcn(app, @AxisScaleDropDowndMdHValueChanged, true);
             app.AxisScaleDropDowndMdH.Tag = 'InputAxisScaleDropDown';
-            app.AxisScaleDropDowndMdH.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.AxisScaleDropDowndMdH.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.AxisScaleDropDowndMdH.Layout.Row = 1;
             app.AxisScaleDropDowndMdH.Layout.Column = [6 7];
             app.AxisScaleDropDowndMdH.Value = 'semilog-x';
@@ -2928,7 +2862,6 @@ classdef app_exported < matlab.apps.AppBase
             app.ShowhcrCheckBoxdMdH = uicheckbox(app.GridLayoutOptionsdMdH);
             app.ShowhcrCheckBoxdMdH.ValueChangedFcn = createCallbackFcn(app, @ShowhcrCheckBoxdMdHValueChanged, true);
             app.ShowhcrCheckBoxdMdH.Text = 'Hcr,i';
-            app.ShowhcrCheckBoxdMdH.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ShowhcrCheckBoxdMdH.Layout.Row = 1;
             app.ShowhcrCheckBoxdMdH.Layout.Column = 5;
             app.ShowhcrCheckBoxdMdH.Value = true;
@@ -2940,13 +2873,10 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutOptionsHdMdH.Padding = [0 0 0 0];
             app.GridLayoutOptionsHdMdH.Layout.Row = 6;
             app.GridLayoutOptionsHdMdH.Layout.Column = 1;
-            app.GridLayoutOptionsHdMdH.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create ResidualplotButtondHdMdH
             app.ResidualplotButtondHdMdH = uibutton(app.GridLayoutOptionsHdMdH, 'push');
             app.ResidualplotButtondHdMdH.ButtonPushedFcn = createCallbackFcn(app, @ResidualplotButtondHdMdHPushed, true);
-            app.ResidualplotButtondHdMdH.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.ResidualplotButtondHdMdH.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ResidualplotButtondHdMdH.Layout.Row = 1;
             app.ResidualplotButtondHdMdH.Layout.Column = 2;
             app.ResidualplotButtondHdMdH.Text = 'Residuals';
@@ -2955,7 +2885,6 @@ classdef app_exported < matlab.apps.AppBase
             app.PlotcomponentsCheckBoxHdMdH = uicheckbox(app.GridLayoutOptionsHdMdH);
             app.PlotcomponentsCheckBoxHdMdH.ValueChangedFcn = createCallbackFcn(app, @PlotcomponentsCheckBoxHdMdHValueChanged, true);
             app.PlotcomponentsCheckBoxHdMdH.Text = 'Plot comp.';
-            app.PlotcomponentsCheckBoxHdMdH.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.PlotcomponentsCheckBoxHdMdH.Layout.Row = 1;
             app.PlotcomponentsCheckBoxHdMdH.Layout.Column = 3;
             app.PlotcomponentsCheckBoxHdMdH.Value = true;
@@ -2964,7 +2893,6 @@ classdef app_exported < matlab.apps.AppBase
             app.ShowgridCheckBoxHdMdH = uicheckbox(app.GridLayoutOptionsHdMdH);
             app.ShowgridCheckBoxHdMdH.ValueChangedFcn = createCallbackFcn(app, @ShowgridCheckBoxHdMdHValueChanged, true);
             app.ShowgridCheckBoxHdMdH.Text = 'Grid';
-            app.ShowgridCheckBoxHdMdH.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ShowgridCheckBoxHdMdH.Layout.Row = 1;
             app.ShowgridCheckBoxHdMdH.Layout.Column = 4;
             app.ShowgridCheckBoxHdMdH.Value = true;
@@ -2974,8 +2902,6 @@ classdef app_exported < matlab.apps.AppBase
             app.AxisScaleDropDownHdMdH.Items = {'linear', 'semilog-x', 'semilog-y', 'log-log'};
             app.AxisScaleDropDownHdMdH.ValueChangedFcn = createCallbackFcn(app, @AxisScaleDropDownHdMdHValueChanged, true);
             app.AxisScaleDropDownHdMdH.Tag = 'InputAxisScaleDropDown';
-            app.AxisScaleDropDownHdMdH.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.AxisScaleDropDownHdMdH.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.AxisScaleDropDownHdMdH.Layout.Row = 1;
             app.AxisScaleDropDownHdMdH.Layout.Column = [6 7];
             app.AxisScaleDropDownHdMdH.Value = 'semilog-x';
@@ -2984,7 +2910,6 @@ classdef app_exported < matlab.apps.AppBase
             app.ShowhcrCheckBoxHdMdH = uicheckbox(app.GridLayoutOptionsHdMdH);
             app.ShowhcrCheckBoxHdMdH.ValueChangedFcn = createCallbackFcn(app, @ShowhcrCheckBoxHdMdHValueChanged, true);
             app.ShowhcrCheckBoxHdMdH.Text = 'Hcr,i';
-            app.ShowhcrCheckBoxHdMdH.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ShowhcrCheckBoxHdMdH.Layout.Row = 1;
             app.ShowhcrCheckBoxHdMdH.Layout.Column = 5;
             app.ShowhcrCheckBoxHdMdH.Value = true;
@@ -2998,35 +2923,29 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutNumbers.Layout.Row = 1;
             app.GridLayoutNumbers.Layout.Column = 2;
             app.GridLayoutNumbers.Scrollable = 'on';
-            app.GridLayoutNumbers.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create TableFittedParameters
             app.TableFittedParameters = uitable(app.GridLayoutNumbers);
-            app.TableFittedParameters.BackgroundColor = [1 1 1;0.96078431372549 0.96078431372549 0.96078431372549];
             app.TableFittedParameters.ColumnName = {'Parameter'; 'Value'; 'Lower bound'; 'Upper bound'; 'Fit'};
             app.TableFittedParameters.RowName = {};
             app.TableFittedParameters.ColumnEditable = [false true true true true];
             app.TableFittedParameters.CellEditCallback = createCallbackFcn(app, @TableFittedParametersCellEdit, true);
             app.TableFittedParameters.CellSelectionCallback = createCallbackFcn(app, @TableFittedParametersCellSelection, true);
-            app.TableFittedParameters.ForegroundColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.TableFittedParameters.Layout.Row = 4;
             app.TableFittedParameters.Layout.Column = 1;
 
             % Create ModelretrievedparametersLabel
             app.ModelretrievedparametersLabel = uilabel(app.GridLayoutNumbers);
             app.ModelretrievedparametersLabel.FontWeight = 'bold';
-            app.ModelretrievedparametersLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ModelretrievedparametersLabel.Layout.Row = 5;
             app.ModelretrievedparametersLabel.Layout.Column = 1;
             app.ModelretrievedparametersLabel.Text = 'Model retrieved parameters';
 
             % Create TableParameters
             app.TableParameters = uitable(app.GridLayoutNumbers);
-            app.TableParameters.BackgroundColor = [1 1 1;0.96078431372549 0.96078431372549 0.96078431372549];
             app.TableParameters.ColumnName = {'Component'; 'Msᵢ [A/m]'; 'αᵢ'; 'aᵢ [A/m]'; 'Select aᵢ'};
             app.TableParameters.RowName = {};
             app.TableParameters.ColumnEditable = [false false false false true];
-            app.TableParameters.ForegroundColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.TableParameters.Layout.Row = 6;
             app.TableParameters.Layout.Column = 1;
 
@@ -3037,13 +2956,10 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutButtons.Padding = [0 0 0 0];
             app.GridLayoutButtons.Layout.Row = 9;
             app.GridLayoutButtons.Layout.Column = 1;
-            app.GridLayoutButtons.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create FitButton
             app.FitButton = uibutton(app.GridLayoutButtons, 'push');
             app.FitButton.ButtonPushedFcn = createCallbackFcn(app, @FitButtonPushed, true);
-            app.FitButton.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.FitButton.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.FitButton.Layout.Row = 1;
             app.FitButton.Layout.Column = 5;
             app.FitButton.Text = 'Fit';
@@ -3052,8 +2968,6 @@ classdef app_exported < matlab.apps.AppBase
             app.CalculatePlotButton = uibutton(app.GridLayoutButtons, 'push');
             app.CalculatePlotButton.ButtonPushedFcn = createCallbackFcn(app, @CalculatePlotButtonPushed, true);
             app.CalculatePlotButton.WordWrap = 'on';
-            app.CalculatePlotButton.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.CalculatePlotButton.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.CalculatePlotButton.Layout.Row = 1;
             app.CalculatePlotButton.Layout.Column = 4;
             app.CalculatePlotButton.Text = 'Calculate & Plot';
@@ -3062,7 +2976,6 @@ classdef app_exported < matlab.apps.AppBase
             app.ErrortominimizeDropDownLabel = uilabel(app.GridLayoutButtons);
             app.ErrortominimizeDropDownLabel.WordWrap = 'on';
             app.ErrortominimizeDropDownLabel.FontWeight = 'bold';
-            app.ErrortominimizeDropDownLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ErrortominimizeDropDownLabel.Layout.Row = 1;
             app.ErrortominimizeDropDownLabel.Layout.Column = 1;
             app.ErrortominimizeDropDownLabel.Text = 'Error to minimize';
@@ -3070,8 +2983,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create ErrortominimizeDropDown
             app.ErrortominimizeDropDown = uidropdown(app.GridLayoutButtons);
             app.ErrortominimizeDropDown.Items = {'Diagonal (H, sampled)', 'Diagonal (H, continuous)', 'Diagonal (logH, sampled)', 'Diagonal (logH, continuous)', 'Vertical', 'Horizontal'};
-            app.ErrortominimizeDropDown.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.ErrortominimizeDropDown.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.ErrortominimizeDropDown.Layout.Row = 1;
             app.ErrortominimizeDropDown.Layout.Column = 2;
             app.ErrortominimizeDropDown.Value = 'Diagonal (logH, continuous)';
@@ -3079,7 +2990,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create ErrorDisplay
             app.ErrorDisplay = uieditfield(app.GridLayoutButtons, 'text');
             app.ErrorDisplay.Editable = 'off';
-            app.ErrorDisplay.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ErrorDisplay.Layout.Row = 1;
             app.ErrorDisplay.Layout.Column = 3;
 
@@ -3090,12 +3000,10 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutOtherQuantities.Padding = [0 0 0 0];
             app.GridLayoutOtherQuantities.Layout.Row = 7;
             app.GridLayoutOtherQuantities.Layout.Column = 1;
-            app.GridLayoutOtherQuantities.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create OthercalculatedquantitiesLabel
             app.OthercalculatedquantitiesLabel = uilabel(app.GridLayoutOtherQuantities);
             app.OthercalculatedquantitiesLabel.FontWeight = 'bold';
-            app.OthercalculatedquantitiesLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.OthercalculatedquantitiesLabel.Layout.Row = 1;
             app.OthercalculatedquantitiesLabel.Layout.Column = 1;
             app.OthercalculatedquantitiesLabel.Text = 'Other calculated quantities';
@@ -3104,7 +3012,6 @@ classdef app_exported < matlab.apps.AppBase
             app.JsTEditFieldLabel = uilabel(app.GridLayoutOtherQuantities);
             app.JsTEditFieldLabel.HorizontalAlignment = 'right';
             app.JsTEditFieldLabel.FontWeight = 'bold';
-            app.JsTEditFieldLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsTEditFieldLabel.Layout.Row = 1;
             app.JsTEditFieldLabel.Layout.Column = 4;
             app.JsTEditFieldLabel.Text = 'Js [T]';
@@ -3113,7 +3020,6 @@ classdef app_exported < matlab.apps.AppBase
             app.JsField = uieditfield(app.GridLayoutOtherQuantities, 'text');
             app.JsField.Editable = 'off';
             app.JsField.HorizontalAlignment = 'right';
-            app.JsField.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsField.Layout.Row = 1;
             app.JsField.Layout.Column = 5;
 
@@ -3121,7 +3027,6 @@ classdef app_exported < matlab.apps.AppBase
             app.murinField = uieditfield(app.GridLayoutOtherQuantities, 'text');
             app.murinField.Editable = 'off';
             app.murinField.HorizontalAlignment = 'right';
-            app.murinField.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.murinField.Layout.Row = 1;
             app.murinField.Layout.Column = 3;
 
@@ -3129,24 +3034,20 @@ classdef app_exported < matlab.apps.AppBase
             app.murinLabel = uilabel(app.GridLayoutOtherQuantities);
             app.murinLabel.HorizontalAlignment = 'right';
             app.murinLabel.FontWeight = 'bold';
-            app.murinLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.murinLabel.Layout.Row = 1;
             app.murinLabel.Layout.Column = 2;
             app.murinLabel.Text = 'μrᵢₙ';
 
             % Create TableQuantities
             app.TableQuantities = uitable(app.GridLayoutNumbers);
-            app.TableQuantities.BackgroundColor = [1 1 1;0.96078431372549 0.96078431372549 0.96078431372549];
             app.TableQuantities.ColumnName = {'Component'; 'αᵢ⏐Msᵢ⏐/(3aᵢ)'; 'NᵢkвT [J/m³]'; 'Hkᵢ [A/m]'; 'μrᵢₙ ᵢ'};
             app.TableQuantities.RowName = {};
-            app.TableQuantities.ForegroundColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.TableQuantities.Layout.Row = 8;
             app.TableQuantities.Layout.Column = 1;
 
             % Create ModeledcurveLabel
             app.ModeledcurveLabel = uilabel(app.GridLayoutNumbers);
             app.ModeledcurveLabel.FontWeight = 'bold';
-            app.ModeledcurveLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ModeledcurveLabel.Layout.Row = 1;
             app.ModeledcurveLabel.Layout.Column = 1;
             app.ModeledcurveLabel.Text = 'Modeled curve';
@@ -3159,11 +3060,9 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutModeledCurve.Padding = [0 0 0 0];
             app.GridLayoutModeledCurve.Layout.Row = 2;
             app.GridLayoutModeledCurve.Layout.Column = 1;
-            app.GridLayoutModeledCurve.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create NofcomponentsSpinnerLabel
             app.NofcomponentsSpinnerLabel = uilabel(app.GridLayoutModeledCurve);
-            app.NofcomponentsSpinnerLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.NofcomponentsSpinnerLabel.Layout.Row = 1;
             app.NofcomponentsSpinnerLabel.Layout.Column = 1;
             app.NofcomponentsSpinnerLabel.Text = 'N. of components';
@@ -3172,14 +3071,12 @@ classdef app_exported < matlab.apps.AppBase
             app.NofcomponentsSpinner = uispinner(app.GridLayoutModeledCurve);
             app.NofcomponentsSpinner.Limits = [1 4];
             app.NofcomponentsSpinner.ValueChangedFcn = createCallbackFcn(app, @NofcomponentsSpinnerValueChanged, true);
-            app.NofcomponentsSpinner.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.NofcomponentsSpinner.Layout.Row = 1;
             app.NofcomponentsSpinner.Layout.Column = 2;
             app.NofcomponentsSpinner.Value = 1;
 
             % Create NofpointsEditFieldLabel
             app.NofpointsEditFieldLabel = uilabel(app.GridLayoutModeledCurve);
-            app.NofpointsEditFieldLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.NofpointsEditFieldLabel.Layout.Row = 1;
             app.NofpointsEditFieldLabel.Layout.Column = 3;
             app.NofpointsEditFieldLabel.Text = 'N. of points';
@@ -3188,7 +3085,6 @@ classdef app_exported < matlab.apps.AppBase
             app.NofpointsEditField = uieditfield(app.GridLayoutModeledCurve, 'numeric');
             app.NofpointsEditField.Limits = [0 Inf];
             app.NofpointsEditField.ValueDisplayFormat = '%.0f';
-            app.NofpointsEditField.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.NofpointsEditField.Layout.Row = 1;
             app.NofpointsEditField.Layout.Column = 4;
             app.NofpointsEditField.Value = 100;
@@ -3197,8 +3093,6 @@ classdef app_exported < matlab.apps.AppBase
             app.PointSpaceDropDown = uidropdown(app.GridLayoutModeledCurve);
             app.PointSpaceDropDown.Items = {'Logarithmically spaced', 'Lineraly spaced'};
             app.PointSpaceDropDown.ItemsData = {'log', 'linear'};
-            app.PointSpaceDropDown.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.PointSpaceDropDown.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.PointSpaceDropDown.Layout.Row = 1;
             app.PointSpaceDropDown.Layout.Column = 5;
             app.PointSpaceDropDown.Value = 'log';
@@ -3206,8 +3100,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create SetColorsButton
             app.SetColorsButton = uibutton(app.GridLayoutModeledCurve, 'push');
             app.SetColorsButton.ButtonPushedFcn = createCallbackFcn(app, @SetColorsButtonPushed, true);
-            app.SetColorsButton.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.SetColorsButton.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.SetColorsButton.Layout.Row = 1;
             app.SetColorsButton.Layout.Column = 6;
             app.SetColorsButton.Text = 'Set Colors';
@@ -3215,7 +3107,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create FittedparametersLabel
             app.FittedparametersLabel = uilabel(app.GridLayoutNumbers);
             app.FittedparametersLabel.FontWeight = 'bold';
-            app.FittedparametersLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.FittedparametersLabel.Layout.Row = 3;
             app.FittedparametersLabel.Layout.Column = 1;
             app.FittedparametersLabel.Text = 'Fitted parameters';
@@ -3223,8 +3114,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create HystereticfittingTab
             app.HystereticfittingTab = uitab(app.TabGroup);
             app.HystereticfittingTab.Title = 'Hysteretic fitting ';
-            app.HystereticfittingTab.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.HystereticfittingTab.ForegroundColor = [0.129411764705882 0.129411764705882 0.129411764705882];
 
             % Create GridLayout2
             app.GridLayout2 = uigridlayout(app.HystereticfittingTab);
@@ -3233,7 +3122,6 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayout2.ColumnSpacing = 2.77317164494441;
             app.GridLayout2.RowSpacing = 6.31337694021372;
             app.GridLayout2.Padding = [2.77317164494441 6.31337694021372 2.77317164494441 6.31337694021372];
-            app.GridLayout2.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create AxesM_2
             app.AxesM_2 = uiaxes(app.GridLayout2);
@@ -3241,14 +3129,12 @@ classdef app_exported < matlab.apps.AppBase
             ylabel(app.AxesM_2, 'M [A/m]')
             zlabel(app.AxesM_2, 'Z')
             app.AxesM_2.Box = 'on';
-            app.AxesM_2.TickDir = 'in';
             app.AxesM_2.Layout.Row = [2 12];
             app.AxesM_2.Layout.Column = [1 5];
 
             % Create JilesAthertonmodelrateindependentLabel
             app.JilesAthertonmodelrateindependentLabel = uilabel(app.GridLayout2);
             app.JilesAthertonmodelrateindependentLabel.FontWeight = 'bold';
-            app.JilesAthertonmodelrateindependentLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JilesAthertonmodelrateindependentLabel.Layout.Row = 1;
             app.JilesAthertonmodelrateindependentLabel.Layout.Column = [1 5];
             app.JilesAthertonmodelrateindependentLabel.Text = 'Jiles-Atherton model (rate-independent)';
@@ -3256,7 +3142,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create ModelparametersLabel
             app.ModelparametersLabel = uilabel(app.GridLayout2);
             app.ModelparametersLabel.FontWeight = 'bold';
-            app.ModelparametersLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ModelparametersLabel.Layout.Row = 2;
             app.ModelparametersLabel.Layout.Column = [6 7];
             app.ModelparametersLabel.Text = 'Model parameters';
@@ -3264,7 +3149,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create JsTEditFieldLabel_2
             app.JsTEditFieldLabel_2 = uilabel(app.GridLayout2);
             app.JsTEditFieldLabel_2.FontWeight = 'bold';
-            app.JsTEditFieldLabel_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsTEditFieldLabel_2.Layout.Row = 3;
             app.JsTEditFieldLabel_2.Layout.Column = 6;
             app.JsTEditFieldLabel_2.Text = 'Ms [A/m]';
@@ -3272,14 +3156,12 @@ classdef app_exported < matlab.apps.AppBase
             % Create JsField_2
             app.JsField_2 = uieditfield(app.GridLayout2, 'text');
             app.JsField_2.HorizontalAlignment = 'right';
-            app.JsField_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsField_2.Layout.Row = 3;
             app.JsField_2.Layout.Column = 7;
 
             % Create JsTEditFieldLabel_3
             app.JsTEditFieldLabel_3 = uilabel(app.GridLayout2);
             app.JsTEditFieldLabel_3.FontWeight = 'bold';
-            app.JsTEditFieldLabel_3.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsTEditFieldLabel_3.Layout.Row = 4;
             app.JsTEditFieldLabel_3.Layout.Column = 6;
             app.JsTEditFieldLabel_3.Text = 'a [A/m]';
@@ -3287,14 +3169,12 @@ classdef app_exported < matlab.apps.AppBase
             % Create JsField_3
             app.JsField_3 = uieditfield(app.GridLayout2, 'text');
             app.JsField_3.HorizontalAlignment = 'right';
-            app.JsField_3.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsField_3.Layout.Row = 4;
             app.JsField_3.Layout.Column = 7;
 
             % Create JsTEditFieldLabel_4
             app.JsTEditFieldLabel_4 = uilabel(app.GridLayout2);
             app.JsTEditFieldLabel_4.FontWeight = 'bold';
-            app.JsTEditFieldLabel_4.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsTEditFieldLabel_4.Layout.Row = 5;
             app.JsTEditFieldLabel_4.Layout.Column = 6;
             app.JsTEditFieldLabel_4.Text = 'alpha';
@@ -3302,14 +3182,12 @@ classdef app_exported < matlab.apps.AppBase
             % Create JsField_4
             app.JsField_4 = uieditfield(app.GridLayout2, 'text');
             app.JsField_4.HorizontalAlignment = 'right';
-            app.JsField_4.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsField_4.Layout.Row = 5;
             app.JsField_4.Layout.Column = 7;
 
             % Create JsTEditFieldLabel_5
             app.JsTEditFieldLabel_5 = uilabel(app.GridLayout2);
             app.JsTEditFieldLabel_5.FontWeight = 'bold';
-            app.JsTEditFieldLabel_5.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsTEditFieldLabel_5.Layout.Row = 6;
             app.JsTEditFieldLabel_5.Layout.Column = 6;
             app.JsTEditFieldLabel_5.Text = 'c';
@@ -3317,14 +3195,12 @@ classdef app_exported < matlab.apps.AppBase
             % Create JsField_5
             app.JsField_5 = uieditfield(app.GridLayout2, 'text');
             app.JsField_5.HorizontalAlignment = 'right';
-            app.JsField_5.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsField_5.Layout.Row = 6;
             app.JsField_5.Layout.Column = 7;
 
             % Create JsTEditFieldLabel_6
             app.JsTEditFieldLabel_6 = uilabel(app.GridLayout2);
             app.JsTEditFieldLabel_6.FontWeight = 'bold';
-            app.JsTEditFieldLabel_6.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsTEditFieldLabel_6.Layout.Row = 7;
             app.JsTEditFieldLabel_6.Layout.Column = 6;
             app.JsTEditFieldLabel_6.Text = 'k [A/m]';
@@ -3332,15 +3208,12 @@ classdef app_exported < matlab.apps.AppBase
             % Create JsField_6
             app.JsField_6 = uieditfield(app.GridLayout2, 'text');
             app.JsField_6.HorizontalAlignment = 'right';
-            app.JsField_6.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsField_6.Layout.Row = 7;
             app.JsField_6.Layout.Column = 7;
 
             % Create FitButton_2
             app.FitButton_2 = uibutton(app.GridLayout2, 'push');
             app.FitButton_2.ButtonPushedFcn = createCallbackFcn(app, @FitButton_2Pushed, true);
-            app.FitButton_2.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.FitButton_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.FitButton_2.Layout.Row = 13;
             app.FitButton_2.Layout.Column = 12;
             app.FitButton_2.Text = 'Fit';
@@ -3349,8 +3222,6 @@ classdef app_exported < matlab.apps.AppBase
             app.CalculatePlotButton_2 = uibutton(app.GridLayout2, 'push');
             app.CalculatePlotButton_2.ButtonPushedFcn = createCallbackFcn(app, @CalculatePlotButton_2Pushed, true);
             app.CalculatePlotButton_2.WordWrap = 'on';
-            app.CalculatePlotButton_2.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.CalculatePlotButton_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.CalculatePlotButton_2.Layout.Row = 13;
             app.CalculatePlotButton_2.Layout.Column = 11;
             app.CalculatePlotButton_2.Text = 'Calculate & Plot';
@@ -3359,7 +3230,6 @@ classdef app_exported < matlab.apps.AppBase
             app.ErrortominimizeDropDownLabel_2 = uilabel(app.GridLayout2);
             app.ErrortominimizeDropDownLabel_2.WordWrap = 'on';
             app.ErrortominimizeDropDownLabel_2.FontWeight = 'bold';
-            app.ErrortominimizeDropDownLabel_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ErrortominimizeDropDownLabel_2.Layout.Row = 13;
             app.ErrortominimizeDropDownLabel_2.Layout.Column = 6;
             app.ErrortominimizeDropDownLabel_2.Text = 'Error to minimize';
@@ -3367,8 +3237,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create ErrortominimizeDropDown_2
             app.ErrortominimizeDropDown_2 = uidropdown(app.GridLayout2);
             app.ErrortominimizeDropDown_2.Items = {'Diagonal (H, continuous)', 'Vertical', 'Horizontal'};
-            app.ErrortominimizeDropDown_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.ErrortominimizeDropDown_2.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.ErrortominimizeDropDown_2.Layout.Row = 13;
             app.ErrortominimizeDropDown_2.Layout.Column = [7 8];
             app.ErrortominimizeDropDown_2.Value = 'Diagonal (H, continuous)';
@@ -3376,15 +3244,12 @@ classdef app_exported < matlab.apps.AppBase
             % Create ErrorDisplay_2
             app.ErrorDisplay_2 = uieditfield(app.GridLayout2, 'text');
             app.ErrorDisplay_2.Editable = 'off';
-            app.ErrorDisplay_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ErrorDisplay_2.Layout.Row = 13;
             app.ErrorDisplay_2.Layout.Column = 9;
 
             % Create RetrieveseedsButton
             app.RetrieveseedsButton = uibutton(app.GridLayout2, 'push');
             app.RetrieveseedsButton.ButtonPushedFcn = createCallbackFcn(app, @RetrieveseedsButtonPushed, true);
-            app.RetrieveseedsButton.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.RetrieveseedsButton.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.RetrieveseedsButton.Layout.Row = 2;
             app.RetrieveseedsButton.Layout.Column = 11;
             app.RetrieveseedsButton.Text = 'Retrieve seeds';
@@ -3392,7 +3257,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create DrivingfieldLabel
             app.DrivingfieldLabel = uilabel(app.GridLayout2);
             app.DrivingfieldLabel.FontWeight = 'bold';
-            app.DrivingfieldLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.DrivingfieldLabel.Layout.Row = 9;
             app.DrivingfieldLabel.Layout.Column = [6 11];
             app.DrivingfieldLabel.Text = 'Driving field';
@@ -3400,7 +3264,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create JsTEditFieldLabel_7
             app.JsTEditFieldLabel_7 = uilabel(app.GridLayout2);
             app.JsTEditFieldLabel_7.FontWeight = 'bold';
-            app.JsTEditFieldLabel_7.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsTEditFieldLabel_7.Layout.Row = 10;
             app.JsTEditFieldLabel_7.Layout.Column = 6;
             app.JsTEditFieldLabel_7.Text = 'Htip [A/m]';
@@ -3409,7 +3272,6 @@ classdef app_exported < matlab.apps.AppBase
             app.JsField_7 = uieditfield(app.GridLayout2, 'text');
             app.JsField_7.Editable = 'off';
             app.JsField_7.HorizontalAlignment = 'right';
-            app.JsField_7.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsField_7.Layout.Row = 10;
             app.JsField_7.Layout.Column = 7;
 
@@ -3417,7 +3279,6 @@ classdef app_exported < matlab.apps.AppBase
             app.ShowgridCheckBoxM_2 = uicheckbox(app.GridLayout2);
             app.ShowgridCheckBoxM_2.ValueChangedFcn = createCallbackFcn(app, @ShowgridCheckBoxM_2ValueChanged, true);
             app.ShowgridCheckBoxM_2.Text = 'Grid';
-            app.ShowgridCheckBoxM_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ShowgridCheckBoxM_2.Layout.Row = 13;
             app.ShowgridCheckBoxM_2.Layout.Column = 4;
             app.ShowgridCheckBoxM_2.Value = true;
@@ -3425,8 +3286,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create ResidualplotButtondMdH_2
             app.ResidualplotButtondMdH_2 = uibutton(app.GridLayout2, 'push');
             app.ResidualplotButtondMdH_2.ButtonPushedFcn = createCallbackFcn(app, @ResidualplotButtondMdH_2Pushed, true);
-            app.ResidualplotButtondMdH_2.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.ResidualplotButtondMdH_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ResidualplotButtondMdH_2.Layout.Row = 13;
             app.ResidualplotButtondMdH_2.Layout.Column = 2;
             app.ResidualplotButtondMdH_2.Text = 'Residuals';
@@ -3434,7 +3293,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create JsTEditFieldLabel_8
             app.JsTEditFieldLabel_8 = uilabel(app.GridLayout2);
             app.JsTEditFieldLabel_8.FontWeight = 'bold';
-            app.JsTEditFieldLabel_8.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsTEditFieldLabel_8.Layout.Row = 11;
             app.JsTEditFieldLabel_8.Layout.Column = 6;
             app.JsTEditFieldLabel_8.Text = 'Mtip [A/m]';
@@ -3443,97 +3301,83 @@ classdef app_exported < matlab.apps.AppBase
             app.JsField_8 = uieditfield(app.GridLayout2, 'text');
             app.JsField_8.Editable = 'off';
             app.JsField_8.HorizontalAlignment = 'right';
-            app.JsField_8.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsField_8.Layout.Row = 11;
             app.JsField_8.Layout.Column = 7;
 
             % Create MsLowerField_2
             app.MsLowerField_2 = uieditfield(app.GridLayout2, 'text');
             app.MsLowerField_2.HorizontalAlignment = 'right';
-            app.MsLowerField_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.MsLowerField_2.Layout.Row = 3;
             app.MsLowerField_2.Layout.Column = 8;
 
             % Create MsUpperField_2
             app.MsUpperField_2 = uieditfield(app.GridLayout2, 'text');
             app.MsUpperField_2.HorizontalAlignment = 'right';
-            app.MsUpperField_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.MsUpperField_2.Layout.Row = 3;
             app.MsUpperField_2.Layout.Column = 9;
 
             % Create aLowerField_2
             app.aLowerField_2 = uieditfield(app.GridLayout2, 'text');
             app.aLowerField_2.HorizontalAlignment = 'right';
-            app.aLowerField_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.aLowerField_2.Layout.Row = 4;
             app.aLowerField_2.Layout.Column = 8;
 
             % Create aUpperField_2
             app.aUpperField_2 = uieditfield(app.GridLayout2, 'text');
             app.aUpperField_2.HorizontalAlignment = 'right';
-            app.aUpperField_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.aUpperField_2.Layout.Row = 4;
             app.aUpperField_2.Layout.Column = 9;
 
             % Create alphaLowerField_2
             app.alphaLowerField_2 = uieditfield(app.GridLayout2, 'text');
             app.alphaLowerField_2.HorizontalAlignment = 'right';
-            app.alphaLowerField_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.alphaLowerField_2.Layout.Row = 5;
             app.alphaLowerField_2.Layout.Column = 8;
 
             % Create alphaUpperField_2
             app.alphaUpperField_2 = uieditfield(app.GridLayout2, 'text');
             app.alphaUpperField_2.HorizontalAlignment = 'right';
-            app.alphaUpperField_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.alphaUpperField_2.Layout.Row = 5;
             app.alphaUpperField_2.Layout.Column = 9;
 
             % Create cLowerField_2
             app.cLowerField_2 = uieditfield(app.GridLayout2, 'text');
             app.cLowerField_2.HorizontalAlignment = 'right';
-            app.cLowerField_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.cLowerField_2.Layout.Row = 6;
             app.cLowerField_2.Layout.Column = 8;
 
             % Create cUpperField_2
             app.cUpperField_2 = uieditfield(app.GridLayout2, 'text');
             app.cUpperField_2.HorizontalAlignment = 'right';
-            app.cUpperField_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.cUpperField_2.Layout.Row = 6;
             app.cUpperField_2.Layout.Column = 9;
 
             % Create kLowerField_2
             app.kLowerField_2 = uieditfield(app.GridLayout2, 'text');
             app.kLowerField_2.HorizontalAlignment = 'right';
-            app.kLowerField_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.kLowerField_2.Layout.Row = 7;
             app.kLowerField_2.Layout.Column = 8;
 
             % Create kUpperField_2
             app.kUpperField_2 = uieditfield(app.GridLayout2, 'text');
             app.kUpperField_2.HorizontalAlignment = 'right';
-            app.kUpperField_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.kUpperField_2.Layout.Row = 7;
             app.kUpperField_2.Layout.Column = 9;
 
             % Create LowerboundLabel
             app.LowerboundLabel = uilabel(app.GridLayout2);
-            app.LowerboundLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.LowerboundLabel.Layout.Row = 2;
             app.LowerboundLabel.Layout.Column = 8;
             app.LowerboundLabel.Text = 'Lower bound';
 
             % Create UpperboundLabel
             app.UpperboundLabel = uilabel(app.GridLayout2);
-            app.UpperboundLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.UpperboundLabel.Layout.Row = 2;
             app.UpperboundLabel.Layout.Column = 9;
             app.UpperboundLabel.Text = 'Upper bound';
 
             % Create FitLabel
             app.FitLabel = uilabel(app.GridLayout2);
-            app.FitLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.FitLabel.Layout.Row = 2;
             app.FitLabel.Layout.Column = 10;
             app.FitLabel.Text = 'Fit';
@@ -3541,7 +3385,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create CheckBox
             app.CheckBox = uicheckbox(app.GridLayout2);
             app.CheckBox.Text = '';
-            app.CheckBox.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.CheckBox.Layout.Row = 3;
             app.CheckBox.Layout.Column = 10;
             app.CheckBox.Value = true;
@@ -3549,7 +3392,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create CheckBox_2
             app.CheckBox_2 = uicheckbox(app.GridLayout2);
             app.CheckBox_2.Text = '';
-            app.CheckBox_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.CheckBox_2.Layout.Row = 4;
             app.CheckBox_2.Layout.Column = 10;
             app.CheckBox_2.Value = true;
@@ -3557,7 +3399,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create CheckBox_3
             app.CheckBox_3 = uicheckbox(app.GridLayout2);
             app.CheckBox_3.Text = '';
-            app.CheckBox_3.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.CheckBox_3.Layout.Row = 5;
             app.CheckBox_3.Layout.Column = 10;
             app.CheckBox_3.Value = true;
@@ -3565,7 +3406,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create CheckBox_4
             app.CheckBox_4 = uicheckbox(app.GridLayout2);
             app.CheckBox_4.Text = '';
-            app.CheckBox_4.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.CheckBox_4.Layout.Row = 6;
             app.CheckBox_4.Layout.Column = 10;
             app.CheckBox_4.Value = true;
@@ -3573,14 +3413,12 @@ classdef app_exported < matlab.apps.AppBase
             % Create FitkCheckBox
             app.FitkCheckBox = uicheckbox(app.GridLayout2);
             app.FitkCheckBox.Text = '';
-            app.FitkCheckBox.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.FitkCheckBox.Layout.Row = 7;
             app.FitkCheckBox.Layout.Column = 10;
             app.FitkCheckBox.Value = true;
 
             % Create Label
             app.Label = uilabel(app.GridLayout2);
-            app.Label.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.Label.Layout.Row = 2;
             app.Label.Layout.Column = 12;
             app.Label.Text = '';
@@ -3589,7 +3427,6 @@ classdef app_exported < matlab.apps.AppBase
             app.kConstrainedCheckBox_2 = uicheckbox(app.GridLayout2);
             app.kConstrainedCheckBox_2.ValueChangedFcn = createCallbackFcn(app, @kConstrainedCheckBox_2ValueChanged, true);
             app.kConstrainedCheckBox_2.Text = 'Constrained by Hc';
-            app.kConstrainedCheckBox_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.kConstrainedCheckBox_2.Layout.Row = 7;
             app.kConstrainedCheckBox_2.Layout.Column = [11 12];
             app.kConstrainedCheckBox_2.Value = true;
@@ -3664,8 +3501,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create PlaygroundTab
             app.PlaygroundTab = uitab(app.TabGroup);
             app.PlaygroundTab.Title = 'Playground';
-            app.PlaygroundTab.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.PlaygroundTab.ForegroundColor = [0.129411764705882 0.129411764705882 0.129411764705882];
 
             % Create AxesM_5
             app.AxesM_5 = uiaxes(app.PlaygroundTab);
@@ -3673,142 +3508,116 @@ classdef app_exported < matlab.apps.AppBase
             ylabel(app.AxesM_5, 'M [A/m]')
             zlabel(app.AxesM_5, 'Z')
             app.AxesM_5.Box = 'on';
-            app.AxesM_5.TickDir = 'in';
             app.AxesM_5.Position = [722 61 295 390];
 
             % Create JilesAthertonmodelrateindependentLabel_2
             app.JilesAthertonmodelrateindependentLabel_2 = uilabel(app.PlaygroundTab);
             app.JilesAthertonmodelrateindependentLabel_2.FontWeight = 'bold';
-            app.JilesAthertonmodelrateindependentLabel_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JilesAthertonmodelrateindependentLabel_2.Position = [8 518 480 25];
             app.JilesAthertonmodelrateindependentLabel_2.Text = 'Jiles-Atherton model (rate-independent)';
 
             % Create ModelparametersLabel_2
             app.ModelparametersLabel_2 = uilabel(app.PlaygroundTab);
             app.ModelparametersLabel_2.FontWeight = 'bold';
-            app.ModelparametersLabel_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ModelparametersLabel_2.Position = [13 489 156 22];
             app.ModelparametersLabel_2.Text = 'Model parameters';
 
             % Create JsTEditFieldLabel_9
             app.JsTEditFieldLabel_9 = uilabel(app.PlaygroundTab);
             app.JsTEditFieldLabel_9.FontWeight = 'bold';
-            app.JsTEditFieldLabel_9.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsTEditFieldLabel_9.Position = [9 429 62 22];
             app.JsTEditFieldLabel_9.Text = 'Ms [A/m]';
 
             % Create JsField_9
             app.JsField_9 = uieditfield(app.PlaygroundTab, 'text');
             app.JsField_9.HorizontalAlignment = 'right';
-            app.JsField_9.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsField_9.Position = [73 429 91 22];
 
             % Create JsTEditFieldLabel_10
             app.JsTEditFieldLabel_10 = uilabel(app.PlaygroundTab);
             app.JsTEditFieldLabel_10.FontWeight = 'bold';
-            app.JsTEditFieldLabel_10.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsTEditFieldLabel_10.Position = [9 401 62 22];
             app.JsTEditFieldLabel_10.Text = 'a [A/m]';
 
             % Create JsField_10
             app.JsField_10 = uieditfield(app.PlaygroundTab, 'text');
             app.JsField_10.HorizontalAlignment = 'right';
-            app.JsField_10.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsField_10.Position = [73 401 91 22];
 
             % Create JsTEditFieldLabel_11
             app.JsTEditFieldLabel_11 = uilabel(app.PlaygroundTab);
             app.JsTEditFieldLabel_11.FontWeight = 'bold';
-            app.JsTEditFieldLabel_11.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsTEditFieldLabel_11.Position = [9 372 62 22];
             app.JsTEditFieldLabel_11.Text = 'alpha';
 
             % Create JsField_11
             app.JsField_11 = uieditfield(app.PlaygroundTab, 'text');
             app.JsField_11.HorizontalAlignment = 'right';
-            app.JsField_11.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsField_11.Position = [73 372 91 22];
 
             % Create JsTEditFieldLabel_12
             app.JsTEditFieldLabel_12 = uilabel(app.PlaygroundTab);
             app.JsTEditFieldLabel_12.FontWeight = 'bold';
-            app.JsTEditFieldLabel_12.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsTEditFieldLabel_12.Position = [9 344 62 22];
             app.JsTEditFieldLabel_12.Text = 'c';
 
             % Create JsField_12
             app.JsField_12 = uieditfield(app.PlaygroundTab, 'text');
             app.JsField_12.HorizontalAlignment = 'right';
-            app.JsField_12.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsField_12.Position = [73 344 91 22];
 
             % Create JsTEditFieldLabel_13
             app.JsTEditFieldLabel_13 = uilabel(app.PlaygroundTab);
             app.JsTEditFieldLabel_13.FontWeight = 'bold';
-            app.JsTEditFieldLabel_13.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsTEditFieldLabel_13.Position = [9 316 62 22];
             app.JsTEditFieldLabel_13.Text = 'k [A/m]';
 
             % Create JsField_13
             app.JsField_13 = uieditfield(app.PlaygroundTab, 'text');
             app.JsField_13.HorizontalAlignment = 'right';
-            app.JsField_13.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.JsField_13.Position = [73 316 91 22];
 
             % Create RetrieveparametersButton
             app.RetrieveparametersButton = uibutton(app.PlaygroundTab, 'push');
             app.RetrieveparametersButton.ButtonPushedFcn = createCallbackFcn(app, @RetrieveparametersButtonPushed, true);
-            app.RetrieveparametersButton.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.RetrieveparametersButton.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.RetrieveparametersButton.Position = [22 463 124 23];
             app.RetrieveparametersButton.Text = 'Retrieve parameters';
 
             % Create DrivingfieldLabel_2
             app.DrivingfieldLabel_2 = uilabel(app.PlaygroundTab);
             app.DrivingfieldLabel_2.FontWeight = 'bold';
-            app.DrivingfieldLabel_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.DrivingfieldLabel_2.Position = [183 495 89 19];
             app.DrivingfieldLabel_2.Text = 'Driving field';
 
             % Create ShowgridCheckBoxM_4
             app.ShowgridCheckBoxM_4 = uicheckbox(app.PlaygroundTab);
             app.ShowgridCheckBoxM_4.Text = 'Data curve';
-            app.ShowgridCheckBoxM_4.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ShowgridCheckBoxM_4.Position = [823 21 80 29];
 
             % Create HcaseDropDown
             app.HcaseDropDown = uidropdown(app.PlaygroundTab);
             app.HcaseDropDown.Items = {'Major Loop', 'Minor Loops', 'Degaussing', 'Major Loop with harmonics'};
-            app.HcaseDropDown.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.HcaseDropDown.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.HcaseDropDown.Position = [282 492 100 22];
             app.HcaseDropDown.Value = 'Major Loop';
 
             % Create MajorloopPanel
             app.MajorloopPanel = uipanel(app.PlaygroundTab);
-            app.MajorloopPanel.ForegroundColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.MajorloopPanel.BorderType = 'etchedin';
             app.MajorloopPanel.Title = 'Major loop';
-            app.MajorloopPanel.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.MajorloopPanel.Position = [184 250 238 235];
 
             % Create StopcriterionDropDownLabel
             app.StopcriterionDropDownLabel = uilabel(app.MajorloopPanel);
-            app.StopcriterionDropDownLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.StopcriterionDropDownLabel.Position = [6 84 76 22];
             app.StopcriterionDropDownLabel.Text = 'Stop criterion';
 
             % Create StopcriterionDropDown
             app.StopcriterionDropDown = uidropdown(app.MajorloopPanel);
             app.StopcriterionDropDown.Items = {'Until convergence', 'Fixed repetitions'};
-            app.StopcriterionDropDown.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.StopcriterionDropDown.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.StopcriterionDropDown.Position = [102 84 130 22];
             app.StopcriterionDropDown.Value = 'Fixed repetitions';
 
             % Create RepetitionsEditFieldLabel
             app.RepetitionsEditFieldLabel = uilabel(app.MajorloopPanel);
-            app.RepetitionsEditFieldLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.RepetitionsEditFieldLabel.Position = [47 56 88 22];
             app.RepetitionsEditFieldLabel.Text = 'Repetitions';
 
@@ -3816,13 +3625,11 @@ classdef app_exported < matlab.apps.AppBase
             app.RepetitionsEditField = uieditfield(app.MajorloopPanel, 'numeric');
             app.RepetitionsEditField.Limits = [0 Inf];
             app.RepetitionsEditField.RoundFractionalValues = 'on';
-            app.RepetitionsEditField.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.RepetitionsEditField.Position = [137 56 54 22];
             app.RepetitionsEditField.Value = 1;
 
             % Create ReltoleranceEditFieldLabel
             app.ReltoleranceEditFieldLabel = uilabel(app.MajorloopPanel);
-            app.ReltoleranceEditFieldLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ReltoleranceEditFieldLabel.Position = [46 32 79 22];
             app.ReltoleranceEditFieldLabel.Text = 'Rel. tolerance';
 
@@ -3830,132 +3637,107 @@ classdef app_exported < matlab.apps.AppBase
             app.ReltoleranceEditField = uieditfield(app.MajorloopPanel, 'numeric');
             app.ReltoleranceEditField.Limits = [0 Inf];
             app.ReltoleranceEditField.ValueDisplayFormat = '%.0e\n';
-            app.ReltoleranceEditField.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ReltoleranceEditField.Position = [140 32 51 22];
             app.ReltoleranceEditField.Value = 0.001;
 
             % Create PlotDropDownLabel
             app.PlotDropDownLabel = uilabel(app.MajorloopPanel);
             app.PlotDropDownLabel.HorizontalAlignment = 'right';
-            app.PlotDropDownLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.PlotDropDownLabel.Position = [12 4 26 22];
             app.PlotDropDownLabel.Text = 'Plot';
 
             % Create PlotDropDown
             app.PlotDropDown = uidropdown(app.MajorloopPanel);
             app.PlotDropDown.Items = {'Last loop only', 'Full history'};
-            app.PlotDropDown.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.PlotDropDown.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.PlotDropDown.Position = [102 4 109 22];
             app.PlotDropDown.Value = 'Last loop only';
 
             % Create StartingpointDropDownLabel
             app.StartingpointDropDownLabel = uilabel(app.MajorloopPanel);
-            app.StartingpointDropDownLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.StartingpointDropDownLabel.Position = [6 185 76 22];
             app.StartingpointDropDownLabel.Text = 'Starting point';
 
             % Create StartingpointDropDown
             app.StartingpointDropDown = uidropdown(app.MajorloopPanel);
             app.StartingpointDropDown.Items = {'Demagnetized', 'Tip point (data)', 'User-defined'};
-            app.StartingpointDropDown.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.StartingpointDropDown.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.StartingpointDropDown.Position = [97 185 131 22];
             app.StartingpointDropDown.Value = 'Demagnetized';
 
             % Create MstartAmEditFieldLabel
             app.MstartAmEditFieldLabel = uilabel(app.MajorloopPanel);
             app.MstartAmEditFieldLabel.HorizontalAlignment = 'right';
-            app.MstartAmEditFieldLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.MstartAmEditFieldLabel.Position = [40 160 70 22];
             app.MstartAmEditFieldLabel.Text = 'Mstart [A/m]';
 
             % Create MstartAmEditField
             app.MstartAmEditField = uieditfield(app.MajorloopPanel, 'numeric');
-            app.MstartAmEditField.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.MstartAmEditField.Position = [125 160 77 22];
 
             % Create HstartAmEditFieldLabel
             app.HstartAmEditFieldLabel = uilabel(app.MajorloopPanel);
             app.HstartAmEditFieldLabel.HorizontalAlignment = 'right';
-            app.HstartAmEditFieldLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.HstartAmEditFieldLabel.Position = [42 135 68 22];
             app.HstartAmEditFieldLabel.Text = 'Hstart [A/m]';
 
             % Create HstartAmEditField
             app.HstartAmEditField = uieditfield(app.MajorloopPanel, 'numeric');
-            app.HstartAmEditField.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.HstartAmEditField.Position = [125 135 77 22];
 
             % Create HamplitudeAmEditFieldLabel
             app.HamplitudeAmEditFieldLabel = uilabel(app.MajorloopPanel);
-            app.HamplitudeAmEditFieldLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.HamplitudeAmEditFieldLabel.Position = [6 109 100 22];
             app.HamplitudeAmEditFieldLabel.Text = 'H amplitude [A/m]';
 
             % Create HamplitudeAmEditField
             app.HamplitudeAmEditField = uieditfield(app.MajorloopPanel, 'numeric');
             app.HamplitudeAmEditField.Limits = [0 Inf];
-            app.HamplitudeAmEditField.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.HamplitudeAmEditField.Position = [118 112 73 16];
 
             % Create ShowgridCheckBoxM_5
             app.ShowgridCheckBoxM_5 = uicheckbox(app.PlaygroundTab);
             app.ShowgridCheckBoxM_5.Text = 'Grid';
-            app.ShowgridCheckBoxM_5.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ShowgridCheckBoxM_5.Position = [763 25 62 29];
             app.ShowgridCheckBoxM_5.Value = true;
 
             % Create MinorloopPanel
             app.MinorloopPanel = uipanel(app.PlaygroundTab);
-            app.MinorloopPanel.ForegroundColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.MinorloopPanel.BorderType = 'etchedin';
             app.MinorloopPanel.Title = 'Minor loop';
-            app.MinorloopPanel.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.MinorloopPanel.Scrollable = 'on';
             app.MinorloopPanel.Position = [184 7 238 236];
 
             % Create PlotDropDown_2Label
             app.PlotDropDown_2Label = uilabel(app.MinorloopPanel);
             app.PlotDropDown_2Label.HorizontalAlignment = 'right';
-            app.PlotDropDown_2Label.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.PlotDropDown_2Label.Position = [14 4 26 22];
             app.PlotDropDown_2Label.Text = 'Plot';
 
             % Create PlotDropDown_2
             app.PlotDropDown_2 = uidropdown(app.MinorloopPanel);
             app.PlotDropDown_2.Items = {'Last loops only', 'Full history'};
-            app.PlotDropDown_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.PlotDropDown_2.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.PlotDropDown_2.Position = [104 4 113 22];
             app.PlotDropDown_2.Value = 'Last loops only';
 
             % Create UITable
             app.UITable = uitable(app.MinorloopPanel);
-            app.UITable.BackgroundColor = [1 1 1;0.96078431372549 0.96078431372549 0.96078431372549];
             app.UITable.ColumnName = {'Htip_i'};
             app.UITable.ColumnRearrangeable = 'on';
             app.UITable.RowName = {};
             app.UITable.ColumnSortable = true;
             app.UITable.ColumnEditable = true;
-            app.UITable.ForegroundColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.UITable.Position = [125 117 92 61];
 
             % Create StopcriterionDropDown_2Label_2
             app.StopcriterionDropDown_2Label_2 = uilabel(app.MinorloopPanel);
-            app.StopcriterionDropDown_2Label_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.StopcriterionDropDown_2Label_2.Position = [19 156 100 22];
             app.StopcriterionDropDown_2Label_2.Text = 'H amplitude [A/m]';
 
             % Create StopcriterionDropDown_2Label_3
             app.StopcriterionDropDown_2Label_3 = uilabel(app.MinorloopPanel);
-            app.StopcriterionDropDown_2Label_3.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.StopcriterionDropDown_2Label_3.Position = [19 186 160 22];
             app.StopcriterionDropDown_2Label_3.Text = 'Starting point: Demagnetized';
 
             % Create RepetitionsEditFieldLabel_2
             app.RepetitionsEditFieldLabel_2 = uilabel(app.MinorloopPanel);
-            app.RepetitionsEditFieldLabel_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.RepetitionsEditFieldLabel_2.Position = [49 59 88 22];
             app.RepetitionsEditFieldLabel_2.Text = 'Repetitions';
 
@@ -3963,27 +3745,22 @@ classdef app_exported < matlab.apps.AppBase
             app.RepetitionsEditField_2 = uieditfield(app.MinorloopPanel, 'numeric');
             app.RepetitionsEditField_2.Limits = [0 Inf];
             app.RepetitionsEditField_2.RoundFractionalValues = 'on';
-            app.RepetitionsEditField_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.RepetitionsEditField_2.Position = [139 59 54 22];
             app.RepetitionsEditField_2.Value = 1;
 
             % Create StopcriterionDropDown_4Label
             app.StopcriterionDropDown_4Label = uilabel(app.MinorloopPanel);
-            app.StopcriterionDropDown_4Label.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.StopcriterionDropDown_4Label.Position = [8 87 76 22];
             app.StopcriterionDropDown_4Label.Text = 'Stop criterion';
 
             % Create StopcriterionDropDown_4
             app.StopcriterionDropDown_4 = uidropdown(app.MinorloopPanel);
             app.StopcriterionDropDown_4.Items = {'Until convergence', 'Fixed repetitions'};
-            app.StopcriterionDropDown_4.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.StopcriterionDropDown_4.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.StopcriterionDropDown_4.Position = [104 87 130 22];
             app.StopcriterionDropDown_4.Value = 'Fixed repetitions';
 
             % Create ReltoleranceEditField_2Label
             app.ReltoleranceEditField_2Label = uilabel(app.MinorloopPanel);
-            app.ReltoleranceEditField_2Label.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ReltoleranceEditField_2Label.Position = [48 35 79 22];
             app.ReltoleranceEditField_2Label.Text = 'Rel. tolerance';
 
@@ -3991,170 +3768,137 @@ classdef app_exported < matlab.apps.AppBase
             app.ReltoleranceEditField_2 = uieditfield(app.MinorloopPanel, 'numeric');
             app.ReltoleranceEditField_2.Limits = [0 Inf];
             app.ReltoleranceEditField_2.ValueDisplayFormat = '%.0e\n';
-            app.ReltoleranceEditField_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ReltoleranceEditField_2.Position = [142 35 51 22];
             app.ReltoleranceEditField_2.Value = 0.001;
 
             % Create DegaussingPanel
             app.DegaussingPanel = uipanel(app.PlaygroundTab);
-            app.DegaussingPanel.ForegroundColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.DegaussingPanel.BorderType = 'etchedin';
             app.DegaussingPanel.Title = 'Degaussing';
-            app.DegaussingPanel.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.DegaussingPanel.Position = [431 154 281 328];
 
             % Create StartingpointDropDown_3Label
             app.StartingpointDropDown_3Label = uilabel(app.DegaussingPanel);
             app.StartingpointDropDown_3Label.HorizontalAlignment = 'right';
-            app.StartingpointDropDown_3Label.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.StartingpointDropDown_3Label.Position = [6 278 76 22];
             app.StartingpointDropDown_3Label.Text = 'Starting point';
 
             % Create StartingpointDropDown_3
             app.StartingpointDropDown_3 = uidropdown(app.DegaussingPanel);
             app.StartingpointDropDown_3.Items = {'Remanence (data)', 'Tip point (data)', 'User-defined'};
-            app.StartingpointDropDown_3.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.StartingpointDropDown_3.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.StartingpointDropDown_3.Position = [97 278 141 22];
             app.StartingpointDropDown_3.Value = 'Remanence (data)';
 
             % Create MstartAmEditField_2Label
             app.MstartAmEditField_2Label = uilabel(app.DegaussingPanel);
             app.MstartAmEditField_2Label.HorizontalAlignment = 'right';
-            app.MstartAmEditField_2Label.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.MstartAmEditField_2Label.Position = [40 253 70 22];
             app.MstartAmEditField_2Label.Text = 'Mstart [A/m]';
 
             % Create MstartAmEditField_2
             app.MstartAmEditField_2 = uieditfield(app.DegaussingPanel, 'numeric');
-            app.MstartAmEditField_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.MstartAmEditField_2.Position = [125 253 77 22];
 
             % Create HstartAmEditField_2Label
             app.HstartAmEditField_2Label = uilabel(app.DegaussingPanel);
             app.HstartAmEditField_2Label.HorizontalAlignment = 'right';
-            app.HstartAmEditField_2Label.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.HstartAmEditField_2Label.Position = [42 224 68 22];
             app.HstartAmEditField_2Label.Text = 'Hstart [A/m]';
 
             % Create HstartAmEditField_2
             app.HstartAmEditField_2 = uieditfield(app.DegaussingPanel, 'numeric');
-            app.HstartAmEditField_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.HstartAmEditField_2.Position = [125 224 77 22];
 
             % Create HamplitudeDropDownLabel
             app.HamplitudeDropDownLabel = uilabel(app.DegaussingPanel);
-            app.HamplitudeDropDownLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.HamplitudeDropDownLabel.Position = [11 193 69 22];
             app.HamplitudeDropDownLabel.Text = 'H amplitude';
 
             % Create HamplitudeDropDown
             app.HamplitudeDropDown = uidropdown(app.DegaussingPanel);
             app.HamplitudeDropDown.Items = {'Automatic', 'User-defined'};
-            app.HamplitudeDropDown.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.HamplitudeDropDown.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.HamplitudeDropDown.Position = [95 193 141 22];
             app.HamplitudeDropDown.Value = 'Automatic';
 
             % Create NofstepsEditFieldLabel
             app.NofstepsEditFieldLabel = uilabel(app.DegaussingPanel);
-            app.NofstepsEditFieldLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.NofstepsEditFieldLabel.Position = [58 169 88 22];
             app.NofstepsEditFieldLabel.Text = 'N° of steps';
 
             % Create NofstepsEditField
             app.NofstepsEditField = uieditfield(app.DegaussingPanel, 'numeric');
-            app.NofstepsEditField.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.NofstepsEditField.Position = [173 169 54 22];
             app.NofstepsEditField.Value = 1;
 
             % Create InitialamplitudeAmEditFieldLabel
             app.InitialamplitudeAmEditFieldLabel = uilabel(app.DegaussingPanel);
-            app.InitialamplitudeAmEditFieldLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.InitialamplitudeAmEditFieldLabel.Position = [58 142 120 22];
             app.InitialamplitudeAmEditFieldLabel.Text = 'Initial amplitude [A/m]';
 
             % Create InitialamplitudeAmEditField
             app.InitialamplitudeAmEditField = uieditfield(app.DegaussingPanel, 'numeric');
             app.InitialamplitudeAmEditField.Limits = [0 Inf];
-            app.InitialamplitudeAmEditField.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.InitialamplitudeAmEditField.Position = [173 142 54 22];
             app.InitialamplitudeAmEditField.Value = 1;
 
             % Create FinalamplitudeAmEditFieldLabel
             app.FinalamplitudeAmEditFieldLabel = uilabel(app.DegaussingPanel);
-            app.FinalamplitudeAmEditFieldLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.FinalamplitudeAmEditFieldLabel.Position = [58 110 118 22];
             app.FinalamplitudeAmEditFieldLabel.Text = 'Final amplitude [A/m]';
 
             % Create FinalamplitudeAmEditField
             app.FinalamplitudeAmEditField = uieditfield(app.DegaussingPanel, 'numeric');
             app.FinalamplitudeAmEditField.Limits = [0 Inf];
-            app.FinalamplitudeAmEditField.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.FinalamplitudeAmEditField.Position = [173 110 54 22];
             app.FinalamplitudeAmEditField.Value = 1;
 
             % Create UITable_2
             app.UITable_2 = uitable(app.DegaussingPanel);
-            app.UITable_2.BackgroundColor = [1 1 1;0.96078431372549 0.96078431372549 0.96078431372549];
             app.UITable_2.ColumnName = {'Htip_i [A/m]'};
             app.UITable_2.ColumnRearrangeable = 'on';
             app.UITable_2.RowName = {};
             app.UITable_2.ColumnSortable = true;
             app.UITable_2.ColumnEditable = true;
-            app.UITable_2.ForegroundColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.UITable_2.Position = [56 28 168 74];
 
             % Create CalculatePlotButton_3
             app.CalculatePlotButton_3 = uibutton(app.PlaygroundTab, 'push');
             app.CalculatePlotButton_3.WordWrap = 'on';
-            app.CalculatePlotButton_3.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.CalculatePlotButton_3.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.CalculatePlotButton_3.Position = [928 20 91 29];
             app.CalculatePlotButton_3.Text = 'Calculate & Plot';
 
             % Create HorizontalaxisfieldDropDown_2Label
             app.HorizontalaxisfieldDropDown_2Label = uilabel(app.PlaygroundTab);
             app.HorizontalaxisfieldDropDown_2Label.FontWeight = 'bold';
-            app.HorizontalaxisfieldDropDown_2Label.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.HorizontalaxisfieldDropDown_2Label.Position = [727 501 128 31];
             app.HorizontalaxisfieldDropDown_2Label.Text = 'Horizontal axis field';
 
             % Create HorizontalaxisfieldDropDown_2
             app.HorizontalaxisfieldDropDown_2 = uidropdown(app.PlaygroundTab);
             app.HorizontalaxisfieldDropDown_2.Items = {'H [A/m]', 'H [kA/m]', 'H [Oe]', 'H [kOe]', 'Bext [T]', 'Bext [G]', 'Bext [kG]'};
-            app.HorizontalaxisfieldDropDown_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.HorizontalaxisfieldDropDown_2.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.HorizontalaxisfieldDropDown_2.Position = [721 466 135 31];
             app.HorizontalaxisfieldDropDown_2.Value = 'H [A/m]';
 
             % Create VerticalaxisfieldDropDown_2Label
             app.VerticalaxisfieldDropDown_2Label = uilabel(app.PlaygroundTab);
             app.VerticalaxisfieldDropDown_2Label.FontWeight = 'bold';
-            app.VerticalaxisfieldDropDown_2Label.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.VerticalaxisfieldDropDown_2Label.Position = [866 501 128 31];
             app.VerticalaxisfieldDropDown_2Label.Text = 'Vertical axis field';
 
             % Create VerticalaxisfieldDropDown_2
             app.VerticalaxisfieldDropDown_2 = uidropdown(app.PlaygroundTab);
             app.VerticalaxisfieldDropDown_2.Items = {'M [A/m]', 'M [kA/m]', 'M [MA/m]', 'M [emu/cm^3]', 'J [T]', 'B [T]', 'B [G]', 'B [kG]'};
-            app.VerticalaxisfieldDropDown_2.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.VerticalaxisfieldDropDown_2.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.VerticalaxisfieldDropDown_2.Position = [866 464 118 31];
             app.VerticalaxisfieldDropDown_2.Value = 'M [A/m]';
 
             % Create OutputdataTab
             app.OutputdataTab = uitab(app.TabGroup);
             app.OutputdataTab.Title = 'Output data';
-            app.OutputdataTab.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.OutputdataTab.ForegroundColor = [0.129411764705882 0.129411764705882 0.129411764705882];
 
             % Create GridLayoutMagnetizationoutputdata
             app.GridLayoutMagnetizationoutputdata = uigridlayout(app.OutputdataTab);
             app.GridLayoutMagnetizationoutputdata.ColumnWidth = {'1x'};
             app.GridLayoutMagnetizationoutputdata.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
             app.GridLayoutMagnetizationoutputdata.RowSpacing = 5;
-            app.GridLayoutMagnetizationoutputdata.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create GridLayoutOutputDatasetPath
             app.GridLayoutOutputDatasetPath = uigridlayout(app.GridLayoutMagnetizationoutputdata);
@@ -4163,27 +3907,22 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutOutputDatasetPath.Padding = [0 0 0 0];
             app.GridLayoutOutputDatasetPath.Layout.Row = 1;
             app.GridLayoutOutputDatasetPath.Layout.Column = 1;
-            app.GridLayoutOutputDatasetPath.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create OutputDatasetpathLabel
             app.OutputDatasetpathLabel = uilabel(app.GridLayoutOutputDatasetPath);
             app.OutputDatasetpathLabel.FontWeight = 'bold';
-            app.OutputDatasetpathLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.OutputDatasetpathLabel.Layout.Row = 1;
             app.OutputDatasetpathLabel.Layout.Column = 1;
             app.OutputDatasetpathLabel.Text = 'Dataset path';
 
             % Create OutputDatasetPath
             app.OutputDatasetPath = uieditfield(app.GridLayoutOutputDatasetPath, 'text');
-            app.OutputDatasetPath.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.OutputDatasetPath.Layout.Row = 1;
             app.OutputDatasetPath.Layout.Column = 2;
 
             % Create OutputBrowseButton
             app.OutputBrowseButton = uibutton(app.GridLayoutOutputDatasetPath, 'push');
             app.OutputBrowseButton.ButtonPushedFcn = createCallbackFcn(app, @OutputBrowseButtonPushed, true);
-            app.OutputBrowseButton.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.OutputBrowseButton.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.OutputBrowseButton.Layout.Row = 1;
             app.OutputBrowseButton.Layout.Column = 3;
             app.OutputBrowseButton.Text = 'Browse';
@@ -4191,7 +3930,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create MagnetizationdataLabel
             app.MagnetizationdataLabel = uilabel(app.GridLayoutMagnetizationoutputdata);
             app.MagnetizationdataLabel.FontWeight = 'bold';
-            app.MagnetizationdataLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.MagnetizationdataLabel.Layout.Row = 2;
             app.MagnetizationdataLabel.Layout.Column = 1;
             app.MagnetizationdataLabel.Text = 'Magnetization data:';
@@ -4203,19 +3941,16 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutMagnetizationDataFittedAnhystereticMagnetization.Padding = [0 0 0 0];
             app.GridLayoutMagnetizationDataFittedAnhystereticMagnetization.Layout.Row = 4;
             app.GridLayoutMagnetizationDataFittedAnhystereticMagnetization.Layout.Column = 1;
-            app.GridLayoutMagnetizationDataFittedAnhystereticMagnetization.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization
             app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization = uicheckbox(app.GridLayoutMagnetizationDataFittedAnhystereticMagnetization);
             app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Text = '';
-            app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Layout.Row = 1;
             app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Layout.Column = 2;
             app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Value = true;
 
             % Create ModeledanhystereticmagnetizationLabel
             app.ModeledanhystereticmagnetizationLabel = uilabel(app.GridLayoutMagnetizationDataFittedAnhystereticMagnetization);
-            app.ModeledanhystereticmagnetizationLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ModeledanhystereticmagnetizationLabel.Layout.Row = 1;
             app.ModeledanhystereticmagnetizationLabel.Layout.Column = 1;
             app.ModeledanhystereticmagnetizationLabel.Text = 'Modeled anhysteretic magnetization';
@@ -4223,7 +3958,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create EditFieldFileNameModeledAnhystereticMagnetization
             app.EditFieldFileNameModeledAnhystereticMagnetization = uieditfield(app.GridLayoutMagnetizationDataFittedAnhystereticMagnetization, 'text');
             app.EditFieldFileNameModeledAnhystereticMagnetization.HorizontalAlignment = 'right';
-            app.EditFieldFileNameModeledAnhystereticMagnetization.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.EditFieldFileNameModeledAnhystereticMagnetization.Layout.Row = 1;
             app.EditFieldFileNameModeledAnhystereticMagnetization.Layout.Column = 3;
             app.EditFieldFileNameModeledAnhystereticMagnetization.Value = 'modeled_anhysteretic_magnetization';
@@ -4231,8 +3965,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create DropDownOutputModeledAnhystereticMagnetizationExtension
             app.DropDownOutputModeledAnhystereticMagnetizationExtension = uidropdown(app.GridLayoutMagnetizationDataFittedAnhystereticMagnetization);
             app.DropDownOutputModeledAnhystereticMagnetizationExtension.Items = {'.csv'};
-            app.DropDownOutputModeledAnhystereticMagnetizationExtension.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.DropDownOutputModeledAnhystereticMagnetizationExtension.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.DropDownOutputModeledAnhystereticMagnetizationExtension.Layout.Row = 1;
             app.DropDownOutputModeledAnhystereticMagnetizationExtension.Layout.Column = 4;
             app.DropDownOutputModeledAnhystereticMagnetizationExtension.Value = '.csv';
@@ -4244,13 +3976,10 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutExportData.Padding = [0 0 0 0];
             app.GridLayoutExportData.Layout.Row = 5;
             app.GridLayoutExportData.Layout.Column = 1;
-            app.GridLayoutExportData.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create ExportdataButton
             app.ExportdataButton = uibutton(app.GridLayoutExportData, 'push');
             app.ExportdataButton.ButtonPushedFcn = createCallbackFcn(app, @ExportdataButtonPushed, true);
-            app.ExportdataButton.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.ExportdataButton.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ExportdataButton.Layout.Row = 1;
             app.ExportdataButton.Layout.Column = 4;
             app.ExportdataButton.Text = 'Export data';
@@ -4258,14 +3987,12 @@ classdef app_exported < matlab.apps.AppBase
             % Create OutputSeparateComponentsCheckBox
             app.OutputSeparateComponentsCheckBox = uicheckbox(app.GridLayoutExportData);
             app.OutputSeparateComponentsCheckBox.Text = '';
-            app.OutputSeparateComponentsCheckBox.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.OutputSeparateComponentsCheckBox.Layout.Row = 1;
             app.OutputSeparateComponentsCheckBox.Layout.Column = 2;
             app.OutputSeparateComponentsCheckBox.Value = true;
 
             % Create ModeledanhystereticmagnetizationcomponentsLabel
             app.ModeledanhystereticmagnetizationcomponentsLabel = uilabel(app.GridLayoutExportData);
-            app.ModeledanhystereticmagnetizationcomponentsLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ModeledanhystereticmagnetizationcomponentsLabel.Layout.Row = 1;
             app.ModeledanhystereticmagnetizationcomponentsLabel.Layout.Column = 1;
             app.ModeledanhystereticmagnetizationcomponentsLabel.Text = 'Modeled anhysteretic magnetization components';
@@ -4273,7 +4000,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create ParametersLabel
             app.ParametersLabel = uilabel(app.GridLayoutMagnetizationoutputdata);
             app.ParametersLabel.FontWeight = 'bold';
-            app.ParametersLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ParametersLabel.Layout.Row = 6;
             app.ParametersLabel.Layout.Column = 1;
             app.ParametersLabel.Text = 'Parameters:';
@@ -4285,12 +4011,10 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutExportParametersFile.Padding = [0 0 0 0];
             app.GridLayoutExportParametersFile.Layout.Row = 7;
             app.GridLayoutExportParametersFile.Layout.Column = 1;
-            app.GridLayoutExportParametersFile.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create EditFieldFileNameParameters
             app.EditFieldFileNameParameters = uieditfield(app.GridLayoutExportParametersFile, 'text');
             app.EditFieldFileNameParameters.HorizontalAlignment = 'right';
-            app.EditFieldFileNameParameters.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.EditFieldFileNameParameters.Layout.Row = 1;
             app.EditFieldFileNameParameters.Layout.Column = 3;
             app.EditFieldFileNameParameters.Value = 'parameters';
@@ -4298,8 +4022,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create DropDownOutputParametersExtension
             app.DropDownOutputParametersExtension = uidropdown(app.GridLayoutExportParametersFile);
             app.DropDownOutputParametersExtension.Items = {'.txt'};
-            app.DropDownOutputParametersExtension.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.DropDownOutputParametersExtension.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.DropDownOutputParametersExtension.Layout.Row = 1;
             app.DropDownOutputParametersExtension.Layout.Column = 4;
             app.DropDownOutputParametersExtension.Value = '.txt';
@@ -4307,7 +4029,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create ExportFittedparametersCheckBox
             app.ExportFittedparametersCheckBox = uicheckbox(app.GridLayoutExportParametersFile);
             app.ExportFittedparametersCheckBox.Text = 'Fitted parameters';
-            app.ExportFittedparametersCheckBox.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ExportFittedparametersCheckBox.Layout.Row = 1;
             app.ExportFittedparametersCheckBox.Layout.Column = 1;
             app.ExportFittedparametersCheckBox.Value = true;
@@ -4315,7 +4036,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create ExportModelparametersCheckBox
             app.ExportModelparametersCheckBox = uicheckbox(app.GridLayoutExportParametersFile);
             app.ExportModelparametersCheckBox.Text = 'Model parameters';
-            app.ExportModelparametersCheckBox.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ExportModelparametersCheckBox.Layout.Row = 1;
             app.ExportModelparametersCheckBox.Layout.Column = 2;
             app.ExportModelparametersCheckBox.Value = true;
@@ -4327,13 +4047,10 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutExportParametersButton.Padding = [0 0 0 0];
             app.GridLayoutExportParametersButton.Layout.Row = 8;
             app.GridLayoutExportParametersButton.Layout.Column = 1;
-            app.GridLayoutExportParametersButton.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create ExportParametersButton
             app.ExportParametersButton = uibutton(app.GridLayoutExportParametersButton, 'push');
             app.ExportParametersButton.ButtonPushedFcn = createCallbackFcn(app, @ExportParametersButtonPushed, true);
-            app.ExportParametersButton.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.ExportParametersButton.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ExportParametersButton.Layout.Row = 1;
             app.ExportParametersButton.Layout.Column = 4;
             app.ExportParametersButton.Text = 'Export data';
@@ -4341,7 +4058,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create ExportOtherquantitiesCheckBox
             app.ExportOtherquantitiesCheckBox = uicheckbox(app.GridLayoutExportParametersButton);
             app.ExportOtherquantitiesCheckBox.Text = 'Other quantities';
-            app.ExportOtherquantitiesCheckBox.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ExportOtherquantitiesCheckBox.Layout.Row = 1;
             app.ExportOtherquantitiesCheckBox.Layout.Column = 1;
             app.ExportOtherquantitiesCheckBox.Value = true;
@@ -4349,7 +4065,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create ExportErrorsCheckBox
             app.ExportErrorsCheckBox = uicheckbox(app.GridLayoutExportParametersButton);
             app.ExportErrorsCheckBox.Text = 'Errors';
-            app.ExportErrorsCheckBox.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ExportErrorsCheckBox.Layout.Row = 1;
             app.ExportErrorsCheckBox.Layout.Column = 2;
             app.ExportErrorsCheckBox.Value = true;
@@ -4357,7 +4072,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create PlotsLabel
             app.PlotsLabel = uilabel(app.GridLayoutMagnetizationoutputdata);
             app.PlotsLabel.FontWeight = 'bold';
-            app.PlotsLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.PlotsLabel.Layout.Row = 9;
             app.PlotsLabel.Layout.Column = 1;
             app.PlotsLabel.Text = 'Plots:';
@@ -4369,11 +4083,9 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutExportPlotMagnetization.Padding = [0 0 0 0];
             app.GridLayoutExportPlotMagnetization.Layout.Row = 10;
             app.GridLayoutExportPlotMagnetization.Layout.Column = 1;
-            app.GridLayoutExportPlotMagnetization.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create MagnetizationPlotExportLabel
             app.MagnetizationPlotExportLabel = uilabel(app.GridLayoutExportPlotMagnetization);
-            app.MagnetizationPlotExportLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.MagnetizationPlotExportLabel.Layout.Row = 1;
             app.MagnetizationPlotExportLabel.Layout.Column = 1;
             app.MagnetizationPlotExportLabel.Text = 'Magnetization';
@@ -4381,7 +4093,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create CheckBoxExportPlotMagnetization
             app.CheckBoxExportPlotMagnetization = uicheckbox(app.GridLayoutExportPlotMagnetization);
             app.CheckBoxExportPlotMagnetization.Text = '';
-            app.CheckBoxExportPlotMagnetization.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.CheckBoxExportPlotMagnetization.Layout.Row = 1;
             app.CheckBoxExportPlotMagnetization.Layout.Column = 2;
             app.CheckBoxExportPlotMagnetization.Value = true;
@@ -4389,7 +4100,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create EditFieldFileNamePlotMagnetization
             app.EditFieldFileNamePlotMagnetization = uieditfield(app.GridLayoutExportPlotMagnetization, 'text');
             app.EditFieldFileNamePlotMagnetization.HorizontalAlignment = 'right';
-            app.EditFieldFileNamePlotMagnetization.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.EditFieldFileNamePlotMagnetization.Layout.Row = 1;
             app.EditFieldFileNamePlotMagnetization.Layout.Column = 3;
             app.EditFieldFileNamePlotMagnetization.Value = 'M';
@@ -4397,8 +4107,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create DropDownPlotMagnetizacionExtension
             app.DropDownPlotMagnetizacionExtension = uidropdown(app.GridLayoutExportPlotMagnetization);
             app.DropDownPlotMagnetizacionExtension.Items = {'.png'};
-            app.DropDownPlotMagnetizacionExtension.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.DropDownPlotMagnetizacionExtension.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.DropDownPlotMagnetizacionExtension.Layout.Row = 1;
             app.DropDownPlotMagnetizacionExtension.Layout.Column = 4;
             app.DropDownPlotMagnetizacionExtension.Value = '.png';
@@ -4410,11 +4118,9 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutExportPlotSusceptibility.Padding = [0 0 0 0];
             app.GridLayoutExportPlotSusceptibility.Layout.Row = 11;
             app.GridLayoutExportPlotSusceptibility.Layout.Column = 1;
-            app.GridLayoutExportPlotSusceptibility.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create SusceptibilityPlotExportLabel
             app.SusceptibilityPlotExportLabel = uilabel(app.GridLayoutExportPlotSusceptibility);
-            app.SusceptibilityPlotExportLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.SusceptibilityPlotExportLabel.Layout.Row = 1;
             app.SusceptibilityPlotExportLabel.Layout.Column = 1;
             app.SusceptibilityPlotExportLabel.Text = 'Susceptibility';
@@ -4422,7 +4128,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create CheckBoxExportPlotSusceptibility
             app.CheckBoxExportPlotSusceptibility = uicheckbox(app.GridLayoutExportPlotSusceptibility);
             app.CheckBoxExportPlotSusceptibility.Text = '';
-            app.CheckBoxExportPlotSusceptibility.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.CheckBoxExportPlotSusceptibility.Layout.Row = 1;
             app.CheckBoxExportPlotSusceptibility.Layout.Column = 2;
             app.CheckBoxExportPlotSusceptibility.Value = true;
@@ -4430,7 +4135,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create EditFieldFileNamePlotSusceptibility
             app.EditFieldFileNamePlotSusceptibility = uieditfield(app.GridLayoutExportPlotSusceptibility, 'text');
             app.EditFieldFileNamePlotSusceptibility.HorizontalAlignment = 'right';
-            app.EditFieldFileNamePlotSusceptibility.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.EditFieldFileNamePlotSusceptibility.Layout.Row = 1;
             app.EditFieldFileNamePlotSusceptibility.Layout.Column = 3;
             app.EditFieldFileNamePlotSusceptibility.Value = 'dMdH';
@@ -4438,8 +4142,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create DropDownPlotSusceptibilityExtension
             app.DropDownPlotSusceptibilityExtension = uidropdown(app.GridLayoutExportPlotSusceptibility);
             app.DropDownPlotSusceptibilityExtension.Items = {'.png'};
-            app.DropDownPlotSusceptibilityExtension.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.DropDownPlotSusceptibilityExtension.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.DropDownPlotSusceptibilityExtension.Layout.Row = 1;
             app.DropDownPlotSusceptibilityExtension.Layout.Column = 4;
             app.DropDownPlotSusceptibilityExtension.Value = '.png';
@@ -4451,11 +4153,9 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutExportPlotSemiLogMagDerivative.Padding = [0 0 0 0];
             app.GridLayoutExportPlotSemiLogMagDerivative.Layout.Row = 12;
             app.GridLayoutExportPlotSemiLogMagDerivative.Layout.Column = 1;
-            app.GridLayoutExportPlotSemiLogMagDerivative.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create SemilogmagnetizationderivativePlotExportLabel
             app.SemilogmagnetizationderivativePlotExportLabel = uilabel(app.GridLayoutExportPlotSemiLogMagDerivative);
-            app.SemilogmagnetizationderivativePlotExportLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.SemilogmagnetizationderivativePlotExportLabel.Layout.Row = 1;
             app.SemilogmagnetizationderivativePlotExportLabel.Layout.Column = 1;
             app.SemilogmagnetizationderivativePlotExportLabel.Text = 'Semi-log magnetization derivative';
@@ -4463,7 +4163,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create CheckBoxExportPlotSemiLogMagDerivative
             app.CheckBoxExportPlotSemiLogMagDerivative = uicheckbox(app.GridLayoutExportPlotSemiLogMagDerivative);
             app.CheckBoxExportPlotSemiLogMagDerivative.Text = '';
-            app.CheckBoxExportPlotSemiLogMagDerivative.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.CheckBoxExportPlotSemiLogMagDerivative.Layout.Row = 1;
             app.CheckBoxExportPlotSemiLogMagDerivative.Layout.Column = 2;
             app.CheckBoxExportPlotSemiLogMagDerivative.Value = true;
@@ -4471,7 +4170,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create EditFieldFileNamePlotSemiLogMagDerivative
             app.EditFieldFileNamePlotSemiLogMagDerivative = uieditfield(app.GridLayoutExportPlotSemiLogMagDerivative, 'text');
             app.EditFieldFileNamePlotSemiLogMagDerivative.HorizontalAlignment = 'right';
-            app.EditFieldFileNamePlotSemiLogMagDerivative.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.EditFieldFileNamePlotSemiLogMagDerivative.Layout.Row = 1;
             app.EditFieldFileNamePlotSemiLogMagDerivative.Layout.Column = 3;
             app.EditFieldFileNamePlotSemiLogMagDerivative.Value = 'dMdlnH';
@@ -4479,8 +4177,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create DropDownPlotSemiLogMagDerivativeExtension
             app.DropDownPlotSemiLogMagDerivativeExtension = uidropdown(app.GridLayoutExportPlotSemiLogMagDerivative);
             app.DropDownPlotSemiLogMagDerivativeExtension.Items = {'.png'};
-            app.DropDownPlotSemiLogMagDerivativeExtension.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.DropDownPlotSemiLogMagDerivativeExtension.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.DropDownPlotSemiLogMagDerivativeExtension.Layout.Row = 1;
             app.DropDownPlotSemiLogMagDerivativeExtension.Layout.Column = 4;
             app.DropDownPlotSemiLogMagDerivativeExtension.Value = '.png';
@@ -4492,13 +4188,10 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutExportPlotsButton.Padding = [0 0 0 0];
             app.GridLayoutExportPlotsButton.Layout.Row = 13;
             app.GridLayoutExportPlotsButton.Layout.Column = 1;
-            app.GridLayoutExportPlotsButton.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create ExportPlotsButton
             app.ExportPlotsButton = uibutton(app.GridLayoutExportPlotsButton, 'push');
             app.ExportPlotsButton.ButtonPushedFcn = createCallbackFcn(app, @ExportPlotsButtonPushed, true);
-            app.ExportPlotsButton.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.ExportPlotsButton.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ExportPlotsButton.Layout.Row = 1;
             app.ExportPlotsButton.Layout.Column = 4;
             app.ExportPlotsButton.Text = 'Export plots';
@@ -4510,11 +4203,9 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutExportResiduesMagnetization.Padding = [0 0 0 0];
             app.GridLayoutExportResiduesMagnetization.Layout.Row = 15;
             app.GridLayoutExportResiduesMagnetization.Layout.Column = 1;
-            app.GridLayoutExportResiduesMagnetization.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create MagnetizationExportResiduesLabel
             app.MagnetizationExportResiduesLabel = uilabel(app.GridLayoutExportResiduesMagnetization);
-            app.MagnetizationExportResiduesLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.MagnetizationExportResiduesLabel.Layout.Row = 1;
             app.MagnetizationExportResiduesLabel.Layout.Column = 1;
             app.MagnetizationExportResiduesLabel.Text = 'Magnetization';
@@ -4522,7 +4213,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create CheckBoxExportResiduesMagnetization
             app.CheckBoxExportResiduesMagnetization = uicheckbox(app.GridLayoutExportResiduesMagnetization);
             app.CheckBoxExportResiduesMagnetization.Text = '';
-            app.CheckBoxExportResiduesMagnetization.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.CheckBoxExportResiduesMagnetization.Layout.Row = 1;
             app.CheckBoxExportResiduesMagnetization.Layout.Column = 2;
             app.CheckBoxExportResiduesMagnetization.Value = true;
@@ -4530,7 +4220,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create EditFieldFileNameResiduesMagnetization
             app.EditFieldFileNameResiduesMagnetization = uieditfield(app.GridLayoutExportResiduesMagnetization, 'text');
             app.EditFieldFileNameResiduesMagnetization.HorizontalAlignment = 'right';
-            app.EditFieldFileNameResiduesMagnetization.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.EditFieldFileNameResiduesMagnetization.Layout.Row = 1;
             app.EditFieldFileNameResiduesMagnetization.Layout.Column = 3;
             app.EditFieldFileNameResiduesMagnetization.Value = 'residual_M';
@@ -4538,8 +4227,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create DropDownResiduesMagnetizacionExtension
             app.DropDownResiduesMagnetizacionExtension = uidropdown(app.GridLayoutExportResiduesMagnetization);
             app.DropDownResiduesMagnetizacionExtension.Items = {'.csv'};
-            app.DropDownResiduesMagnetizacionExtension.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.DropDownResiduesMagnetizacionExtension.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.DropDownResiduesMagnetizacionExtension.Layout.Row = 1;
             app.DropDownResiduesMagnetizacionExtension.Layout.Column = 4;
             app.DropDownResiduesMagnetizacionExtension.Value = '.csv';
@@ -4547,7 +4234,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create ResidualplotsdataLabel
             app.ResidualplotsdataLabel = uilabel(app.GridLayoutMagnetizationoutputdata);
             app.ResidualplotsdataLabel.FontWeight = 'bold';
-            app.ResidualplotsdataLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ResidualplotsdataLabel.Layout.Row = 14;
             app.ResidualplotsdataLabel.Layout.Column = 1;
             app.ResidualplotsdataLabel.Text = 'Residual plots data:';
@@ -4559,11 +4245,9 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutExportResiduesSusceptibility.Padding = [0 0 0 0];
             app.GridLayoutExportResiduesSusceptibility.Layout.Row = 16;
             app.GridLayoutExportResiduesSusceptibility.Layout.Column = 1;
-            app.GridLayoutExportResiduesSusceptibility.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create SusceptibilityResiduesExportLabel
             app.SusceptibilityResiduesExportLabel = uilabel(app.GridLayoutExportResiduesSusceptibility);
-            app.SusceptibilityResiduesExportLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.SusceptibilityResiduesExportLabel.Layout.Row = 1;
             app.SusceptibilityResiduesExportLabel.Layout.Column = 1;
             app.SusceptibilityResiduesExportLabel.Text = 'Susceptibility';
@@ -4571,7 +4255,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create CheckBoxExportResiduesSusceptibility
             app.CheckBoxExportResiduesSusceptibility = uicheckbox(app.GridLayoutExportResiduesSusceptibility);
             app.CheckBoxExportResiduesSusceptibility.Text = '';
-            app.CheckBoxExportResiduesSusceptibility.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.CheckBoxExportResiduesSusceptibility.Layout.Row = 1;
             app.CheckBoxExportResiduesSusceptibility.Layout.Column = 2;
             app.CheckBoxExportResiduesSusceptibility.Value = true;
@@ -4579,7 +4262,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create EditFieldFileNameResiduesSusceptibility
             app.EditFieldFileNameResiduesSusceptibility = uieditfield(app.GridLayoutExportResiduesSusceptibility, 'text');
             app.EditFieldFileNameResiduesSusceptibility.HorizontalAlignment = 'right';
-            app.EditFieldFileNameResiduesSusceptibility.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.EditFieldFileNameResiduesSusceptibility.Layout.Row = 1;
             app.EditFieldFileNameResiduesSusceptibility.Layout.Column = 3;
             app.EditFieldFileNameResiduesSusceptibility.Value = 'residual_dMdH';
@@ -4587,8 +4269,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create DropDownResiduesSusceptibilityExtension
             app.DropDownResiduesSusceptibilityExtension = uidropdown(app.GridLayoutExportResiduesSusceptibility);
             app.DropDownResiduesSusceptibilityExtension.Items = {'.csv'};
-            app.DropDownResiduesSusceptibilityExtension.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.DropDownResiduesSusceptibilityExtension.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.DropDownResiduesSusceptibilityExtension.Layout.Row = 1;
             app.DropDownResiduesSusceptibilityExtension.Layout.Column = 4;
             app.DropDownResiduesSusceptibilityExtension.Value = '.csv';
@@ -4600,11 +4280,9 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutExportResiduesSemiLogMagDerivative.Padding = [0 0 0 0];
             app.GridLayoutExportResiduesSemiLogMagDerivative.Layout.Row = 17;
             app.GridLayoutExportResiduesSemiLogMagDerivative.Layout.Column = 1;
-            app.GridLayoutExportResiduesSemiLogMagDerivative.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create SemilogmagnetizationderivativeResiduesExportLabel
             app.SemilogmagnetizationderivativeResiduesExportLabel = uilabel(app.GridLayoutExportResiduesSemiLogMagDerivative);
-            app.SemilogmagnetizationderivativeResiduesExportLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.SemilogmagnetizationderivativeResiduesExportLabel.Layout.Row = 1;
             app.SemilogmagnetizationderivativeResiduesExportLabel.Layout.Column = 1;
             app.SemilogmagnetizationderivativeResiduesExportLabel.Text = 'Semi-log magnetization derivative';
@@ -4612,7 +4290,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create CheckBoxExportResiduesSemiLogMagDerivative
             app.CheckBoxExportResiduesSemiLogMagDerivative = uicheckbox(app.GridLayoutExportResiduesSemiLogMagDerivative);
             app.CheckBoxExportResiduesSemiLogMagDerivative.Text = '';
-            app.CheckBoxExportResiduesSemiLogMagDerivative.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.CheckBoxExportResiduesSemiLogMagDerivative.Layout.Row = 1;
             app.CheckBoxExportResiduesSemiLogMagDerivative.Layout.Column = 2;
             app.CheckBoxExportResiduesSemiLogMagDerivative.Value = true;
@@ -4620,7 +4297,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create EditFieldFileNameResiduesSemiLogMagDerivative
             app.EditFieldFileNameResiduesSemiLogMagDerivative = uieditfield(app.GridLayoutExportResiduesSemiLogMagDerivative, 'text');
             app.EditFieldFileNameResiduesSemiLogMagDerivative.HorizontalAlignment = 'right';
-            app.EditFieldFileNameResiduesSemiLogMagDerivative.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.EditFieldFileNameResiduesSemiLogMagDerivative.Layout.Row = 1;
             app.EditFieldFileNameResiduesSemiLogMagDerivative.Layout.Column = 3;
             app.EditFieldFileNameResiduesSemiLogMagDerivative.Value = 'residual_dMdlnH';
@@ -4628,8 +4304,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create DropDownResiduesSemiLogMagDerivativeExtension
             app.DropDownResiduesSemiLogMagDerivativeExtension = uidropdown(app.GridLayoutExportResiduesSemiLogMagDerivative);
             app.DropDownResiduesSemiLogMagDerivativeExtension.Items = {'.csv'};
-            app.DropDownResiduesSemiLogMagDerivativeExtension.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.DropDownResiduesSemiLogMagDerivativeExtension.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.DropDownResiduesSemiLogMagDerivativeExtension.Layout.Row = 1;
             app.DropDownResiduesSemiLogMagDerivativeExtension.Layout.Column = 4;
             app.DropDownResiduesSemiLogMagDerivativeExtension.Value = '.csv';
@@ -4641,13 +4315,10 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutExportResiduesButton.Padding = [0 0 0 0];
             app.GridLayoutExportResiduesButton.Layout.Row = 18;
             app.GridLayoutExportResiduesButton.Layout.Column = 1;
-            app.GridLayoutExportResiduesButton.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create ExportResiduesButton
             app.ExportResiduesButton = uibutton(app.GridLayoutExportResiduesButton, 'push');
             app.ExportResiduesButton.ButtonPushedFcn = createCallbackFcn(app, @ExportResiduesButtonPushed, true);
-            app.ExportResiduesButton.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.ExportResiduesButton.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ExportResiduesButton.Layout.Row = 1;
             app.ExportResiduesButton.Layout.Column = 4;
             app.ExportResiduesButton.Text = 'Export data';
@@ -4659,19 +4330,16 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutExperimentalMagnetizationData.Padding = [0 0 0 0];
             app.GridLayoutExperimentalMagnetizationData.Layout.Row = 3;
             app.GridLayoutExperimentalMagnetizationData.Layout.Column = 1;
-            app.GridLayoutExperimentalMagnetizationData.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create CheckBoxExperimentalMagnetization
             app.CheckBoxExperimentalMagnetization = uicheckbox(app.GridLayoutExperimentalMagnetizationData);
             app.CheckBoxExperimentalMagnetization.Text = '';
-            app.CheckBoxExperimentalMagnetization.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.CheckBoxExperimentalMagnetization.Layout.Row = 1;
             app.CheckBoxExperimentalMagnetization.Layout.Column = 2;
             app.CheckBoxExperimentalMagnetization.Value = true;
 
             % Create ExperimentalanhystereticmagnetizationLabel
             app.ExperimentalanhystereticmagnetizationLabel = uilabel(app.GridLayoutExperimentalMagnetizationData);
-            app.ExperimentalanhystereticmagnetizationLabel.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.ExperimentalanhystereticmagnetizationLabel.Layout.Row = 1;
             app.ExperimentalanhystereticmagnetizationLabel.Layout.Column = 1;
             app.ExperimentalanhystereticmagnetizationLabel.Text = 'Experimental anhysteretic magnetization';
@@ -4679,7 +4347,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create EditFieldFileNameExperimentalMagnetizationData
             app.EditFieldFileNameExperimentalMagnetizationData = uieditfield(app.GridLayoutExperimentalMagnetizationData, 'text');
             app.EditFieldFileNameExperimentalMagnetizationData.HorizontalAlignment = 'right';
-            app.EditFieldFileNameExperimentalMagnetizationData.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.EditFieldFileNameExperimentalMagnetizationData.Layout.Row = 1;
             app.EditFieldFileNameExperimentalMagnetizationData.Layout.Column = 3;
             app.EditFieldFileNameExperimentalMagnetizationData.Value = 'experimental_anhysteretic_magnetization';
@@ -4687,8 +4354,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create DropDownOutputExperimentalMagnetizationData
             app.DropDownOutputExperimentalMagnetizationData = uidropdown(app.GridLayoutExperimentalMagnetizationData);
             app.DropDownOutputExperimentalMagnetizationData.Items = {'.csv'};
-            app.DropDownOutputExperimentalMagnetizationData.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
-            app.DropDownOutputExperimentalMagnetizationData.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
             app.DropDownOutputExperimentalMagnetizationData.Layout.Row = 1;
             app.DropDownOutputExperimentalMagnetizationData.Layout.Column = 4;
             app.DropDownOutputExperimentalMagnetizationData.Value = '.csv';
@@ -4701,19 +4366,15 @@ classdef app_exported < matlab.apps.AppBase
             % Create MessagesTab
             app.MessagesTab = uitab(app.MessagesTabPanel);
             app.MessagesTab.Title = 'Messages';
-            app.MessagesTab.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
-            app.MessagesTab.ForegroundColor = [0.129411764705882 0.129411764705882 0.129411764705882];
 
             % Create MessagesGridLayout
             app.MessagesGridLayout = uigridlayout(app.MessagesTab);
             app.MessagesGridLayout.ColumnWidth = {'1x'};
             app.MessagesGridLayout.RowHeight = {'1x'};
-            app.MessagesGridLayout.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create MessagesTextArea
             app.MessagesTextArea = uitextarea(app.MessagesGridLayout);
             app.MessagesTextArea.Editable = 'off';
-            app.MessagesTextArea.FontColor = [0.129411764705882 0.129411764705882 0.129411764705882];
             app.MessagesTextArea.Layout.Row = 1;
             app.MessagesTextArea.Layout.Column = 1;
 
