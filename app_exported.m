@@ -823,7 +823,7 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         function ret = format_m_display(~, value)
-            ret = char(sprintf("%.2g", value));
+            ret = char(sprintf("%.4f", value));
         end
 
         function tf = is_m_row(app, row)
