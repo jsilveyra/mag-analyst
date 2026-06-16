@@ -159,13 +159,14 @@ classdef app_exported < matlab.apps.AppBase
         JilesAthertonmodelrateindependentLabel  matlab.ui.control.Label
         AxesM_2                         matlab.ui.control.UIAxes
         PlaygroundTab                   matlab.ui.container.Tab
+        GridLayout3                     matlab.ui.container.GridLayout
         VerticalaxisfieldDropDown_2     matlab.ui.control.DropDown
         VerticalaxisfieldDropDown_2Label  matlab.ui.control.Label
         HorizontalaxisfieldDropDown_2   matlab.ui.control.DropDown
         HorizontalaxisfieldDropDown_2Label  matlab.ui.control.Label
         CalculatePlotButton_3           matlab.ui.control.Button
         DegaussingPanel                 matlab.ui.container.Panel
-        UITable_2                       matlab.ui.control.Table
+        GridLayout5                     matlab.ui.container.GridLayout
         FinalamplitudeAmEditField       matlab.ui.control.NumericEditField
         FinalamplitudeAmEditFieldLabel  matlab.ui.control.Label
         InitialamplitudeAmEditField     matlab.ui.control.NumericEditField
@@ -180,20 +181,23 @@ classdef app_exported < matlab.apps.AppBase
         MstartAmEditField_2Label        matlab.ui.control.Label
         StartingpointDropDown_3         matlab.ui.control.DropDown
         StartingpointDropDown_3Label    matlab.ui.control.Label
+        UITable_2                       matlab.ui.control.Table
         MinorloopPanel                  matlab.ui.container.Panel
+        GridLayout6                     matlab.ui.container.GridLayout
         ReltoleranceEditField_2         matlab.ui.control.NumericEditField
         ReltoleranceEditField_2Label    matlab.ui.control.Label
         StopcriterionDropDown_4         matlab.ui.control.DropDown
         StopcriterionDropDown_4Label    matlab.ui.control.Label
+        PlotDropDown_2                  matlab.ui.control.DropDown
+        PlotDropDown_2Label             matlab.ui.control.Label
         RepetitionsEditField_2          matlab.ui.control.NumericEditField
         RepetitionsEditFieldLabel_2     matlab.ui.control.Label
         StopcriterionDropDown_2Label_3  matlab.ui.control.Label
         StopcriterionDropDown_2Label_2  matlab.ui.control.Label
         UITable                         matlab.ui.control.Table
-        PlotDropDown_2                  matlab.ui.control.DropDown
-        PlotDropDown_2Label             matlab.ui.control.Label
         ShowgridCheckBoxM_5             matlab.ui.control.CheckBox
         MajorloopPanel                  matlab.ui.container.Panel
+        GridLayout4                     matlab.ui.container.GridLayout
         HamplitudeAmEditField           matlab.ui.control.NumericEditField
         HamplitudeAmEditFieldLabel      matlab.ui.control.Label
         HstartAmEditField               matlab.ui.control.NumericEditField
@@ -671,7 +675,7 @@ classdef app_exported < matlab.apps.AppBase
             ax = app.AxesM_5;
             cla(ax, 'reset');
             hold(ax, 'on');
-
+            
             [H_label, M_label] = app.get_playground_axis_units();
             if app.ShowgridCheckBoxM_4.Value == 1
                 [H_plot, M_plot, has_data] = app.get_playground_data_curve();
@@ -698,11 +702,6 @@ classdef app_exported < matlab.apps.AppBase
             hold(ax, 'off');
         end
 
-        function [H_unit, M_unit] = get_playground_axis_units(app)
-            H_unit = string(app.HorizontalaxisfieldDropDown_2.Value);
-            M_unit = string(app.VerticalaxisfieldDropDown_2.Value);
-        end
-
         function [H_plot, M_plot, has_data] = get_playground_data_curve(app)
             H_plot = [];
             M_plot = [];
@@ -711,7 +710,7 @@ classdef app_exported < matlab.apps.AppBase
             if isempty(app.H_raw) || isempty(app.M_raw)
                 return;
             end
-
+            
             [H_unit, M_unit] = app.get_playground_axis_units();
             [H_conv, M_conv] = UnitConvertor().convert_H_M(app.H_raw, H_unit, app.M_raw, M_unit);
 
@@ -1266,14 +1265,19 @@ classdef app_exported < matlab.apps.AppBase
             else
                 grid(ax, 'off');
             end
-            xlabel(ax, 'H [A/m]');
-            ylabel(ax, 'M [A/m]');
+            xlabel(ax, H_label);
+            ylabel(ax, M_label);
             box(ax, 'on');
             ax.LineWidth = 1.2;
             legend(ax, 'off');
             hold(ax, 'off');
         end
         
+        function [H_unit, M_unit] = get_playground_axis_units(app)
+            H_unit = string(app.HorizontalaxisfieldDropDown_2.Value);
+            M_unit = string(app.VerticalaxisfieldDropDown_2.Value);
+        end
+
         function [params, ok] = get_ja_params_from_tab(app)
             params = struct('Ms', NaN, 'a', NaN, 'alpha', NaN, 'k', NaN, 'c', NaN);
             ok = false;
@@ -2602,31 +2606,6 @@ classdef app_exported < matlab.apps.AppBase
             app.write_message("No parameters available to retrieve.");
         end
 
-        % Button pushed function: CalculatePlotButton_3
-        function CalculatePlotButton_3Pushed(app, event)
-            app.plot_playground();
-        end
-
-        % Value changed function: ShowgridCheckBoxM_4
-        function ShowgridCheckBoxM_4ValueChanged(app, event)
-            app.plot_playground();
-        end
-
-        % Value changed function: ShowgridCheckBoxM_5
-        function ShowgridCheckBoxM_5ValueChanged(app, event)
-            app.plot_playground();
-        end
-
-        % Value changed function: HorizontalaxisfieldDropDown_2
-        function HorizontalaxisfieldDropDown_2ValueChanged(app, event)
-            app.plot_playground();
-        end
-
-        % Value changed function: VerticalaxisfieldDropDown_2
-        function VerticalaxisfieldDropDown_2ValueChanged(app, event)
-            app.plot_playground();
-        end
-
         % Value changed function: RepetitionsEditField_3
         function RepetitionsEditField_3ValueChanged(app, event)
             app.plot_hysteretic_tab_data()
@@ -2657,6 +2636,38 @@ classdef app_exported < matlab.apps.AppBase
         % Value changed function: MaxrepetitionsEditField_3
         function MaxrepetitionsEditField_3ValueChanged(app, event)
             app.plot_hysteretic_tab_data();
+        end
+
+        % Value changed function: ShowgridCheckBoxM_4
+        function ShowgridCheckBoxM_4ValueChanged(app, event)
+            app.plot_playground();
+        end
+
+        % Value changed function: VerticalaxisfieldDropDown_2
+        function VerticalaxisfieldDropDown_2ValueChanged(app, event)
+            app.plot_playground();
+        end
+
+        % Value changed function: HorizontalaxisfieldDropDown_2
+        function HorizontalaxisfieldDropDown_2ValueChanged(app, event)
+            app.plot_playground();
+        end
+
+        % Button pushed function: CalculatePlotButton_3
+        function CalculatePlotButton_3Pushed(app, event)
+            app.plot_playground();
+        end
+
+        % Value changed function: ShowgridCheckBoxM_5
+        function ShowgridCheckBoxM_5ValueChanged(app, event)
+            app.plot_playground();
+        end
+
+        % Value changed function: HamplitudeAmEditField, 
+        % ...and 7 other components
+        function PlotDropDownValueChanged(app, event)
+            value = app.StartingpointDropDown.Value;
+            
         end
     end
 
@@ -3363,8 +3374,8 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayout2
             app.GridLayout2 = uigridlayout(app.HystereticfittingTab);
-            app.GridLayout2.ColumnWidth = {39.01, 65, 114.01, 61.99, 188.99, 61.99, '1x', '1x', '1x', '0.2x', '1x', '1x'};
-            app.GridLayout2.RowHeight = {25, 21.99, 21.99, 21.99, 21.99, 21.99, 21.99, '1x', '1x', '1x', '1x', '1x', '1x', '1x', 28.99};
+            app.GridLayout2.ColumnWidth = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
+            app.GridLayout2.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
             app.GridLayout2.ColumnSpacing = 2.77317164494441;
             app.GridLayout2.RowSpacing = 6.31337694021372;
             app.GridLayout2.Padding = [2.77317164494441 6.31337694021372 2.77317164494441 6.31337694021372];
@@ -3469,7 +3480,7 @@ classdef app_exported < matlab.apps.AppBase
             app.CalculatePlotButton_2.ButtonPushedFcn = createCallbackFcn(app, @CalculatePlotButton_2Pushed, true);
             app.CalculatePlotButton_2.WordWrap = 'on';
             app.CalculatePlotButton_2.Layout.Row = 15;
-            app.CalculatePlotButton_2.Layout.Column = 11;
+            app.CalculatePlotButton_2.Layout.Column = [10 11];
             app.CalculatePlotButton_2.Text = 'Calculate & Plot';
 
             % Create ErrortominimizeDropDownLabel_2
@@ -3497,7 +3508,7 @@ classdef app_exported < matlab.apps.AppBase
             app.RetrieveseedsButton = uibutton(app.GridLayout2, 'push');
             app.RetrieveseedsButton.ButtonPushedFcn = createCallbackFcn(app, @RetrieveseedsButtonPushed, true);
             app.RetrieveseedsButton.Layout.Row = 2;
-            app.RetrieveseedsButton.Layout.Column = 11;
+            app.RetrieveseedsButton.Layout.Column = [11 12];
             app.RetrieveseedsButton.Text = 'Retrieve seeds';
 
             % Create DrivingfieldLabel
@@ -3768,397 +3779,505 @@ classdef app_exported < matlab.apps.AppBase
             app.PlaygroundTab = uitab(app.TabGroup);
             app.PlaygroundTab.Title = 'Playground';
 
+            % Create GridLayout3
+            app.GridLayout3 = uigridlayout(app.PlaygroundTab);
+            app.GridLayout3.ColumnWidth = {62, 91, 89, 100, 39, 57, '1x', 42, 93, 80, 91};
+            app.GridLayout3.RowHeight = {31, 31, 30, 22, 22, 22, 22, 22, 39, '1.89x', '3.28x', '6.83x', 29, '1x'};
+            app.GridLayout3.ColumnSpacing = 4.37498664855957;
+            app.GridLayout3.RowSpacing = 2.24000155131022;
+            app.GridLayout3.Padding = [4.37498664855957 2.24000155131022 4.37498664855957 2.24000155131022];
+
             % Create AxesM_5
-            app.AxesM_5 = uiaxes(app.PlaygroundTab);
+            app.AxesM_5 = uiaxes(app.GridLayout3);
             xlabel(app.AxesM_5, 'H [A/m]')
             ylabel(app.AxesM_5, 'M [A/m]')
             zlabel(app.AxesM_5, 'Z')
             app.AxesM_5.Box = 'on';
-            app.AxesM_5.Position = [722 61 295 390];
+            app.AxesM_5.Layout.Row = [4 12];
+            app.AxesM_5.Layout.Column = [8 11];
 
             % Create JilesAthertonmodelrateindependentLabel_2
-            app.JilesAthertonmodelrateindependentLabel_2 = uilabel(app.PlaygroundTab);
+            app.JilesAthertonmodelrateindependentLabel_2 = uilabel(app.GridLayout3);
             app.JilesAthertonmodelrateindependentLabel_2.FontWeight = 'bold';
-            app.JilesAthertonmodelrateindependentLabel_2.Position = [8 518 480 25];
+            app.JilesAthertonmodelrateindependentLabel_2.Layout.Row = 1;
+            app.JilesAthertonmodelrateindependentLabel_2.Layout.Column = [1 6];
             app.JilesAthertonmodelrateindependentLabel_2.Text = 'Jiles-Atherton model (rate-independent)';
 
             % Create ModelparametersLabel_2
-            app.ModelparametersLabel_2 = uilabel(app.PlaygroundTab);
+            app.ModelparametersLabel_2 = uilabel(app.GridLayout3);
             app.ModelparametersLabel_2.FontWeight = 'bold';
-            app.ModelparametersLabel_2.Position = [13 489 156 22];
+            app.ModelparametersLabel_2.Layout.Row = 2;
+            app.ModelparametersLabel_2.Layout.Column = [1 2];
             app.ModelparametersLabel_2.Text = 'Model parameters';
 
             % Create JsTEditFieldLabel_9
-            app.JsTEditFieldLabel_9 = uilabel(app.PlaygroundTab);
+            app.JsTEditFieldLabel_9 = uilabel(app.GridLayout3);
             app.JsTEditFieldLabel_9.FontWeight = 'bold';
-            app.JsTEditFieldLabel_9.Position = [9 429 62 22];
+            app.JsTEditFieldLabel_9.Layout.Row = 4;
+            app.JsTEditFieldLabel_9.Layout.Column = 1;
             app.JsTEditFieldLabel_9.Text = 'Ms [A/m]';
 
             % Create JsField_9
-            app.JsField_9 = uieditfield(app.PlaygroundTab, 'text');
+            app.JsField_9 = uieditfield(app.GridLayout3, 'text');
             app.JsField_9.HorizontalAlignment = 'right';
-            app.JsField_9.Position = [73 429 91 22];
+            app.JsField_9.Layout.Row = 4;
+            app.JsField_9.Layout.Column = 2;
 
             % Create JsTEditFieldLabel_10
-            app.JsTEditFieldLabel_10 = uilabel(app.PlaygroundTab);
+            app.JsTEditFieldLabel_10 = uilabel(app.GridLayout3);
             app.JsTEditFieldLabel_10.FontWeight = 'bold';
-            app.JsTEditFieldLabel_10.Position = [9 401 62 22];
+            app.JsTEditFieldLabel_10.Layout.Row = 5;
+            app.JsTEditFieldLabel_10.Layout.Column = 1;
             app.JsTEditFieldLabel_10.Text = 'a [A/m]';
 
             % Create JsField_10
-            app.JsField_10 = uieditfield(app.PlaygroundTab, 'text');
+            app.JsField_10 = uieditfield(app.GridLayout3, 'text');
             app.JsField_10.HorizontalAlignment = 'right';
-            app.JsField_10.Position = [73 401 91 22];
+            app.JsField_10.Layout.Row = 5;
+            app.JsField_10.Layout.Column = 2;
 
             % Create JsTEditFieldLabel_11
-            app.JsTEditFieldLabel_11 = uilabel(app.PlaygroundTab);
+            app.JsTEditFieldLabel_11 = uilabel(app.GridLayout3);
             app.JsTEditFieldLabel_11.FontWeight = 'bold';
-            app.JsTEditFieldLabel_11.Position = [9 372 62 22];
+            app.JsTEditFieldLabel_11.Layout.Row = 6;
+            app.JsTEditFieldLabel_11.Layout.Column = 1;
             app.JsTEditFieldLabel_11.Text = 'alpha';
 
             % Create JsField_11
-            app.JsField_11 = uieditfield(app.PlaygroundTab, 'text');
+            app.JsField_11 = uieditfield(app.GridLayout3, 'text');
             app.JsField_11.HorizontalAlignment = 'right';
-            app.JsField_11.Position = [73 372 91 22];
+            app.JsField_11.Layout.Row = 6;
+            app.JsField_11.Layout.Column = 2;
 
             % Create JsTEditFieldLabel_12
-            app.JsTEditFieldLabel_12 = uilabel(app.PlaygroundTab);
+            app.JsTEditFieldLabel_12 = uilabel(app.GridLayout3);
             app.JsTEditFieldLabel_12.FontWeight = 'bold';
-            app.JsTEditFieldLabel_12.Position = [9 344 62 22];
+            app.JsTEditFieldLabel_12.Layout.Row = 7;
+            app.JsTEditFieldLabel_12.Layout.Column = 1;
             app.JsTEditFieldLabel_12.Text = 'c';
 
             % Create JsField_12
-            app.JsField_12 = uieditfield(app.PlaygroundTab, 'text');
+            app.JsField_12 = uieditfield(app.GridLayout3, 'text');
             app.JsField_12.HorizontalAlignment = 'right';
-            app.JsField_12.Position = [73 344 91 22];
+            app.JsField_12.Layout.Row = 7;
+            app.JsField_12.Layout.Column = 2;
 
             % Create JsTEditFieldLabel_13
-            app.JsTEditFieldLabel_13 = uilabel(app.PlaygroundTab);
+            app.JsTEditFieldLabel_13 = uilabel(app.GridLayout3);
             app.JsTEditFieldLabel_13.FontWeight = 'bold';
-            app.JsTEditFieldLabel_13.Position = [9 316 62 22];
+            app.JsTEditFieldLabel_13.Layout.Row = 8;
+            app.JsTEditFieldLabel_13.Layout.Column = 1;
             app.JsTEditFieldLabel_13.Text = 'k [A/m]';
 
             % Create JsField_13
-            app.JsField_13 = uieditfield(app.PlaygroundTab, 'text');
+            app.JsField_13 = uieditfield(app.GridLayout3, 'text');
             app.JsField_13.HorizontalAlignment = 'right';
-            app.JsField_13.Position = [73 316 91 22];
+            app.JsField_13.Layout.Row = 8;
+            app.JsField_13.Layout.Column = 2;
 
             % Create RetrieveparametersButton
-            app.RetrieveparametersButton = uibutton(app.PlaygroundTab, 'push');
+            app.RetrieveparametersButton = uibutton(app.GridLayout3, 'push');
             app.RetrieveparametersButton.ButtonPushedFcn = createCallbackFcn(app, @RetrieveparametersButtonPushed, true);
-            app.RetrieveparametersButton.Position = [22 463 124 23];
+            app.RetrieveparametersButton.Layout.Row = 2;
+            app.RetrieveparametersButton.Layout.Column = [1 2];
             app.RetrieveparametersButton.Text = 'Retrieve parameters';
 
             % Create DrivingfieldLabel_2
-            app.DrivingfieldLabel_2 = uilabel(app.PlaygroundTab);
+            app.DrivingfieldLabel_2 = uilabel(app.GridLayout3);
             app.DrivingfieldLabel_2.FontWeight = 'bold';
-            app.DrivingfieldLabel_2.Position = [183 495 89 19];
+            app.DrivingfieldLabel_2.Layout.Row = 2;
+            app.DrivingfieldLabel_2.Layout.Column = 3;
             app.DrivingfieldLabel_2.Text = 'Driving field';
 
             % Create ShowgridCheckBoxM_4
-            app.ShowgridCheckBoxM_4 = uicheckbox(app.PlaygroundTab);
+            app.ShowgridCheckBoxM_4 = uicheckbox(app.GridLayout3);
             app.ShowgridCheckBoxM_4.ValueChangedFcn = createCallbackFcn(app, @ShowgridCheckBoxM_4ValueChanged, true);
             app.ShowgridCheckBoxM_4.Text = 'Data curve';
-            app.ShowgridCheckBoxM_4.Position = [823 21 80 29];
+            app.ShowgridCheckBoxM_4.Layout.Row = 13;
+            app.ShowgridCheckBoxM_4.Layout.Column = 10;
 
             % Create HcaseDropDown
-            app.HcaseDropDown = uidropdown(app.PlaygroundTab);
+            app.HcaseDropDown = uidropdown(app.GridLayout3);
             app.HcaseDropDown.Items = {'Major Loop', 'Minor Loops', 'Degaussing', 'Major Loop with harmonics'};
-            app.HcaseDropDown.Position = [282 492 100 22];
+            app.HcaseDropDown.Layout.Row = 2;
+            app.HcaseDropDown.Layout.Column = 4;
             app.HcaseDropDown.Value = 'Major Loop';
 
             % Create MajorloopPanel
-            app.MajorloopPanel = uipanel(app.PlaygroundTab);
+            app.MajorloopPanel = uipanel(app.GridLayout3);
             app.MajorloopPanel.Title = 'Major loop';
-            app.MajorloopPanel.Position = [184 250 238 235];
+            app.MajorloopPanel.Layout.Row = [2 9];
+            app.MajorloopPanel.Layout.Column = [3 5];
+
+            % Create GridLayout4
+            app.GridLayout4 = uigridlayout(app.MajorloopPanel);
+            app.GridLayout4.ColumnWidth = {25.97, 41.95, 76.91, '1x'};
+            app.GridLayout4.RowHeight = {21.97, 21.97, 21.97, 21.97, 21.97, 21.97, 21.97, 21.97};
+            app.GridLayout4.ColumnSpacing = 5.07975959777832;
+            app.GridLayout4.RowSpacing = 2.1945669386122;
+            app.GridLayout4.Padding = [5.07975959777832 2.1945669386122 5.07975959777832 2.1945669386122];
 
             % Create StopcriterionDropDownLabel
-            app.StopcriterionDropDownLabel = uilabel(app.MajorloopPanel);
-            app.StopcriterionDropDownLabel.Position = [6 84 76 22];
+            app.StopcriterionDropDownLabel = uilabel(app.GridLayout4);
+            app.StopcriterionDropDownLabel.Layout.Row = 5;
+            app.StopcriterionDropDownLabel.Layout.Column = [1 2];
             app.StopcriterionDropDownLabel.Text = 'Stop criterion';
 
             % Create StopcriterionDropDown
-            app.StopcriterionDropDown = uidropdown(app.MajorloopPanel);
+            app.StopcriterionDropDown = uidropdown(app.GridLayout4);
             app.StopcriterionDropDown.Items = {'Until convergence', 'Fixed repetitions'};
-            app.StopcriterionDropDown.Position = [102 84 130 22];
+            app.StopcriterionDropDown.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
+            app.StopcriterionDropDown.Layout.Row = 5;
+            app.StopcriterionDropDown.Layout.Column = [3 4];
             app.StopcriterionDropDown.Value = 'Fixed repetitions';
 
             % Create RepetitionsEditFieldLabel
-            app.RepetitionsEditFieldLabel = uilabel(app.MajorloopPanel);
-            app.RepetitionsEditFieldLabel.Position = [47 56 88 22];
+            app.RepetitionsEditFieldLabel = uilabel(app.GridLayout4);
+            app.RepetitionsEditFieldLabel.Layout.Row = 6;
+            app.RepetitionsEditFieldLabel.Layout.Column = [2 3];
             app.RepetitionsEditFieldLabel.Text = 'Repetitions';
 
             % Create RepetitionsEditField
-            app.RepetitionsEditField = uieditfield(app.MajorloopPanel, 'numeric');
+            app.RepetitionsEditField = uieditfield(app.GridLayout4, 'numeric');
             app.RepetitionsEditField.Limits = [0 Inf];
             app.RepetitionsEditField.RoundFractionalValues = 'on';
-            app.RepetitionsEditField.Position = [137 56 54 22];
+            app.RepetitionsEditField.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
+            app.RepetitionsEditField.Layout.Row = 6;
+            app.RepetitionsEditField.Layout.Column = 3;
             app.RepetitionsEditField.Value = 1;
 
             % Create ReltoleranceEditFieldLabel
-            app.ReltoleranceEditFieldLabel = uilabel(app.MajorloopPanel);
-            app.ReltoleranceEditFieldLabel.Position = [46 32 79 22];
+            app.ReltoleranceEditFieldLabel = uilabel(app.GridLayout4);
+            app.ReltoleranceEditFieldLabel.Layout.Row = 7;
+            app.ReltoleranceEditFieldLabel.Layout.Column = [2 3];
             app.ReltoleranceEditFieldLabel.Text = 'Rel. tolerance';
 
             % Create ReltoleranceEditField
-            app.ReltoleranceEditField = uieditfield(app.MajorloopPanel, 'numeric');
+            app.ReltoleranceEditField = uieditfield(app.GridLayout4, 'numeric');
             app.ReltoleranceEditField.Limits = [0 Inf];
             app.ReltoleranceEditField.ValueDisplayFormat = '%.0e\n';
-            app.ReltoleranceEditField.Position = [140 32 51 22];
+            app.ReltoleranceEditField.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
+            app.ReltoleranceEditField.Layout.Row = 7;
+            app.ReltoleranceEditField.Layout.Column = 3;
             app.ReltoleranceEditField.Value = 0.001;
 
             % Create PlotDropDownLabel
-            app.PlotDropDownLabel = uilabel(app.MajorloopPanel);
+            app.PlotDropDownLabel = uilabel(app.GridLayout4);
             app.PlotDropDownLabel.HorizontalAlignment = 'right';
-            app.PlotDropDownLabel.Position = [12 4 26 22];
+            app.PlotDropDownLabel.Layout.Row = 8;
+            app.PlotDropDownLabel.Layout.Column = 1;
             app.PlotDropDownLabel.Text = 'Plot';
 
             % Create PlotDropDown
-            app.PlotDropDown = uidropdown(app.MajorloopPanel);
+            app.PlotDropDown = uidropdown(app.GridLayout4);
             app.PlotDropDown.Items = {'Last loop only', 'Full history'};
-            app.PlotDropDown.Position = [102 4 109 22];
+            app.PlotDropDown.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
+            app.PlotDropDown.Layout.Row = 8;
+            app.PlotDropDown.Layout.Column = [3 4];
             app.PlotDropDown.Value = 'Last loop only';
 
             % Create StartingpointDropDownLabel
-            app.StartingpointDropDownLabel = uilabel(app.MajorloopPanel);
-            app.StartingpointDropDownLabel.Position = [6 185 76 22];
+            app.StartingpointDropDownLabel = uilabel(app.GridLayout4);
+            app.StartingpointDropDownLabel.Layout.Row = 1;
+            app.StartingpointDropDownLabel.Layout.Column = [1 2];
             app.StartingpointDropDownLabel.Text = 'Starting point';
 
             % Create StartingpointDropDown
-            app.StartingpointDropDown = uidropdown(app.MajorloopPanel);
+            app.StartingpointDropDown = uidropdown(app.GridLayout4);
             app.StartingpointDropDown.Items = {'Demagnetized', 'Tip point (data)', 'User-defined'};
-            app.StartingpointDropDown.Position = [97 185 131 22];
+            app.StartingpointDropDown.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
+            app.StartingpointDropDown.Layout.Row = 1;
+            app.StartingpointDropDown.Layout.Column = [3 4];
             app.StartingpointDropDown.Value = 'Demagnetized';
 
             % Create MstartAmEditFieldLabel
-            app.MstartAmEditFieldLabel = uilabel(app.MajorloopPanel);
+            app.MstartAmEditFieldLabel = uilabel(app.GridLayout4);
             app.MstartAmEditFieldLabel.HorizontalAlignment = 'right';
-            app.MstartAmEditFieldLabel.Position = [40 160 70 22];
+            app.MstartAmEditFieldLabel.Layout.Row = 2;
+            app.MstartAmEditFieldLabel.Layout.Column = [2 3];
             app.MstartAmEditFieldLabel.Text = 'Mstart [A/m]';
 
             % Create MstartAmEditField
-            app.MstartAmEditField = uieditfield(app.MajorloopPanel, 'numeric');
-            app.MstartAmEditField.Position = [125 160 77 22];
+            app.MstartAmEditField = uieditfield(app.GridLayout4, 'numeric');
+            app.MstartAmEditField.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
+            app.MstartAmEditField.Layout.Row = 2;
+            app.MstartAmEditField.Layout.Column = 3;
 
             % Create HstartAmEditFieldLabel
-            app.HstartAmEditFieldLabel = uilabel(app.MajorloopPanel);
+            app.HstartAmEditFieldLabel = uilabel(app.GridLayout4);
             app.HstartAmEditFieldLabel.HorizontalAlignment = 'right';
-            app.HstartAmEditFieldLabel.Position = [42 135 68 22];
+            app.HstartAmEditFieldLabel.Layout.Row = 3;
+            app.HstartAmEditFieldLabel.Layout.Column = [2 3];
             app.HstartAmEditFieldLabel.Text = 'Hstart [A/m]';
 
             % Create HstartAmEditField
-            app.HstartAmEditField = uieditfield(app.MajorloopPanel, 'numeric');
-            app.HstartAmEditField.Position = [125 135 77 22];
+            app.HstartAmEditField = uieditfield(app.GridLayout4, 'numeric');
+            app.HstartAmEditField.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
+            app.HstartAmEditField.Layout.Row = 3;
+            app.HstartAmEditField.Layout.Column = 3;
 
             % Create HamplitudeAmEditFieldLabel
-            app.HamplitudeAmEditFieldLabel = uilabel(app.MajorloopPanel);
-            app.HamplitudeAmEditFieldLabel.Position = [6 109 100 22];
+            app.HamplitudeAmEditFieldLabel = uilabel(app.GridLayout4);
+            app.HamplitudeAmEditFieldLabel.Layout.Row = 4;
+            app.HamplitudeAmEditFieldLabel.Layout.Column = [1 3];
             app.HamplitudeAmEditFieldLabel.Text = 'H amplitude [A/m]';
 
             % Create HamplitudeAmEditField
-            app.HamplitudeAmEditField = uieditfield(app.MajorloopPanel, 'numeric');
+            app.HamplitudeAmEditField = uieditfield(app.GridLayout4, 'numeric');
             app.HamplitudeAmEditField.Limits = [0 Inf];
-            app.HamplitudeAmEditField.Position = [118 112 73 16];
+            app.HamplitudeAmEditField.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
+            app.HamplitudeAmEditField.Layout.Row = 4;
+            app.HamplitudeAmEditField.Layout.Column = 3;
 
             % Create ShowgridCheckBoxM_5
-            app.ShowgridCheckBoxM_5 = uicheckbox(app.PlaygroundTab);
+            app.ShowgridCheckBoxM_5 = uicheckbox(app.GridLayout3);
             app.ShowgridCheckBoxM_5.ValueChangedFcn = createCallbackFcn(app, @ShowgridCheckBoxM_5ValueChanged, true);
             app.ShowgridCheckBoxM_5.Text = 'Grid';
-            app.ShowgridCheckBoxM_5.Position = [763 25 62 29];
+            app.ShowgridCheckBoxM_5.Layout.Row = 13;
+            app.ShowgridCheckBoxM_5.Layout.Column = 9;
             app.ShowgridCheckBoxM_5.Value = true;
 
             % Create MinorloopPanel
-            app.MinorloopPanel = uipanel(app.PlaygroundTab);
+            app.MinorloopPanel = uipanel(app.GridLayout3);
             app.MinorloopPanel.Title = 'Minor loop';
+            app.MinorloopPanel.Layout.Row = [11 14];
+            app.MinorloopPanel.Layout.Column = [3 5];
             app.MinorloopPanel.Scrollable = 'on';
-            app.MinorloopPanel.Position = [184 7 238 236];
 
-            % Create PlotDropDown_2Label
-            app.PlotDropDown_2Label = uilabel(app.MinorloopPanel);
-            app.PlotDropDown_2Label.HorizontalAlignment = 'right';
-            app.PlotDropDown_2Label.Position = [14 4 26 22];
-            app.PlotDropDown_2Label.Text = 'Plot';
-
-            % Create PlotDropDown_2
-            app.PlotDropDown_2 = uidropdown(app.MinorloopPanel);
-            app.PlotDropDown_2.Items = {'Last loops only', 'Full history'};
-            app.PlotDropDown_2.Position = [104 4 113 22];
-            app.PlotDropDown_2.Value = 'Last loops only';
+            % Create GridLayout6
+            app.GridLayout6 = uigridlayout(app.MinorloopPanel);
+            app.GridLayout6.ColumnWidth = {26.05, 60.12, 28.05, 36.07, '1x', '1.36x'};
+            app.GridLayout6.RowHeight = {22.04, 22.04, '1x', 22.04, 22.04, 22.04, 22.04};
+            app.GridLayout6.ColumnSpacing = 1.95454515729632;
+            app.GridLayout6.RowSpacing = 4.77273786067963;
+            app.GridLayout6.Padding = [1.95454515729632 4.77273786067963 1.95454515729632 4.77273786067963];
 
             % Create UITable
-            app.UITable = uitable(app.MinorloopPanel);
+            app.UITable = uitable(app.GridLayout6);
             app.UITable.ColumnName = {'Htip_i'};
             app.UITable.ColumnRearrangeable = 'on';
             app.UITable.RowName = {};
             app.UITable.ColumnSortable = true;
             app.UITable.ColumnEditable = true;
-            app.UITable.Position = [125 117 92 61];
+            app.UITable.Layout.Row = [2 3];
+            app.UITable.Layout.Column = [3 5];
 
             % Create StopcriterionDropDown_2Label_2
-            app.StopcriterionDropDown_2Label_2 = uilabel(app.MinorloopPanel);
-            app.StopcriterionDropDown_2Label_2.Position = [19 156 100 22];
+            app.StopcriterionDropDown_2Label_2 = uilabel(app.GridLayout6);
+            app.StopcriterionDropDown_2Label_2.Layout.Row = 2;
+            app.StopcriterionDropDown_2Label_2.Layout.Column = [1 2];
             app.StopcriterionDropDown_2Label_2.Text = 'H amplitude [A/m]';
 
             % Create StopcriterionDropDown_2Label_3
-            app.StopcriterionDropDown_2Label_3 = uilabel(app.MinorloopPanel);
-            app.StopcriterionDropDown_2Label_3.Position = [19 186 160 22];
+            app.StopcriterionDropDown_2Label_3 = uilabel(app.GridLayout6);
+            app.StopcriterionDropDown_2Label_3.Layout.Row = 1;
+            app.StopcriterionDropDown_2Label_3.Layout.Column = [1 4];
             app.StopcriterionDropDown_2Label_3.Text = 'Starting point: Demagnetized';
 
             % Create RepetitionsEditFieldLabel_2
-            app.RepetitionsEditFieldLabel_2 = uilabel(app.MinorloopPanel);
-            app.RepetitionsEditFieldLabel_2.Position = [49 59 88 22];
+            app.RepetitionsEditFieldLabel_2 = uilabel(app.GridLayout6);
+            app.RepetitionsEditFieldLabel_2.Layout.Row = 5;
+            app.RepetitionsEditFieldLabel_2.Layout.Column = [2 3];
             app.RepetitionsEditFieldLabel_2.Text = 'Repetitions';
 
             % Create RepetitionsEditField_2
-            app.RepetitionsEditField_2 = uieditfield(app.MinorloopPanel, 'numeric');
+            app.RepetitionsEditField_2 = uieditfield(app.GridLayout6, 'numeric');
             app.RepetitionsEditField_2.Limits = [0 Inf];
             app.RepetitionsEditField_2.RoundFractionalValues = 'on';
-            app.RepetitionsEditField_2.Position = [139 59 54 22];
+            app.RepetitionsEditField_2.Layout.Row = 5;
+            app.RepetitionsEditField_2.Layout.Column = [3 4];
             app.RepetitionsEditField_2.Value = 1;
 
+            % Create PlotDropDown_2Label
+            app.PlotDropDown_2Label = uilabel(app.GridLayout6);
+            app.PlotDropDown_2Label.HorizontalAlignment = 'right';
+            app.PlotDropDown_2Label.Layout.Row = 7;
+            app.PlotDropDown_2Label.Layout.Column = 1;
+            app.PlotDropDown_2Label.Text = 'Plot';
+
+            % Create PlotDropDown_2
+            app.PlotDropDown_2 = uidropdown(app.GridLayout6);
+            app.PlotDropDown_2.Items = {'Last loops only', 'Full history'};
+            app.PlotDropDown_2.Layout.Row = 7;
+            app.PlotDropDown_2.Layout.Column = [3 6];
+            app.PlotDropDown_2.Value = 'Last loops only';
+
             % Create StopcriterionDropDown_4Label
-            app.StopcriterionDropDown_4Label = uilabel(app.MinorloopPanel);
-            app.StopcriterionDropDown_4Label.Position = [8 87 76 22];
+            app.StopcriterionDropDown_4Label = uilabel(app.GridLayout6);
+            app.StopcriterionDropDown_4Label.Layout.Row = 4;
+            app.StopcriterionDropDown_4Label.Layout.Column = [1 2];
             app.StopcriterionDropDown_4Label.Text = 'Stop criterion';
 
             % Create StopcriterionDropDown_4
-            app.StopcriterionDropDown_4 = uidropdown(app.MinorloopPanel);
+            app.StopcriterionDropDown_4 = uidropdown(app.GridLayout6);
             app.StopcriterionDropDown_4.Items = {'Until convergence', 'Fixed repetitions'};
-            app.StopcriterionDropDown_4.Position = [104 87 130 22];
+            app.StopcriterionDropDown_4.Layout.Row = 4;
+            app.StopcriterionDropDown_4.Layout.Column = [3 6];
             app.StopcriterionDropDown_4.Value = 'Fixed repetitions';
 
             % Create ReltoleranceEditField_2Label
-            app.ReltoleranceEditField_2Label = uilabel(app.MinorloopPanel);
-            app.ReltoleranceEditField_2Label.Position = [48 35 79 22];
+            app.ReltoleranceEditField_2Label = uilabel(app.GridLayout6);
+            app.ReltoleranceEditField_2Label.Layout.Row = 6;
+            app.ReltoleranceEditField_2Label.Layout.Column = [2 3];
             app.ReltoleranceEditField_2Label.Text = 'Rel. tolerance';
 
             % Create ReltoleranceEditField_2
-            app.ReltoleranceEditField_2 = uieditfield(app.MinorloopPanel, 'numeric');
+            app.ReltoleranceEditField_2 = uieditfield(app.GridLayout6, 'numeric');
             app.ReltoleranceEditField_2.Limits = [0 Inf];
             app.ReltoleranceEditField_2.ValueDisplayFormat = '%.0e\n';
-            app.ReltoleranceEditField_2.Position = [142 35 51 22];
+            app.ReltoleranceEditField_2.Layout.Row = 6;
+            app.ReltoleranceEditField_2.Layout.Column = [3 4];
             app.ReltoleranceEditField_2.Value = 0.001;
 
             % Create DegaussingPanel
-            app.DegaussingPanel = uipanel(app.PlaygroundTab);
+            app.DegaussingPanel = uipanel(app.GridLayout3);
             app.DegaussingPanel.Title = 'Degaussing';
-            app.DegaussingPanel.Position = [431 154 281 328];
+            app.DegaussingPanel.Layout.Row = [2 11];
+            app.DegaussingPanel.Layout.Column = [6 7];
 
-            % Create StartingpointDropDown_3Label
-            app.StartingpointDropDown_3Label = uilabel(app.DegaussingPanel);
-            app.StartingpointDropDown_3Label.HorizontalAlignment = 'right';
-            app.StartingpointDropDown_3Label.Position = [6 278 76 22];
-            app.StartingpointDropDown_3Label.Text = 'Starting point';
-
-            % Create StartingpointDropDown_3
-            app.StartingpointDropDown_3 = uidropdown(app.DegaussingPanel);
-            app.StartingpointDropDown_3.Items = {'Remanence (data)', 'Tip point (data)', 'User-defined'};
-            app.StartingpointDropDown_3.Position = [97 278 141 22];
-            app.StartingpointDropDown_3.Value = 'Remanence (data)';
-
-            % Create MstartAmEditField_2Label
-            app.MstartAmEditField_2Label = uilabel(app.DegaussingPanel);
-            app.MstartAmEditField_2Label.HorizontalAlignment = 'right';
-            app.MstartAmEditField_2Label.Position = [40 253 70 22];
-            app.MstartAmEditField_2Label.Text = 'Mstart [A/m]';
-
-            % Create MstartAmEditField_2
-            app.MstartAmEditField_2 = uieditfield(app.DegaussingPanel, 'numeric');
-            app.MstartAmEditField_2.Position = [125 253 77 22];
-
-            % Create HstartAmEditField_2Label
-            app.HstartAmEditField_2Label = uilabel(app.DegaussingPanel);
-            app.HstartAmEditField_2Label.HorizontalAlignment = 'right';
-            app.HstartAmEditField_2Label.Position = [42 224 68 22];
-            app.HstartAmEditField_2Label.Text = 'Hstart [A/m]';
-
-            % Create HstartAmEditField_2
-            app.HstartAmEditField_2 = uieditfield(app.DegaussingPanel, 'numeric');
-            app.HstartAmEditField_2.Position = [125 224 77 22];
-
-            % Create HamplitudeDropDownLabel
-            app.HamplitudeDropDownLabel = uilabel(app.DegaussingPanel);
-            app.HamplitudeDropDownLabel.Position = [11 193 69 22];
-            app.HamplitudeDropDownLabel.Text = 'H amplitude';
-
-            % Create HamplitudeDropDown
-            app.HamplitudeDropDown = uidropdown(app.DegaussingPanel);
-            app.HamplitudeDropDown.Items = {'Automatic', 'User-defined'};
-            app.HamplitudeDropDown.Position = [95 193 141 22];
-            app.HamplitudeDropDown.Value = 'Automatic';
-
-            % Create NofstepsEditFieldLabel
-            app.NofstepsEditFieldLabel = uilabel(app.DegaussingPanel);
-            app.NofstepsEditFieldLabel.Position = [58 169 88 22];
-            app.NofstepsEditFieldLabel.Text = 'N° of steps';
-
-            % Create NofstepsEditField
-            app.NofstepsEditField = uieditfield(app.DegaussingPanel, 'numeric');
-            app.NofstepsEditField.Position = [173 169 54 22];
-            app.NofstepsEditField.Value = 1;
-
-            % Create InitialamplitudeAmEditFieldLabel
-            app.InitialamplitudeAmEditFieldLabel = uilabel(app.DegaussingPanel);
-            app.InitialamplitudeAmEditFieldLabel.Position = [58 142 120 22];
-            app.InitialamplitudeAmEditFieldLabel.Text = 'Initial amplitude [A/m]';
-
-            % Create InitialamplitudeAmEditField
-            app.InitialamplitudeAmEditField = uieditfield(app.DegaussingPanel, 'numeric');
-            app.InitialamplitudeAmEditField.Limits = [0 Inf];
-            app.InitialamplitudeAmEditField.Position = [173 142 54 22];
-            app.InitialamplitudeAmEditField.Value = 1;
-
-            % Create FinalamplitudeAmEditFieldLabel
-            app.FinalamplitudeAmEditFieldLabel = uilabel(app.DegaussingPanel);
-            app.FinalamplitudeAmEditFieldLabel.Position = [58 110 118 22];
-            app.FinalamplitudeAmEditFieldLabel.Text = 'Final amplitude [A/m]';
-
-            % Create FinalamplitudeAmEditField
-            app.FinalamplitudeAmEditField = uieditfield(app.DegaussingPanel, 'numeric');
-            app.FinalamplitudeAmEditField.Limits = [0 Inf];
-            app.FinalamplitudeAmEditField.Position = [173 110 54 22];
-            app.FinalamplitudeAmEditField.Value = 1;
+            % Create GridLayout5
+            app.GridLayout5 = uigridlayout(app.DegaussingPanel);
+            app.GridLayout5.ColumnWidth = {119.83, '1.25x', '1x'};
+            app.GridLayout5.RowHeight = {21.97, 21.97, 21.97, 21.97, 21.97, 21.97, 21.97, '1x'};
+            app.GridLayout5.ColumnSpacing = 7.59856033325195;
+            app.GridLayout5.RowSpacing = 6.15151267581516;
+            app.GridLayout5.Padding = [7.59856033325195 6.15151267581516 7.59856033325195 6.15151267581516];
 
             % Create UITable_2
-            app.UITable_2 = uitable(app.DegaussingPanel);
+            app.UITable_2 = uitable(app.GridLayout5);
             app.UITable_2.ColumnName = {'Htip_i [A/m]'};
             app.UITable_2.ColumnRearrangeable = 'on';
             app.UITable_2.RowName = {};
             app.UITable_2.ColumnSortable = true;
             app.UITable_2.ColumnEditable = true;
-            app.UITable_2.Position = [56 28 168 74];
+            app.UITable_2.Layout.Row = 8;
+            app.UITable_2.Layout.Column = [1 2];
+
+            % Create StartingpointDropDown_3Label
+            app.StartingpointDropDown_3Label = uilabel(app.GridLayout5);
+            app.StartingpointDropDown_3Label.HorizontalAlignment = 'right';
+            app.StartingpointDropDown_3Label.Layout.Row = 1;
+            app.StartingpointDropDown_3Label.Layout.Column = 1;
+            app.StartingpointDropDown_3Label.Text = 'Starting point';
+
+            % Create StartingpointDropDown_3
+            app.StartingpointDropDown_3 = uidropdown(app.GridLayout5);
+            app.StartingpointDropDown_3.Items = {'Remanence (data)', 'Tip point (data)', 'User-defined'};
+            app.StartingpointDropDown_3.Layout.Row = 1;
+            app.StartingpointDropDown_3.Layout.Column = [2 3];
+            app.StartingpointDropDown_3.Value = 'Remanence (data)';
+
+            % Create MstartAmEditField_2Label
+            app.MstartAmEditField_2Label = uilabel(app.GridLayout5);
+            app.MstartAmEditField_2Label.HorizontalAlignment = 'right';
+            app.MstartAmEditField_2Label.Layout.Row = 2;
+            app.MstartAmEditField_2Label.Layout.Column = 1;
+            app.MstartAmEditField_2Label.Text = 'Mstart [A/m]';
+
+            % Create MstartAmEditField_2
+            app.MstartAmEditField_2 = uieditfield(app.GridLayout5, 'numeric');
+            app.MstartAmEditField_2.Layout.Row = 2;
+            app.MstartAmEditField_2.Layout.Column = 2;
+
+            % Create HstartAmEditField_2Label
+            app.HstartAmEditField_2Label = uilabel(app.GridLayout5);
+            app.HstartAmEditField_2Label.HorizontalAlignment = 'right';
+            app.HstartAmEditField_2Label.Layout.Row = 3;
+            app.HstartAmEditField_2Label.Layout.Column = 1;
+            app.HstartAmEditField_2Label.Text = 'Hstart [A/m]';
+
+            % Create HstartAmEditField_2
+            app.HstartAmEditField_2 = uieditfield(app.GridLayout5, 'numeric');
+            app.HstartAmEditField_2.Layout.Row = 3;
+            app.HstartAmEditField_2.Layout.Column = 2;
+
+            % Create HamplitudeDropDownLabel
+            app.HamplitudeDropDownLabel = uilabel(app.GridLayout5);
+            app.HamplitudeDropDownLabel.Layout.Row = 4;
+            app.HamplitudeDropDownLabel.Layout.Column = 1;
+            app.HamplitudeDropDownLabel.Text = 'H amplitude';
+
+            % Create HamplitudeDropDown
+            app.HamplitudeDropDown = uidropdown(app.GridLayout5);
+            app.HamplitudeDropDown.Items = {'Automatic', 'User-defined'};
+            app.HamplitudeDropDown.Layout.Row = 4;
+            app.HamplitudeDropDown.Layout.Column = [2 3];
+            app.HamplitudeDropDown.Value = 'Automatic';
+
+            % Create NofstepsEditFieldLabel
+            app.NofstepsEditFieldLabel = uilabel(app.GridLayout5);
+            app.NofstepsEditFieldLabel.Layout.Row = 5;
+            app.NofstepsEditFieldLabel.Layout.Column = 1;
+            app.NofstepsEditFieldLabel.Text = 'N° of steps';
+
+            % Create NofstepsEditField
+            app.NofstepsEditField = uieditfield(app.GridLayout5, 'numeric');
+            app.NofstepsEditField.Layout.Row = 5;
+            app.NofstepsEditField.Layout.Column = 3;
+            app.NofstepsEditField.Value = 1;
+
+            % Create InitialamplitudeAmEditFieldLabel
+            app.InitialamplitudeAmEditFieldLabel = uilabel(app.GridLayout5);
+            app.InitialamplitudeAmEditFieldLabel.Layout.Row = 6;
+            app.InitialamplitudeAmEditFieldLabel.Layout.Column = 1;
+            app.InitialamplitudeAmEditFieldLabel.Text = 'Initial amplitude [A/m]';
+
+            % Create InitialamplitudeAmEditField
+            app.InitialamplitudeAmEditField = uieditfield(app.GridLayout5, 'numeric');
+            app.InitialamplitudeAmEditField.Limits = [0 Inf];
+            app.InitialamplitudeAmEditField.Layout.Row = 6;
+            app.InitialamplitudeAmEditField.Layout.Column = 3;
+            app.InitialamplitudeAmEditField.Value = 1;
+
+            % Create FinalamplitudeAmEditFieldLabel
+            app.FinalamplitudeAmEditFieldLabel = uilabel(app.GridLayout5);
+            app.FinalamplitudeAmEditFieldLabel.Layout.Row = 7;
+            app.FinalamplitudeAmEditFieldLabel.Layout.Column = 1;
+            app.FinalamplitudeAmEditFieldLabel.Text = 'Final amplitude [A/m]';
+
+            % Create FinalamplitudeAmEditField
+            app.FinalamplitudeAmEditField = uieditfield(app.GridLayout5, 'numeric');
+            app.FinalamplitudeAmEditField.Limits = [0 Inf];
+            app.FinalamplitudeAmEditField.Layout.Row = 7;
+            app.FinalamplitudeAmEditField.Layout.Column = 3;
+            app.FinalamplitudeAmEditField.Value = 1;
 
             % Create CalculatePlotButton_3
-            app.CalculatePlotButton_3 = uibutton(app.PlaygroundTab, 'push');
+            app.CalculatePlotButton_3 = uibutton(app.GridLayout3, 'push');
             app.CalculatePlotButton_3.ButtonPushedFcn = createCallbackFcn(app, @CalculatePlotButton_3Pushed, true);
             app.CalculatePlotButton_3.WordWrap = 'on';
-            app.CalculatePlotButton_3.Position = [928 20 91 29];
+            app.CalculatePlotButton_3.Layout.Row = 13;
+            app.CalculatePlotButton_3.Layout.Column = 11;
             app.CalculatePlotButton_3.Text = 'Calculate & Plot';
 
             % Create HorizontalaxisfieldDropDown_2Label
-            app.HorizontalaxisfieldDropDown_2Label = uilabel(app.PlaygroundTab);
+            app.HorizontalaxisfieldDropDown_2Label = uilabel(app.GridLayout3);
             app.HorizontalaxisfieldDropDown_2Label.FontWeight = 'bold';
-            app.HorizontalaxisfieldDropDown_2Label.Position = [727 501 128 31];
+            app.HorizontalaxisfieldDropDown_2Label.Layout.Row = 1;
+            app.HorizontalaxisfieldDropDown_2Label.Layout.Column = [8 9];
             app.HorizontalaxisfieldDropDown_2Label.Text = 'Horizontal axis field';
 
             % Create HorizontalaxisfieldDropDown_2
-            app.HorizontalaxisfieldDropDown_2 = uidropdown(app.PlaygroundTab);
-            app.HorizontalaxisfieldDropDown_2.ValueChangedFcn = createCallbackFcn(app, @HorizontalaxisfieldDropDown_2ValueChanged, true);
+            app.HorizontalaxisfieldDropDown_2 = uidropdown(app.GridLayout3);
             app.HorizontalaxisfieldDropDown_2.Items = {'H [A/m]', 'H [kA/m]', 'H [Oe]', 'H [kOe]', 'Bext [T]', 'Bext [G]', 'Bext [kG]'};
-            app.HorizontalaxisfieldDropDown_2.Position = [721 466 135 31];
+            app.HorizontalaxisfieldDropDown_2.ValueChangedFcn = createCallbackFcn(app, @HorizontalaxisfieldDropDown_2ValueChanged, true);
+            app.HorizontalaxisfieldDropDown_2.Layout.Row = 2;
+            app.HorizontalaxisfieldDropDown_2.Layout.Column = [8 9];
             app.HorizontalaxisfieldDropDown_2.Value = 'H [A/m]';
 
             % Create VerticalaxisfieldDropDown_2Label
-            app.VerticalaxisfieldDropDown_2Label = uilabel(app.PlaygroundTab);
+            app.VerticalaxisfieldDropDown_2Label = uilabel(app.GridLayout3);
             app.VerticalaxisfieldDropDown_2Label.FontWeight = 'bold';
-            app.VerticalaxisfieldDropDown_2Label.Position = [866 501 128 31];
+            app.VerticalaxisfieldDropDown_2Label.Layout.Row = 1;
+            app.VerticalaxisfieldDropDown_2Label.Layout.Column = [10 11];
             app.VerticalaxisfieldDropDown_2Label.Text = 'Vertical axis field';
 
             % Create VerticalaxisfieldDropDown_2
-            app.VerticalaxisfieldDropDown_2 = uidropdown(app.PlaygroundTab);
-            app.VerticalaxisfieldDropDown_2.ValueChangedFcn = createCallbackFcn(app, @VerticalaxisfieldDropDown_2ValueChanged, true);
+            app.VerticalaxisfieldDropDown_2 = uidropdown(app.GridLayout3);
             app.VerticalaxisfieldDropDown_2.Items = {'M [A/m]', 'M [kA/m]', 'M [MA/m]', 'M [emu/cm^3]', 'J [T]', 'B [T]', 'B [G]', 'B [kG]'};
-            app.VerticalaxisfieldDropDown_2.Position = [866 464 118 31];
+            app.VerticalaxisfieldDropDown_2.ValueChangedFcn = createCallbackFcn(app, @VerticalaxisfieldDropDown_2ValueChanged, true);
+            app.VerticalaxisfieldDropDown_2.Layout.Row = 2;
+            app.VerticalaxisfieldDropDown_2.Layout.Column = [10 11];
             app.VerticalaxisfieldDropDown_2.Value = 'M [A/m]';
 
             % Create OutputdataTab
