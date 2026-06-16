@@ -667,6 +667,69 @@ classdef app_exported < matlab.apps.AppBase
             app.apply_axis_scale(app.AxesRawInputData, axis_scale);
         end
 
+        function plot_playground(app)
+            ax = app.AxesM_5;
+            cla(ax, 'reset');
+            hold(ax, 'on');
+
+            [H_label, M_label] = app.get_playground_axis_units();
+            if app.ShowgridCheckBoxM_4.Value == 1
+                [H_plot, M_plot, has_data] = app.get_playground_data_curve();
+                if has_data
+                    plot(ax, H_plot, M_plot, '.', 'Color', [0 0 0], 'LineWidth', 1.0, 'MarkerSize', 7);
+                else
+                    app.write_message("Warning: No input curve is available to plot in Playground.");
+                end
+            end
+
+            xline(ax, 0, 'k-', 'LineWidth', 1.2);
+            yline(ax, 0, 'k-', 'LineWidth', 1.2);
+            if app.ShowgridCheckBoxM_5.Value == 1
+                grid(ax, 'on');
+            else
+                grid(ax, 'off');
+            end
+
+            xlabel(ax, H_label);
+            ylabel(ax, M_label);
+            box(ax, 'on');
+            ax.LineWidth = 1.2;
+            legend(ax, 'off');
+            hold(ax, 'off');
+        end
+
+        function [H_unit, M_unit] = get_playground_axis_units(app)
+            H_unit = string(app.HorizontalaxisfieldDropDown_2.Value);
+            M_unit = string(app.VerticalaxisfieldDropDown_2.Value);
+        end
+
+        function [H_plot, M_plot, has_data] = get_playground_data_curve(app)
+            H_plot = [];
+            M_plot = [];
+            has_data = false;
+
+            if isempty(app.H_raw) || isempty(app.M_raw)
+                return;
+            end
+
+            [H_unit, M_unit] = app.get_playground_axis_units();
+            [H_conv, M_conv] = UnitConvertor().convert_H_M(app.H_raw, H_unit, app.M_raw, M_unit);
+
+            if app.is_last_import_anhysteretic()
+                H_plot = H_conv;
+                M_plot = M_conv;
+            else
+                n_left = max(2, round(app.InputNumberofPointsEditField.Value));
+                [H_left, M_left] = app.extract_left_branch_uniform_arc(H_conv, M_conv, n_left);
+                H_right = -H_left;
+                M_right = -M_left;
+                H_plot = [H_left H_right(2:end)];
+                M_plot = [M_left M_right(2:end)];
+            end
+
+            has_data = ~isempty(H_plot) && ~isempty(M_plot) && numel(H_plot) >= 2 && numel(M_plot) >= 2;
+        end
+
         function apply_axis_scale(app, ax, selection)
             selection = string(selection);
             if app.axis_scale_has_x(selection)
@@ -2539,6 +2602,31 @@ classdef app_exported < matlab.apps.AppBase
             app.write_message("No parameters available to retrieve.");
         end
 
+        % Button pushed function: CalculatePlotButton_3
+        function CalculatePlotButton_3Pushed(app, event)
+            app.plot_playground();
+        end
+
+        % Value changed function: ShowgridCheckBoxM_4
+        function ShowgridCheckBoxM_4ValueChanged(app, event)
+            app.plot_playground();
+        end
+
+        % Value changed function: ShowgridCheckBoxM_5
+        function ShowgridCheckBoxM_5ValueChanged(app, event)
+            app.plot_playground();
+        end
+
+        % Value changed function: HorizontalaxisfieldDropDown_2
+        function HorizontalaxisfieldDropDown_2ValueChanged(app, event)
+            app.plot_playground();
+        end
+
+        % Value changed function: VerticalaxisfieldDropDown_2
+        function VerticalaxisfieldDropDown_2ValueChanged(app, event)
+            app.plot_playground();
+        end
+
         % Value changed function: RepetitionsEditField_3
         function RepetitionsEditField_3ValueChanged(app, event)
             app.plot_hysteretic_tab_data()
@@ -3769,6 +3857,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create ShowgridCheckBoxM_4
             app.ShowgridCheckBoxM_4 = uicheckbox(app.PlaygroundTab);
+            app.ShowgridCheckBoxM_4.ValueChangedFcn = createCallbackFcn(app, @ShowgridCheckBoxM_4ValueChanged, true);
             app.ShowgridCheckBoxM_4.Text = 'Data curve';
             app.ShowgridCheckBoxM_4.Position = [823 21 80 29];
 
@@ -3873,6 +3962,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create ShowgridCheckBoxM_5
             app.ShowgridCheckBoxM_5 = uicheckbox(app.PlaygroundTab);
+            app.ShowgridCheckBoxM_5.ValueChangedFcn = createCallbackFcn(app, @ShowgridCheckBoxM_5ValueChanged, true);
             app.ShowgridCheckBoxM_5.Text = 'Grid';
             app.ShowgridCheckBoxM_5.Position = [763 25 62 29];
             app.ShowgridCheckBoxM_5.Value = true;
@@ -4040,6 +4130,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create CalculatePlotButton_3
             app.CalculatePlotButton_3 = uibutton(app.PlaygroundTab, 'push');
+            app.CalculatePlotButton_3.ButtonPushedFcn = createCallbackFcn(app, @CalculatePlotButton_3Pushed, true);
             app.CalculatePlotButton_3.WordWrap = 'on';
             app.CalculatePlotButton_3.Position = [928 20 91 29];
             app.CalculatePlotButton_3.Text = 'Calculate & Plot';
@@ -4052,6 +4143,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create HorizontalaxisfieldDropDown_2
             app.HorizontalaxisfieldDropDown_2 = uidropdown(app.PlaygroundTab);
+            app.HorizontalaxisfieldDropDown_2.ValueChangedFcn = createCallbackFcn(app, @HorizontalaxisfieldDropDown_2ValueChanged, true);
             app.HorizontalaxisfieldDropDown_2.Items = {'H [A/m]', 'H [kA/m]', 'H [Oe]', 'H [kOe]', 'Bext [T]', 'Bext [G]', 'Bext [kG]'};
             app.HorizontalaxisfieldDropDown_2.Position = [721 466 135 31];
             app.HorizontalaxisfieldDropDown_2.Value = 'H [A/m]';
@@ -4064,6 +4156,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create VerticalaxisfieldDropDown_2
             app.VerticalaxisfieldDropDown_2 = uidropdown(app.PlaygroundTab);
+            app.VerticalaxisfieldDropDown_2.ValueChangedFcn = createCallbackFcn(app, @VerticalaxisfieldDropDown_2ValueChanged, true);
             app.VerticalaxisfieldDropDown_2.Items = {'M [A/m]', 'M [kA/m]', 'M [MA/m]', 'M [emu/cm^3]', 'J [T]', 'B [T]', 'B [G]', 'B [kG]'};
             app.VerticalaxisfieldDropDown_2.Position = [866 464 118 31];
             app.VerticalaxisfieldDropDown_2.Value = 'M [A/m]';
