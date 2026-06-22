@@ -26,8 +26,13 @@ classdef Plotter
         end
 
         function plot_Hcr(obj, ax)
-            for i = 1:length(obj.Hcr)
-                xline(ax, obj.Hcr(i), '--', "Color",[0, 0.4470, 0.7410], "Label", "Hcr");
+            if strcmp(ax.XScale, 'log')
+                Hcr = obj.Hcr(isfinite(obj.Hcr) & obj.Hcr > 0);
+            else
+                Hcr = obj.Hcr(isfinite(obj.Hcr));
+            end
+            for i = 1:length(Hcr)
+                xline(ax, Hcr(i), '--', "Color",[0, 0.4470, 0.7410], "Label", "Hcr");
             end
         end
 
@@ -49,8 +54,6 @@ classdef Plotter
             if(plot_grid)
                 grid(ax,"on");
             end
-
-            yline(ax, 0);
 
             obj.plot_Hcr(ax)
             xlabel(ax, 'H [A/m]');
@@ -77,8 +80,6 @@ classdef Plotter
             if(plot_grid)
                 grid(ax,"on");
             end
-
-            yline(ax, 0);
 
             xlabel(ax, 'H [A/m]');
             ylabel(ax, 'M [A/m]');
@@ -107,8 +108,6 @@ classdef Plotter
                 grid(ax,"on");
             end
 
-            yline(ax, 0);
-
             xlabel(ax, 'H [A/m]');
             ylabel(ax, '∂M/∂H');
             ax.YLim = [min(obj.data_curve.dMdH) max(obj.data_curve.dMdH)*1.1];
@@ -136,8 +135,6 @@ classdef Plotter
                 grid(ax,"on");
             end
 
-            yline(ax, 0);
-
             xlabel(ax, 'H [A/m]');
             ylabel(ax, '∂M/∂H');
             box(ax,'on');
@@ -164,8 +161,6 @@ classdef Plotter
                 grid(ax,"on");
             end
 
-            yline(ax, 0);
-
             xlabel(ax, 'H [A/m]');
             ylabel(ax, '∂M/∂(lnH) [A/m]', "Color",[0, 0, 0]);
             box(ax,'on');
@@ -191,8 +186,6 @@ classdef Plotter
             if(plot_grid)
                 grid(ax,"on");
             end
-
-            yline(ax, 0);
 
             xlabel(ax, 'H [A/m]');
             ylabel(ax, '∂M/∂(lnH) [A/m]', "Color",[0, 0, 0]);
@@ -230,7 +223,6 @@ classdef Plotter
             tip = max(Y);
             ax.YAxis.Exponent = obj.get_scientific_notation_exponent(tip);
             grid(ax,"on");
-            yline(ax, 0);
             xlabel(ax, X_label);
             ylabel(ax, Y_label);
             title(ax, plot_title);
