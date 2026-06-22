@@ -298,6 +298,9 @@ classdef app_exported < matlab.apps.AppBase
         OutputBrowseButton              matlab.ui.control.Button
         OutputDatasetPath               matlab.ui.control.EditField
         OutputDatasetpathLabel          matlab.ui.control.Label
+        ContextMenu                     matlab.ui.container.ContextMenu
+        Menu                            matlab.ui.container.Menu
+        Menu2                           matlab.ui.container.Menu
     end
 
     
@@ -306,12 +309,15 @@ classdef app_exported < matlab.apps.AppBase
         H_raw
         M_raw
         imported_curve_type string = ""
-        data_curve
+        data_curvel
         modeled_curve
         Hcr
         mcr
         Hx
         magnetic_parameters
+        playground_curve_H
+        playground_curve_M
+        playground_curve_ready logical = false
         number_components
         lb
         ub
@@ -321,6 +327,7 @@ classdef app_exported < matlab.apps.AppBase
         ProjectPath
         fitted_parameter_values
         component_row_types
+        data_curve
     end
     
     methods (Access = private)
@@ -676,20 +683,26 @@ classdef app_exported < matlab.apps.AppBase
             cla(ax, 'reset');
             hold(ax, 'on');
             
-            [H_label, M_label] = app.get_playground_axis_units();
+            H_label = "H [A/m]";
+            M_label = "M [A/m]";
             if app.ShowgridCheckBoxM_4.Value == 1
                 [H_plot, M_plot, has_data] = app.get_playground_data_curve();
                 if has_data
-                    plot(ax, H_plot, M_plot, '.', 'Color', [0 0 0], 'LineWidth', 1.0, 'MarkerSize', 7);
+                    plot(ax, H_plot, M_plot, '.', 'Color', [0 0 0], 'LineWidth', 1.0, 'MarkerSize', 7, 'DisplayName', 'Processed input data');
                 else
                     app.write_message("Warning: No input curve is available to plot in Playground.");
                 end
             end
 
+            [H_sim, M_sim, has_sim] = PlaygroundUtils.get_simulation_curve(app);
+            if has_sim
+                plot(ax, H_sim, M_sim, 'r-', 'LineWidth', 1.2, 'DisplayName', 'JA simulated');
+            end
+
             xline(ax, 0, 'k-', 'LineWidth', 1.2);
             yline(ax, 0, 'k-', 'LineWidth', 1.2);
             if app.ShowgridCheckBoxM_5.Value == 1
-                grid(ax, 'on');
+                grid(ax, 'on');            
             else
                 grid(ax, 'off');
             end
@@ -700,33 +713,6 @@ classdef app_exported < matlab.apps.AppBase
             ax.LineWidth = 1.2;
             legend(ax, 'off');
             hold(ax, 'off');
-        end
-
-        function [H_plot, M_plot, has_data] = get_playground_data_curve(app)
-            H_plot = [];
-            M_plot = [];
-            has_data = false;
-
-            if isempty(app.H_raw) || isempty(app.M_raw)
-                return;
-            end
-            
-            [H_unit, M_unit] = app.get_playground_axis_units();
-            [H_conv, M_conv] = UnitConvertor().convert_H_M(app.H_raw, H_unit, app.M_raw, M_unit);
-
-            if app.is_last_import_anhysteretic()
-                H_plot = H_conv;
-                M_plot = M_conv;
-            else
-                n_left = max(2, round(app.InputNumberofPointsEditField.Value));
-                [H_left, M_left] = app.extract_left_branch_uniform_arc(H_conv, M_conv, n_left);
-                H_right = -H_left;
-                M_right = -M_left;
-                H_plot = [H_left H_right(2:end)];
-                M_plot = [M_left M_right(2:end)];
-            end
-
-            has_data = ~isempty(H_plot) && ~isempty(M_plot) && numel(H_plot) >= 2 && numel(M_plot) >= 2;
         end
 
         function apply_axis_scale(app, ax, selection)
@@ -985,6 +971,9 @@ classdef app_exported < matlab.apps.AppBase
             [H, M, app.H_raw, app.M_raw] = Parser(path, H_unit, M_unit, curve_type, number_of_points).import();
             
             app.data_curve = DataAnhystereticCurve(H, M);
+            app.refresh_playground_data_curve();
+            PlaygroundUtils.sync_major_ui(app);
+            PlaygroundUtils.clear_simulation(app);
         end
         
         function is_anhysteretic = is_last_import_anhysteretic(app)
@@ -1237,6 +1226,8 @@ classdef app_exported < matlab.apps.AppBase
             ax = app.AxesM_2;
             cla(ax, 'reset');
             hold(ax, 'on');
+            H_label = "H [A/m]";
+            M_label = "M [A/m]";
 
             has_raw_data = ~isempty(app.H_raw) && ~isempty(app.M_raw);
             if has_raw_data && app.is_last_import_anhysteretic()
@@ -1272,12 +1263,7 @@ classdef app_exported < matlab.apps.AppBase
             legend(ax, 'off');
             hold(ax, 'off');
         end
-        
-        function [H_unit, M_unit] = get_playground_axis_units(app)
-            H_unit = string(app.HorizontalaxisfieldDropDown_2.Value);
-            M_unit = string(app.VerticalaxisfieldDropDown_2.Value);
-        end
-
+       
         function [params, ok] = get_ja_params_from_tab(app)
             params = struct('Ms', NaN, 'a', NaN, 'alpha', NaN, 'k', NaN, 'c', NaN);
             ok = false;
@@ -1790,6 +1776,130 @@ classdef app_exported < matlab.apps.AppBase
     
     methods (Access = public)
         
+        function [H_unit, M_unit] = get_playground_axis_units(app)
+            H_unit = string(app.HorizontalaxisfieldDropDown_2.Value);
+            M_unit = string(app.VerticalaxisfieldDropDown_2.Value);
+        end
+
+        function values = get_minor_loop_default_values(app)
+            values = [1; 2; 3];
+        end
+
+        function configure_minor_loop_table(app)
+            if ~isprop(app, 'UITable') || isempty(app.UITable) || ~isvalid(app.UITable)
+                return;
+            end
+
+            app.UITable.SelectionType = 'cell';
+            app.UITable.ColumnEditable = [true];
+            app.UITable.Data = app.get_minor_loop_default_values();
+            app.UITable.CellEditCallback = createCallbackFcn(app, @UITableCellEdit, true);
+        end
+
+        function refresh_playground_data_curve(app)
+            app.playground_curve_H = [];
+            app.playground_curve_M = [];
+            app.playground_curve_ready = false;
+
+            if ~isobject(app.data_curve) || ~isprop(app.data_curve, 'H') || isempty(app.data_curve.H) ...
+                    || ~isprop(app.data_curve, 'M') || isempty(app.data_curve.M)
+                return;
+            end
+
+            H_plot = app.data_curve.H(:).';
+            M_plot = app.data_curve.M(:).';
+
+            if ~isempty(H_plot) && ~isempty(M_plot) && numel(H_plot) >= 2 && numel(M_plot) >= 2
+                app.playground_curve_H = H_plot;
+                app.playground_curve_M = M_plot;
+                app.playground_curve_ready = true;
+            end
+        end
+
+        function [H_plot, M_plot, has_data] = get_playground_data_curve(app)
+            if ~app.playground_curve_ready
+                app.refresh_playground_data_curve();
+            end
+
+            H_plot = app.playground_curve_H;
+            M_plot = app.playground_curve_M;
+            has_data = app.playground_curve_ready && ~isempty(H_plot) && ~isempty(M_plot) ...
+                && numel(H_plot) >= 2 && numel(M_plot) >= 2;
+        end
+
+        function [Htips, ok] = get_minor_loop_inputs(app)
+            Htips = [];
+            ok = false;
+
+            if ~isprop(app, 'UITable') || isempty(app.UITable) || ~isvalid(app.UITable)
+                return;
+            end
+
+            raw = [];
+            if isprop(app.UITable, 'Data')
+                raw = app.UITable.Data;
+            elseif isprop(app.UITable, 'Value')
+                raw = app.UITable.Value;
+            end
+
+            if isempty(raw)
+                return;
+            end
+
+            if isnumeric(raw)
+                values = raw(:);
+            else
+                raw = string(raw);
+                
+                tokens = split(strjoin(raw(:).', newline), {newline, ",", ";", " "});
+                tokens = tokens(strlength(strtrim(tokens)) > 0);
+                values = str2double(replace(strtrim(tokens), ",", ""));
+            end
+
+            values = values(isfinite(values) & values > 0);
+            if isempty(values)
+                return;
+            end
+
+            Htips = sort(values(:), 'ascend');
+            ok = true;
+        end
+
+        function run_playground_minor_loop(app)
+            try
+                PlaygroundUtils.sync_major_ui(app);
+                [Htips, ok_inputs] = app.get_minor_loop_inputs();
+                if ~ok_inputs
+                    PlaygroundUtils.clear_simulation(app);
+                    app.plot_playground();
+                    app.write_message("Enter one or more positive amplitudes in the minor-loop table.");
+                    return;
+                end
+
+                [params, ok_params] = PlaygroundUtils.get_hysteretic_params(app);
+                if ~ok_params
+                    PlaygroundUtils.clear_simulation(app);
+                    app.plot_playground();
+                    app.write_message("The magnetization path cannot be computed with the current initial condition M(Hstart) and model parameters");
+                    return;
+                end
+
+                [Hsim, Msim, info] = solveJA_minorLoop_playground( ...
+                    Htips, params, ...
+                    string(app.StopcriterionDropDown_4.Value), ...
+                    app.RepetitionsEditField_2.Value, ...
+                    app.ReltoleranceEditField_2.Value, ...
+                    odeset('RelTol', 1e-7, 'AbsTol', 1e-6));
+                info.status = "ok";
+                PlaygroundUtils.set_simulation(app, Hsim, Msim, info);
+                app.plot_playground();
+            catch
+                PlaygroundUtils.clear_simulation(app);
+                app.plot_playground();
+                app.write_message("The magnetization path cannot be computed with the current initial condition M(Hstart) and model parameters");
+            end
+        end
+
         function set_colors_and_plot(app, colors)
             app.Colors = colors;
             if ~isobject(app.data_curve) || ~isprop(app.data_curve, 'H') || isempty(app.data_curve.H)
@@ -1838,6 +1948,7 @@ classdef app_exported < matlab.apps.AppBase
             app.number_components = app.NofcomponentsSpinner.Value;
         
             app.init_components();
+            app.configure_minor_loop_table();
             app.TableFittedParameters.ColumnFormat = {[] 'char' 'short' 'short' 'logical'};
         
             app.init_parameters_table(true);
@@ -1855,6 +1966,8 @@ classdef app_exported < matlab.apps.AppBase
             update_components(app);
             app.sync_k_fit_mode_ui();
             app.sync_hysteretic_fitting_ui();
+            PlaygroundUtils.clear_simulation(app);
+            PlaygroundUtils.sync_major_ui(app);
         
             % Default colors
             app.Colors = [
@@ -1916,6 +2029,7 @@ classdef app_exported < matlab.apps.AppBase
         function NofcomponentsSpinnerValueChanged(app, event)
             app.number_components = app.NofcomponentsSpinner.Value;
             app.init_components();
+            app.configure_minor_loop_table();
         end
 
         % Button pushed function: InputBrowseButton
@@ -1945,6 +2059,7 @@ classdef app_exported < matlab.apps.AppBase
         function InputDatasetPathValueChanged(app, event)
             dataset_path = app.InputDatasetPath.Value;
             [app.H, app.M] = Parser(dataset_path).get_data_csv;
+            PlaygroundUtils.clear_simulation(app);
             update_components(app)
             calculate_parameters(app)
         end
@@ -2232,6 +2347,7 @@ classdef app_exported < matlab.apps.AppBase
 
             app.number_components = s.number_components;
             app.init_components();
+            app.configure_minor_loop_table();
             app.init_parameters_table(true);
             app.init_quantities_table(true);
             app.NofcomponentsSpinner.Value = app.number_components;
@@ -2655,7 +2771,28 @@ classdef app_exported < matlab.apps.AppBase
 
         % Button pushed function: CalculatePlotButton_3
         function CalculatePlotButton_3Pushed(app, event)
-            app.plot_playground();
+            PlaygroundUtils.sync_major_ui(app);
+            if PlaygroundUtils.is_minor_mode(app)
+                app.run_playground_minor_loop();
+            else
+                try
+                    [Hsim, Msim, info] = PlaygroundUtils.calculate_simulation(app);
+                    if ~isempty(Hsim) && ~isempty(Msim) && isfield(info, 'mode') && isfield(info, 'status') && string(info.status) == "ok"
+                        PlaygroundUtils.set_simulation(app, Hsim, Msim, info);
+                        app.plot_playground();
+                    else
+                        PlaygroundUtils.clear_simulation(app);
+                        app.plot_playground();
+                        if isfield(info, 'status') && string(info.status) == "solver_failed"
+                            app.write_message("The magnetization path cannot be computed with the current initial condition M(Hstart) and model parameters");
+                        end
+                    end
+                catch
+                    PlaygroundUtils.clear_simulation(app);
+                    app.plot_playground();
+                    app.write_message("The magnetization path cannot be computed with the current initial condition M(Hstart) and model parameters");
+                end
+            end
         end
 
         % Value changed function: ShowgridCheckBoxM_5
@@ -2666,8 +2803,22 @@ classdef app_exported < matlab.apps.AppBase
         % Value changed function: HamplitudeAmEditField, 
         % ...and 7 other components
         function PlotDropDownValueChanged(app, event)
-            value = app.StartingpointDropDown.Value;
-            
+            PlaygroundUtils.clear_simulation(app);
+            PlaygroundUtils.sync_major_ui(app);
+            app.plot_playground();
+        end
+
+        % Value changed function: HcaseDropDown
+        function HcaseDropDownValueChanged(app, event)
+            PlaygroundUtils.clear_simulation(app);
+            PlaygroundUtils.sync_major_ui(app);
+            app.plot_playground();
+        end
+
+        % Cell edit callback: UITable
+        function UITableCellEdit(app, event)
+            PlaygroundUtils.clear_simulation(app);
+            app.plot_playground();
         end
     end
 
@@ -3885,8 +4036,8 @@ classdef app_exported < matlab.apps.AppBase
             % Create DrivingfieldLabel_2
             app.DrivingfieldLabel_2 = uilabel(app.GridLayout3);
             app.DrivingfieldLabel_2.FontWeight = 'bold';
-            app.DrivingfieldLabel_2.Layout.Row = 2;
-            app.DrivingfieldLabel_2.Layout.Column = 3;
+            app.DrivingfieldLabel_2.Layout.Row = 10;
+            app.DrivingfieldLabel_2.Layout.Column = 1;
             app.DrivingfieldLabel_2.Text = 'Driving field';
 
             % Create ShowgridCheckBoxM_4
@@ -3899,8 +4050,9 @@ classdef app_exported < matlab.apps.AppBase
             % Create HcaseDropDown
             app.HcaseDropDown = uidropdown(app.GridLayout3);
             app.HcaseDropDown.Items = {'Major Loop', 'Minor Loops', 'Degaussing', 'Major Loop with harmonics'};
-            app.HcaseDropDown.Layout.Row = 2;
-            app.HcaseDropDown.Layout.Column = 4;
+            app.HcaseDropDown.ValueChangedFcn = createCallbackFcn(app, @HcaseDropDownValueChanged, true);
+            app.HcaseDropDown.Layout.Row = 10;
+            app.HcaseDropDown.Layout.Column = 2;
             app.HcaseDropDown.Value = 'Major Loop';
 
             % Create MajorloopPanel
@@ -3943,7 +4095,7 @@ classdef app_exported < matlab.apps.AppBase
             app.RepetitionsEditField.RoundFractionalValues = 'on';
             app.RepetitionsEditField.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
             app.RepetitionsEditField.Layout.Row = 6;
-            app.RepetitionsEditField.Layout.Column = 3;
+            app.RepetitionsEditField.Layout.Column = 4;
             app.RepetitionsEditField.Value = 1;
 
             % Create ReltoleranceEditFieldLabel
@@ -3958,7 +4110,7 @@ classdef app_exported < matlab.apps.AppBase
             app.ReltoleranceEditField.ValueDisplayFormat = '%.0e\n';
             app.ReltoleranceEditField.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
             app.ReltoleranceEditField.Layout.Row = 7;
-            app.ReltoleranceEditField.Layout.Column = 3;
+            app.ReltoleranceEditField.Layout.Column = 4;
             app.ReltoleranceEditField.Value = 0.001;
 
             % Create PlotDropDownLabel
@@ -4001,7 +4153,7 @@ classdef app_exported < matlab.apps.AppBase
             app.MstartAmEditField = uieditfield(app.GridLayout4, 'numeric');
             app.MstartAmEditField.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
             app.MstartAmEditField.Layout.Row = 2;
-            app.MstartAmEditField.Layout.Column = 3;
+            app.MstartAmEditField.Layout.Column = 4;
 
             % Create HstartAmEditFieldLabel
             app.HstartAmEditFieldLabel = uilabel(app.GridLayout4);
@@ -4014,7 +4166,7 @@ classdef app_exported < matlab.apps.AppBase
             app.HstartAmEditField = uieditfield(app.GridLayout4, 'numeric');
             app.HstartAmEditField.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
             app.HstartAmEditField.Layout.Row = 3;
-            app.HstartAmEditField.Layout.Column = 3;
+            app.HstartAmEditField.Layout.Column = 4;
 
             % Create HamplitudeAmEditFieldLabel
             app.HamplitudeAmEditFieldLabel = uilabel(app.GridLayout4);
@@ -4027,7 +4179,7 @@ classdef app_exported < matlab.apps.AppBase
             app.HamplitudeAmEditField.Limits = [0 Inf];
             app.HamplitudeAmEditField.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
             app.HamplitudeAmEditField.Layout.Row = 4;
-            app.HamplitudeAmEditField.Layout.Column = 3;
+            app.HamplitudeAmEditField.Layout.Column = 4;
 
             % Create ShowgridCheckBoxM_5
             app.ShowgridCheckBoxM_5 = uicheckbox(app.GridLayout3);
@@ -4040,7 +4192,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create MinorloopPanel
             app.MinorloopPanel = uipanel(app.GridLayout3);
             app.MinorloopPanel.Title = 'Minor loop';
-            app.MinorloopPanel.Layout.Row = [11 14];
+            app.MinorloopPanel.Layout.Row = [10 14];
             app.MinorloopPanel.Layout.Column = [3 5];
             app.MinorloopPanel.Scrollable = 'on';
 
@@ -4058,14 +4210,16 @@ classdef app_exported < matlab.apps.AppBase
             app.UITable.ColumnRearrangeable = 'on';
             app.UITable.RowName = {};
             app.UITable.ColumnSortable = true;
+            app.UITable.SelectionType = 'row';
             app.UITable.ColumnEditable = true;
+            app.UITable.Multiselect = 'off';
             app.UITable.Layout.Row = [2 3];
-            app.UITable.Layout.Column = [3 5];
+            app.UITable.Layout.Column = [4 6];
 
             % Create StopcriterionDropDown_2Label_2
             app.StopcriterionDropDown_2Label_2 = uilabel(app.GridLayout6);
             app.StopcriterionDropDown_2Label_2.Layout.Row = 2;
-            app.StopcriterionDropDown_2Label_2.Layout.Column = [1 2];
+            app.StopcriterionDropDown_2Label_2.Layout.Column = [1 3];
             app.StopcriterionDropDown_2Label_2.Text = 'H amplitude [A/m]';
 
             % Create StopcriterionDropDown_2Label_3
@@ -4085,7 +4239,7 @@ classdef app_exported < matlab.apps.AppBase
             app.RepetitionsEditField_2.Limits = [0 Inf];
             app.RepetitionsEditField_2.RoundFractionalValues = 'on';
             app.RepetitionsEditField_2.Layout.Row = 5;
-            app.RepetitionsEditField_2.Layout.Column = [3 4];
+            app.RepetitionsEditField_2.Layout.Column = [5 6];
             app.RepetitionsEditField_2.Value = 1;
 
             % Create PlotDropDown_2Label
@@ -4126,7 +4280,7 @@ classdef app_exported < matlab.apps.AppBase
             app.ReltoleranceEditField_2.Limits = [0 Inf];
             app.ReltoleranceEditField_2.ValueDisplayFormat = '%.0e\n';
             app.ReltoleranceEditField_2.Layout.Row = 6;
-            app.ReltoleranceEditField_2.Layout.Column = [3 4];
+            app.ReltoleranceEditField_2.Layout.Column = [5 6];
             app.ReltoleranceEditField_2.Value = 0.001;
 
             % Create DegaussingPanel
@@ -4767,6 +4921,17 @@ classdef app_exported < matlab.apps.AppBase
             app.MessagesTextArea.Editable = 'off';
             app.MessagesTextArea.Layout.Row = 1;
             app.MessagesTextArea.Layout.Column = 1;
+
+            % Create ContextMenu
+            app.ContextMenu = uicontextmenu(app.MagAnalystUIFigure);
+
+            % Create Menu
+            app.Menu = uimenu(app.ContextMenu);
+            app.Menu.Text = 'Menu';
+
+            % Create Menu2
+            app.Menu2 = uimenu(app.ContextMenu);
+            app.Menu2.Text = 'Menu2';
 
             % Show the figure after all components are created
             app.MagAnalystUIFigure.Visible = 'on';
