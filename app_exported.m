@@ -2815,7 +2815,7 @@ classdef app_exported < matlab.apps.AppBase
             app.plot_playground();
         end
 
-        % Cell edit callback: UITable
+        % Callback function
         function UITableCellEdit(app, event)
             PlaygroundUtils.clear_simulation(app);
             app.plot_playground();
