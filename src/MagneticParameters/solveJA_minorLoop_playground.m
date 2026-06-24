@@ -31,7 +31,10 @@ function [Hmod, Mmod, info] = solveJA_minorLoop_playground( ...
         'stopCriterion', stopCriterion, ...
         'cyclesSimulated', 0, ...
         'converged', false, ...
-        'branchStarts', []);
+        'branchStarts', [], ...
+        'tipStarts', [], ...
+        'tipEnds', [], ...
+        'tipLastLoopStarts', []);
 
     segmentsH = {};
     segmentsM = {};
@@ -43,6 +46,8 @@ function [Hmod, Mmod, info] = solveJA_minorLoop_playground( ...
 
     for idxTip = 1:numel(Htips)
         Htip = Htips(idxTip);
+        tipStartIndex = nextStartIndex;
+        lastLoopStartIndex = tipStartIndex;
 
         if idxTip == 1
             [Hfirst, Mfirst] = solveJA_monotonic(0, Htip, 0, params, +1, opts);
@@ -67,6 +72,7 @@ function [Hmod, Mmod, info] = solveJA_minorLoop_playground( ...
                 break;
             end
 
+            lastLoopStartIndex = nextStartIndex;
             [Hleft, Mleft] = solveJA_monotonic(Htip, -Htip, currentPositiveM, params, -1, opts);
             [Hright, Mright] = solveJA_monotonic(-Htip, Htip, Mleft(end), params, +1, opts);
 
@@ -94,6 +100,9 @@ function [Hmod, Mmod, info] = solveJA_minorLoop_playground( ...
         end
 
         previousPositiveTip = Htip;
+        info.tipStarts(end + 1) = tipStartIndex; %#ok<AGROW>
+        info.tipEnds(end + 1) = nextStartIndex - 1; %#ok<AGROW>
+        info.tipLastLoopStarts(end + 1) = lastLoopStartIndex; %#ok<AGROW>
     end
 
     [Hmod, Mmod] = localConcatSegments(segmentsH, segmentsM);

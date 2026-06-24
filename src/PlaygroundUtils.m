@@ -273,7 +273,30 @@ classdef PlaygroundUtils
 
             if isfield(cache.info, 'cyclesSimulated') && cache.info.cyclesSimulated > 0 ...
                     && PlaygroundUtils.is_last_cycle_plot_option(PlaygroundUtils.get_plot_option(app))
-                if isfield(cache.info, 'branchStarts') && numel(cache.info.branchStarts) >= 2
+                if isfield(cache.info, 'tipLastLoopStarts') && isfield(cache.info, 'tipEnds') ...
+                        && numel(cache.info.tipLastLoopStarts) == numel(cache.info.tipEnds) ...
+                        && ~isempty(cache.info.tipLastLoopStarts)
+                    H_last = [];
+                    M_last = [];
+                    for i = 1:numel(cache.info.tipLastLoopStarts)
+                        start_idx = cache.info.tipLastLoopStarts(i);
+                        end_idx = cache.info.tipEnds(i);
+                        if start_idx > end_idx
+                            continue;
+                        end
+                        if isempty(H_last)
+                            H_last = H_plot(start_idx:end_idx);
+                            M_last = M_plot(start_idx:end_idx);
+                        else
+                            H_last = [H_last; H_plot(start_idx:end_idx)]; %#ok<AGROW>
+                            M_last = [M_last; M_plot(start_idx:end_idx)]; %#ok<AGROW>
+                        end
+                    end
+                    if ~isempty(H_last) && ~isempty(M_last)
+                        H_plot = H_last;
+                        M_plot = M_last;
+                    end
+                elseif isfield(cache.info, 'branchStarts') && numel(cache.info.branchStarts) >= 2
                     start_idx = cache.info.branchStarts(end - 1);
                     H_plot = H_plot(start_idx:end);
                     M_plot = M_plot(start_idx:end);
