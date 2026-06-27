@@ -1277,7 +1277,11 @@ classdef app_exported < matlab.apps.AppBase
             c = str2double(replace(string(app.JsField_5.Value), ",", ""));
             k = str2double(replace(string(app.JsField_6.Value), ",", ""));
 
-            if any(~isfinite([Ms, a, alpha, c, k])) || a == 0
+            if any(~isfinite([Ms, a, alpha, c, k]))
+                return;
+            end
+
+            if Ms <= 0 || a <= 0 || k <= 0 || c < 0 || c > 1
                 return;
             end
 
@@ -1911,23 +1915,28 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         function run_playground_minor_loop(app)
+            failure_message = "The magnetization path cannot be computed with the current initial condition M(Hstart) and model parameters.";
             try
-                PlaygroundUtils.sync_major_ui(app);
+                [params, ok_params] = PlaygroundUtils.get_playground_params(app);
+                if ~ok_params
+                    PlaygroundUtils.clear_simulation(app);
+                    app.plot_playground();
+                    app.write_message(failure_message);
+                    return;
+                end
+
                 [Htips, ok_inputs] = app.get_minor_loop_inputs();
                 if ~ok_inputs
                     PlaygroundUtils.clear_simulation(app);
                     app.plot_playground();
-                    app.write_message("Enter one or more positive amplitudes in the minor-loop table.");
+                    app.write_message(failure_message);
                     return;
                 end
+                PlaygroundUtils.sync_major_ui(app);
 
-                [params, ok_params] = PlaygroundUtils.get_hysteretic_params(app);
-                if ~ok_params
-                    PlaygroundUtils.clear_simulation(app);
-                    app.plot_playground();
-                    app.write_message("The magnetization path cannot be computed with the current initial condition M(Hstart) and model parameters");
-                    return;
-                end
+                app.write_message("Calculate & Plot started");
+                pause(0.01);
+                calc_timer = tic;
 
                 [Hsim, Msim, info] = solveJA_minorLoop_playground( ...
                     Htips, params, ...
@@ -1938,10 +1947,12 @@ classdef app_exported < matlab.apps.AppBase
                 info.status = "ok";
                 PlaygroundUtils.set_simulation(app, Hsim, Msim, info);
                 app.plot_playground();
+                t = sprintf("%0.2f", toc(calc_timer));
+                app.write_message("Calculate & Plot finished after " + t + " s");
             catch
                 PlaygroundUtils.clear_simulation(app);
                 app.plot_playground();
-                app.write_message("The magnetization path cannot be computed with the current initial condition M(Hstart) and model parameters");
+                app.write_message(failure_message);
             end
         end
 
@@ -2818,26 +2829,49 @@ classdef app_exported < matlab.apps.AppBase
 
         % Button pushed function: CalculatePlotButton_3
         function CalculatePlotButton_3Pushed(app, event)
-            PlaygroundUtils.sync_major_ui(app);
+            failure_message = "The magnetization path cannot be computed with the current initial condition M(Hstart) and model parameters.";
+            
             if PlaygroundUtils.is_minor_mode(app)
                 app.run_playground_minor_loop();
             else
+                [params, ok_params] = PlaygroundUtils.get_playground_params(app);
+                if ~ok_params
+                    PlaygroundUtils.clear_simulation(app);
+                    app.plot_playground();
+                    app.write_message(failure_message);
+                    return;
+                end
+
+                [Hstart, Mstart, Htip, ok_inputs] = PlaygroundUtils.get_major_inputs(app);
+                if ~ok_inputs
+                    PlaygroundUtils.clear_simulation(app);
+                    app.plot_playground();
+                    app.write_message(failure_message);
+                    return;
+                end
+
+                PlaygroundUtils.sync_major_ui(app);
+                app.write_message("Calculate & Plot started");
+                pause(0.01);
+                calc_timer = tic;
                 try
-                    [Hsim, Msim, info] = PlaygroundUtils.calculate_simulation(app);
-                    if ~isempty(Hsim) && ~isempty(Msim) && isfield(info, 'mode') && isfield(info, 'status') && string(info.status) == "ok"
-                        PlaygroundUtils.set_simulation(app, Hsim, Msim, info);
-                        app.plot_playground();
-                    else
-                        PlaygroundUtils.clear_simulation(app);
-                        app.plot_playground();
-                        if isfield(info, 'status') && string(info.status) == "solver_failed"
-                            app.write_message("The magnetization path cannot be computed with the current initial condition M(Hstart) and model parameters");
-                        end
-                    end
+                    [Hsim, Msim, info] = solveJA_majorLoop_playground( ...
+                        Hstart, Mstart, Htip, params, ...
+                        string(app.StartingpointDropDown.Value), ...
+                        string(app.StopcriterionDropDown.Value), ...
+                        app.RepetitionsEditField.Value, ...
+                        app.ReltoleranceEditField.Value, ...
+                        odeset('RelTol', 1e-7, 'AbsTol', 1e-6));
+                    info.status = "ok";
+                    PlaygroundUtils.set_simulation(app, Hsim, Msim, info);
+                    app.plot_playground();
+                    t = sprintf("%0.2f", toc(calc_timer));
+                    app.write_message("Calculate & Plot finished after " + t + " s");
                 catch
                     PlaygroundUtils.clear_simulation(app);
                     app.plot_playground();
-                    app.write_message("The magnetization path cannot be computed with the current initial condition M(Hstart) and model parameters");
+                    t = sprintf("%0.2f", toc(calc_timer));
+                    app.write_message("Calculate & Plot failed after " + t + " s: " + failure_message);
                 end
             end
         end
