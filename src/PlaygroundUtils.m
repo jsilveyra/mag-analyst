@@ -198,7 +198,7 @@ classdef PlaygroundUtils
             Msim = [];
             info = struct('mode', "", 'status', "invalid_inputs", 'message', "");
 
-            [params, ok_params] = PlaygroundUtils.get_hysteretic_params(app);
+            [params, ok_params] = PlaygroundUtils.get_playground_params(app);
             if ~ok_params
                 return;
             end
@@ -308,20 +308,28 @@ classdef PlaygroundUtils
         end
 
         function [params, ok] = get_hysteretic_params(app)
+            [params, ok] = PlaygroundUtils.get_playground_params(app);
+        end
+
+        function [params, ok] = get_playground_params(app)
             params = struct('Ms', NaN, 'a', NaN, 'alpha', NaN, 'k', NaN, 'c', NaN);
             ok = false;
 
             try
-                Ms = str2double(replace(string(app.JsField_2.Value), ",", ""));
-                a = str2double(replace(string(app.JsField_3.Value), ",", ""));
-                alpha = str2double(replace(string(app.JsField_4.Value), ",", ""));
-                c = str2double(replace(string(app.JsField_5.Value), ",", ""));
-                k = str2double(replace(string(app.JsField_6.Value), ",", ""));
+                Ms = str2double(replace(string(app.JsField_9.Value), ",", ""));
+                a = str2double(replace(string(app.JsField_10.Value), ",", ""));
+                alpha = str2double(replace(string(app.JsField_11.Value), ",", ""));
+                c = str2double(replace(string(app.JsField_12.Value), ",", ""));
+                k = str2double(replace(string(app.JsField_13.Value), ",", ""));
             catch
                 return;
             end
 
-            if any(~isfinite([Ms, a, alpha, c, k])) || a == 0
+            if any(~isfinite([Ms, a, alpha, c, k]))
+                return;
+            end
+
+            if Ms <= 0 || a <= 0 || k <= 0 || c < 0 || c > 1
                 return;
             end
 
