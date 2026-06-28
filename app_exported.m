@@ -1853,20 +1853,22 @@ classdef app_exported < matlab.apps.AppBase
             M_source_factor = uc.UnitConversions(M_source_unit);
             M_target_factor = uc.UnitConversions(M_target_unit);
 
-            H_out = (H_in ./ H_source_factor) .* H_target_factor;
+            H_base = H_in .* H_source_factor;
+            H_out = H_base ./ H_target_factor;
 
             source_is_B = M_source_unit == "B [T]" || M_source_unit == "B [G]" || M_source_unit == "B [kG]";
             target_is_B = M_target_unit == "B [T]" || M_target_unit == "B [G]" || M_target_unit == "B [kG]";
 
             if source_is_B
-                M_base = (M_in + H_in) ./ M_source_factor;
+                M_base = (M_in .* M_source_factor) - H_base;
             else
-                M_base = M_in ./ M_source_factor;
+                M_base = M_in .* M_source_factor;
             end
 
-            M_out = M_base .* M_target_factor;
             if target_is_B
-                M_out = M_out - H_out;
+                M_out = (M_base + H_base) ./ M_target_factor;
+            else
+                M_out = M_base ./ M_target_factor;
             end
         end
 
