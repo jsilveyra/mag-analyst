@@ -722,6 +722,28 @@ classdef app_exported < matlab.apps.AppBase
             hold(ax, 'off');
         end
 
+        function sync_playground_mode_ui(app)
+            mode = lower(string(app.HcaseDropDown.Value));
+
+            if contains(mode, "major loop")
+                app.MajorloopPanel.Visible = 'on';
+                app.MinorloopPanel.Visible = 'off';
+                app.DegaussingPanel.Visible = 'off';
+            elseif contains(mode, "minor loop")
+                app.MajorloopPanel.Visible = 'off';
+                app.MinorloopPanel.Visible = 'on';
+                app.DegaussingPanel.Visible = 'off';
+            elseif contains(mode, "degaussing")
+                app.MajorloopPanel.Visible = 'off';
+                app.MinorloopPanel.Visible = 'off';
+                app.DegaussingPanel.Visible = 'on';
+            else
+                app.MajorloopPanel.Visible = 'on';
+                app.MinorloopPanel.Visible = 'on';
+                app.DegaussingPanel.Visible = 'on';
+            end
+        end
+
         function apply_axis_scale(app, ax, selection)
             selection = string(selection);
             if app.axis_scale_has_x(selection)
@@ -1793,7 +1815,7 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         function values = get_minor_loop_default_values(app)
-            values = [1; 2; 3];
+            values = [1; 2; 3; NaN];
         end
 
         function configure_minor_loop_table(app)
@@ -1805,6 +1827,32 @@ classdef app_exported < matlab.apps.AppBase
             app.UITable.ColumnEditable = [true];
             app.UITable.Data = app.get_minor_loop_default_values();
             app.UITable.CellEditCallback = createCallbackFcn(app, @UITableCellEdit, true);
+        end
+
+        function expand_minor_loop_table_if_needed(app, event)
+            if nargin < 2 || isempty(event) || ~isprop(app, 'UITable') || isempty(app.UITable) || ~isvalid(app.UITable)
+                return;
+            end
+
+            if ~isprop(event, 'Indices') || isempty(event.Indices) || ~isprop(event, 'NewData')
+                return;
+            end
+
+            row = event.Indices(1);
+            newValue = event.NewData;
+            if ~(isscalar(row) && isfinite(row) && row >= 1 && isfinite(newValue) && newValue > 0)
+                return;
+            end
+
+            data = app.UITable.Data;
+            if isempty(data) || ~isnumeric(data)
+                return;
+            end
+
+            data = data(:);
+            if row == numel(data)
+                app.UITable.Data = [data; NaN];
+            end
         end
 
         function refresh_playground_data_curve(app)
@@ -2020,6 +2068,7 @@ classdef app_exported < matlab.apps.AppBase
             app.sync_hysteretic_fitting_ui();
             PlaygroundUtils.clear_simulation(app);
             PlaygroundUtils.sync_major_ui(app);
+            app.sync_playground_mode_ui();
         
             % Default colors
             app.Colors = [
@@ -2887,6 +2936,7 @@ classdef app_exported < matlab.apps.AppBase
 
         % Value changed function: HcaseDropDown
         function HcaseDropDownValueChanged(app, event)
+            app.sync_playground_mode_ui();
             PlaygroundUtils.clear_simulation(app);
             PlaygroundUtils.sync_major_ui(app);
             app.plot_playground();
@@ -2894,6 +2944,7 @@ classdef app_exported < matlab.apps.AppBase
 
         % Callback function
         function UITableCellEdit(app, event)
+            app.expand_minor_loop_table_if_needed(event);
             PlaygroundUtils.clear_simulation(app);
             app.plot_playground();
         end
