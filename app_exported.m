@@ -684,12 +684,13 @@ classdef app_exported < matlab.apps.AppBase
             hold(ax, 'on');
             
             [H_label, M_label] = app.get_playground_axis_units();
-            H_source_unit = string(app.HorizontalaxisfieldDropDown.Value);
-            M_source_unit = string(app.VerticalaxisfieldDropDown.Value);
             if app.ShowgridCheckBoxM_4.Value == 1
                 [H_plot, M_plot, has_data] = app.get_playground_data_curve();
                 if has_data
-                    [H_plot, M_plot] = UnitConvertor().convert_H_M(H_plot, H_source_unit, M_plot, M_source_unit);
+                    [H_plot, M_plot] = app.convert_playground_curve_units( ...
+                        H_plot, M_plot, ...
+                        "H [A/m]", "M [A/m]", ...
+                        H_label, M_label);
                     plot(ax, H_plot, M_plot, '.', 'Color', [0 0 0], 'LineWidth', 1.0, 'MarkerSize', 7, 'DisplayName', 'Measured');
                 else
                     app.write_message("Warning: No input curve is available to plot in Playground.");
@@ -698,7 +699,10 @@ classdef app_exported < matlab.apps.AppBase
 
             [H_sim, M_sim, has_sim] = PlaygroundUtils.get_simulation_curve(app);
             if has_sim
-                [H_sim, M_sim] = UnitConvertor().convert_H_M(H_sim, "H [A/m]", M_sim, "M [A/m]");
+                [H_sim, M_sim] = app.convert_playground_curve_units( ...
+                    H_sim, M_sim, ...
+                    "H [A/m]", "M [A/m]", ...
+                    H_label, M_label);
                 plot(ax, H_sim, M_sim, 'r-', 'LineWidth', 1.2, 'DisplayName', 'JA simulated');
             end
 
@@ -1812,21 +1816,11 @@ classdef app_exported < matlab.apps.AppBase
                 return;
             end
 
-            [H_target_unit, M_target_unit] = app.get_playground_axis_units();
-            H_source_unit = string(app.HorizontalaxisfieldDropDown.Value);
-            M_source_unit = string(app.VerticalaxisfieldDropDown.Value);
             if app.is_last_import_anhysteretic()
                 H_plot = app.data_curve.H(:).';
                 M_plot = app.data_curve.M(:).';
             else
                 [H_plot, M_plot] = app.build_ja_data_cycle();
-            end
-
-            if ~isempty(H_plot) && ~isempty(M_plot)
-                [H_plot, M_plot] = app.convert_playground_curve_units( ...
-                    H_plot, M_plot, ...
-                    H_source_unit, M_source_unit, ...
-                    H_target_unit, M_target_unit);
             end
 
             if ~isempty(H_plot) && ~isempty(M_plot) && numel(H_plot) >= 2 && numel(M_plot) >= 2
