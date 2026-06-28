@@ -160,11 +160,6 @@ classdef app_exported < matlab.apps.AppBase
         AxesM_2                         matlab.ui.control.UIAxes
         PlaygroundTab                   matlab.ui.container.Tab
         GridLayout3                     matlab.ui.container.GridLayout
-        VerticalaxisfieldDropDown_2     matlab.ui.control.DropDown
-        VerticalaxisfieldDropDown_2Label  matlab.ui.control.Label
-        HorizontalaxisfieldDropDown_2   matlab.ui.control.DropDown
-        HorizontalaxisfieldDropDown_2Label  matlab.ui.control.Label
-        CalculatePlotButton_3           matlab.ui.control.Button
         DegaussingPanel                 matlab.ui.container.Panel
         GridLayout5                     matlab.ui.container.GridLayout
         FinalamplitudeAmEditField       matlab.ui.control.NumericEditField
@@ -182,6 +177,11 @@ classdef app_exported < matlab.apps.AppBase
         StartingpointDropDown_3         matlab.ui.control.DropDown
         StartingpointDropDown_3Label    matlab.ui.control.Label
         UITable_2                       matlab.ui.control.Table
+        VerticalaxisfieldDropDown_2     matlab.ui.control.DropDown
+        VerticalaxisfieldDropDown_2Label  matlab.ui.control.Label
+        HorizontalaxisfieldDropDown_2   matlab.ui.control.DropDown
+        HorizontalaxisfieldDropDown_2Label  matlab.ui.control.Label
+        CalculatePlotButton_3           matlab.ui.control.Button
         MinorloopPanel                  matlab.ui.container.Panel
         GridLayout6                     matlab.ui.container.GridLayout
         ReltoleranceEditField_2         matlab.ui.control.NumericEditField
@@ -708,11 +708,7 @@ classdef app_exported < matlab.apps.AppBase
 
             xline(ax, 0, 'k-', 'LineWidth', 1.2);
             yline(ax, 0, 'k-', 'LineWidth', 1.2);
-            if app.ShowgridCheckBoxM_5.Value == 1
-                grid(ax, 'on');            
-            else
-                grid(ax, 'off');
-            end
+            app.apply_detailed_grid(ax, app.ShowgridCheckBoxM_5.Value == 1);
 
             xlabel(ax, H_label);
             ylabel(ax, M_label);
@@ -720,6 +716,24 @@ classdef app_exported < matlab.apps.AppBase
             ax.LineWidth = 1.2;
             legend(ax, 'off');
             hold(ax, 'off');
+        end
+
+        function apply_detailed_grid(app, ax, show_grid)
+            grid(ax, 'off');
+            ax.XMinorGrid = 'off';
+            ax.YMinorGrid = 'off';
+            if isprop(ax, 'XMinorTick')
+                ax.XMinorTick = 'on';
+            end
+            if isprop(ax, 'YMinorTick')
+                ax.YMinorTick = 'on';
+            end
+
+            if show_grid
+                grid(ax, 'on');
+                ax.XMinorGrid = 'on';
+                ax.YMinorGrid = 'on';
+            end
         end
 
         function sync_playground_mode_ui(app)
@@ -1280,11 +1294,7 @@ classdef app_exported < matlab.apps.AppBase
             hy0 = yline(ax, 0, 'k-', 'LineWidth', 1.2);
             hx0.Annotation.LegendInformation.IconDisplayStyle = 'off';
             hy0.Annotation.LegendInformation.IconDisplayStyle = 'off';
-            if app.ShowgridCheckBoxM_2.Value == 1
-                grid(ax, 'on');
-            else
-                grid(ax, 'off');
-            end
+            app.apply_detailed_grid(ax, app.ShowgridCheckBoxM_2.Value == 1);
             xlabel(ax, H_label);
             ylabel(ax, M_label);
             box(ax, 'on');
@@ -2759,12 +2769,7 @@ classdef app_exported < matlab.apps.AppBase
 
         % Value changed function: ShowgridCheckBoxM_2
         function ShowgridCheckBoxM_2ValueChanged(app, event)
-            if app.ShowgridCheckBoxM_2.Value == 1
-                grid(app.AxesM_2, 'on');
-            else
-                grid(app.AxesM_2, 'off');
-            end
-            
+            app.apply_detailed_grid(app.AxesM_2, app.ShowgridCheckBoxM_2.Value == 1);
         end
 
         % Button pushed function: RetrieveseedsButton
@@ -2923,6 +2928,7 @@ classdef app_exported < matlab.apps.AppBase
 
         % Value changed function: ShowgridCheckBoxM_5
         function ShowgridCheckBoxM_5ValueChanged(app, event)
+            app.apply_detailed_grid(app.AxesM_5, app.ShowgridCheckBoxM_5.Value == 1);
             app.plot_playground();
         end
 
@@ -4060,8 +4066,8 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayout3
             app.GridLayout3 = uigridlayout(app.PlaygroundTab);
-            app.GridLayout3.ColumnWidth = {62, 91, 89, 100, 39, 57, '1x', 42, 93, 80, 91};
-            app.GridLayout3.RowHeight = {31, 31, 30, 22, 22, 22, 22, 22, 39, '1.89x', '3.28x', '6.83x', 29, '1x'};
+            app.GridLayout3.ColumnWidth = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
+            app.GridLayout3.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
             app.GridLayout3.ColumnSpacing = 4.37498664855957;
             app.GridLayout3.RowSpacing = 2.24000155131022;
             app.GridLayout3.Padding = [4.37498664855957 2.24000155131022 4.37498664855957 2.24000155131022];
@@ -4073,13 +4079,13 @@ classdef app_exported < matlab.apps.AppBase
             zlabel(app.AxesM_5, 'Z')
             app.AxesM_5.Box = 'on';
             app.AxesM_5.Layout.Row = [4 12];
-            app.AxesM_5.Layout.Column = [8 11];
+            app.AxesM_5.Layout.Column = [10 14];
 
             % Create JilesAthertonmodelrateindependentLabel_2
             app.JilesAthertonmodelrateindependentLabel_2 = uilabel(app.GridLayout3);
             app.JilesAthertonmodelrateindependentLabel_2.FontWeight = 'bold';
             app.JilesAthertonmodelrateindependentLabel_2.Layout.Row = 1;
-            app.JilesAthertonmodelrateindependentLabel_2.Layout.Column = [1 6];
+            app.JilesAthertonmodelrateindependentLabel_2.Layout.Column = [1 8];
             app.JilesAthertonmodelrateindependentLabel_2.Text = 'Jiles-Atherton model (rate-independent)';
 
             % Create ModelparametersLabel_2
@@ -4163,9 +4169,10 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create DrivingfieldLabel_2
             app.DrivingfieldLabel_2 = uilabel(app.GridLayout3);
+            app.DrivingfieldLabel_2.HorizontalAlignment = 'center';
             app.DrivingfieldLabel_2.FontWeight = 'bold';
             app.DrivingfieldLabel_2.Layout.Row = 10;
-            app.DrivingfieldLabel_2.Layout.Column = 1;
+            app.DrivingfieldLabel_2.Layout.Column = [1 2];
             app.DrivingfieldLabel_2.Text = 'Driving field';
 
             % Create ShowgridCheckBoxM_4
@@ -4173,26 +4180,26 @@ classdef app_exported < matlab.apps.AppBase
             app.ShowgridCheckBoxM_4.ValueChangedFcn = createCallbackFcn(app, @ShowgridCheckBoxM_4ValueChanged, true);
             app.ShowgridCheckBoxM_4.Text = 'Data curve';
             app.ShowgridCheckBoxM_4.Layout.Row = 13;
-            app.ShowgridCheckBoxM_4.Layout.Column = 10;
+            app.ShowgridCheckBoxM_4.Layout.Column = [11 12];
 
             % Create HcaseDropDown
             app.HcaseDropDown = uidropdown(app.GridLayout3);
             app.HcaseDropDown.Items = {'Major Loop', 'Minor Loops', 'Degaussing', 'Major Loop with harmonics'};
             app.HcaseDropDown.ValueChangedFcn = createCallbackFcn(app, @HcaseDropDownValueChanged, true);
-            app.HcaseDropDown.Layout.Row = 10;
-            app.HcaseDropDown.Layout.Column = 2;
+            app.HcaseDropDown.Layout.Row = 11;
+            app.HcaseDropDown.Layout.Column = [1 2];
             app.HcaseDropDown.Value = 'Major Loop';
 
             % Create MajorloopPanel
             app.MajorloopPanel = uipanel(app.GridLayout3);
             app.MajorloopPanel.Title = 'Major loop';
-            app.MajorloopPanel.Layout.Row = [2 9];
-            app.MajorloopPanel.Layout.Column = [3 5];
+            app.MajorloopPanel.Layout.Row = [2 14];
+            app.MajorloopPanel.Layout.Column = [4 8];
 
             % Create GridLayout4
             app.GridLayout4 = uigridlayout(app.MajorloopPanel);
-            app.GridLayout4.ColumnWidth = {25.97, 41.95, 76.91, '1x'};
-            app.GridLayout4.RowHeight = {21.97, 21.97, 21.97, 21.97, 21.97, 21.97, 21.97, 21.97};
+            app.GridLayout4.ColumnWidth = {'1x', '1x', '1x', '1x'};
+            app.GridLayout4.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
             app.GridLayout4.ColumnSpacing = 5.07975959777832;
             app.GridLayout4.RowSpacing = 2.1945669386122;
             app.GridLayout4.Padding = [5.07975959777832 2.1945669386122 5.07975959777832 2.1945669386122];
@@ -4314,20 +4321,20 @@ classdef app_exported < matlab.apps.AppBase
             app.ShowgridCheckBoxM_5.ValueChangedFcn = createCallbackFcn(app, @ShowgridCheckBoxM_5ValueChanged, true);
             app.ShowgridCheckBoxM_5.Text = 'Grid';
             app.ShowgridCheckBoxM_5.Layout.Row = 13;
-            app.ShowgridCheckBoxM_5.Layout.Column = 9;
+            app.ShowgridCheckBoxM_5.Layout.Column = 10;
             app.ShowgridCheckBoxM_5.Value = true;
 
             % Create MinorloopPanel
             app.MinorloopPanel = uipanel(app.GridLayout3);
             app.MinorloopPanel.Title = 'Minor loop';
-            app.MinorloopPanel.Layout.Row = [10 14];
-            app.MinorloopPanel.Layout.Column = [3 5];
+            app.MinorloopPanel.Layout.Row = [2 14];
+            app.MinorloopPanel.Layout.Column = [4 8];
             app.MinorloopPanel.Scrollable = 'on';
 
             % Create GridLayout6
             app.GridLayout6 = uigridlayout(app.MinorloopPanel);
-            app.GridLayout6.ColumnWidth = {26.05, 60.12, 28.05, 36.07, '1x', '1.36x'};
-            app.GridLayout6.RowHeight = {22.04, 22.04, '1x', 22.04, 22.04, 22.04, 22.04};
+            app.GridLayout6.ColumnWidth = {'1x', '1x', '1x', '1x', '1x', '1x'};
+            app.GridLayout6.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
             app.GridLayout6.ColumnSpacing = 1.95454515729632;
             app.GridLayout6.RowSpacing = 4.77273786067963;
             app.GridLayout6.Padding = [1.95454515729632 4.77273786067963 1.95454515729632 4.77273786067963];
@@ -4341,7 +4348,7 @@ classdef app_exported < matlab.apps.AppBase
             app.UITable.SelectionType = 'row';
             app.UITable.ColumnEditable = true;
             app.UITable.Multiselect = 'off';
-            app.UITable.Layout.Row = [2 3];
+            app.UITable.Layout.Row = [2 4];
             app.UITable.Layout.Column = [4 6];
 
             % Create StopcriterionDropDown_2Label_2
@@ -4358,7 +4365,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create RepetitionsEditFieldLabel_2
             app.RepetitionsEditFieldLabel_2 = uilabel(app.GridLayout6);
-            app.RepetitionsEditFieldLabel_2.Layout.Row = 5;
+            app.RepetitionsEditFieldLabel_2.Layout.Row = 6;
             app.RepetitionsEditFieldLabel_2.Layout.Column = [2 3];
             app.RepetitionsEditFieldLabel_2.Text = 'Repetitions';
 
@@ -4366,40 +4373,40 @@ classdef app_exported < matlab.apps.AppBase
             app.RepetitionsEditField_2 = uieditfield(app.GridLayout6, 'numeric');
             app.RepetitionsEditField_2.Limits = [0 Inf];
             app.RepetitionsEditField_2.RoundFractionalValues = 'on';
-            app.RepetitionsEditField_2.Layout.Row = 5;
+            app.RepetitionsEditField_2.Layout.Row = 6;
             app.RepetitionsEditField_2.Layout.Column = [5 6];
             app.RepetitionsEditField_2.Value = 1;
 
             % Create PlotDropDown_2Label
             app.PlotDropDown_2Label = uilabel(app.GridLayout6);
             app.PlotDropDown_2Label.HorizontalAlignment = 'right';
-            app.PlotDropDown_2Label.Layout.Row = 7;
+            app.PlotDropDown_2Label.Layout.Row = 8;
             app.PlotDropDown_2Label.Layout.Column = 1;
             app.PlotDropDown_2Label.Text = 'Plot';
 
             % Create PlotDropDown_2
             app.PlotDropDown_2 = uidropdown(app.GridLayout6);
             app.PlotDropDown_2.Items = {'Last loops only', 'Full history'};
-            app.PlotDropDown_2.Layout.Row = 7;
+            app.PlotDropDown_2.Layout.Row = 8;
             app.PlotDropDown_2.Layout.Column = [3 6];
             app.PlotDropDown_2.Value = 'Last loops only';
 
             % Create StopcriterionDropDown_4Label
             app.StopcriterionDropDown_4Label = uilabel(app.GridLayout6);
-            app.StopcriterionDropDown_4Label.Layout.Row = 4;
+            app.StopcriterionDropDown_4Label.Layout.Row = 5;
             app.StopcriterionDropDown_4Label.Layout.Column = [1 2];
             app.StopcriterionDropDown_4Label.Text = 'Stop criterion';
 
             % Create StopcriterionDropDown_4
             app.StopcriterionDropDown_4 = uidropdown(app.GridLayout6);
             app.StopcriterionDropDown_4.Items = {'Until convergence', 'Fixed repetitions'};
-            app.StopcriterionDropDown_4.Layout.Row = 4;
+            app.StopcriterionDropDown_4.Layout.Row = 5;
             app.StopcriterionDropDown_4.Layout.Column = [3 6];
             app.StopcriterionDropDown_4.Value = 'Fixed repetitions';
 
             % Create ReltoleranceEditField_2Label
             app.ReltoleranceEditField_2Label = uilabel(app.GridLayout6);
-            app.ReltoleranceEditField_2Label.Layout.Row = 6;
+            app.ReltoleranceEditField_2Label.Layout.Row = 7;
             app.ReltoleranceEditField_2Label.Layout.Column = [2 3];
             app.ReltoleranceEditField_2Label.Text = 'Rel. tolerance';
 
@@ -4407,20 +4414,58 @@ classdef app_exported < matlab.apps.AppBase
             app.ReltoleranceEditField_2 = uieditfield(app.GridLayout6, 'numeric');
             app.ReltoleranceEditField_2.Limits = [0 Inf];
             app.ReltoleranceEditField_2.ValueDisplayFormat = '%.0e\n';
-            app.ReltoleranceEditField_2.Layout.Row = 6;
+            app.ReltoleranceEditField_2.Layout.Row = 7;
             app.ReltoleranceEditField_2.Layout.Column = [5 6];
             app.ReltoleranceEditField_2.Value = 0.001;
+
+            % Create CalculatePlotButton_3
+            app.CalculatePlotButton_3 = uibutton(app.GridLayout3, 'push');
+            app.CalculatePlotButton_3.ButtonPushedFcn = createCallbackFcn(app, @CalculatePlotButton_3Pushed, true);
+            app.CalculatePlotButton_3.WordWrap = 'on';
+            app.CalculatePlotButton_3.Layout.Row = 13;
+            app.CalculatePlotButton_3.Layout.Column = [13 14];
+            app.CalculatePlotButton_3.Text = 'Calculate & Plot';
+
+            % Create HorizontalaxisfieldDropDown_2Label
+            app.HorizontalaxisfieldDropDown_2Label = uilabel(app.GridLayout3);
+            app.HorizontalaxisfieldDropDown_2Label.FontWeight = 'bold';
+            app.HorizontalaxisfieldDropDown_2Label.Layout.Row = 1;
+            app.HorizontalaxisfieldDropDown_2Label.Layout.Column = [10 11];
+            app.HorizontalaxisfieldDropDown_2Label.Text = 'Horizontal axis field';
+
+            % Create HorizontalaxisfieldDropDown_2
+            app.HorizontalaxisfieldDropDown_2 = uidropdown(app.GridLayout3);
+            app.HorizontalaxisfieldDropDown_2.Items = {'H [A/m]', 'H [kA/m]', 'H [Oe]', 'H [kOe]', 'Bext [T]', 'Bext [G]', 'Bext [kG]'};
+            app.HorizontalaxisfieldDropDown_2.ValueChangedFcn = createCallbackFcn(app, @HorizontalaxisfieldDropDown_2ValueChanged, true);
+            app.HorizontalaxisfieldDropDown_2.Layout.Row = 2;
+            app.HorizontalaxisfieldDropDown_2.Layout.Column = [10 11];
+            app.HorizontalaxisfieldDropDown_2.Value = 'H [A/m]';
+
+            % Create VerticalaxisfieldDropDown_2Label
+            app.VerticalaxisfieldDropDown_2Label = uilabel(app.GridLayout3);
+            app.VerticalaxisfieldDropDown_2Label.FontWeight = 'bold';
+            app.VerticalaxisfieldDropDown_2Label.Layout.Row = 1;
+            app.VerticalaxisfieldDropDown_2Label.Layout.Column = [12 13];
+            app.VerticalaxisfieldDropDown_2Label.Text = 'Vertical axis field';
+
+            % Create VerticalaxisfieldDropDown_2
+            app.VerticalaxisfieldDropDown_2 = uidropdown(app.GridLayout3);
+            app.VerticalaxisfieldDropDown_2.Items = {'M [A/m]', 'M [kA/m]', 'M [MA/m]', 'M [emu/cm^3]', 'J [T]', 'B [T]', 'B [G]', 'B [kG]'};
+            app.VerticalaxisfieldDropDown_2.ValueChangedFcn = createCallbackFcn(app, @VerticalaxisfieldDropDown_2ValueChanged, true);
+            app.VerticalaxisfieldDropDown_2.Layout.Row = 2;
+            app.VerticalaxisfieldDropDown_2.Layout.Column = [12 13];
+            app.VerticalaxisfieldDropDown_2.Value = 'M [A/m]';
 
             % Create DegaussingPanel
             app.DegaussingPanel = uipanel(app.GridLayout3);
             app.DegaussingPanel.Title = 'Degaussing';
-            app.DegaussingPanel.Layout.Row = [2 11];
-            app.DegaussingPanel.Layout.Column = [6 7];
+            app.DegaussingPanel.Layout.Row = [2 14];
+            app.DegaussingPanel.Layout.Column = [4 8];
 
             % Create GridLayout5
             app.GridLayout5 = uigridlayout(app.DegaussingPanel);
-            app.GridLayout5.ColumnWidth = {119.83, '1.25x', '1x'};
-            app.GridLayout5.RowHeight = {21.97, 21.97, 21.97, 21.97, 21.97, 21.97, 21.97, '1x'};
+            app.GridLayout5.ColumnWidth = {'1x', '1x', '1x'};
+            app.GridLayout5.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '7x'};
             app.GridLayout5.ColumnSpacing = 7.59856033325195;
             app.GridLayout5.RowSpacing = 6.15151267581516;
             app.GridLayout5.Padding = [7.59856033325195 6.15151267581516 7.59856033325195 6.15151267581516];
@@ -4451,27 +4496,25 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create MstartAmEditField_2Label
             app.MstartAmEditField_2Label = uilabel(app.GridLayout5);
-            app.MstartAmEditField_2Label.HorizontalAlignment = 'right';
             app.MstartAmEditField_2Label.Layout.Row = 2;
-            app.MstartAmEditField_2Label.Layout.Column = 1;
+            app.MstartAmEditField_2Label.Layout.Column = [1 2];
             app.MstartAmEditField_2Label.Text = 'Mstart [A/m]';
 
             % Create MstartAmEditField_2
             app.MstartAmEditField_2 = uieditfield(app.GridLayout5, 'numeric');
             app.MstartAmEditField_2.Layout.Row = 2;
-            app.MstartAmEditField_2.Layout.Column = 2;
+            app.MstartAmEditField_2.Layout.Column = 3;
 
             % Create HstartAmEditField_2Label
             app.HstartAmEditField_2Label = uilabel(app.GridLayout5);
-            app.HstartAmEditField_2Label.HorizontalAlignment = 'right';
             app.HstartAmEditField_2Label.Layout.Row = 3;
-            app.HstartAmEditField_2Label.Layout.Column = 1;
+            app.HstartAmEditField_2Label.Layout.Column = [1 2];
             app.HstartAmEditField_2Label.Text = 'Hstart [A/m]';
 
             % Create HstartAmEditField_2
             app.HstartAmEditField_2 = uieditfield(app.GridLayout5, 'numeric');
             app.HstartAmEditField_2.Layout.Row = 3;
-            app.HstartAmEditField_2.Layout.Column = 2;
+            app.HstartAmEditField_2.Layout.Column = 3;
 
             % Create HamplitudeDropDownLabel
             app.HamplitudeDropDownLabel = uilabel(app.GridLayout5);
@@ -4489,7 +4532,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create NofstepsEditFieldLabel
             app.NofstepsEditFieldLabel = uilabel(app.GridLayout5);
             app.NofstepsEditFieldLabel.Layout.Row = 5;
-            app.NofstepsEditFieldLabel.Layout.Column = 1;
+            app.NofstepsEditFieldLabel.Layout.Column = [1 2];
             app.NofstepsEditFieldLabel.Text = 'N° of steps';
 
             % Create NofstepsEditField
@@ -4501,7 +4544,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create InitialamplitudeAmEditFieldLabel
             app.InitialamplitudeAmEditFieldLabel = uilabel(app.GridLayout5);
             app.InitialamplitudeAmEditFieldLabel.Layout.Row = 6;
-            app.InitialamplitudeAmEditFieldLabel.Layout.Column = 1;
+            app.InitialamplitudeAmEditFieldLabel.Layout.Column = [1 2];
             app.InitialamplitudeAmEditFieldLabel.Text = 'Initial amplitude [A/m]';
 
             % Create InitialamplitudeAmEditField
@@ -4514,7 +4557,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create FinalamplitudeAmEditFieldLabel
             app.FinalamplitudeAmEditFieldLabel = uilabel(app.GridLayout5);
             app.FinalamplitudeAmEditFieldLabel.Layout.Row = 7;
-            app.FinalamplitudeAmEditFieldLabel.Layout.Column = 1;
+            app.FinalamplitudeAmEditFieldLabel.Layout.Column = [1 2];
             app.FinalamplitudeAmEditFieldLabel.Text = 'Final amplitude [A/m]';
 
             % Create FinalamplitudeAmEditField
@@ -4523,44 +4566,6 @@ classdef app_exported < matlab.apps.AppBase
             app.FinalamplitudeAmEditField.Layout.Row = 7;
             app.FinalamplitudeAmEditField.Layout.Column = 3;
             app.FinalamplitudeAmEditField.Value = 1;
-
-            % Create CalculatePlotButton_3
-            app.CalculatePlotButton_3 = uibutton(app.GridLayout3, 'push');
-            app.CalculatePlotButton_3.ButtonPushedFcn = createCallbackFcn(app, @CalculatePlotButton_3Pushed, true);
-            app.CalculatePlotButton_3.WordWrap = 'on';
-            app.CalculatePlotButton_3.Layout.Row = 13;
-            app.CalculatePlotButton_3.Layout.Column = 11;
-            app.CalculatePlotButton_3.Text = 'Calculate & Plot';
-
-            % Create HorizontalaxisfieldDropDown_2Label
-            app.HorizontalaxisfieldDropDown_2Label = uilabel(app.GridLayout3);
-            app.HorizontalaxisfieldDropDown_2Label.FontWeight = 'bold';
-            app.HorizontalaxisfieldDropDown_2Label.Layout.Row = 1;
-            app.HorizontalaxisfieldDropDown_2Label.Layout.Column = [8 9];
-            app.HorizontalaxisfieldDropDown_2Label.Text = 'Horizontal axis field';
-
-            % Create HorizontalaxisfieldDropDown_2
-            app.HorizontalaxisfieldDropDown_2 = uidropdown(app.GridLayout3);
-            app.HorizontalaxisfieldDropDown_2.Items = {'H [A/m]', 'H [kA/m]', 'H [Oe]', 'H [kOe]', 'Bext [T]', 'Bext [G]', 'Bext [kG]'};
-            app.HorizontalaxisfieldDropDown_2.ValueChangedFcn = createCallbackFcn(app, @HorizontalaxisfieldDropDown_2ValueChanged, true);
-            app.HorizontalaxisfieldDropDown_2.Layout.Row = 2;
-            app.HorizontalaxisfieldDropDown_2.Layout.Column = [8 9];
-            app.HorizontalaxisfieldDropDown_2.Value = 'H [A/m]';
-
-            % Create VerticalaxisfieldDropDown_2Label
-            app.VerticalaxisfieldDropDown_2Label = uilabel(app.GridLayout3);
-            app.VerticalaxisfieldDropDown_2Label.FontWeight = 'bold';
-            app.VerticalaxisfieldDropDown_2Label.Layout.Row = 1;
-            app.VerticalaxisfieldDropDown_2Label.Layout.Column = [10 11];
-            app.VerticalaxisfieldDropDown_2Label.Text = 'Vertical axis field';
-
-            % Create VerticalaxisfieldDropDown_2
-            app.VerticalaxisfieldDropDown_2 = uidropdown(app.GridLayout3);
-            app.VerticalaxisfieldDropDown_2.Items = {'M [A/m]', 'M [kA/m]', 'M [MA/m]', 'M [emu/cm^3]', 'J [T]', 'B [T]', 'B [G]', 'B [kG]'};
-            app.VerticalaxisfieldDropDown_2.ValueChangedFcn = createCallbackFcn(app, @VerticalaxisfieldDropDown_2ValueChanged, true);
-            app.VerticalaxisfieldDropDown_2.Layout.Row = 2;
-            app.VerticalaxisfieldDropDown_2.Layout.Column = [10 11];
-            app.VerticalaxisfieldDropDown_2.Value = 'M [A/m]';
 
             % Create OutputdataTab
             app.OutputdataTab = uitab(app.TabGroup);
