@@ -18,6 +18,12 @@ function [Hsol, Msol] = solveJA_monotonic( ...
         opts = odeset('RelTol', 1e-7, 'AbsTol', 1e-6);
     end
 
+    if Hstart == Hend
+        Hsol = Hstart;
+        Msol = Mstart;
+        return;
+    end
+
     sol = ode23tb( ...
         @(H, M) JA_ODE(H, M, params, delta), ...
         [Hstart, Hend], ...
@@ -27,4 +33,3 @@ function [Hsol, Msol] = solveJA_monotonic( ...
     Hsol = sol.x(:);
     Msol = sol.y(:);
 end
-
