@@ -13,7 +13,7 @@ classdef UnitConvertor
     methods
         function obj = UnitConvertor()
             units = ["H [A/m]" "H [kA/m]" "H [Oe]" "H [kOe]" "Bext [T]" "Bext [G]" "Bext [kG]" "M [A/m]" "M [kA/m]" "M [MA/m]" "M [emu/cm^3]" "J [T]" "B [T]" "B [G]" "B [kG]"];
-            oe_conversion = 79.5774715459; % 1000/(4*pi)
+            oe_conversion = 1000/(4*pi); % exact calculation of 1000/(4*pi)
             mu0 = 4*pi*1e-7;
             tesla_conversion = 1/mu0; % multiply T by this to get A/m
             gauss_conversion = tesla_conversion * 1e-4; % 1 G = 1e-4 T
