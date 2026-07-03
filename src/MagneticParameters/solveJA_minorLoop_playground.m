@@ -4,7 +4,10 @@ function [Hmod, Mmod, info] = solveJA_minorLoop_playground( ...
 %
 %   [Hmod, Mmod, info] = solveJA_minorLoop_playground(...)
 %
-%   Htips is sorted ascending before the simulation starts.
+%   Htips is sorted ascending before the simulation starts, so the
+%   smallest tip field is simulated first (starting from the demagnetized
+%   state) and each subsequent, larger tip field is reached by bridging
+%   up from the previous positive tip.
 
     if nargin < 6 || isempty(opts)
         opts = [];
@@ -57,6 +60,9 @@ function [Hmod, Mmod, info] = solveJA_minorLoop_playground( ...
             nextStartIndex = nextStartIndex + numel(Hfirst) - 1;
             currentPositiveM = Mfirst(end);
         else
+            % Tips are processed from smallest to largest, so the bridge
+            % from the previous (smaller) positive tip up to the current
+            % (larger) tip is an increasing field: delta = +1.
             [Hbridge, Mbridge] = solveJA_monotonic(previousPositiveTip, Htip, currentPositiveM, params, +1, opts);
             segmentsH{end + 1} = Hbridge; %#ok<AGROW>
             segmentsM{end + 1} = Mbridge; %#ok<AGROW>
