@@ -17,6 +17,13 @@ classdef app_exported < matlab.apps.AppBase
         GridLayoutMagnetizationInputData  matlab.ui.container.GridLayout
         GridLayoutInputPlot             matlab.ui.container.GridLayout
         GridLayoutInputTipsAndPlotButton  matlab.ui.container.GridLayout
+        GridLayoutTips_3                matlab.ui.container.GridLayout
+        InputApplyPointsButton          matlab.ui.control.Button
+        InputNumberofPointsLabel        matlab.ui.control.Label
+        InputNumberofPointsEditField    matlab.ui.control.NumericEditField
+        GridLayoutTips_2                matlab.ui.container.GridLayout
+        AxisscaleLabel                  matlab.ui.control.Label
+        InputAxisScaleDropDown          matlab.ui.control.DropDown
         GridLayoutTips                  matlab.ui.container.GridLayout
         MTipField                       matlab.ui.control.EditField
         MtipAmLabel                     matlab.ui.control.Label
@@ -26,11 +33,6 @@ classdef app_exported < matlab.apps.AppBase
         AxesRawInputData                matlab.ui.control.UIAxes
         AxesProcessedInputData          matlab.ui.control.UIAxes
         GridLayoutInputAxisScale        matlab.ui.container.GridLayout
-        InputNumberofPointsEditField    matlab.ui.control.NumericEditField
-        InputApplyPointsButton          matlab.ui.control.Button
-        AxisscaleLabel                  matlab.ui.control.Label
-        InputNumberofPointsLabel        matlab.ui.control.Label
-        InputAxisScaleDropDown          matlab.ui.control.DropDown
         GridLayoutInput                 matlab.ui.container.GridLayout
         GridLayoutDatasetPath           matlab.ui.container.GridLayout
         InputDatasetPath                matlab.ui.control.EditField
@@ -95,9 +97,9 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesHdMdH                       matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesM                           matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesHdMdH                       matlab.ui.control.UIAxes
         HystereticfittingTab            matlab.ui.container.Tab
         GridLayout2                     matlab.ui.container.GridLayout
         MaxrepetitionsEditField_3       matlab.ui.control.NumericEditField
@@ -162,6 +164,7 @@ classdef app_exported < matlab.apps.AppBase
         GridLayout3                     matlab.ui.container.GridLayout
         DegaussingPanel                 matlab.ui.container.Panel
         GridLayout5                     matlab.ui.container.GridLayout
+        UITable_3                       matlab.ui.control.Table
         FinalamplitudeAmEditField       matlab.ui.control.NumericEditField
         FinalamplitudeAmEditFieldLabel  matlab.ui.control.Label
         InitialamplitudeAmEditField     matlab.ui.control.NumericEditField
@@ -176,7 +179,6 @@ classdef app_exported < matlab.apps.AppBase
         MstartAmEditField_2Label        matlab.ui.control.Label
         StartingpointDropDown_3         matlab.ui.control.DropDown
         StartingpointDropDown_3Label    matlab.ui.control.Label
-        UITable_2                       matlab.ui.control.Table
         VerticalaxisfieldDropDown_2     matlab.ui.control.DropDown
         VerticalaxisfieldDropDown_2Label  matlab.ui.control.Label
         HorizontalaxisfieldDropDown_2   matlab.ui.control.DropDown
@@ -568,9 +570,41 @@ classdef app_exported < matlab.apps.AppBase
                 [app.Hcr, app.mcr, app.Hx] = fit(app.data_curve, cat(2, app.Hcr, app.mcr, app.Hx), N, select_a, app.ErrortominimizeDropDown.Value, fit_lb, fit_ub, fit_select_fit);
                 t = sprintf("%0.2f", toc);
                 app.write_message("Fitting finished after " + t + " s");
+                app.write_m_lower_bound_messages(select_a, fit_lb, fit_select_fit);
             catch e
                 t = sprintf("%0.2f", toc);
                 app.write_message("Fitting failed after " + t + " s: " + e.message);
+            end
+        end
+        
+        function write_m_lower_bound_messages(app, select_a, fit_lb, fit_select_fit)
+            tolerance = 1e-8;
+            select_a = string(select_a);
+        
+            for i = 1:app.number_components
+                m_index = app.number_components + i;
+                if m_index > numel(fit_lb) || i > numel(app.mcr)
+                    continue;
+                end
+                if m_index <= numel(fit_select_fit) && ~logical(fit_select_fit{m_index})
+                    continue;
+                end
+        
+                m_lower_bound = fit_lb(m_index);
+                if abs(app.mcr(i) - m_lower_bound) > tolerance * max(1, abs(m_lower_bound))
+                    continue;
+                end
+        
+                current_select_a = lower(select_a(i));
+                if current_select_a == "low"
+                    alternative_select_a = "high";
+                elseif current_select_a == "high"
+                    alternative_select_a = "low";
+                else
+                    continue;
+                end
+        
+                app.write_message("Component " + string(i) + " fitted m" + string(i) + "(Hcr" + string(i) + ") reached its lower bound (" + app.format_m_display(m_lower_bound) + ") with select a" + string(i) + " = '" + current_select_a + "'. Consider exploring a fit with select a" + string(i) + " = '" + alternative_select_a + "'.");
             end
         end
         
@@ -610,6 +644,26 @@ classdef app_exported < matlab.apps.AppBase
         
         function init_components(app)
             row_count = 3*app.number_components - 1;
+            seed_Hcr = 0.01 * (1:app.number_components);
+            seed_mcr = 0.521657107787896 * ones(1, app.number_components);
+            seed_Hx = 0.015 * (1:max(app.number_components - 1, 0));
+
+            has_seed_curve = false;
+            try
+                has_seed_curve = ~isempty(app.data_curve) && isobject(app.data_curve) && ...
+                    isprop(app.data_curve, 'H') && ~isempty(app.data_curve.H);
+            catch
+                has_seed_curve = false;
+            end
+
+            if has_seed_curve
+                try
+                    [seed_Hcr, seed_mcr, seed_Hx] = retrieve_anhysteretic_seeds(app.data_curve, app.number_components);
+                catch e
+                    app.write_message("Seed retrieval failed; using built-in seeds: " + e.message);
+                end
+            end
+
             component_values = zeros(row_count, 1);
             lb_col = zeros(row_count, 1);
             ub_col = zeros(row_count, 1);
@@ -618,11 +672,11 @@ classdef app_exported < matlab.apps.AppBase
             for i = 1:app.number_components
                 s = 'Hcr' + string(char(8320 + i));
                 row_names(2*i - 1,:) = {convertStringsToChars(s + ' [A/m]')};
-                component_values(2*i-1) = 0.01*i;
+                component_values(2*i-1) = seed_Hcr(i); %legacy: 0.01*i;
                 row_types(2*i-1) = "Hcr";
                 s = 'm' + string(char(8320 + i)) + ' (' + s + ')';
                 row_names(2*i,:) = {convertStringsToChars(s)};
-                component_values(2*i) = 0.521657107787896;
+                component_values(2*i) = seed_mcr(i); %legacy: 0.521657107787896;
                 row_types(2*i) = "m";
                 lb_col(2*i-1) = 0;
                 lb_col(2*i) = 0.4496;
@@ -634,7 +688,7 @@ classdef app_exported < matlab.apps.AppBase
                 row_index = i + 2*app.number_components;
                 s = 'Hx' + string(char(8320 + i)) + ' [A/m]';
                 row_names(row_index,:) = {convertStringsToChars(s)};
-                component_values(row_index) = i*0.015;
+                component_values(row_index) = seed_Hx(i); %legacy: i*0.015;
                 row_types(row_index) = "Hx";
                 lb_col(row_index) = 0;
                 ub_col(row_index) = 1000000;
@@ -1249,20 +1303,131 @@ classdef app_exported < matlab.apps.AppBase
             fitting_region = string(app.FittingregionDropDown.Value);
             if fitting_region == "Left branch only"
                 [H_left, M_left] = app.get_hysteretic_left_branch_data();
-            else
-                [H_left, M_left] = app.build_ja_data_cycle();
-            end
+                [H_model_left, M_model_left, has_model] = app.get_hysteretic_modeled_region();
+                if ~has_model
+                    app.write_message("Warning: No hysteretic modeled curve is available.");
+                    return;
+                end
 
-            [H_model_left, M_model_left, has_model] = app.get_hysteretic_modeled_region();
-            if ~has_model
-                app.write_message("Warning: No hysteretic modeled curve is available.");
+                residue_calculator = HystereticLeftBranchResidueCalculator(H_left, M_left, H_model_left, M_model_left);
+                residue = residue_calculator.get_residue();
+                residue_plotter = ResiduePlotter(H_left, M_left, H_model_left, M_model_left, residue, false, "M [A/m]", 5, [0 0 0], [1 0 0]);
+                residue_plotter.plot()
+            else
+                [H_left, M_left] = app.get_hysteretic_left_branch_data();
+                H_right = -H_left;
+                M_right = -M_left;
+
+                [H_model, M_model, has_model] = app.get_hysteretic_modeled_region();
+                if ~has_model
+                    app.write_message("Warning: No hysteretic modeled curve is available.");
+                    return;
+                end
+
+                [H_model_left, M_model_left, H_model_right, M_model_right, has_branches] = app.split_hysteretic_model_branches(H_model, M_model);
+                if ~has_branches
+                    app.write_message("Warning: The hysteretic modeled curve cannot be separated into branches.");
+                    return;
+                end
+
+                residue_calculator_left = HystereticLeftBranchResidueCalculator(H_left, M_left, H_model_left, M_model_left);
+                residue_calculator_right = HystereticLeftBranchResidueCalculator(H_right, M_right, H_model_right, M_model_right);
+                residue_left = residue_calculator_left.get_residue();
+                residue_right = residue_calculator_right.get_residue();
+                app.plot_hysteretic_branch_residuals(H_left, M_left, H_right, M_right, H_model_left, M_model_left, H_model_right, M_model_right, residue_left, residue_right);
+            end
+        end
+
+        function update_hysteretic_error_display(app)
+            app.ErrorDisplay_2.Value = "";
+
+            has_raw_data = ~isempty(app.H_raw) && ~isempty(app.M_raw);
+            if ~has_raw_data || app.is_last_import_anhysteretic()
                 return;
             end
 
-            residue_calculator = HystereticLeftBranchResidueCalculator(H_left, M_left, H_model_left, M_model_left);
-            residue = residue_calculator.get_residue();
-            residue_plotter = ResiduePlotter(H_left, M_left, H_model_left, M_model_left, residue, false, "M [A/m]", 5, [0 0 0], [1 0 0]);
-            residue_plotter.plot()
+            try
+                fitting_region = string(app.FittingregionDropDown.Value);
+                if fitting_region == "Left branch only"
+                    [H_data, M_data] = app.get_hysteretic_left_branch_data();
+                else
+                    [H_data, M_data] = app.build_ja_data_cycle();
+                end
+
+                [H_model, M_model, has_model] = app.get_hysteretic_modeled_region();
+                if ~has_model
+                    return;
+                end
+
+                error_type = string(app.ErrortominimizeDropDown_2.Value);
+                [J, ok] = app.compute_ja_left_branch_error_core(error_type, H_data, M_data, H_model, M_model);
+                if ok
+                    app.ErrorDisplay_2.Value = app.format_engineering(J);
+                end
+            catch
+                app.ErrorDisplay_2.Value = "";
+            end
+        end
+
+        function [H_left, M_left, H_right, M_right, has_branches] = split_hysteretic_model_branches(~, H_model, M_model)
+            H_model = H_model(:);
+            M_model = M_model(:);
+            valid = isfinite(H_model) & isfinite(M_model);
+            H_model = H_model(valid);
+            M_model = M_model(valid);
+
+            has_branches = false;
+            H_left = [];
+            M_left = [];
+            H_right = [];
+            M_right = [];
+
+            if numel(H_model) < 4 || numel(M_model) < 4
+                return;
+            end
+
+            [~, min_index] = min(H_model);
+            if min_index <= 1 || min_index >= numel(H_model)
+                return;
+            end
+
+            H_left = H_model(1:min_index);
+            M_left = M_model(1:min_index);
+            H_right = H_model(min_index:end);
+            M_right = M_model(min_index:end);
+            has_branches = numel(H_left) >= 2 && numel(H_right) >= 2;
+        end
+
+        function plot_hysteretic_branch_residuals(~, H_left, M_left, H_right, M_right, H_model_left, M_model_left, H_model_right, M_model_right, residue_left, residue_right)
+            left_color = [0 0.4470 0.7410];
+            right_color = [0.8500 0.3250 0.0980];
+
+            figure('Name', "Residual plot: M [A/m]", 'NumberTitle', 'off');
+            tiledlayout(4, 1);
+
+            ax1 = nexttile([3 1]);
+            box(ax1, 'on');
+            hold(ax1, 'on');
+            plot(ax1, H_left, M_left, '.', 'MarkerSize', 5, 'Color', left_color, 'DisplayName', 'Measured left branch');
+            plot(ax1, H_model_left, M_model_left, '-', 'LineWidth', 1.2, 'Color', left_color, 'DisplayName', 'Modeled left branch');
+            plot(ax1, H_right, M_right, '.', 'MarkerSize', 5, 'Color', right_color, 'DisplayName', 'Measured right branch');
+            plot(ax1, H_model_right, M_model_right, '-', 'LineWidth', 1.2, 'Color', right_color, 'DisplayName', 'Modeled right branch');
+            xlabel(ax1, 'H (A/m)');
+            ylabel(ax1, 'M [A/m]');
+            legend(ax1, 'Location', 'best');
+            hold(ax1, 'off');
+
+            ax2 = nexttile;
+            box(ax2, 'on');
+            hold(ax2, 'on');
+            yline(ax2, 0, 'k-', 'LineWidth', 0.8, 'HandleVisibility', 'off');
+            stem(ax2, H_left, residue_left, '.', 'MarkerSize', 5, 'Color', left_color, 'DisplayName', 'Left branch residual');
+            stem(ax2, H_right, residue_right, '.', 'MarkerSize', 5, 'Color', right_color, 'DisplayName', 'Right branch residual');
+            xlabel(ax2, 'H (A/m)');
+            ylabel(ax2, 'Residual');
+            set(ax2, 'yticklabels', []);
+            legend(ax2, 'Location', 'best');
+            hold(ax2, 'off');
         end
 
         function plot_hysteretic_tab_data(app)
@@ -1479,8 +1644,8 @@ classdef app_exported < matlab.apps.AppBase
                 end
 
                 if error_type == "Diagonal (H, continuous)"
-                    Sx = range(Hleft) / 2;
-                    Sy = range(Mleft) / 2;
+                    Sx = (max(Hleft) - min(Hleft)) / 2;
+                    Sy = (max(Mleft) - min(Mleft)) / 2;
                     if Sx <= 0 || ~isfinite(Sx), Sx = 1; end
                     if Sy <= 0 || ~isfinite(Sy), Sy = 1; end
                     curv = [Hhat / Sx, Mhat / Sy];
@@ -1527,6 +1692,7 @@ classdef app_exported < matlab.apps.AppBase
                 app.FitkCheckBox.Value = false;
                 app.FitkCheckBox.Enable = 'off';
             else
+                app.FitkCheckBox.Value = true;
                 app.FitkCheckBox.Enable = 'on';
             end
         end
@@ -2119,6 +2285,23 @@ classdef app_exported < matlab.apps.AppBase
             update_components(app)
             calculate_parameters(app)
             plot(app)
+            % Ensure hysteretic tip fields are populated from data so error can be computed
+            try
+                [Htip, Mtip, okTip] = app.get_ja_tip_from_tab_or_data();
+                if okTip
+                    app.JsField_7.Value = app.format_short(Htip);
+                    app.JsField_8.Value = app.format_short(Mtip);
+                end
+            catch
+                % ignore any failure here
+            end
+            
+            % Update hysteretic error display immediately after plotting
+            try
+                app.update_hysteretic_error_display();
+            catch
+                % ignore
+            end
         end
 
         % Callback function
@@ -2157,6 +2340,7 @@ classdef app_exported < matlab.apps.AppBase
             try
                 app.import_data(fullpath);
                 app.InputDatasetPath.Value = char(fullpath);
+                app.init_components();
                 update_components(app)
                 calculate_parameters(app)
                 app.plot_input();
@@ -2683,7 +2867,7 @@ classdef app_exported < matlab.apps.AppBase
         
         end
 
-        % Value changed function: InputAxisScaleDropDown
+        % Callback function: not associated with a component
         function InputAxisScaleDropDownValueChanged2(app, event)
 
             dataset_path = app.InputDatasetPath.Value;
@@ -2762,6 +2946,7 @@ classdef app_exported < matlab.apps.AppBase
             if isfile(path)
                 app.import_data(path);
                 app.plot_hysteretic_tab_data();
+                app.update_hysteretic_error_display();
             else
                 app.write_message(path + " was not found, please browse the dataseth path again");
             end
@@ -3069,7 +3254,7 @@ classdef app_exported < matlab.apps.AppBase
             app.VerticalaxisfieldDropDown.ValueChangedFcn = createCallbackFcn(app, @VerticalaxisfieldDropDownValueChanged, true);
             app.VerticalaxisfieldDropDown.Layout.Row = 1;
             app.VerticalaxisfieldDropDown.Layout.Column = 2;
-            app.VerticalaxisfieldDropDown.Value = 'M [A/m]';
+            app.VerticalaxisfieldDropDown.Value = 'B [T]';
 
             % Create GridLayoutInputCurve
             app.GridLayoutInputCurve = uigridlayout(app.GridLayoutInput);
@@ -3092,7 +3277,7 @@ classdef app_exported < matlab.apps.AppBase
             app.CurveDropDown.ValueChangedFcn = createCallbackFcn(app, @CurveDropDownValueChanged, true);
             app.CurveDropDown.Layout.Row = 1;
             app.CurveDropDown.Layout.Column = 2;
-            app.CurveDropDown.Value = 'Anhysteretic curve';
+            app.CurveDropDown.Value = 'Hysteresis loop';
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.GridLayoutInput);
@@ -3159,48 +3344,6 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutInputAxisScale.Layout.Row = 2;
             app.GridLayoutInputAxisScale.Layout.Column = 1;
 
-            % Create InputAxisScaleDropDown
-            app.InputAxisScaleDropDown = uidropdown(app.GridLayoutInputAxisScale);
-            app.InputAxisScaleDropDown.Items = {'linear', 'semilog-x', 'semilog-y', 'log-log'};
-            app.InputAxisScaleDropDown.ValueChangedFcn = createCallbackFcn(app, @InputAxisScaleDropDownValueChanged2, true);
-            app.InputAxisScaleDropDown.Tag = 'InputAxisScaleDropDown';
-            app.InputAxisScaleDropDown.Layout.Row = 1;
-            app.InputAxisScaleDropDown.Layout.Column = 5;
-            app.InputAxisScaleDropDown.Value = 'linear';
-
-            % Create InputNumberofPointsLabel
-            app.InputNumberofPointsLabel = uilabel(app.GridLayoutInputAxisScale);
-            app.InputNumberofPointsLabel.HorizontalAlignment = 'right';
-            app.InputNumberofPointsLabel.FontWeight = 'bold';
-            app.InputNumberofPointsLabel.Layout.Row = 1;
-            app.InputNumberofPointsLabel.Layout.Column = 1;
-            app.InputNumberofPointsLabel.Text = 'Number of points';
-
-            % Create AxisscaleLabel
-            app.AxisscaleLabel = uilabel(app.GridLayoutInputAxisScale);
-            app.AxisscaleLabel.HorizontalAlignment = 'right';
-            app.AxisscaleLabel.FontWeight = 'bold';
-            app.AxisscaleLabel.Layout.Row = 1;
-            app.AxisscaleLabel.Layout.Column = 4;
-            app.AxisscaleLabel.Text = 'Axis scale';
-
-            % Create InputApplyPointsButton
-            app.InputApplyPointsButton = uibutton(app.GridLayoutInputAxisScale, 'push');
-            app.InputApplyPointsButton.ButtonPushedFcn = createCallbackFcn(app, @InputApplyPointsButtonPushed, true);
-            app.InputApplyPointsButton.FontWeight = 'bold';
-            app.InputApplyPointsButton.Layout.Row = 1;
-            app.InputApplyPointsButton.Layout.Column = 3;
-            app.InputApplyPointsButton.Text = 'Apply';
-
-            % Create InputNumberofPointsEditField
-            app.InputNumberofPointsEditField = uieditfield(app.GridLayoutInputAxisScale, 'numeric');
-            app.InputNumberofPointsEditField.Limits = [2 Inf];
-            app.InputNumberofPointsEditField.RoundFractionalValues = 'on';
-            app.InputNumberofPointsEditField.ValueDisplayFormat = '%.0f';
-            app.InputNumberofPointsEditField.Layout.Row = 1;
-            app.InputNumberofPointsEditField.Layout.Column = 2;
-            app.InputNumberofPointsEditField.Value = 50;
-
             % Create GridLayoutInputPlots
             app.GridLayoutInputPlots = uigridlayout(app.GridLayoutInputPlot);
             app.GridLayoutInputPlots.RowHeight = {'1x'};
@@ -3224,6 +3367,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayoutInputTipsAndPlotButton
             app.GridLayoutInputTipsAndPlotButton = uigridlayout(app.GridLayoutInputPlot);
+            app.GridLayoutInputTipsAndPlotButton.ColumnWidth = {'1x', '1x', '1x'};
             app.GridLayoutInputTipsAndPlotButton.RowHeight = {'1x'};
             app.GridLayoutInputTipsAndPlotButton.Padding = [0 0 0 0];
             app.GridLayoutInputTipsAndPlotButton.Layout.Row = 3;
@@ -3232,7 +3376,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create GridLayoutTips
             app.GridLayoutTips = uigridlayout(app.GridLayoutInputTipsAndPlotButton);
             app.GridLayoutTips.ColumnWidth = {'0.5x', '1x'};
-            app.GridLayoutTips.RowHeight = {'0.2x', '1x', '1x'};
             app.GridLayoutTips.Padding = [0 0 0 0];
             app.GridLayoutTips.Layout.Row = 1;
             app.GridLayoutTips.Layout.Column = 1;
@@ -3241,7 +3384,7 @@ classdef app_exported < matlab.apps.AppBase
             app.HtipAmLabel = uilabel(app.GridLayoutTips);
             app.HtipAmLabel.HorizontalAlignment = 'right';
             app.HtipAmLabel.FontWeight = 'bold';
-            app.HtipAmLabel.Layout.Row = 2;
+            app.HtipAmLabel.Layout.Row = 1;
             app.HtipAmLabel.Layout.Column = 1;
             app.HtipAmLabel.Text = 'Htip [A/m]';
 
@@ -3249,14 +3392,14 @@ classdef app_exported < matlab.apps.AppBase
             app.HTipField = uieditfield(app.GridLayoutTips, 'text');
             app.HTipField.Editable = 'off';
             app.HTipField.HorizontalAlignment = 'right';
-            app.HTipField.Layout.Row = 2;
+            app.HTipField.Layout.Row = 1;
             app.HTipField.Layout.Column = 2;
 
             % Create MtipAmLabel
             app.MtipAmLabel = uilabel(app.GridLayoutTips);
             app.MtipAmLabel.HorizontalAlignment = 'right';
             app.MtipAmLabel.FontWeight = 'bold';
-            app.MtipAmLabel.Layout.Row = 3;
+            app.MtipAmLabel.Layout.Row = 2;
             app.MtipAmLabel.Layout.Column = 1;
             app.MtipAmLabel.Text = 'Mtip [A/m]';
 
@@ -3264,8 +3407,63 @@ classdef app_exported < matlab.apps.AppBase
             app.MTipField = uieditfield(app.GridLayoutTips, 'text');
             app.MTipField.Editable = 'off';
             app.MTipField.HorizontalAlignment = 'right';
-            app.MTipField.Layout.Row = 3;
+            app.MTipField.Layout.Row = 2;
             app.MTipField.Layout.Column = 2;
+
+            % Create GridLayoutTips_2
+            app.GridLayoutTips_2 = uigridlayout(app.GridLayoutInputTipsAndPlotButton);
+            app.GridLayoutTips_2.ColumnWidth = {'0.5x', '1x'};
+            app.GridLayoutTips_2.Padding = [0 0 0 0];
+            app.GridLayoutTips_2.Layout.Row = 1;
+            app.GridLayoutTips_2.Layout.Column = 2;
+
+            % Create InputAxisScaleDropDown
+            app.InputAxisScaleDropDown = uidropdown(app.GridLayoutTips_2);
+            app.InputAxisScaleDropDown.Items = {'linear', 'semilog-x', 'semilog-y', 'log-log'};
+            app.InputAxisScaleDropDown.Tag = 'InputAxisScaleDropDown';
+            app.InputAxisScaleDropDown.Layout.Row = 1;
+            app.InputAxisScaleDropDown.Layout.Column = 2;
+            app.InputAxisScaleDropDown.Value = 'linear';
+
+            % Create AxisscaleLabel
+            app.AxisscaleLabel = uilabel(app.GridLayoutTips_2);
+            app.AxisscaleLabel.HorizontalAlignment = 'right';
+            app.AxisscaleLabel.FontWeight = 'bold';
+            app.AxisscaleLabel.Layout.Row = 1;
+            app.AxisscaleLabel.Layout.Column = 1;
+            app.AxisscaleLabel.Text = 'Axis scale';
+
+            % Create GridLayoutTips_3
+            app.GridLayoutTips_3 = uigridlayout(app.GridLayoutInputTipsAndPlotButton);
+            app.GridLayoutTips_3.ColumnWidth = {'0.5x', '0.5x', '0.5x'};
+            app.GridLayoutTips_3.Padding = [0 0 0 0];
+            app.GridLayoutTips_3.Layout.Row = 1;
+            app.GridLayoutTips_3.Layout.Column = 3;
+
+            % Create InputNumberofPointsEditField
+            app.InputNumberofPointsEditField = uieditfield(app.GridLayoutTips_3, 'numeric');
+            app.InputNumberofPointsEditField.Limits = [2 Inf];
+            app.InputNumberofPointsEditField.RoundFractionalValues = 'on';
+            app.InputNumberofPointsEditField.ValueDisplayFormat = '%.0f';
+            app.InputNumberofPointsEditField.Layout.Row = 1;
+            app.InputNumberofPointsEditField.Layout.Column = 2;
+            app.InputNumberofPointsEditField.Value = 50;
+
+            % Create InputNumberofPointsLabel
+            app.InputNumberofPointsLabel = uilabel(app.GridLayoutTips_3);
+            app.InputNumberofPointsLabel.HorizontalAlignment = 'right';
+            app.InputNumberofPointsLabel.FontWeight = 'bold';
+            app.InputNumberofPointsLabel.Layout.Row = 1;
+            app.InputNumberofPointsLabel.Layout.Column = 1;
+            app.InputNumberofPointsLabel.Text = 'N° points';
+
+            % Create InputApplyPointsButton
+            app.InputApplyPointsButton = uibutton(app.GridLayoutTips_3, 'push');
+            app.InputApplyPointsButton.ButtonPushedFcn = createCallbackFcn(app, @InputApplyPointsButtonPushed, true);
+            app.InputApplyPointsButton.FontWeight = 'bold';
+            app.InputApplyPointsButton.Layout.Row = 1;
+            app.InputApplyPointsButton.Layout.Column = 3;
+            app.InputApplyPointsButton.Text = 'Apply';
 
             % Create AnhystereticfittingTab
             app.AnhystereticfittingTab = uitab(app.TabGroup);
@@ -3285,14 +3483,14 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -3303,14 +3501,14 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
@@ -4470,19 +4668,8 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayout5.RowSpacing = 6.15151267581516;
             app.GridLayout5.Padding = [7.59856033325195 6.15151267581516 7.59856033325195 6.15151267581516];
 
-            % Create UITable_2
-            app.UITable_2 = uitable(app.GridLayout5);
-            app.UITable_2.ColumnName = {'Htip_i [A/m]'};
-            app.UITable_2.ColumnRearrangeable = 'on';
-            app.UITable_2.RowName = {};
-            app.UITable_2.ColumnSortable = true;
-            app.UITable_2.ColumnEditable = true;
-            app.UITable_2.Layout.Row = 8;
-            app.UITable_2.Layout.Column = [1 2];
-
             % Create StartingpointDropDown_3Label
             app.StartingpointDropDown_3Label = uilabel(app.GridLayout5);
-            app.StartingpointDropDown_3Label.HorizontalAlignment = 'right';
             app.StartingpointDropDown_3Label.Layout.Row = 1;
             app.StartingpointDropDown_3Label.Layout.Column = 1;
             app.StartingpointDropDown_3Label.Text = 'Starting point';
@@ -4497,7 +4684,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create MstartAmEditField_2Label
             app.MstartAmEditField_2Label = uilabel(app.GridLayout5);
             app.MstartAmEditField_2Label.Layout.Row = 2;
-            app.MstartAmEditField_2Label.Layout.Column = [1 2];
+            app.MstartAmEditField_2Label.Layout.Column = 2;
             app.MstartAmEditField_2Label.Text = 'Mstart [A/m]';
 
             % Create MstartAmEditField_2
@@ -4508,7 +4695,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create HstartAmEditField_2Label
             app.HstartAmEditField_2Label = uilabel(app.GridLayout5);
             app.HstartAmEditField_2Label.Layout.Row = 3;
-            app.HstartAmEditField_2Label.Layout.Column = [1 2];
+            app.HstartAmEditField_2Label.Layout.Column = 2;
             app.HstartAmEditField_2Label.Text = 'Hstart [A/m]';
 
             % Create HstartAmEditField_2
@@ -4532,7 +4719,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create NofstepsEditFieldLabel
             app.NofstepsEditFieldLabel = uilabel(app.GridLayout5);
             app.NofstepsEditFieldLabel.Layout.Row = 5;
-            app.NofstepsEditFieldLabel.Layout.Column = [1 2];
+            app.NofstepsEditFieldLabel.Layout.Column = 2;
             app.NofstepsEditFieldLabel.Text = 'N° of steps';
 
             % Create NofstepsEditField
@@ -4544,7 +4731,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create InitialamplitudeAmEditFieldLabel
             app.InitialamplitudeAmEditFieldLabel = uilabel(app.GridLayout5);
             app.InitialamplitudeAmEditFieldLabel.Layout.Row = 6;
-            app.InitialamplitudeAmEditFieldLabel.Layout.Column = [1 2];
+            app.InitialamplitudeAmEditFieldLabel.Layout.Column = 2;
             app.InitialamplitudeAmEditFieldLabel.Text = 'Initial amplitude [A/m]';
 
             % Create InitialamplitudeAmEditField
@@ -4557,7 +4744,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create FinalamplitudeAmEditFieldLabel
             app.FinalamplitudeAmEditFieldLabel = uilabel(app.GridLayout5);
             app.FinalamplitudeAmEditFieldLabel.Layout.Row = 7;
-            app.FinalamplitudeAmEditFieldLabel.Layout.Column = [1 2];
+            app.FinalamplitudeAmEditFieldLabel.Layout.Column = 2;
             app.FinalamplitudeAmEditFieldLabel.Text = 'Final amplitude [A/m]';
 
             % Create FinalamplitudeAmEditField
@@ -4566,6 +4753,18 @@ classdef app_exported < matlab.apps.AppBase
             app.FinalamplitudeAmEditField.Layout.Row = 7;
             app.FinalamplitudeAmEditField.Layout.Column = 3;
             app.FinalamplitudeAmEditField.Value = 1;
+
+            % Create UITable_3
+            app.UITable_3 = uitable(app.GridLayout5);
+            app.UITable_3.ColumnName = {'Htip_i'};
+            app.UITable_3.ColumnRearrangeable = 'on';
+            app.UITable_3.RowName = {};
+            app.UITable_3.ColumnSortable = true;
+            app.UITable_3.SelectionType = 'row';
+            app.UITable_3.ColumnEditable = true;
+            app.UITable_3.Multiselect = 'off';
+            app.UITable_3.Layout.Row = 8;
+            app.UITable_3.Layout.Column = 2;
 
             % Create OutputdataTab
             app.OutputdataTab = uitab(app.TabGroup);
