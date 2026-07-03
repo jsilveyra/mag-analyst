@@ -36,6 +36,10 @@ classdef PlaygroundUtils
             tf = PlaygroundUtils.normalize_mode_label(PlaygroundUtils.get_mode(app)) == "Minor Loops";
         end
 
+        function tf = is_degaussing_mode(app)
+            tf = PlaygroundUtils.normalize_mode_label(PlaygroundUtils.get_mode(app)) == "Degaussing";
+        end
+
         function tf = has_data_curve(app)
             tf = false;
             try
@@ -356,6 +360,8 @@ classdef PlaygroundUtils
                 mode = "Major Loop";
             elseif contains(mode, "minor loop")
                 mode = "Minor Loops";
+            elseif contains(mode, "degauss")
+                mode = "Degaussing";
             end
         end
 
