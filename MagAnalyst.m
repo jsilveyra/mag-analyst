@@ -89,14 +89,34 @@ end
 
 
 function tf = isDarkMode()
-%ISDARKMODE  True if the OS is set to dark mode (Windows), false otherwise.
+%ISDARKMODE  True if the OS is set to dark mode, false otherwise.
+%   Supports Windows, macOS, and GNOME-based Linux. Defaults to light
+%   mode (false) on any other platform or if the setting can't be read.
     tf = false;
     try
         if ispc
+            % Windows: AppsUseLightTheme = 0 means dark mode.
             val = winqueryreg('HKEY_CURRENT_USER', ...
                 'Software\Microsoft\Windows\CurrentVersion\Themes\Personalize', ...
                 'AppsUseLightTheme');
             tf = (val == 0);
+
+        elseif ismac
+            % macOS: the key exists (value "Dark") only in dark mode.
+            [status, out] = system('defaults read -g AppleInterfaceStyle 2>/dev/null');
+            tf = (status == 0) && contains(lower(strtrim(out)), 'dark');
+
+        elseif isunix
+            % Linux (GNOME): prefer color-scheme, fall back to gtk-theme.
+            [status, out] = system( ...
+                'gsettings get org.gnome.desktop.interface color-scheme 2>/dev/null');
+            if status == 0 && contains(lower(out), 'dark')
+                tf = true;
+            else
+                [status2, out2] = system( ...
+                    'gsettings get org.gnome.desktop.interface gtk-theme 2>/dev/null');
+                tf = (status2 == 0) && contains(lower(out2), 'dark');
+            end
         end
     catch
         tf = false;   % default to light mode if the setting can't be read
