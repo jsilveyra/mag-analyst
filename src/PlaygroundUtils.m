@@ -284,12 +284,18 @@ classdef PlaygroundUtils
                         if start_idx > end_idx
                             continue;
                         end
+                        seg_H = H_plot(start_idx:end_idx);
+                        seg_M = M_plot(start_idx:end_idx);
                         if isempty(H_last)
-                            H_last = H_plot(start_idx:end_idx);
-                            M_last = M_plot(start_idx:end_idx);
+                            H_last = seg_H;
+                            M_last = seg_M;
                         else
-                            H_last = [H_last; H_plot(start_idx:end_idx)]; %#ok<AGROW>
-                            M_last = [M_last; M_plot(start_idx:end_idx)]; %#ok<AGROW>
+                            % Insert a NaN break so each tip's last loop is
+                            % plotted as a separate curve and the last point
+                            % of one loop is not joined to the first point of
+                            % the next.
+                            H_last = [H_last; NaN; seg_H]; %#ok<AGROW>
+                            M_last = [M_last; NaN; seg_M]; %#ok<AGROW>
                         end
                     end
                     if ~isempty(H_last) && ~isempty(M_last)
