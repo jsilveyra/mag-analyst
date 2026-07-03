@@ -3398,7 +3398,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayoutInputTipsAndPlotButton
             app.GridLayoutInputTipsAndPlotButton = uigridlayout(app.GridLayoutInputPlot);
-            app.GridLayoutInputTipsAndPlotButton.ColumnWidth = {'1x', '1x', '1x'};
+            app.GridLayoutInputTipsAndPlotButton.ColumnWidth = {'1x', '0.8x', '1.2x'};
             app.GridLayoutInputTipsAndPlotButton.RowHeight = {'1x'};
             app.GridLayoutInputTipsAndPlotButton.Padding = [0 0 0 0];
             app.GridLayoutInputTipsAndPlotButton.Layout.Row = 3;
@@ -3443,7 +3443,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayoutTips_2
             app.GridLayoutTips_2 = uigridlayout(app.GridLayoutInputTipsAndPlotButton);
-            app.GridLayoutTips_2.ColumnWidth = {'0.5x', '1x'};
+            app.GridLayoutTips_2.ColumnWidth = {'0.8x', '1x'};
             app.GridLayoutTips_2.Padding = [0 0 0 0];
             app.GridLayoutTips_2.Layout.Row = 1;
             app.GridLayoutTips_2.Layout.Column = 2;
@@ -3486,7 +3486,7 @@ classdef app_exported < matlab.apps.AppBase
             app.InputNumberofPointsLabel.FontWeight = 'bold';
             app.InputNumberofPointsLabel.Layout.Row = 1;
             app.InputNumberofPointsLabel.Layout.Column = 1;
-            app.InputNumberofPointsLabel.Text = 'N° points';
+            app.InputNumberofPointsLabel.Text = 'N° of points';
 
             % Create InputApplyPointsButton
             app.InputApplyPointsButton = uibutton(app.GridLayoutTips_3, 'push');
