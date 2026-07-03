@@ -59,8 +59,8 @@ classdef app_exported < matlab.apps.AppBase
         PointSpaceDropDown              matlab.ui.control.DropDown
         NofpointsEditField              matlab.ui.control.NumericEditField
         NofpointsEditFieldLabel         matlab.ui.control.Label
-        NofcomponentsSpinner            matlab.ui.control.Spinner
-        NofcomponentsSpinnerLabel       matlab.ui.control.Label
+        NofcompSpinner                  matlab.ui.control.Spinner
+        NofcompSpinnerLabel             matlab.ui.control.Label
         ModeledcurveLabel               matlab.ui.control.Label
         TableQuantities                 matlab.ui.control.Table
         GridLayoutOtherQuantities       matlab.ui.container.GridLayout
@@ -70,6 +70,7 @@ classdef app_exported < matlab.apps.AppBase
         JsTEditFieldLabel               matlab.ui.control.Label
         OthercalculatedquantitiesLabel  matlab.ui.control.Label
         GridLayoutButtons               matlab.ui.container.GridLayout
+        StopfitButton                   matlab.ui.control.Button
         ErrorDisplay                    matlab.ui.control.EditField
         ErrortominimizeDropDown         matlab.ui.control.DropDown
         ErrortominimizeDropDownLabel    matlab.ui.control.Label
@@ -102,8 +103,9 @@ classdef app_exported < matlab.apps.AppBase
         AxesHdMdH                       matlab.ui.control.UIAxes
         HystereticfittingTab            matlab.ui.container.Tab
         GridLayout2                     matlab.ui.container.GridLayout
-        MaxrepetitionsEditField_3       matlab.ui.control.NumericEditField
-        MaxrepetitionsEditFieldLabel    matlab.ui.control.Label
+        StopfitButton_2                 matlab.ui.control.Button
+        MaxrepetEditField               matlab.ui.control.NumericEditField
+        MaxrepetEditFieldLabel          matlab.ui.control.Label
         ReltoleranceEditField_3         matlab.ui.control.NumericEditField
         ReltoleranceEditField_3Label    matlab.ui.control.Label
         RepetitionsEditField_3          matlab.ui.control.NumericEditField
@@ -321,6 +323,7 @@ classdef app_exported < matlab.apps.AppBase
         playground_curve_M
         playground_curve_ready logical = false
         minor_loop_table_user_edited logical = false   % MOD: true once the user manually edits the Htip_i table
+        degaussing_user_edited logical = false          % MOD: true once the user edits any Degaussing amplitude field/table
         number_components
         lb
         ub
@@ -331,6 +334,7 @@ classdef app_exported < matlab.apps.AppBase
         fitted_parameter_values
         component_row_types
         data_curve
+        stop_fit_requested logical = false   % set by "Stop fit" buttons to abort a running fit
     end
     
     methods (Access = private)
@@ -564,20 +568,31 @@ classdef app_exported < matlab.apps.AppBase
                 fit_select_fit(i + 2*app.number_components) = app.select_fit(2*app.number_components + i);
             end
             
+            app.stop_fit_requested = false;
             app.write_message("Fitting started");
             pause(0.01);
             tic
             try
-                [app.Hcr, app.mcr, app.Hx] = fit(app.data_curve, cat(2, app.Hcr, app.mcr, app.Hx), N, select_a, app.ErrortominimizeDropDown.Value, fit_lb, fit_ub, fit_select_fit);
+                outputFcn = @(x, optimValues, state) app.fit_stop_output_fcn(x, optimValues, state);
+                [app.Hcr, app.mcr, app.Hx] = fit(app.data_curve, cat(2, app.Hcr, app.mcr, app.Hx), N, select_a, app.ErrortominimizeDropDown.Value, fit_lb, fit_ub, fit_select_fit, outputFcn);
                 t = sprintf("%0.2f", toc);
-                app.write_message("Fitting finished after " + t + " s");
-                app.write_m_lower_bound_messages(select_a, fit_lb, fit_select_fit);
+                if app.stop_fit_requested
+                    app.write_message("Fitting stopped by user after " + t + " s");
+                else
+                    app.write_message("Fitting finished after " + t + " s");
+                    app.write_m_lower_bound_messages(select_a, fit_lb, fit_select_fit);
+                end
             catch e
                 t = sprintf("%0.2f", toc);
                 app.write_message("Fitting failed after " + t + " s: " + e.message);
             end
         end
         
+        function stop = fit_stop_output_fcn(app, ~, ~, ~)
+            drawnow limitrate;
+            stop = app.stop_fit_requested;
+        end
+
         function write_m_lower_bound_messages(app, select_a, fit_lb, fit_select_fit)
             tolerance = 1e-8;
             select_a = string(select_a);
@@ -1071,6 +1086,8 @@ classdef app_exported < matlab.apps.AppBase
             app.data_curve = DataAnhystereticCurve(H, M);
             app.refresh_playground_data_curve();
             app.maybe_refresh_minor_loop_defaults();   % MOD: update Htip_i defaults from the newly imported data tip
+            app.maybe_refresh_degaussing_defaults();   % MOD: update Degaussing amplitude defaults from the newly imported data tip
+            app.sync_degaussing_ui();                  % MOD: refresh Degaussing start-point display from the new data
             PlaygroundUtils.sync_major_ui(app);
             PlaygroundUtils.clear_simulation(app);
         end
@@ -1213,7 +1230,7 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         function max_repetitions = get_hysteretic_max_repetitions_value(app)
-            max_repetitions = max(1, round(app.MaxrepetitionsEditField_3.Value));
+            max_repetitions = max(1, round(app.MaxrepetEditField.Value));
         end
 
         function sync_hysteretic_fitting_ui(app)
@@ -1235,7 +1252,7 @@ classdef app_exported < matlab.apps.AppBase
                 app.MaxrepetitionsEditField_3Label.Enable = 'off';
             end
             if isprop(app, 'MaxrepetitionsEditField_3')
-                app.MaxrepetitionsEditField_3.Enable = 'off';
+                app.MaxrepetEditField.Enable = 'off';
             end
 
             if is_entire_loop
@@ -1258,7 +1275,7 @@ classdef app_exported < matlab.apps.AppBase
                     app.MaxrepetitionsEditField_3Label.Enable = 'off';
                 end
                 if isprop(app, 'MaxrepetitionsEditField_3')
-                    app.MaxrepetitionsEditField_3.Enable = 'off';
+                    app.MaxrepetEditField.Enable = 'off';
                 end
                 return;
             end
@@ -1275,7 +1292,7 @@ classdef app_exported < matlab.apps.AppBase
                     app.MaxrepetitionsEditField_3Label.Enable = 'off';
                 end
                 if isprop(app, 'MaxrepetitionsEditField_3')
-                    app.MaxrepetitionsEditField_3.Enable = 'off';
+                    app.MaxrepetEditField.Enable = 'off';
                 end
             else
                 app.RepetitionsEditField_3Label.Enable = 'off';
@@ -1286,7 +1303,7 @@ classdef app_exported < matlab.apps.AppBase
                     app.MaxrepetitionsEditField_3Label.Enable = 'on';
                 end
                 if isprop(app, 'MaxrepetitionsEditField_3')
-                    app.MaxrepetitionsEditField_3.Enable = 'on';
+                    app.MaxrepetEditField.Enable = 'on';
                 end
             end
         end
@@ -1794,17 +1811,20 @@ classdef app_exported < matlab.apps.AppBase
         
              error_type = string(app.ErrortominimizeDropDown_2.Value);
 
-            fit_timer = tic;
+             app.stop_fit_requested = false;
+             fit_timer = tic;
             try
                 modelFn = @(p) solveJA_hysteretic_region( ...
                     Htip, Mtip, p, start_mode, fitting_region, stop_criterion, ...
                     repetitions, rel_tolerance, max_repetitions, opts);
 
+                outputFcn = @(x, optimValues, state) app.fit_stop_output_fcn(x, optimValues, state);
                 fit_result = JAFitter.fit( ...
                     params_seed, mask, bounds, HfitData, MfitData, Htip, Mtip, error_type, ...
                     @(p) app.estimateK_fromCoercivePoint(Hleft, Mleft, p.Ms, p.a, p.alpha, p.c), ...
                     modelFn, ...
-                    @(errType, hL, mL, hHat, mHat) app.compute_ja_left_branch_error_core(errType, hL, mL, hHat, mHat));
+                    @(errType, hL, mL, hHat, mHat) app.compute_ja_left_branch_error_core(errType, hL, mL, hHat, mHat), ...
+                    outputFcn);
         
                 if ~fit_result.ok
                     error(char(fit_result.errorMessage));
@@ -1821,7 +1841,11 @@ classdef app_exported < matlab.apps.AppBase
                 app.ErrorDisplay_2.Value = app.format_engineering(fit_result.Jopt);
         
                 t = toc(fit_timer);
-                app.write_message("Fitting finished after " + app.format_short(t) + " s");
+                if app.stop_fit_requested
+                    app.write_message("Fitting stopped by user after " + app.format_short(t) + " s");
+                else
+                    app.write_message("Fitting finished after " + app.format_short(t) + " s");
+                end
             catch ME
                 t = toc(fit_timer);
                 app.write_message("Fitting failed after " + app.format_short(t) + " s: " + string(ME.message));
@@ -2203,6 +2227,367 @@ classdef app_exported < matlab.apps.AppBase
             end
         end
 
+        % =====================================================
+        %  Degaussing (Playground) — MOD: new subsystem
+        % =====================================================
+
+        function [Mr, ok] = get_data_remanence(app)
+            % MOD: retrieve the remanence M(H=0)=Mr from the measured
+            % hysteresis loop. The upper (descending) branch is extracted from
+            % the raw data (converted to A/m) and M is interpolated at H = 0
+            % with interp1. Only available when a hysteretic dataset has been
+            % imported; an anhysteretic import carries no hysteresis loop.
+            Mr = NaN;
+            ok = false;
+
+            if isempty(app.H_raw) || isempty(app.M_raw) || app.is_last_import_anhysteretic()
+                return;
+            end
+
+            try
+                H_unit = app.HorizontalaxisfieldDropDown.Value;
+                M_unit = app.VerticalaxisfieldDropDown.Value;
+                [H_conv, M_conv] = UnitConvertor().convert_H_M(app.H_raw, H_unit, app.M_raw, M_unit);
+
+                % Upper (descending) branch, from the +tip corner through H=0
+                % down to the -tip corner, in base units (A/m).
+                [H_up, M_up] = app.extract_left_branch_uniform_arc(H_conv, M_conv, []);
+
+                H_up = H_up(:);
+                M_up = M_up(:);
+                valid = isfinite(H_up) & isfinite(M_up);
+                H_up = H_up(valid);
+                M_up = M_up(valid);
+                if numel(H_up) < 2 || min(H_up) > 0 || max(H_up) < 0
+                    return;
+                end
+
+                % interp1 needs distinct sample points: sort by H and drop dups.
+                [H_sorted, idx] = unique(H_up);
+                M_sorted = M_up(idx);
+                Mr = interp1(H_sorted, M_sorted, 0, 'linear');
+                ok = isfinite(Mr);
+            catch
+                Mr = NaN;
+                ok = false;
+            end
+        end
+
+        function [amps, ok] = get_degaussing_amplitudes_auto(app)
+            % MOD: build the automatic decaying degaussing envelope from the
+            % user's N-of-steps, initial and final amplitude settings. A
+            % geometric (exponential) decay is used when both amplitudes are
+            % positive, which matches the physical AC-demagnetization envelope;
+            % otherwise a linear ramp is used.
+            amps = [];
+            ok = false;
+
+            N = round(app.NofstepsEditField.Value);
+            A0 = app.InitialamplitudeAmEditField.Value;
+            Af = app.FinalamplitudeAmEditField.Value;
+
+            if ~isfinite(N) || N < 1 || ~isfinite(A0) || A0 <= 0 || ~isfinite(Af) || Af < 0
+                return;
+            end
+
+            if N == 1
+                amps = A0;
+            elseif A0 > 0 && Af > 0
+                amps = logspace(log10(A0), log10(Af), N);
+            else
+                amps = linspace(A0, Af, N);
+            end
+
+            amps = amps(isfinite(amps) & amps > 0);
+            amps = sort(amps(:), 'descend');
+            ok = ~isempty(amps);
+        end
+
+        function [amps, ok] = get_degaussing_table_inputs(app)
+            % MOD: read the user-defined Htip_i amplitude table (UITable_3) and
+            % return the reversal amplitudes sorted in descending order (largest
+            % swing first) so they form a decaying degaussing envelope.
+            amps = [];
+            ok = false;
+
+            if ~isprop(app, 'UITable_3') || isempty(app.UITable_3) || ~isvalid(app.UITable_3)
+                return;
+            end
+
+            raw = [];
+            if isprop(app.UITable_3, 'Data')
+                raw = app.UITable_3.Data;
+            elseif isprop(app.UITable_3, 'Value')
+                raw = app.UITable_3.Value;
+            end
+
+            if isempty(raw)
+                return;
+            end
+
+            if isnumeric(raw)
+                values = raw(:);
+            else
+                raw = string(raw);
+                tokens = split(strjoin(raw(:).', newline), {newline, ",", ";", " "});
+                tokens = tokens(strlength(strtrim(tokens)) > 0);
+                values = str2double(replace(strtrim(tokens), ",", ""));
+            end
+
+            values = values(isfinite(values) & values > 0);
+            if isempty(values)
+                return;
+            end
+
+            amps = sort(values(:), 'descend');
+            ok = true;
+        end
+
+        function values = get_degaussing_default_table_values(app)
+            % MOD: default Htip_i amplitudes derived from the measured-curve tip
+            % (Htip, Htip*2/3, Htip*1/3) when data is available; otherwise a
+            % plain placeholder. Display order is cosmetic — the solver sorts
+            % the amplitudes descending.
+            [Htip, ~, ok] = PlaygroundUtils.get_data_tip(app);
+            if ok && isfinite(Htip) && Htip > 0
+                values = [Htip; Htip*2/3; Htip*1/3; NaN];
+            else
+                values = [3; 2; 1; NaN];
+            end
+        end
+
+        function configure_degaussing_table(app)
+            % MOD: initialise the Degaussing user-defined amplitude table.
+            if ~isprop(app, 'UITable_3') || isempty(app.UITable_3) || ~isvalid(app.UITable_3)
+                return;
+            end
+
+            app.UITable_3.SelectionType = 'cell';
+            app.UITable_3.ColumnEditable = [true];
+            app.UITable_3.Data = app.get_degaussing_default_table_values();
+            app.degaussing_user_edited = false;
+            app.UITable_3.CellEditCallback = createCallbackFcn(app, @DegaussingTableCellEdit, true);
+        end
+
+        function maybe_refresh_degaussing_defaults(app)
+            % MOD: re-fill the Degaussing amplitude settings (N of steps,
+            % initial = Htip, final = 0.02*Htip) and the amplitude table with
+            % data-tip-based defaults, but only while the user has not manually
+            % edited them (mirrors the minor-loop default behaviour).
+            if app.degaussing_user_edited
+                return;
+            end
+
+            [Htip, ~, ok] = PlaygroundUtils.get_data_tip(app);
+            if ok && isfinite(Htip) && Htip > 0
+                app.NofstepsEditField.Value = 10;
+                app.InitialamplitudeAmEditField.Value = Htip;
+                app.FinalamplitudeAmEditField.Value = 0.02 * Htip;
+            end
+
+            if isprop(app, 'UITable_3') && ~isempty(app.UITable_3) && isvalid(app.UITable_3)
+                app.UITable_3.Data = app.get_degaussing_default_table_values();
+            end
+        end
+
+        function sync_degaussing_ui(app)
+            % MOD: enable/disable and populate the Degaussing controls according
+            % to the selected starting-point and H-amplitude options.
+            if ~PlaygroundUtils.is_degaussing_mode(app)
+                return;
+            end
+
+            start_mode = lower(string(app.StartingpointDropDown_3.Value));
+            if contains(start_mode, "remanence")
+                [Mr, ok_r] = app.get_data_remanence();
+                app.HstartAmEditField_2.Value = 0;
+                if ok_r
+                    app.MstartAmEditField_2.Value = Mr;
+                else
+                    app.MstartAmEditField_2.Value = 0;
+                end
+                app.set_degaussing_start_enable('off');
+            elseif contains(start_mode, "tip")
+                [Htip, Mtip, ok_t] = PlaygroundUtils.get_data_tip(app);
+                if ok_t
+                    app.HstartAmEditField_2.Value = Htip;
+                    app.MstartAmEditField_2.Value = Mtip;
+                else
+                    app.HstartAmEditField_2.Value = 0;
+                    app.MstartAmEditField_2.Value = 0;
+                end
+                app.set_degaussing_start_enable('off');
+            else
+                app.set_degaussing_start_enable('on');
+            end
+
+            amp_mode = lower(string(app.HamplitudeDropDown.Value));
+            if contains(amp_mode, "automatic")
+                app.set_degaussing_auto_enable('on');
+                app.set_degaussing_table_enable('off');
+            else
+                app.set_degaussing_auto_enable('off');
+                app.set_degaussing_table_enable('on');
+            end
+        end
+
+        function set_degaussing_start_enable(app, state)
+            app.set_enable_safe(app.MstartAmEditField_2, state);
+            app.set_enable_safe(app.HstartAmEditField_2, state);
+            app.set_enable_safe(app.MstartAmEditField_2Label, state);
+            app.set_enable_safe(app.HstartAmEditField_2Label, state);
+        end
+
+        function set_degaussing_auto_enable(app, state)
+            app.set_enable_safe(app.NofstepsEditField, state);
+            app.set_enable_safe(app.InitialamplitudeAmEditField, state);
+            app.set_enable_safe(app.FinalamplitudeAmEditField, state);
+            app.set_enable_safe(app.NofstepsEditFieldLabel, state);
+            app.set_enable_safe(app.InitialamplitudeAmEditFieldLabel, state);
+            app.set_enable_safe(app.FinalamplitudeAmEditFieldLabel, state);
+        end
+
+        function set_degaussing_table_enable(app, state)
+            if isprop(app, 'UITable_3') && ~isempty(app.UITable_3) && isvalid(app.UITable_3)
+                app.set_enable_safe(app.UITable_3, state);
+            end
+        end
+
+        function set_enable_safe(~, component, state)
+            % MOD: set the Enable property only when the component actually has
+            % one (uilabel gained Enable only in recent releases), so greying
+            % out never errors on older MATLAB.
+            if ~isempty(component) && isvalid(component) && isprop(component, 'Enable')
+                component.Enable = state;
+            end
+        end
+
+        function [Hstart, Mstart, amplitudes, ok, message] = get_degaussing_inputs(app)
+            % MOD: gather the degaussing starting point and amplitude schedule
+            % from the UI. Returns ok=false plus a user-facing warning message
+            % when a required data-derived quantity is unavailable.
+            Hstart = NaN;
+            Mstart = NaN;
+            amplitudes = [];
+            ok = false;
+            message = "";
+
+            start_mode = lower(string(app.StartingpointDropDown_3.Value));
+            if contains(start_mode, "remanence")
+                [Mr, ok_r] = app.get_data_remanence();
+                if ~ok_r
+                    message = "Warning: The data hysteresis loop is unavailable; the remanence (H=0, Mr) starting point cannot be retrieved. Import a hysteretic dataset or choose another starting point.";
+                    return;
+                end
+                Hstart = 0;
+                Mstart = Mr;
+            elseif contains(start_mode, "tip")
+                [Htip, Mtip, ok_t] = PlaygroundUtils.get_data_tip(app);
+                if ~ok_t
+                    message = "Warning: The data tip point (Htip, Mtip) is unavailable; import a dataset or choose another starting point.";
+                    return;
+                end
+                Hstart = Htip;
+                Mstart = Mtip;
+            else
+                Hstart = app.HstartAmEditField_2.Value;
+                Mstart = app.MstartAmEditField_2.Value;
+                if ~isfinite(Hstart) || ~isfinite(Mstart)
+                    message = "Warning: User-defined Hstart and Mstart must be finite numbers.";
+                    return;
+                end
+            end
+
+            amp_mode = lower(string(app.HamplitudeDropDown.Value));
+            if contains(amp_mode, "automatic")
+                [amplitudes, ok_a] = app.get_degaussing_amplitudes_auto();
+                if ~ok_a
+                    message = "Warning: Invalid automatic H amplitude settings (need N >= 1 steps and a positive initial amplitude).";
+                    return;
+                end
+            else
+                [amplitudes, ok_a] = app.get_degaussing_table_inputs();
+                if ~ok_a
+                    message = "Warning: The user-defined H amplitude table must contain at least one positive value.";
+                    return;
+                end
+            end
+
+            ok = true;
+        end
+
+        function run_playground_degaussing(app)
+            failure_message = "The magnetization path cannot be computed with the current initial condition M(Hstart) and model parameters.";
+            try
+                [params, ok_params] = PlaygroundUtils.get_playground_params(app);
+                if ~ok_params
+                    PlaygroundUtils.clear_simulation(app);
+                    app.plot_playground();
+                    app.write_message(failure_message);
+                    return;
+                end
+
+                [Hstart, Mstart, amplitudes, ok_inputs, message] = app.get_degaussing_inputs();
+                if ~ok_inputs
+                    PlaygroundUtils.clear_simulation(app);
+                    app.plot_playground();
+                    if strlength(message) > 0
+                        app.write_message(message);
+                    else
+                        app.write_message(failure_message);
+                    end
+                    return;
+                end
+
+                app.sync_degaussing_ui();   % keep displayed start values consistent
+
+                app.write_message("Calculate & Plot started");
+                pause(0.01);
+                calc_timer = tic;
+
+                [Hsim, Msim, info] = solveJA_degaussing_playground( ...
+                    Hstart, Mstart, amplitudes, params, ...
+                    odeset('RelTol', 1e-7, 'AbsTol', 1e-6));
+                info.status = "ok";
+                PlaygroundUtils.set_simulation(app, Hsim, Msim, info);
+                app.plot_playground();
+                t = sprintf("%0.2f", toc(calc_timer));
+                app.write_message("Calculate & Plot finished after " + t + " s");
+            catch
+                PlaygroundUtils.clear_simulation(app);
+                app.plot_playground();
+                app.write_message(failure_message);
+            end
+        end
+
+        function expand_degaussing_table_if_needed(app, event)
+            % MOD: auto-grow the Degaussing amplitude table by one empty row when
+            % the last row receives a valid positive value (mirrors the minor
+            % loop table's growing behaviour).
+            if nargin < 2 || isempty(event) || ~isprop(app, 'UITable_3') || isempty(app.UITable_3) || ~isvalid(app.UITable_3)
+                return;
+            end
+
+            if ~isprop(event, 'Indices') || isempty(event.Indices) || ~isprop(event, 'NewData')
+                return;
+            end
+
+            row = event.Indices(1);
+            newValue = event.NewData;
+            if ~(isscalar(row) && isfinite(row) && row >= 1 && isfinite(newValue) && newValue > 0)
+                return;
+            end
+            data = app.UITable_3.Data;
+            if isempty(data) || ~isnumeric(data)
+                return;
+            end
+
+            data = data(:);
+            if row == numel(data)
+                app.UITable_3.Data = [data; NaN];
+            end
+        end
+
         function set_colors_and_plot(app, colors)
             app.Colors = colors;
             if ~isobject(app.data_curve) || ~isprop(app.data_curve, 'H') || isempty(app.data_curve.H)
@@ -2248,10 +2633,11 @@ classdef app_exported < matlab.apps.AppBase
             % import_src(); %Legacy: genpath makes this line redundant
         
             app.ProjectPath = "";
-            app.number_components = app.NofcomponentsSpinner.Value;
+            app.number_components = app.NofcompSpinner.Value;
         
             app.init_components();
             app.configure_minor_loop_table();
+            app.configure_degaussing_table();   % MOD: ADD this line
             app.TableFittedParameters.ColumnFormat = {[] 'char' 'short' 'short' 'logical'};
         
             app.init_parameters_table(true);
@@ -2272,6 +2658,7 @@ classdef app_exported < matlab.apps.AppBase
             PlaygroundUtils.clear_simulation(app);
             PlaygroundUtils.sync_major_ui(app);
             app.sync_playground_mode_ui();
+            app.sync_degaussing_ui();   % MOD: ADD this line
         
             % Default colors
             app.Colors = [
@@ -2346,9 +2733,9 @@ classdef app_exported < matlab.apps.AppBase
             app.plot_HdMdH()
         end
 
-        % Value changed function: NofcomponentsSpinner
-        function NofcomponentsSpinnerValueChanged(app, event)
-            app.number_components = app.NofcomponentsSpinner.Value;
+        % Value changed function: NofcompSpinner
+        function NofcompSpinnerValueChanged(app, event)
+            app.number_components = app.NofcompSpinner.Value;
             app.init_components();
             app.configure_minor_loop_table();
         end
@@ -2672,7 +3059,7 @@ classdef app_exported < matlab.apps.AppBase
             app.configure_minor_loop_table();
             app.init_parameters_table(true);
             app.init_quantities_table(true);
-            app.NofcomponentsSpinner.Value = app.number_components;
+            app.NofcompSpinner.Value = app.number_components;
 
             app.TableFittedParameters.Data(:,2) = s.fitted_parameters_value;
             app.TableFittedParameters.Data(:,3) = s.fitted_parameters_lower_bound;
@@ -2755,7 +3142,7 @@ classdef app_exported < matlab.apps.AppBase
                 app.ReltoleranceEditField_3.Value = max(0, s.hysteretic_rel_tolerance);
             end
             if isfield(s, 'hysteretic_max_repetitions')
-                app.MaxrepetitionsEditField_3.Value = max(1, round(s.hysteretic_max_repetitions));
+                app.MaxrepetEditField.Value = max(1, round(s.hysteretic_max_repetitions));
             end
             app.sync_hysteretic_fitting_ui();
             
@@ -3067,8 +3454,8 @@ classdef app_exported < matlab.apps.AppBase
             app.plot_hysteretic_tab_data();
         end
 
-        % Value changed function: MaxrepetitionsEditField_3
-        function MaxrepetitionsEditField_3ValueChanged(app, event)
+        % Value changed function: MaxrepetEditField
+        function MaxrepetEditFieldValueChanged(app, event)
             app.plot_hysteretic_tab_data();
         end
 
@@ -3095,6 +3482,8 @@ classdef app_exported < matlab.apps.AppBase
             
             if PlaygroundUtils.is_minor_mode(app)
                 app.run_playground_minor_loop();
+            elseif PlaygroundUtils.is_degaussing_mode(app)     % MOD: ADD these two lines
+                app.run_playground_degaussing();               % MOD: ADD
             else
                 [params, ok_params] = PlaygroundUtils.get_playground_params(app);
                 if ~ok_params
@@ -3157,6 +3546,9 @@ classdef app_exported < matlab.apps.AppBase
             app.sync_playground_mode_ui();
             if PlaygroundUtils.is_minor_mode(app)
                 app.maybe_refresh_minor_loop_defaults();   % MOD: fill Htip_i defaults from data tip when switching to Minor Loops
+            elseif PlaygroundUtils.is_degaussing_mode(app)     % MOD: ADD
+                app.maybe_refresh_degaussing_defaults();       % MOD: ADD
+                app.sync_degaussing_ui();                      % MOD: ADD
             end
             PlaygroundUtils.clear_simulation(app);
             PlaygroundUtils.sync_major_ui(app);
@@ -3169,6 +3561,42 @@ classdef app_exported < matlab.apps.AppBase
             app.expand_minor_loop_table_if_needed(event);
             PlaygroundUtils.clear_simulation(app);
             app.plot_playground();
+        end
+
+        % Value changed function: FinalamplitudeAmEditField, 
+        % ...and 4 other components
+        function DegaussingValueChanged(app, event)
+            app.degaussing_user_edited = true;   % MOD: stop auto-filling defaults once edited
+            PlaygroundUtils.clear_simulation(app);
+            app.plot_playground();
+        end
+
+        % Value changed function: HamplitudeDropDown, 
+        % ...and 1 other component
+        function DegaussingModeChanged(app, event)
+            app.sync_degaussing_ui();
+            PlaygroundUtils.clear_simulation(app);
+            app.plot_playground();
+        end
+
+        % Cell edit callback: UITable_3
+        function DegaussingTableCellEdit(app, event)
+            app.degaussing_user_edited = true;   % MOD: stop auto-filling defaults once edited
+            app.expand_degaussing_table_if_needed(event);
+            PlaygroundUtils.clear_simulation(app);
+            app.plot_playground();
+        end
+
+        % Button pushed function: StopfitButton_2
+        function StopfitButton_2Pushed(app, event)
+            app.stop_fit_requested = true;
+            app.write_message("Stop requested: fitting will stop after the current iteration.");
+        end
+
+        % Button pushed function: StopfitButton
+        function StopFitButtonPushed(app, event)
+            app.stop_fit_requested = true;
+            app.write_message("Stop requested: fitting will stop after the current iteration.");
         end
     end
 
@@ -3688,7 +4116,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create GridLayoutNumbers
             app.GridLayoutNumbers = uigridlayout(app.AnhystereticmagnetizationfittingTabGridLayout);
             app.GridLayoutNumbers.ColumnWidth = {'1x'};
-            app.GridLayoutNumbers.RowHeight = {'0.2x', '0.2x', '0.2x', '1.8x', '0.2x', '1x', '0.2x', '1x', '0.3x'};
+            app.GridLayoutNumbers.RowHeight = {'0.2x', '0.3x', '0.2x', '1.7x', '0.2x', '1x', '0.2x', '1x', '0.3x'};
             app.GridLayoutNumbers.RowSpacing = 5;
             app.GridLayoutNumbers.Padding = [10 0 10 0];
             app.GridLayoutNumbers.Layout.Row = 1;
@@ -3722,8 +4150,8 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayoutButtons
             app.GridLayoutButtons = uigridlayout(app.GridLayoutNumbers);
-            app.GridLayoutButtons.ColumnWidth = {'0.65x', '1.1x', '0.9x', '1.2x', '1.2x'};
-            app.GridLayoutButtons.RowHeight = {'1x'};
+            app.GridLayoutButtons.ColumnWidth = {'0.65x', '1.1x', '0.8x', '1x', '0.5x', '0.5x'};
+            app.GridLayoutButtons.RowHeight = {'1.1x'};
             app.GridLayoutButtons.Padding = [0 0 0 0];
             app.GridLayoutButtons.Layout.Row = 9;
             app.GridLayoutButtons.Layout.Column = 1;
@@ -3731,6 +4159,8 @@ classdef app_exported < matlab.apps.AppBase
             % Create FitButton
             app.FitButton = uibutton(app.GridLayoutButtons, 'push');
             app.FitButton.ButtonPushedFcn = createCallbackFcn(app, @FitButtonPushed, true);
+            app.FitButton.FontWeight = 'bold';
+            app.FitButton.FontColor = [0.8667 0.3294 0];
             app.FitButton.Layout.Row = 1;
             app.FitButton.Layout.Column = 5;
             app.FitButton.Text = 'Fit';
@@ -3763,6 +4193,13 @@ classdef app_exported < matlab.apps.AppBase
             app.ErrorDisplay.Editable = 'off';
             app.ErrorDisplay.Layout.Row = 1;
             app.ErrorDisplay.Layout.Column = 3;
+
+            % Create StopfitButton
+            app.StopfitButton = uibutton(app.GridLayoutButtons, 'push');
+            app.StopfitButton.ButtonPushedFcn = createCallbackFcn(app, @StopFitButtonPushed, true);
+            app.StopfitButton.Layout.Row = 1;
+            app.StopfitButton.Layout.Column = 6;
+            app.StopfitButton.Text = 'Stop fit';
 
             % Create GridLayoutOtherQuantities
             app.GridLayoutOtherQuantities = uigridlayout(app.GridLayoutNumbers);
@@ -3825,26 +4262,26 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayoutModeledCurve
             app.GridLayoutModeledCurve = uigridlayout(app.GridLayoutNumbers);
-            app.GridLayoutModeledCurve.ColumnWidth = {'1x', '0.32x', '0.75x', '0.32x', '1x', '0.6x'};
+            app.GridLayoutModeledCurve.ColumnWidth = {'0.5x', '0.4x', '0.5x', '0.3x', '1.2x', '0.45x'};
             app.GridLayoutModeledCurve.RowHeight = {'1x'};
             app.GridLayoutModeledCurve.ColumnSpacing = 3;
             app.GridLayoutModeledCurve.Padding = [0 0 0 0];
             app.GridLayoutModeledCurve.Layout.Row = 2;
             app.GridLayoutModeledCurve.Layout.Column = 1;
 
-            % Create NofcomponentsSpinnerLabel
-            app.NofcomponentsSpinnerLabel = uilabel(app.GridLayoutModeledCurve);
-            app.NofcomponentsSpinnerLabel.Layout.Row = 1;
-            app.NofcomponentsSpinnerLabel.Layout.Column = 1;
-            app.NofcomponentsSpinnerLabel.Text = 'N. of components';
+            % Create NofcompSpinnerLabel
+            app.NofcompSpinnerLabel = uilabel(app.GridLayoutModeledCurve);
+            app.NofcompSpinnerLabel.Layout.Row = 1;
+            app.NofcompSpinnerLabel.Layout.Column = 1;
+            app.NofcompSpinnerLabel.Text = 'N. of comp.';
 
-            % Create NofcomponentsSpinner
-            app.NofcomponentsSpinner = uispinner(app.GridLayoutModeledCurve);
-            app.NofcomponentsSpinner.Limits = [1 4];
-            app.NofcomponentsSpinner.ValueChangedFcn = createCallbackFcn(app, @NofcomponentsSpinnerValueChanged, true);
-            app.NofcomponentsSpinner.Layout.Row = 1;
-            app.NofcomponentsSpinner.Layout.Column = 2;
-            app.NofcomponentsSpinner.Value = 1;
+            % Create NofcompSpinner
+            app.NofcompSpinner = uispinner(app.GridLayoutModeledCurve);
+            app.NofcompSpinner.Limits = [1 4];
+            app.NofcompSpinner.ValueChangedFcn = createCallbackFcn(app, @NofcompSpinnerValueChanged, true);
+            app.NofcompSpinner.Layout.Row = 1;
+            app.NofcompSpinner.Layout.Column = 2;
+            app.NofcompSpinner.Value = 1;
 
             % Create NofpointsEditFieldLabel
             app.NofpointsEditFieldLabel = uilabel(app.GridLayoutModeledCurve);
@@ -3889,7 +4326,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create GridLayout2
             app.GridLayout2 = uigridlayout(app.HystereticfittingTab);
             app.GridLayout2.ColumnWidth = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
-            app.GridLayout2.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
+            app.GridLayout2.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '0.5x', '1.3x'};
             app.GridLayout2.ColumnSpacing = 2.77317164494441;
             app.GridLayout2.RowSpacing = 6.31337694021372;
             app.GridLayout2.Padding = [2.77317164494441 6.31337694021372 2.77317164494441 6.31337694021372];
@@ -3985,8 +4422,10 @@ classdef app_exported < matlab.apps.AppBase
             % Create FitButton_2
             app.FitButton_2 = uibutton(app.GridLayout2, 'push');
             app.FitButton_2.ButtonPushedFcn = createCallbackFcn(app, @FitButton_2Pushed, true);
+            app.FitButton_2.FontWeight = 'bold';
+            app.FitButton_2.FontColor = [0.8667 0.3294 0];
             app.FitButton_2.Layout.Row = 15;
-            app.FitButton_2.Layout.Column = 12;
+            app.FitButton_2.Layout.Column = 11;
             app.FitButton_2.Text = 'Fit';
 
             % Create CalculatePlotButton_2
@@ -3994,7 +4433,7 @@ classdef app_exported < matlab.apps.AppBase
             app.CalculatePlotButton_2.ButtonPushedFcn = createCallbackFcn(app, @CalculatePlotButton_2Pushed, true);
             app.CalculatePlotButton_2.WordWrap = 'on';
             app.CalculatePlotButton_2.Layout.Row = 15;
-            app.CalculatePlotButton_2.Layout.Column = [10 11];
+            app.CalculatePlotButton_2.Layout.Column = 10;
             app.CalculatePlotButton_2.Text = 'Calculate & Plot';
 
             % Create ErrortominimizeDropDownLabel_2
@@ -4213,7 +4652,7 @@ classdef app_exported < matlab.apps.AppBase
             app.StartingpointDropDown_4.Items = {'Demagnetized', 'Tip point'};
             app.StartingpointDropDown_4.ValueChangedFcn = createCallbackFcn(app, @StartingpointDropDown_4ValueChanged, true);
             app.StartingpointDropDown_4.Layout.Row = 9;
-            app.StartingpointDropDown_4.Layout.Column = [11 12];
+            app.StartingpointDropDown_4.Layout.Column = [10 11];
             app.StartingpointDropDown_4.Value = 'Demagnetized';
 
             % Create FittingregionDropDownLabel
@@ -4227,7 +4666,7 @@ classdef app_exported < matlab.apps.AppBase
             app.FittingregionDropDown.Items = {'Left branch only', 'Entire loop'};
             app.FittingregionDropDown.ValueChangedFcn = createCallbackFcn(app, @FittingregionDropDownValueChanged, true);
             app.FittingregionDropDown.Layout.Row = 10;
-            app.FittingregionDropDown.Layout.Column = [11 12];
+            app.FittingregionDropDown.Layout.Column = [10 11];
             app.FittingregionDropDown.Value = 'Entire loop';
 
             % Create StopcriterionDropDown_5Label
@@ -4241,13 +4680,13 @@ classdef app_exported < matlab.apps.AppBase
             app.StopcriterionDropDown_5.Items = {'Fixed repetitions', 'Until convergence'};
             app.StopcriterionDropDown_5.ValueChangedFcn = createCallbackFcn(app, @StopcriterionDropDown_5ValueChanged, true);
             app.StopcriterionDropDown_5.Layout.Row = 11;
-            app.StopcriterionDropDown_5.Layout.Column = [11 12];
+            app.StopcriterionDropDown_5.Layout.Column = [10 11];
             app.StopcriterionDropDown_5.Value = 'Fixed repetitions';
 
             % Create RepetitionsEditField_3Label
             app.RepetitionsEditField_3Label = uilabel(app.GridLayout2);
             app.RepetitionsEditField_3Label.Layout.Row = 12;
-            app.RepetitionsEditField_3Label.Layout.Column = 9;
+            app.RepetitionsEditField_3Label.Layout.Column = 10;
             app.RepetitionsEditField_3Label.Text = 'Repetitions';
 
             % Create RepetitionsEditField_3
@@ -4255,14 +4694,14 @@ classdef app_exported < matlab.apps.AppBase
             app.RepetitionsEditField_3.Limits = [0 Inf];
             app.RepetitionsEditField_3.RoundFractionalValues = 'on';
             app.RepetitionsEditField_3.ValueChangedFcn = createCallbackFcn(app, @RepetitionsEditField_3ValueChanged, true);
-            app.RepetitionsEditField_3.Layout.Row = 12;
+            app.RepetitionsEditField_3.Layout.Row = 13;
             app.RepetitionsEditField_3.Layout.Column = 10;
             app.RepetitionsEditField_3.Value = 1;
 
             % Create ReltoleranceEditField_3Label
             app.ReltoleranceEditField_3Label = uilabel(app.GridLayout2);
-            app.ReltoleranceEditField_3Label.Layout.Row = 13;
-            app.ReltoleranceEditField_3Label.Layout.Column = 11;
+            app.ReltoleranceEditField_3Label.Layout.Row = 12;
+            app.ReltoleranceEditField_3Label.Layout.Column = 12;
             app.ReltoleranceEditField_3Label.Text = 'Rel. tolerance';
 
             % Create ReltoleranceEditField_3
@@ -4274,20 +4713,27 @@ classdef app_exported < matlab.apps.AppBase
             app.ReltoleranceEditField_3.Layout.Column = 12;
             app.ReltoleranceEditField_3.Value = 0.001;
 
-            % Create MaxrepetitionsEditFieldLabel
-            app.MaxrepetitionsEditFieldLabel = uilabel(app.GridLayout2);
-            app.MaxrepetitionsEditFieldLabel.Layout.Row = 13;
-            app.MaxrepetitionsEditFieldLabel.Layout.Column = 9;
-            app.MaxrepetitionsEditFieldLabel.Text = 'Max. repetitions';
+            % Create MaxrepetEditFieldLabel
+            app.MaxrepetEditFieldLabel = uilabel(app.GridLayout2);
+            app.MaxrepetEditFieldLabel.Layout.Row = 12;
+            app.MaxrepetEditFieldLabel.Layout.Column = 11;
+            app.MaxrepetEditFieldLabel.Text = 'Max. repet.';
 
-            % Create MaxrepetitionsEditField_3
-            app.MaxrepetitionsEditField_3 = uieditfield(app.GridLayout2, 'numeric');
-            app.MaxrepetitionsEditField_3.Limits = [0 Inf];
-            app.MaxrepetitionsEditField_3.RoundFractionalValues = 'on';
-            app.MaxrepetitionsEditField_3.ValueChangedFcn = createCallbackFcn(app, @MaxrepetitionsEditField_3ValueChanged, true);
-            app.MaxrepetitionsEditField_3.Layout.Row = 13;
-            app.MaxrepetitionsEditField_3.Layout.Column = 10;
-            app.MaxrepetitionsEditField_3.Value = 1;
+            % Create MaxrepetEditField
+            app.MaxrepetEditField = uieditfield(app.GridLayout2, 'numeric');
+            app.MaxrepetEditField.Limits = [0 Inf];
+            app.MaxrepetEditField.RoundFractionalValues = 'on';
+            app.MaxrepetEditField.ValueChangedFcn = createCallbackFcn(app, @MaxrepetEditFieldValueChanged, true);
+            app.MaxrepetEditField.Layout.Row = 13;
+            app.MaxrepetEditField.Layout.Column = 11;
+            app.MaxrepetEditField.Value = 1;
+
+            % Create StopfitButton_2
+            app.StopfitButton_2 = uibutton(app.GridLayout2, 'push');
+            app.StopfitButton_2.ButtonPushedFcn = createCallbackFcn(app, @StopfitButton_2Pushed, true);
+            app.StopfitButton_2.Layout.Row = 15;
+            app.StopfitButton_2.Layout.Column = 12;
+            app.StopfitButton_2.Text = 'Stop fit';
 
             % Create PlaygroundTab
             app.PlaygroundTab = uitab(app.TabGroup);
@@ -4398,10 +4844,9 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create DrivingfieldLabel_2
             app.DrivingfieldLabel_2 = uilabel(app.GridLayout3);
-            app.DrivingfieldLabel_2.HorizontalAlignment = 'center';
             app.DrivingfieldLabel_2.FontWeight = 'bold';
             app.DrivingfieldLabel_2.Layout.Row = 10;
-            app.DrivingfieldLabel_2.Layout.Column = [1 2];
+            app.DrivingfieldLabel_2.Layout.Column = 1;
             app.DrivingfieldLabel_2.Text = 'Driving field';
 
             % Create ShowgridCheckBoxM_4
@@ -4413,11 +4858,11 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create HcaseDropDown
             app.HcaseDropDown = uidropdown(app.GridLayout3);
-            app.HcaseDropDown.Items = {'Major Loop', 'Minor Loops', 'Degaussing', 'Major Loop with harmonics'};
+            app.HcaseDropDown.Items = {'Major loop', 'Minor loops', 'Degaussing', 'Major loop with harmonics'};
             app.HcaseDropDown.ValueChangedFcn = createCallbackFcn(app, @HcaseDropDownValueChanged, true);
-            app.HcaseDropDown.Layout.Row = 11;
-            app.HcaseDropDown.Layout.Column = [1 2];
-            app.HcaseDropDown.Value = 'Major Loop';
+            app.HcaseDropDown.Layout.Row = 10;
+            app.HcaseDropDown.Layout.Column = [2 3];
+            app.HcaseDropDown.Value = 'Major loop';
 
             % Create MajorloopPanel
             app.MajorloopPanel = uipanel(app.GridLayout3);
@@ -4674,7 +5119,7 @@ classdef app_exported < matlab.apps.AppBase
             app.VerticalaxisfieldDropDown_2Label = uilabel(app.GridLayout3);
             app.VerticalaxisfieldDropDown_2Label.FontWeight = 'bold';
             app.VerticalaxisfieldDropDown_2Label.Layout.Row = 1;
-            app.VerticalaxisfieldDropDown_2Label.Layout.Column = [12 13];
+            app.VerticalaxisfieldDropDown_2Label.Layout.Column = [13 14];
             app.VerticalaxisfieldDropDown_2Label.Text = 'Vertical axis field';
 
             % Create VerticalaxisfieldDropDown_2
@@ -4682,7 +5127,7 @@ classdef app_exported < matlab.apps.AppBase
             app.VerticalaxisfieldDropDown_2.Items = {'M [A/m]', 'M [kA/m]', 'M [MA/m]', 'M [emu/cm^3]', 'J [T]', 'B [T]', 'B [G]', 'B [kG]'};
             app.VerticalaxisfieldDropDown_2.ValueChangedFcn = createCallbackFcn(app, @VerticalaxisfieldDropDown_2ValueChanged, true);
             app.VerticalaxisfieldDropDown_2.Layout.Row = 2;
-            app.VerticalaxisfieldDropDown_2.Layout.Column = [12 13];
+            app.VerticalaxisfieldDropDown_2.Layout.Column = [13 14];
             app.VerticalaxisfieldDropDown_2.Value = 'M [A/m]';
 
             % Create DegaussingPanel
@@ -4708,6 +5153,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create StartingpointDropDown_3
             app.StartingpointDropDown_3 = uidropdown(app.GridLayout5);
             app.StartingpointDropDown_3.Items = {'Remanence (data)', 'Tip point (data)', 'User-defined'};
+            app.StartingpointDropDown_3.ValueChangedFcn = createCallbackFcn(app, @DegaussingModeChanged, true);
             app.StartingpointDropDown_3.Layout.Row = 1;
             app.StartingpointDropDown_3.Layout.Column = [2 3];
             app.StartingpointDropDown_3.Value = 'Remanence (data)';
@@ -4720,6 +5166,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create MstartAmEditField_2
             app.MstartAmEditField_2 = uieditfield(app.GridLayout5, 'numeric');
+            app.MstartAmEditField_2.ValueChangedFcn = createCallbackFcn(app, @DegaussingValueChanged, true);
             app.MstartAmEditField_2.Layout.Row = 2;
             app.MstartAmEditField_2.Layout.Column = 3;
 
@@ -4731,6 +5178,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create HstartAmEditField_2
             app.HstartAmEditField_2 = uieditfield(app.GridLayout5, 'numeric');
+            app.HstartAmEditField_2.ValueChangedFcn = createCallbackFcn(app, @DegaussingValueChanged, true);
             app.HstartAmEditField_2.Layout.Row = 3;
             app.HstartAmEditField_2.Layout.Column = 3;
 
@@ -4743,6 +5191,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create HamplitudeDropDown
             app.HamplitudeDropDown = uidropdown(app.GridLayout5);
             app.HamplitudeDropDown.Items = {'Automatic', 'User-defined'};
+            app.HamplitudeDropDown.ValueChangedFcn = createCallbackFcn(app, @DegaussingModeChanged, true);
             app.HamplitudeDropDown.Layout.Row = 4;
             app.HamplitudeDropDown.Layout.Column = [2 3];
             app.HamplitudeDropDown.Value = 'Automatic';
@@ -4755,9 +5204,12 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create NofstepsEditField
             app.NofstepsEditField = uieditfield(app.GridLayout5, 'numeric');
+            app.NofstepsEditField.Limits = [1 Inf];
+            app.NofstepsEditField.RoundFractionalValues = 'on';
+            app.NofstepsEditField.ValueChangedFcn = createCallbackFcn(app, @DegaussingValueChanged, true);
             app.NofstepsEditField.Layout.Row = 5;
             app.NofstepsEditField.Layout.Column = 3;
-            app.NofstepsEditField.Value = 1;
+            app.NofstepsEditField.Value = 5;
 
             % Create InitialamplitudeAmEditFieldLabel
             app.InitialamplitudeAmEditFieldLabel = uilabel(app.GridLayout5);
@@ -4768,6 +5220,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create InitialamplitudeAmEditField
             app.InitialamplitudeAmEditField = uieditfield(app.GridLayout5, 'numeric');
             app.InitialamplitudeAmEditField.Limits = [0 Inf];
+            app.InitialamplitudeAmEditField.ValueChangedFcn = createCallbackFcn(app, @DegaussingValueChanged, true);
             app.InitialamplitudeAmEditField.Layout.Row = 6;
             app.InitialamplitudeAmEditField.Layout.Column = 3;
             app.InitialamplitudeAmEditField.Value = 1;
@@ -4781,6 +5234,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create FinalamplitudeAmEditField
             app.FinalamplitudeAmEditField = uieditfield(app.GridLayout5, 'numeric');
             app.FinalamplitudeAmEditField.Limits = [0 Inf];
+            app.FinalamplitudeAmEditField.ValueChangedFcn = createCallbackFcn(app, @DegaussingValueChanged, true);
             app.FinalamplitudeAmEditField.Layout.Row = 7;
             app.FinalamplitudeAmEditField.Layout.Column = 3;
             app.FinalamplitudeAmEditField.Value = 1;
@@ -4793,6 +5247,7 @@ classdef app_exported < matlab.apps.AppBase
             app.UITable_3.ColumnSortable = true;
             app.UITable_3.SelectionType = 'row';
             app.UITable_3.ColumnEditable = true;
+            app.UITable_3.CellEditCallback = createCallbackFcn(app, @DegaussingTableCellEdit, true);
             app.UITable_3.Multiselect = 'off';
             app.UITable_3.Layout.Row = 8;
             app.UITable_3.Layout.Column = 2;
