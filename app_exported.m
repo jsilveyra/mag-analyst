@@ -2245,7 +2245,7 @@ classdef app_exported < matlab.apps.AppBase
             if isfolder(srcFolder)
                 addpath(genpath(char(srcFolder)));
             end
-            import_src();
+            % import_src(); %Legacy: genpath makes this line redundant
         
             app.ProjectPath = "";
             app.number_components = app.NofcomponentsSpinner.Value;
