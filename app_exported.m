@@ -320,6 +320,7 @@ classdef app_exported < matlab.apps.AppBase
         playground_curve_H
         playground_curve_M
         playground_curve_ready logical = false
+        minor_loop_table_user_edited logical = false   % MOD: true once the user manually edits the Htip_i table
         number_components
         lb
         ub
@@ -1069,6 +1070,7 @@ classdef app_exported < matlab.apps.AppBase
             
             app.data_curve = DataAnhystereticCurve(H, M);
             app.refresh_playground_data_curve();
+            app.maybe_refresh_minor_loop_defaults();   % MOD: update Htip_i defaults from the newly imported data tip
             PlaygroundUtils.sync_major_ui(app);
             PlaygroundUtils.clear_simulation(app);
         end
@@ -1644,8 +1646,8 @@ classdef app_exported < matlab.apps.AppBase
                 end
 
                 if error_type == "Diagonal (H, continuous)"
-                    Sx = (max(Hleft) - min(Hleft)) / 2;
-                    Sy = (max(Mleft) - min(Mleft)) / 2;
+                    Sx = (max(Hleft) - min(Hleft)) / 2; % Legacy (needs a Matlab extra Toolbox) Sx = range(Hleft) / 2;
+                    Sy = (max(Mleft) - min(Mleft)) / 2; % Legacy (needs a Matlab extra Toolbox) Sy = range(Mleft) / 2;
                     if Sx <= 0 || ~isfinite(Sx), Sx = 1; end
                     if Sy <= 0 || ~isfinite(Sy), Sy = 1; end
                     curv = [Hhat / Sx, Mhat / Sy];
@@ -1991,7 +1993,17 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         function values = get_minor_loop_default_values(app)
-            values = [1; 2; 3; NaN];
+            % MOD: default Htip_i are derived from the measured-curve tip
+            % (Htip, Htip*2/3, Htip*1/3) when data is available; otherwise
+            % fall back to a plain 1/2/3 placeholder. Display order is
+            % cosmetic: the solver sorts the tips ascending and simulates
+            % the smallest tip first.
+            [Htip, ~, ok] = PlaygroundUtils.get_data_tip(app);
+            if ok && isfinite(Htip) && Htip > 0
+                values = [Htip; Htip*2/3; Htip*1/3; NaN];
+            else
+                values = [1; 2; 3; NaN];
+            end
         end
 
         function configure_minor_loop_table(app)
@@ -2002,7 +2014,22 @@ classdef app_exported < matlab.apps.AppBase
             app.UITable.SelectionType = 'cell';
             app.UITable.ColumnEditable = [true];
             app.UITable.Data = app.get_minor_loop_default_values();
+            app.minor_loop_table_user_edited = false;   % MOD: table now holds untouched defaults
             app.UITable.CellEditCallback = createCallbackFcn(app, @UITableCellEdit, true);
+        end
+
+        function maybe_refresh_minor_loop_defaults(app)
+            % MOD: re-fill the Htip_i table with data-tip-based defaults, but
+            % only while the user has not manually edited it (so we never
+            % clobber user-entered tip fields).
+            if ~isprop(app, 'UITable') || isempty(app.UITable) || ~isvalid(app.UITable)
+                return;
+            end
+            if app.minor_loop_table_user_edited
+                return;
+            end
+            app.UITable.Data = app.get_minor_loop_default_values();
+            app.minor_loop_table_user_edited = false;
         end
 
         function expand_minor_loop_table_if_needed(app, event)
@@ -3128,6 +3155,9 @@ classdef app_exported < matlab.apps.AppBase
         % Value changed function: HcaseDropDown
         function HcaseDropDownValueChanged(app, event)
             app.sync_playground_mode_ui();
+            if PlaygroundUtils.is_minor_mode(app)
+                app.maybe_refresh_minor_loop_defaults();   % MOD: fill Htip_i defaults from data tip when switching to Minor Loops
+            end
             PlaygroundUtils.clear_simulation(app);
             PlaygroundUtils.sync_major_ui(app);
             app.plot_playground();
@@ -3135,6 +3165,7 @@ classdef app_exported < matlab.apps.AppBase
 
         % Callback function
         function UITableCellEdit(app, event)
+            app.minor_loop_table_user_edited = true;   % MOD: stop auto-filling defaults once edited
             app.expand_minor_loop_table_if_needed(event);
             PlaygroundUtils.clear_simulation(app);
             app.plot_playground();
