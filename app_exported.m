@@ -98,9 +98,9 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesM                           matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesHdMdH                       matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesM                           matlab.ui.control.UIAxes
         HystereticfittingTab            matlab.ui.container.Tab
         GridLayout2                     matlab.ui.container.GridLayout
         StopfitButton_2                 matlab.ui.control.Button
@@ -164,6 +164,46 @@ classdef app_exported < matlab.apps.AppBase
         AxesM_2                         matlab.ui.control.UIAxes
         PlaygroundTab                   matlab.ui.container.Tab
         GridLayout3                     matlab.ui.container.GridLayout
+        VerticalaxisfieldDropDown_2     matlab.ui.control.DropDown
+        VerticalaxisfieldDropDown_2Label  matlab.ui.control.Label
+        HorizontalaxisfieldDropDown_2   matlab.ui.control.DropDown
+        HorizontalaxisfieldDropDown_2Label  matlab.ui.control.Label
+        CalculatePlotButton_3           matlab.ui.control.Button
+        ShowgridCheckBoxM_5             matlab.ui.control.CheckBox
+        HcaseDropDown                   matlab.ui.control.DropDown
+        ShowgridCheckBoxM_4             matlab.ui.control.CheckBox
+        DrivingfieldLabel_2             matlab.ui.control.Label
+        RetrieveparametersButton        matlab.ui.control.Button
+        JsField_13                      matlab.ui.control.EditField
+        JsTEditFieldLabel_13            matlab.ui.control.Label
+        JsField_12                      matlab.ui.control.EditField
+        JsTEditFieldLabel_12            matlab.ui.control.Label
+        JsField_11                      matlab.ui.control.EditField
+        JsTEditFieldLabel_11            matlab.ui.control.Label
+        JsField_10                      matlab.ui.control.EditField
+        JsTEditFieldLabel_10            matlab.ui.control.Label
+        JsField_9                       matlab.ui.control.EditField
+        JsTEditFieldLabel_9             matlab.ui.control.Label
+        ModelparametersLabel_2          matlab.ui.control.Label
+        JilesAthertonmodelrateindependentLabel_2  matlab.ui.control.Label
+        MajorloopwithharmonicsPanel     matlab.ui.container.Panel
+        GridLayout7                     matlab.ui.container.GridLayout
+        HarmoniccompHtsum_kA_ksinkomegatphi_kLabel  matlab.ui.control.Label
+        UITable2                        matlab.ui.control.Table
+        PlotDropDown_3                  matlab.ui.control.DropDown
+        PlotDropDown_3Label             matlab.ui.control.Label
+        ReltoleranceEditField_4         matlab.ui.control.NumericEditField
+        ReltoleranceEditField_4Label    matlab.ui.control.Label
+        PeriodsEditField                matlab.ui.control.NumericEditField
+        PeriodsEditFieldLabel           matlab.ui.control.Label
+        StopcriterionDropDown_6         matlab.ui.control.DropDown
+        StopcriterionDropDown_6Label    matlab.ui.control.Label
+        HstartAmEditField_3             matlab.ui.control.NumericEditField
+        HstartAmEditField_3Label        matlab.ui.control.Label
+        MstartAmEditField_3             matlab.ui.control.NumericEditField
+        MstartAmEditField_3Label        matlab.ui.control.Label
+        StartingpointDropDown_5         matlab.ui.control.DropDown
+        StartingpointDropDown_5Label    matlab.ui.control.Label
         DegaussingPanel                 matlab.ui.container.Panel
         GridLayout5                     matlab.ui.container.GridLayout
         UITable_3                       matlab.ui.control.Table
@@ -181,15 +221,10 @@ classdef app_exported < matlab.apps.AppBase
         MstartAmEditField_2Label        matlab.ui.control.Label
         StartingpointDropDown_3         matlab.ui.control.DropDown
         StartingpointDropDown_3Label    matlab.ui.control.Label
-        VerticalaxisfieldDropDown_2     matlab.ui.control.DropDown
-        VerticalaxisfieldDropDown_2Label  matlab.ui.control.Label
-        HorizontalaxisfieldDropDown_2   matlab.ui.control.DropDown
-        HorizontalaxisfieldDropDown_2Label  matlab.ui.control.Label
-        CalculatePlotButton_3           matlab.ui.control.Button
         MinorloopPanel                  matlab.ui.container.Panel
         GridLayout6                     matlab.ui.container.GridLayout
-        ReltoleranceEditField_2         matlab.ui.control.NumericEditField
-        ReltoleranceEditField_2Label    matlab.ui.control.Label
+        ReltoleranceEditField_5         matlab.ui.control.NumericEditField
+        ReltoleranceEditField_5Label    matlab.ui.control.Label
         StopcriterionDropDown_4         matlab.ui.control.DropDown
         StopcriterionDropDown_4Label    matlab.ui.control.Label
         PlotDropDown_2                  matlab.ui.control.DropDown
@@ -199,7 +234,6 @@ classdef app_exported < matlab.apps.AppBase
         StopcriterionDropDown_2Label_3  matlab.ui.control.Label
         StopcriterionDropDown_2Label_2  matlab.ui.control.Label
         UITable                         matlab.ui.control.Table
-        ShowgridCheckBoxM_5             matlab.ui.control.CheckBox
         MajorloopPanel                  matlab.ui.container.Panel
         GridLayout4                     matlab.ui.container.GridLayout
         HamplitudeAmEditField           matlab.ui.control.NumericEditField
@@ -212,28 +246,12 @@ classdef app_exported < matlab.apps.AppBase
         StartingpointDropDownLabel      matlab.ui.control.Label
         PlotDropDown                    matlab.ui.control.DropDown
         PlotDropDownLabel               matlab.ui.control.Label
-        ReltoleranceEditField           matlab.ui.control.NumericEditField
-        ReltoleranceEditFieldLabel      matlab.ui.control.Label
+        ReltoleranceEditField_6         matlab.ui.control.NumericEditField
+        ReltoleranceEditField_6Label    matlab.ui.control.Label
         RepetitionsEditField            matlab.ui.control.NumericEditField
         RepetitionsEditFieldLabel       matlab.ui.control.Label
         StopcriterionDropDown           matlab.ui.control.DropDown
         StopcriterionDropDownLabel      matlab.ui.control.Label
-        HcaseDropDown                   matlab.ui.control.DropDown
-        ShowgridCheckBoxM_4             matlab.ui.control.CheckBox
-        DrivingfieldLabel_2             matlab.ui.control.Label
-        RetrieveparametersButton        matlab.ui.control.Button
-        JsField_13                      matlab.ui.control.EditField
-        JsTEditFieldLabel_13            matlab.ui.control.Label
-        JsField_12                      matlab.ui.control.EditField
-        JsTEditFieldLabel_12            matlab.ui.control.Label
-        JsField_11                      matlab.ui.control.EditField
-        JsTEditFieldLabel_11            matlab.ui.control.Label
-        JsField_10                      matlab.ui.control.EditField
-        JsTEditFieldLabel_10            matlab.ui.control.Label
-        JsField_9                       matlab.ui.control.EditField
-        JsTEditFieldLabel_9             matlab.ui.control.Label
-        ModelparametersLabel_2          matlab.ui.control.Label
-        JilesAthertonmodelrateindependentLabel_2  matlab.ui.control.Label
         AxesM_5                         matlab.ui.control.UIAxes
         OutputdataTab                   matlab.ui.container.Tab
         GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
@@ -324,6 +342,7 @@ classdef app_exported < matlab.apps.AppBase
         playground_curve_ready logical = false
         minor_loop_table_user_edited logical = false   % MOD: true once the user manually edits the Htip_i table
         degaussing_user_edited logical = false          % MOD: true once the user edits any Degaussing amplitude field/table
+        harmonics_user_edited logical = false           % MOD: true once the user edits any harmonic drive field/table
         number_components
         lb
         ub
@@ -809,22 +828,31 @@ classdef app_exported < matlab.apps.AppBase
         function sync_playground_mode_ui(app)
             mode = lower(string(app.HcaseDropDown.Value));
 
-            if contains(mode, "major loop")
+            if contains(mode, "harmonic")
+                app.MajorloopPanel.Visible = 'off';
+                app.MinorloopPanel.Visible = 'off';
+                app.DegaussingPanel.Visible = 'off';
+                app.MajorloopwithharmonicsPanel.Visible = 'on';
+            elseif contains(mode, "major loop")
                 app.MajorloopPanel.Visible = 'on';
                 app.MinorloopPanel.Visible = 'off';
                 app.DegaussingPanel.Visible = 'off';
+                app.MajorloopwithharmonicsPanel.Visible = 'off';
             elseif contains(mode, "minor loop")
                 app.MajorloopPanel.Visible = 'off';
                 app.MinorloopPanel.Visible = 'on';
                 app.DegaussingPanel.Visible = 'off';
+                app.MajorloopwithharmonicsPanel.Visible = 'off';
             elseif contains(mode, "degaussing")
                 app.MajorloopPanel.Visible = 'off';
                 app.MinorloopPanel.Visible = 'off';
                 app.DegaussingPanel.Visible = 'on';
+                app.MajorloopwithharmonicsPanel.Visible = 'off';
             else
                 app.MajorloopPanel.Visible = 'on';
                 app.MinorloopPanel.Visible = 'on';
                 app.DegaussingPanel.Visible = 'on';
+                app.MajorloopwithharmonicsPanel.Visible = 'on';
             end
         end
 
@@ -1088,6 +1116,8 @@ classdef app_exported < matlab.apps.AppBase
             app.maybe_refresh_minor_loop_defaults();   % MOD: update Htip_i defaults from the newly imported data tip
             app.maybe_refresh_degaussing_defaults();   % MOD: update Degaussing amplitude defaults from the newly imported data tip
             app.sync_degaussing_ui();                  % MOD: refresh Degaussing start-point display from the new data
+            app.maybe_refresh_harmonics_defaults();    % MOD: update harmonic amplitude defaults from the newly imported data tip
+            app.sync_harmonics_ui();                   % MOD: refresh harmonic start-point display from the new data
             PlaygroundUtils.sync_major_ui(app);
             PlaygroundUtils.clear_simulation(app);
         end
@@ -2203,7 +2233,7 @@ classdef app_exported < matlab.apps.AppBase
                     app.write_message(failure_message);
                     return;
                 end
-                PlaygroundUtils.sync_major_ui(app);
+                PlaygroundUtils.sync_minor_ui(app);
 
                 app.write_message("Calculate & Plot started");
                 pause(0.01);
@@ -2213,7 +2243,7 @@ classdef app_exported < matlab.apps.AppBase
                     Htips, params, ...
                     string(app.StopcriterionDropDown_4.Value), ...
                     app.RepetitionsEditField_2.Value, ...
-                    app.ReltoleranceEditField_2.Value, ...
+                    app.ReltoleranceEditField_5.Value, ...
                     odeset('RelTol', 1e-7, 'AbsTol', 1e-6));
                 info.status = "ok";
                 PlaygroundUtils.set_simulation(app, Hsim, Msim, info);
@@ -2587,6 +2617,260 @@ classdef app_exported < matlab.apps.AppBase
                 app.UITable_3.Data = [data; NaN];
             end
         end
+        
+        % =====================================================
+        %  Major loop with harmonics (Playground) — MOD: new subsystem
+        % =====================================================
+
+        function [orders, amplitudes, phases, ok] = get_harmonics_table_inputs(app)
+            % MOD: read the harmonic drive table (UITable2). Columns are
+            % [Order k, Amplitude [A/m], Phase [deg]]. Rows with a non-integer
+            % or missing order, or a missing amplitude, are dropped; a blank
+            % phase is treated as 0 deg. Returns phases in DEGREES.
+            orders = [];
+            amplitudes = [];
+            phases = [];
+            ok = false;
+
+            if ~isprop(app, 'UITable2') || isempty(app.UITable2) || ~isvalid(app.UITable2)
+                return;
+            end
+
+            data = app.UITable2.Data;
+            if isempty(data) || ~isnumeric(data) || size(data, 2) < 2
+                return;
+            end
+
+            ord = data(:, 1);
+            amp = data(:, 2);
+            if size(data, 2) >= 3
+                ph = data(:, 3);
+            else
+                ph = zeros(size(ord));
+            end
+            ph(~isfinite(ph)) = 0;   % blank phase => 0 deg
+
+            keep = isfinite(ord) & ord >= 1 & isfinite(amp);
+            ord = round(ord(keep));
+            amp = amp(keep);
+            ph = ph(keep);
+
+            if isempty(ord) || ~any(abs(amp) > 0)
+                return;
+            end
+
+            orders = ord(:);
+            amplitudes = amp(:);
+            phases = ph(:);
+            ok = true;
+        end
+
+        function [Hstart, Mstart, orders, amplitudes, phases, ok, message] = get_harmonics_inputs(app)
+            % MOD: gather the harmonic-drive starting point and the Fourier
+            % components from the UI. Returns ok=false plus a user-facing
+            % warning when a required data-derived quantity is unavailable or
+            % the harmonics table is empty. phases are returned in RADIANS.
+            Hstart = NaN;
+            Mstart = NaN;
+            orders = [];
+            amplitudes = [];
+            phases = [];
+            ok = false;
+            message = "";
+
+            start_mode = lower(string(app.StartingpointDropDown_5.Value));
+            if contains(start_mode, "demagnetized")
+                Hstart = 0;
+                Mstart = 0;
+            elseif contains(start_mode, "tip")
+                [Htip, Mtip, ok_t] = PlaygroundUtils.get_data_tip(app);
+                if ~ok_t
+                    message = "Warning: The data tip point (Htip, Mtip) is unavailable; import a dataset or choose another starting point.";
+                    return;
+                end
+                Hstart = Htip;
+                Mstart = Mtip;
+            else
+                Hstart = app.HstartAmEditField_3.Value;
+                Mstart = app.MstartAmEditField_3.Value;
+                if ~isfinite(Hstart) || ~isfinite(Mstart)
+                    message = "Warning: User-defined Hstart and Mstart must be finite numbers.";
+                    return;
+                end
+            end
+
+            [orders, amplitudes, phases_deg, ok_tbl] = app.get_harmonics_table_inputs();
+            if ~ok_tbl
+                message = "Warning: The harmonics table must contain at least one row with an integer order >= 1 and a non-zero amplitude.";
+                return;
+            end
+
+            phases = phases_deg * pi / 180;   % degrees -> radians
+            ok = true;
+        end
+
+        function values = get_harmonics_default_table_values(app)
+            % Default harmonic drive chosen to resemble the example waveform
+            % more closely: a fundamental plus a few lower-amplitude odd harmonics
+            % with zero phase, which already create nested minor loops without
+            % overcomplicating the initial pattern.
+            [Htip, ~, ok] = PlaygroundUtils.get_data_tip(app);
+            if ok && isfinite(Htip) && Htip > 0
+                A1 = Htip;
+            else
+                A1 = 1;
+            end
+            values = [1, A1,     0; ...
+                      5, A1 / 2, 60; ...
+                      NaN, NaN, NaN];
+        end
+
+        function configure_harmonics_table(app)
+            % MOD: initialise the harmonic drive table.
+            if ~isprop(app, 'UITable2') || isempty(app.UITable2) || ~isvalid(app.UITable2)
+                return;
+            end
+
+            app.UITable2.ColumnEditable = [true true true];
+            app.UITable2.Data = app.get_harmonics_default_table_values();
+            app.harmonics_user_edited = false;
+            app.UITable2.CellEditCallback = createCallbackFcn(app, @HarmonicsTableCellEdit, true);
+        end
+
+        function maybe_refresh_harmonics_defaults(app)
+            % MOD: re-fill the harmonic drive table with data-tip-based
+            % defaults, but only while the user has not manually edited it
+            % (mirrors the minor-loop / degaussing default behaviour).
+            if app.harmonics_user_edited
+                return;
+            end
+
+            if isprop(app, 'UITable2') && ~isempty(app.UITable2) && isvalid(app.UITable2)
+                app.UITable2.Data = app.get_harmonics_default_table_values();
+            end
+        end
+
+        function sync_harmonics_ui(app)
+            % MOD: enable/disable and populate the harmonic-drive controls
+            % according to the selected starting-point and stop criterion.
+            if ~PlaygroundUtils.is_harmonics_mode(app)
+                return;
+            end
+
+            start_mode = lower(string(app.StartingpointDropDown_5.Value));
+            if contains(start_mode, "demagnetized")
+                app.HstartAmEditField_3.Value = 0;
+                app.MstartAmEditField_3.Value = 0;
+                app.set_harmonics_start_enable('off');
+            elseif contains(start_mode, "tip")
+                [Htip, Mtip, ok_t] = PlaygroundUtils.get_data_tip(app);
+                if ok_t
+                    app.HstartAmEditField_3.Value = Htip;
+                    app.MstartAmEditField_3.Value = Mtip;
+                else
+                    app.HstartAmEditField_3.Value = 0;
+                    app.MstartAmEditField_3.Value = 0;
+                end
+                app.set_harmonics_start_enable('off');
+            else
+                app.set_harmonics_start_enable('on');
+            end
+
+            is_fixed = string(app.StopcriterionDropDown_6.Value) == "Fixed repetitions";
+            if is_fixed
+                app.set_enable_safe(app.PeriodsEditField, 'on');
+                app.set_enable_safe(app.PeriodsEditFieldLabel, 'on');
+                app.set_enable_safe(app.ReltoleranceEditField_4, 'off');
+                app.set_enable_safe(app.ReltoleranceEditField_4Label, 'off');
+            else
+                app.set_enable_safe(app.PeriodsEditField, 'off');
+                app.set_enable_safe(app.PeriodsEditFieldLabel, 'off');
+                app.set_enable_safe(app.ReltoleranceEditField_4, 'on');
+                app.set_enable_safe(app.ReltoleranceEditField_4Label, 'on');
+            end
+        end
+
+        function set_harmonics_start_enable(app, state)
+            app.set_enable_safe(app.MstartAmEditField_3, state);
+            app.set_enable_safe(app.HstartAmEditField_3, state);
+            app.set_enable_safe(app.MstartAmEditField_3Label, state);
+            app.set_enable_safe(app.HstartAmEditField_3Label, state);
+        end
+
+        function expand_harmonics_table_if_needed(app, event)
+            % MOD: auto-grow the harmonics table by one empty row when the last
+            % row receives a valid (order, amplitude) pair (mirrors the minor
+            % loop / degaussing growing tables).
+            if nargin < 2 || isempty(event) || ~isprop(app, 'UITable2') || isempty(app.UITable2) || ~isvalid(app.UITable2)
+                return;
+            end
+            if ~isprop(event, 'Indices') || isempty(event.Indices)
+                return;
+            end
+
+            data = app.UITable2.Data;
+            if isempty(data) || ~isnumeric(data)
+                return;
+            end
+
+            row = event.Indices(1);
+            lastRow = size(data, 1);
+            if row == lastRow
+                ord = data(lastRow, 1);
+                amp = data(lastRow, 2);
+                if isfinite(ord) && ord >= 1 && isfinite(amp)
+                    app.UITable2.Data = [data; NaN(1, size(data, 2))];
+                end
+            end
+        end
+
+        function run_playground_major_harmonics(app)
+            failure_message = "The magnetization path cannot be computed with the current initial condition M(Hstart) and model parameters.";
+            try
+                [params, ok_params] = PlaygroundUtils.get_playground_params(app);
+                if ~ok_params
+                    PlaygroundUtils.clear_simulation(app);
+                    app.plot_playground();
+                    app.write_message(failure_message);
+                    return;
+                end
+
+                [Hstart, Mstart, orders, amplitudes, phases, ok_inputs, message] = app.get_harmonics_inputs();
+                if ~ok_inputs
+                    PlaygroundUtils.clear_simulation(app);
+                    app.plot_playground();
+                    if strlength(message) > 0
+                        app.write_message(message);
+                    else
+                        app.write_message(failure_message);
+                    end
+                    return;
+                end
+
+                app.sync_harmonics_ui();   % keep displayed start values consistent
+
+                app.write_message("Calculate & Plot started");
+                pause(0.01);
+                calc_timer = tic;
+
+                [Hsim, Msim, info] = solveJA_majorHarmonics_playground( ...
+                    Hstart, Mstart, orders, amplitudes, phases, params, ...
+                    string(app.StopcriterionDropDown_6.Value), ...
+                    app.PeriodsEditField.Value, ...
+                    app.ReltoleranceEditField_4.Value, ...
+                    odeset('RelTol', 1e-7, 'AbsTol', 1e-6));
+                info.startMode = string(app.StartingpointDropDown_5.Value);
+                info.status = "ok";
+                PlaygroundUtils.set_simulation(app, Hsim, Msim, info);
+                app.plot_playground();
+                t = sprintf("%0.2f", toc(calc_timer));
+                app.write_message("Calculate & Plot finished after " + t + " s");
+            catch
+                PlaygroundUtils.clear_simulation(app);
+                app.plot_playground();
+                app.write_message(failure_message);
+            end
+        end
 
         function set_colors_and_plot(app, colors)
             app.Colors = colors;
@@ -2637,9 +2921,10 @@ classdef app_exported < matlab.apps.AppBase
         
             app.init_components();
             app.configure_minor_loop_table();
-            app.configure_degaussing_table();   % MOD: ADD this line
+            app.configure_degaussing_table();
+            app.configure_harmonics_table();
             app.TableFittedParameters.ColumnFormat = {[] 'char' 'short' 'short' 'logical'};
-        
+
             app.init_parameters_table(true);
             for i = 1:5
                 addStyle(app.TableParameters, ...
@@ -2657,8 +2942,24 @@ classdef app_exported < matlab.apps.AppBase
             app.sync_hysteretic_fitting_ui();
             PlaygroundUtils.clear_simulation(app);
             PlaygroundUtils.sync_major_ui(app);
+            PlaygroundUtils.sync_minor_ui(app);   % MOD: grey minor-loop stop-criterion fields+labels
             app.sync_playground_mode_ui();
             app.sync_degaussing_ui();   % MOD: ADD this line
+            app.sync_harmonics_ui();
+
+            % MOD: note the convergence-mode repetition cap in the Rel. tolerance
+            % labels (the solver still stops after at most 100 loops even in
+            % "Until convergence" mode).
+            % Legacy: this overrides the label from Design View. app.ReltoleranceEditField_6Label.Text = 'Rel. tolerance (max 100 loops)';
+            % Legacy: this overrides the label from Design View. app.ReltoleranceEditField_5Label.Text = 'Rel. tolerance (max 100 loops/tip)';
+            conv_tip = 'In "Until convergence" mode the loop still stops after at most 100 iterations.'; % (or the Repetitions value, if larger)
+            app.ReltoleranceEditField_6.Tooltip = conv_tip;
+            app.ReltoleranceEditField_6Label.Tooltip = conv_tip;
+            app.ReltoleranceEditField_5.Tooltip = [conv_tip ' Applied per tip.'];
+            app.ReltoleranceEditField_5Label.Tooltip = [conv_tip ' Applied per tip.'];
+            app.ReltoleranceEditField_4.Tooltip = conv_tip;
+            app.ReltoleranceEditField_4Label.Tooltip = conv_tip;
+
         
             % Default colors
             app.Colors = [
@@ -3281,7 +3582,7 @@ classdef app_exported < matlab.apps.AppBase
         
         end
 
-        % Callback function: not associated with a component
+        % Callback function
         function InputAxisScaleDropDownValueChanged2(app, event)
 
             dataset_path = app.InputDatasetPath.Value;
@@ -3484,6 +3785,8 @@ classdef app_exported < matlab.apps.AppBase
                 app.run_playground_minor_loop();
             elseif PlaygroundUtils.is_degaussing_mode(app)     % MOD: ADD these two lines
                 app.run_playground_degaussing();               % MOD: ADD
+            elseif PlaygroundUtils.is_harmonics_mode(app)      % MOD: ADD these two lines
+                app.run_playground_major_harmonics();          % MOD: ADD
             else
                 [params, ok_params] = PlaygroundUtils.get_playground_params(app);
                 if ~ok_params
@@ -3511,7 +3814,7 @@ classdef app_exported < matlab.apps.AppBase
                         string(app.StartingpointDropDown.Value), ...
                         string(app.StopcriterionDropDown.Value), ...
                         app.RepetitionsEditField.Value, ...
-                        app.ReltoleranceEditField.Value, ...
+                        app.ReltoleranceEditField_6.Value, ...
                         odeset('RelTol', 1e-7, 'AbsTol', 1e-6));
                     info.status = "ok";
                     PlaygroundUtils.set_simulation(app, Hsim, Msim, info);
@@ -3549,6 +3852,9 @@ classdef app_exported < matlab.apps.AppBase
             elseif PlaygroundUtils.is_degaussing_mode(app)     % MOD: ADD
                 app.maybe_refresh_degaussing_defaults();       % MOD: ADD
                 app.sync_degaussing_ui();                      % MOD: ADD
+            elseif PlaygroundUtils.is_harmonics_mode(app)      % MOD: ADD
+                app.maybe_refresh_harmonics_defaults();        % MOD: ADD
+                app.sync_harmonics_ui();                       % MOD: ADD
             end
             PlaygroundUtils.clear_simulation(app);
             PlaygroundUtils.sync_major_ui(app);
@@ -3597,6 +3903,35 @@ classdef app_exported < matlab.apps.AppBase
         function StopFitButtonPushed(app, event)
             app.stop_fit_requested = true;
             app.write_message("Stop requested: fitting will stop after the current iteration.");
+        end
+
+        % Value changed function: HstartAmEditField_3, 
+        % ...and 5 other components
+        function HarmonicsValueChanged(app, event)
+            % MOD: shared value-changed callback for the harmonic-drive controls
+            % (everything except the harmonics table). Re-syncs enable states,
+            % invalidates the cached simulation and redraws.
+            app.sync_harmonics_ui();
+            PlaygroundUtils.clear_simulation(app);
+            app.plot_playground();
+        end
+
+        % Cell edit callback: UITable2
+        function HarmonicsTableCellEdit(app, event)
+            app.harmonics_user_edited = true;   % MOD: stop auto-filling defaults once edited
+            app.expand_harmonics_table_if_needed(event);
+            PlaygroundUtils.clear_simulation(app);
+            app.plot_playground();
+        end
+
+        % Value changed function: StopcriterionDropDown_4
+        function StopcriterionDropDown_4ValueChanged(app, event)
+            % MOD: grey the minor-loop Repetitions / Rel. tolerance fields (and
+            % labels) to match the chosen stop criterion, then invalidate the
+            % cached simulation and redraw.
+            PlaygroundUtils.sync_minor_ui(app);
+            PlaygroundUtils.clear_simulation(app);
+            app.plot_playground();
         end
     end
 
@@ -3942,14 +4277,14 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -3960,14 +4295,14 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
@@ -4742,7 +5077,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create GridLayout3
             app.GridLayout3 = uigridlayout(app.PlaygroundTab);
             app.GridLayout3.ColumnWidth = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
-            app.GridLayout3.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
+            app.GridLayout3.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1.5x'};
             app.GridLayout3.ColumnSpacing = 4.37498664855957;
             app.GridLayout3.RowSpacing = 2.24000155131022;
             app.GridLayout3.Padding = [4.37498664855957 2.24000155131022 4.37498664855957 2.24000155131022];
@@ -4753,116 +5088,8 @@ classdef app_exported < matlab.apps.AppBase
             ylabel(app.AxesM_5, 'M [A/m]')
             zlabel(app.AxesM_5, 'Z')
             app.AxesM_5.Box = 'on';
-            app.AxesM_5.Layout.Row = [4 12];
+            app.AxesM_5.Layout.Row = [3 13];
             app.AxesM_5.Layout.Column = [10 14];
-
-            % Create JilesAthertonmodelrateindependentLabel_2
-            app.JilesAthertonmodelrateindependentLabel_2 = uilabel(app.GridLayout3);
-            app.JilesAthertonmodelrateindependentLabel_2.FontWeight = 'bold';
-            app.JilesAthertonmodelrateindependentLabel_2.Layout.Row = 1;
-            app.JilesAthertonmodelrateindependentLabel_2.Layout.Column = [1 8];
-            app.JilesAthertonmodelrateindependentLabel_2.Text = 'Jiles-Atherton model (rate-independent)';
-
-            % Create ModelparametersLabel_2
-            app.ModelparametersLabel_2 = uilabel(app.GridLayout3);
-            app.ModelparametersLabel_2.FontWeight = 'bold';
-            app.ModelparametersLabel_2.Layout.Row = 2;
-            app.ModelparametersLabel_2.Layout.Column = [1 2];
-            app.ModelparametersLabel_2.Text = 'Model parameters';
-
-            % Create JsTEditFieldLabel_9
-            app.JsTEditFieldLabel_9 = uilabel(app.GridLayout3);
-            app.JsTEditFieldLabel_9.FontWeight = 'bold';
-            app.JsTEditFieldLabel_9.Layout.Row = 4;
-            app.JsTEditFieldLabel_9.Layout.Column = 1;
-            app.JsTEditFieldLabel_9.Text = 'Ms [A/m]';
-
-            % Create JsField_9
-            app.JsField_9 = uieditfield(app.GridLayout3, 'text');
-            app.JsField_9.HorizontalAlignment = 'right';
-            app.JsField_9.Layout.Row = 4;
-            app.JsField_9.Layout.Column = 2;
-
-            % Create JsTEditFieldLabel_10
-            app.JsTEditFieldLabel_10 = uilabel(app.GridLayout3);
-            app.JsTEditFieldLabel_10.FontWeight = 'bold';
-            app.JsTEditFieldLabel_10.Layout.Row = 5;
-            app.JsTEditFieldLabel_10.Layout.Column = 1;
-            app.JsTEditFieldLabel_10.Text = 'a [A/m]';
-
-            % Create JsField_10
-            app.JsField_10 = uieditfield(app.GridLayout3, 'text');
-            app.JsField_10.HorizontalAlignment = 'right';
-            app.JsField_10.Layout.Row = 5;
-            app.JsField_10.Layout.Column = 2;
-
-            % Create JsTEditFieldLabel_11
-            app.JsTEditFieldLabel_11 = uilabel(app.GridLayout3);
-            app.JsTEditFieldLabel_11.FontWeight = 'bold';
-            app.JsTEditFieldLabel_11.Layout.Row = 6;
-            app.JsTEditFieldLabel_11.Layout.Column = 1;
-            app.JsTEditFieldLabel_11.Text = 'alpha';
-
-            % Create JsField_11
-            app.JsField_11 = uieditfield(app.GridLayout3, 'text');
-            app.JsField_11.HorizontalAlignment = 'right';
-            app.JsField_11.Layout.Row = 6;
-            app.JsField_11.Layout.Column = 2;
-
-            % Create JsTEditFieldLabel_12
-            app.JsTEditFieldLabel_12 = uilabel(app.GridLayout3);
-            app.JsTEditFieldLabel_12.FontWeight = 'bold';
-            app.JsTEditFieldLabel_12.Layout.Row = 7;
-            app.JsTEditFieldLabel_12.Layout.Column = 1;
-            app.JsTEditFieldLabel_12.Text = 'c';
-
-            % Create JsField_12
-            app.JsField_12 = uieditfield(app.GridLayout3, 'text');
-            app.JsField_12.HorizontalAlignment = 'right';
-            app.JsField_12.Layout.Row = 7;
-            app.JsField_12.Layout.Column = 2;
-
-            % Create JsTEditFieldLabel_13
-            app.JsTEditFieldLabel_13 = uilabel(app.GridLayout3);
-            app.JsTEditFieldLabel_13.FontWeight = 'bold';
-            app.JsTEditFieldLabel_13.Layout.Row = 8;
-            app.JsTEditFieldLabel_13.Layout.Column = 1;
-            app.JsTEditFieldLabel_13.Text = 'k [A/m]';
-
-            % Create JsField_13
-            app.JsField_13 = uieditfield(app.GridLayout3, 'text');
-            app.JsField_13.HorizontalAlignment = 'right';
-            app.JsField_13.Layout.Row = 8;
-            app.JsField_13.Layout.Column = 2;
-
-            % Create RetrieveparametersButton
-            app.RetrieveparametersButton = uibutton(app.GridLayout3, 'push');
-            app.RetrieveparametersButton.ButtonPushedFcn = createCallbackFcn(app, @RetrieveparametersButtonPushed, true);
-            app.RetrieveparametersButton.Layout.Row = 2;
-            app.RetrieveparametersButton.Layout.Column = [1 2];
-            app.RetrieveparametersButton.Text = 'Retrieve parameters';
-
-            % Create DrivingfieldLabel_2
-            app.DrivingfieldLabel_2 = uilabel(app.GridLayout3);
-            app.DrivingfieldLabel_2.FontWeight = 'bold';
-            app.DrivingfieldLabel_2.Layout.Row = 10;
-            app.DrivingfieldLabel_2.Layout.Column = 1;
-            app.DrivingfieldLabel_2.Text = 'Driving field';
-
-            % Create ShowgridCheckBoxM_4
-            app.ShowgridCheckBoxM_4 = uicheckbox(app.GridLayout3);
-            app.ShowgridCheckBoxM_4.ValueChangedFcn = createCallbackFcn(app, @ShowgridCheckBoxM_4ValueChanged, true);
-            app.ShowgridCheckBoxM_4.Text = 'Data curve';
-            app.ShowgridCheckBoxM_4.Layout.Row = 13;
-            app.ShowgridCheckBoxM_4.Layout.Column = [11 12];
-
-            % Create HcaseDropDown
-            app.HcaseDropDown = uidropdown(app.GridLayout3);
-            app.HcaseDropDown.Items = {'Major loop', 'Minor loops', 'Degaussing', 'Major loop with harmonics'};
-            app.HcaseDropDown.ValueChangedFcn = createCallbackFcn(app, @HcaseDropDownValueChanged, true);
-            app.HcaseDropDown.Layout.Row = 10;
-            app.HcaseDropDown.Layout.Column = [2 3];
-            app.HcaseDropDown.Value = 'Major loop';
 
             % Create MajorloopPanel
             app.MajorloopPanel = uipanel(app.GridLayout3);
@@ -4872,8 +5099,8 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayout4
             app.GridLayout4 = uigridlayout(app.MajorloopPanel);
-            app.GridLayout4.ColumnWidth = {'1x', '1x', '1x', '1x'};
-            app.GridLayout4.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
+            app.GridLayout4.ColumnWidth = {'1x', '1x', '1x', '0.5x'};
+            app.GridLayout4.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '6x'};
             app.GridLayout4.ColumnSpacing = 5.07975959777832;
             app.GridLayout4.RowSpacing = 2.1945669386122;
             app.GridLayout4.Padding = [5.07975959777832 2.1945669386122 5.07975959777832 2.1945669386122];
@@ -4889,7 +5116,7 @@ classdef app_exported < matlab.apps.AppBase
             app.StopcriterionDropDown.Items = {'Until convergence', 'Fixed repetitions'};
             app.StopcriterionDropDown.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
             app.StopcriterionDropDown.Layout.Row = 5;
-            app.StopcriterionDropDown.Layout.Column = [3 4];
+            app.StopcriterionDropDown.Layout.Column = [2 3];
             app.StopcriterionDropDown.Value = 'Fixed repetitions';
 
             % Create RepetitionsEditFieldLabel
@@ -4904,27 +5131,26 @@ classdef app_exported < matlab.apps.AppBase
             app.RepetitionsEditField.RoundFractionalValues = 'on';
             app.RepetitionsEditField.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
             app.RepetitionsEditField.Layout.Row = 6;
-            app.RepetitionsEditField.Layout.Column = 4;
+            app.RepetitionsEditField.Layout.Column = 3;
             app.RepetitionsEditField.Value = 1;
 
-            % Create ReltoleranceEditFieldLabel
-            app.ReltoleranceEditFieldLabel = uilabel(app.GridLayout4);
-            app.ReltoleranceEditFieldLabel.Layout.Row = 7;
-            app.ReltoleranceEditFieldLabel.Layout.Column = [2 3];
-            app.ReltoleranceEditFieldLabel.Text = 'Rel. tolerance';
+            % Create ReltoleranceEditField_6Label
+            app.ReltoleranceEditField_6Label = uilabel(app.GridLayout4);
+            app.ReltoleranceEditField_6Label.Layout.Row = 7;
+            app.ReltoleranceEditField_6Label.Layout.Column = [2 3];
+            app.ReltoleranceEditField_6Label.Text = 'Rel. tolerance';
 
-            % Create ReltoleranceEditField
-            app.ReltoleranceEditField = uieditfield(app.GridLayout4, 'numeric');
-            app.ReltoleranceEditField.Limits = [0 Inf];
-            app.ReltoleranceEditField.ValueDisplayFormat = '%.0e\n';
-            app.ReltoleranceEditField.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
-            app.ReltoleranceEditField.Layout.Row = 7;
-            app.ReltoleranceEditField.Layout.Column = 4;
-            app.ReltoleranceEditField.Value = 0.001;
+            % Create ReltoleranceEditField_6
+            app.ReltoleranceEditField_6 = uieditfield(app.GridLayout4, 'numeric');
+            app.ReltoleranceEditField_6.Limits = [0 Inf];
+            app.ReltoleranceEditField_6.ValueDisplayFormat = '%.0e\n';
+            app.ReltoleranceEditField_6.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
+            app.ReltoleranceEditField_6.Layout.Row = 7;
+            app.ReltoleranceEditField_6.Layout.Column = 3;
+            app.ReltoleranceEditField_6.Value = 0.001;
 
             % Create PlotDropDownLabel
             app.PlotDropDownLabel = uilabel(app.GridLayout4);
-            app.PlotDropDownLabel.HorizontalAlignment = 'right';
             app.PlotDropDownLabel.Layout.Row = 8;
             app.PlotDropDownLabel.Layout.Column = 1;
             app.PlotDropDownLabel.Text = 'Plot';
@@ -4934,7 +5160,7 @@ classdef app_exported < matlab.apps.AppBase
             app.PlotDropDown.Items = {'Last loop only', 'Full history'};
             app.PlotDropDown.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
             app.PlotDropDown.Layout.Row = 8;
-            app.PlotDropDown.Layout.Column = [3 4];
+            app.PlotDropDown.Layout.Column = [2 3];
             app.PlotDropDown.Value = 'Last loop only';
 
             % Create StartingpointDropDownLabel
@@ -4948,39 +5174,37 @@ classdef app_exported < matlab.apps.AppBase
             app.StartingpointDropDown.Items = {'Demagnetized', 'Tip point (data)', 'User-defined'};
             app.StartingpointDropDown.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
             app.StartingpointDropDown.Layout.Row = 1;
-            app.StartingpointDropDown.Layout.Column = [3 4];
+            app.StartingpointDropDown.Layout.Column = [2 3];
             app.StartingpointDropDown.Value = 'Demagnetized';
 
             % Create MstartAmEditFieldLabel
             app.MstartAmEditFieldLabel = uilabel(app.GridLayout4);
-            app.MstartAmEditFieldLabel.HorizontalAlignment = 'right';
             app.MstartAmEditFieldLabel.Layout.Row = 2;
-            app.MstartAmEditFieldLabel.Layout.Column = [2 3];
+            app.MstartAmEditFieldLabel.Layout.Column = 2;
             app.MstartAmEditFieldLabel.Text = 'Mstart [A/m]';
 
             % Create MstartAmEditField
             app.MstartAmEditField = uieditfield(app.GridLayout4, 'numeric');
             app.MstartAmEditField.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
             app.MstartAmEditField.Layout.Row = 2;
-            app.MstartAmEditField.Layout.Column = 4;
+            app.MstartAmEditField.Layout.Column = 3;
 
             % Create HstartAmEditFieldLabel
             app.HstartAmEditFieldLabel = uilabel(app.GridLayout4);
-            app.HstartAmEditFieldLabel.HorizontalAlignment = 'right';
             app.HstartAmEditFieldLabel.Layout.Row = 3;
-            app.HstartAmEditFieldLabel.Layout.Column = [2 3];
+            app.HstartAmEditFieldLabel.Layout.Column = 2;
             app.HstartAmEditFieldLabel.Text = 'Hstart [A/m]';
 
             % Create HstartAmEditField
             app.HstartAmEditField = uieditfield(app.GridLayout4, 'numeric');
             app.HstartAmEditField.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
             app.HstartAmEditField.Layout.Row = 3;
-            app.HstartAmEditField.Layout.Column = 4;
+            app.HstartAmEditField.Layout.Column = 3;
 
             % Create HamplitudeAmEditFieldLabel
             app.HamplitudeAmEditFieldLabel = uilabel(app.GridLayout4);
             app.HamplitudeAmEditFieldLabel.Layout.Row = 4;
-            app.HamplitudeAmEditFieldLabel.Layout.Column = [1 3];
+            app.HamplitudeAmEditFieldLabel.Layout.Column = [1 2];
             app.HamplitudeAmEditFieldLabel.Text = 'H amplitude [A/m]';
 
             % Create HamplitudeAmEditField
@@ -4988,15 +5212,7 @@ classdef app_exported < matlab.apps.AppBase
             app.HamplitudeAmEditField.Limits = [0 Inf];
             app.HamplitudeAmEditField.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
             app.HamplitudeAmEditField.Layout.Row = 4;
-            app.HamplitudeAmEditField.Layout.Column = 4;
-
-            % Create ShowgridCheckBoxM_5
-            app.ShowgridCheckBoxM_5 = uicheckbox(app.GridLayout3);
-            app.ShowgridCheckBoxM_5.ValueChangedFcn = createCallbackFcn(app, @ShowgridCheckBoxM_5ValueChanged, true);
-            app.ShowgridCheckBoxM_5.Text = 'Grid';
-            app.ShowgridCheckBoxM_5.Layout.Row = 13;
-            app.ShowgridCheckBoxM_5.Layout.Column = 10;
-            app.ShowgridCheckBoxM_5.Value = true;
+            app.HamplitudeAmEditField.Layout.Column = 3;
 
             % Create MinorloopPanel
             app.MinorloopPanel = uipanel(app.GridLayout3);
@@ -5007,8 +5223,8 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayout6
             app.GridLayout6 = uigridlayout(app.MinorloopPanel);
-            app.GridLayout6.ColumnWidth = {'1x', '1x', '1x', '1x', '1x', '1x'};
-            app.GridLayout6.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
+            app.GridLayout6.ColumnWidth = {'1.475x', '1.4x', '1x', '0.5x', '0.5x'};
+            app.GridLayout6.RowHeight = {'1x', '1x', '6x', '1x', '1x', '1x', '1x', '1x', '1x'};
             app.GridLayout6.ColumnSpacing = 1.95454515729632;
             app.GridLayout6.RowSpacing = 4.77273786067963;
             app.GridLayout6.Padding = [1.95454515729632 4.77273786067963 1.95454515729632 4.77273786067963];
@@ -5023,7 +5239,7 @@ classdef app_exported < matlab.apps.AppBase
             app.UITable.ColumnEditable = true;
             app.UITable.Multiselect = 'off';
             app.UITable.Layout.Row = [2 4];
-            app.UITable.Layout.Column = [4 6];
+            app.UITable.Layout.Column = [2 4];
 
             % Create StopcriterionDropDown_2Label_2
             app.StopcriterionDropDown_2Label_2 = uilabel(app.GridLayout6);
@@ -5048,12 +5264,11 @@ classdef app_exported < matlab.apps.AppBase
             app.RepetitionsEditField_2.Limits = [0 Inf];
             app.RepetitionsEditField_2.RoundFractionalValues = 'on';
             app.RepetitionsEditField_2.Layout.Row = 6;
-            app.RepetitionsEditField_2.Layout.Column = [5 6];
+            app.RepetitionsEditField_2.Layout.Column = [3 4];
             app.RepetitionsEditField_2.Value = 1;
 
             % Create PlotDropDown_2Label
             app.PlotDropDown_2Label = uilabel(app.GridLayout6);
-            app.PlotDropDown_2Label.HorizontalAlignment = 'right';
             app.PlotDropDown_2Label.Layout.Row = 8;
             app.PlotDropDown_2Label.Layout.Column = 1;
             app.PlotDropDown_2Label.Text = 'Plot';
@@ -5062,7 +5277,7 @@ classdef app_exported < matlab.apps.AppBase
             app.PlotDropDown_2 = uidropdown(app.GridLayout6);
             app.PlotDropDown_2.Items = {'Last loops only', 'Full history'};
             app.PlotDropDown_2.Layout.Row = 8;
-            app.PlotDropDown_2.Layout.Column = [3 6];
+            app.PlotDropDown_2.Layout.Column = [2 4];
             app.PlotDropDown_2.Value = 'Last loops only';
 
             % Create StopcriterionDropDown_4Label
@@ -5074,61 +5289,24 @@ classdef app_exported < matlab.apps.AppBase
             % Create StopcriterionDropDown_4
             app.StopcriterionDropDown_4 = uidropdown(app.GridLayout6);
             app.StopcriterionDropDown_4.Items = {'Until convergence', 'Fixed repetitions'};
+            app.StopcriterionDropDown_4.ValueChangedFcn = createCallbackFcn(app, @StopcriterionDropDown_4ValueChanged, true);
             app.StopcriterionDropDown_4.Layout.Row = 5;
-            app.StopcriterionDropDown_4.Layout.Column = [3 6];
+            app.StopcriterionDropDown_4.Layout.Column = [2 4];
             app.StopcriterionDropDown_4.Value = 'Fixed repetitions';
 
-            % Create ReltoleranceEditField_2Label
-            app.ReltoleranceEditField_2Label = uilabel(app.GridLayout6);
-            app.ReltoleranceEditField_2Label.Layout.Row = 7;
-            app.ReltoleranceEditField_2Label.Layout.Column = [2 3];
-            app.ReltoleranceEditField_2Label.Text = 'Rel. tolerance';
+            % Create ReltoleranceEditField_5Label
+            app.ReltoleranceEditField_5Label = uilabel(app.GridLayout6);
+            app.ReltoleranceEditField_5Label.Layout.Row = 7;
+            app.ReltoleranceEditField_5Label.Layout.Column = [2 3];
+            app.ReltoleranceEditField_5Label.Text = 'Rel. tolerance';
 
-            % Create ReltoleranceEditField_2
-            app.ReltoleranceEditField_2 = uieditfield(app.GridLayout6, 'numeric');
-            app.ReltoleranceEditField_2.Limits = [0 Inf];
-            app.ReltoleranceEditField_2.ValueDisplayFormat = '%.0e\n';
-            app.ReltoleranceEditField_2.Layout.Row = 7;
-            app.ReltoleranceEditField_2.Layout.Column = [5 6];
-            app.ReltoleranceEditField_2.Value = 0.001;
-
-            % Create CalculatePlotButton_3
-            app.CalculatePlotButton_3 = uibutton(app.GridLayout3, 'push');
-            app.CalculatePlotButton_3.ButtonPushedFcn = createCallbackFcn(app, @CalculatePlotButton_3Pushed, true);
-            app.CalculatePlotButton_3.WordWrap = 'on';
-            app.CalculatePlotButton_3.Layout.Row = 13;
-            app.CalculatePlotButton_3.Layout.Column = [13 14];
-            app.CalculatePlotButton_3.Text = 'Calculate & Plot';
-
-            % Create HorizontalaxisfieldDropDown_2Label
-            app.HorizontalaxisfieldDropDown_2Label = uilabel(app.GridLayout3);
-            app.HorizontalaxisfieldDropDown_2Label.FontWeight = 'bold';
-            app.HorizontalaxisfieldDropDown_2Label.Layout.Row = 1;
-            app.HorizontalaxisfieldDropDown_2Label.Layout.Column = [10 11];
-            app.HorizontalaxisfieldDropDown_2Label.Text = 'Horizontal axis field';
-
-            % Create HorizontalaxisfieldDropDown_2
-            app.HorizontalaxisfieldDropDown_2 = uidropdown(app.GridLayout3);
-            app.HorizontalaxisfieldDropDown_2.Items = {'H [A/m]', 'H [kA/m]', 'H [Oe]', 'H [kOe]', 'Bext [T]', 'Bext [G]', 'Bext [kG]'};
-            app.HorizontalaxisfieldDropDown_2.ValueChangedFcn = createCallbackFcn(app, @HorizontalaxisfieldDropDown_2ValueChanged, true);
-            app.HorizontalaxisfieldDropDown_2.Layout.Row = 2;
-            app.HorizontalaxisfieldDropDown_2.Layout.Column = [10 11];
-            app.HorizontalaxisfieldDropDown_2.Value = 'H [A/m]';
-
-            % Create VerticalaxisfieldDropDown_2Label
-            app.VerticalaxisfieldDropDown_2Label = uilabel(app.GridLayout3);
-            app.VerticalaxisfieldDropDown_2Label.FontWeight = 'bold';
-            app.VerticalaxisfieldDropDown_2Label.Layout.Row = 1;
-            app.VerticalaxisfieldDropDown_2Label.Layout.Column = [13 14];
-            app.VerticalaxisfieldDropDown_2Label.Text = 'Vertical axis field';
-
-            % Create VerticalaxisfieldDropDown_2
-            app.VerticalaxisfieldDropDown_2 = uidropdown(app.GridLayout3);
-            app.VerticalaxisfieldDropDown_2.Items = {'M [A/m]', 'M [kA/m]', 'M [MA/m]', 'M [emu/cm^3]', 'J [T]', 'B [T]', 'B [G]', 'B [kG]'};
-            app.VerticalaxisfieldDropDown_2.ValueChangedFcn = createCallbackFcn(app, @VerticalaxisfieldDropDown_2ValueChanged, true);
-            app.VerticalaxisfieldDropDown_2.Layout.Row = 2;
-            app.VerticalaxisfieldDropDown_2.Layout.Column = [13 14];
-            app.VerticalaxisfieldDropDown_2.Value = 'M [A/m]';
+            % Create ReltoleranceEditField_5
+            app.ReltoleranceEditField_5 = uieditfield(app.GridLayout6, 'numeric');
+            app.ReltoleranceEditField_5.Limits = [0 Inf];
+            app.ReltoleranceEditField_5.ValueDisplayFormat = '%.0e\n';
+            app.ReltoleranceEditField_5.Layout.Row = 7;
+            app.ReltoleranceEditField_5.Layout.Column = [3 4];
+            app.ReltoleranceEditField_5.Value = 0.001;
 
             % Create DegaussingPanel
             app.DegaussingPanel = uipanel(app.GridLayout3);
@@ -5138,8 +5316,8 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayout5
             app.GridLayout5 = uigridlayout(app.DegaussingPanel);
-            app.GridLayout5.ColumnWidth = {'1x', '1x', '1x'};
-            app.GridLayout5.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '7x'};
+            app.GridLayout5.ColumnWidth = {'0.8x', '1x', '0.7x'};
+            app.GridLayout5.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '6x'};
             app.GridLayout5.ColumnSpacing = 7.59856033325195;
             app.GridLayout5.RowSpacing = 6.15151267581516;
             app.GridLayout5.Padding = [7.59856033325195 6.15151267581516 7.59856033325195 6.15151267581516];
@@ -5250,7 +5428,285 @@ classdef app_exported < matlab.apps.AppBase
             app.UITable_3.CellEditCallback = createCallbackFcn(app, @DegaussingTableCellEdit, true);
             app.UITable_3.Multiselect = 'off';
             app.UITable_3.Layout.Row = 8;
-            app.UITable_3.Layout.Column = 2;
+            app.UITable_3.Layout.Column = [2 3];
+
+            % Create MajorloopwithharmonicsPanel
+            app.MajorloopwithharmonicsPanel = uipanel(app.GridLayout3);
+            app.MajorloopwithharmonicsPanel.Title = 'Major loop with harmonics';
+            app.MajorloopwithharmonicsPanel.Layout.Row = [2 14];
+            app.MajorloopwithharmonicsPanel.Layout.Column = [4 8];
+
+            % Create GridLayout7
+            app.GridLayout7 = uigridlayout(app.MajorloopwithharmonicsPanel);
+            app.GridLayout7.ColumnWidth = {'1x', '1x', '1x', '0.5x'};
+            app.GridLayout7.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '3x'};
+
+            % Create StartingpointDropDown_5Label
+            app.StartingpointDropDown_5Label = uilabel(app.GridLayout7);
+            app.StartingpointDropDown_5Label.Layout.Row = 1;
+            app.StartingpointDropDown_5Label.Layout.Column = 1;
+            app.StartingpointDropDown_5Label.Text = 'Starting point';
+
+            % Create StartingpointDropDown_5
+            app.StartingpointDropDown_5 = uidropdown(app.GridLayout7);
+            app.StartingpointDropDown_5.Items = {'Demagnetized', 'Tip point (data)', 'User-defined'};
+            app.StartingpointDropDown_5.ValueChangedFcn = createCallbackFcn(app, @HarmonicsValueChanged, true);
+            app.StartingpointDropDown_5.Layout.Row = 1;
+            app.StartingpointDropDown_5.Layout.Column = [2 3];
+            app.StartingpointDropDown_5.Value = 'Tip point (data)';
+
+            % Create MstartAmEditField_3Label
+            app.MstartAmEditField_3Label = uilabel(app.GridLayout7);
+            app.MstartAmEditField_3Label.Layout.Row = 2;
+            app.MstartAmEditField_3Label.Layout.Column = 2;
+            app.MstartAmEditField_3Label.Text = 'Mstart [A/m]';
+
+            % Create MstartAmEditField_3
+            app.MstartAmEditField_3 = uieditfield(app.GridLayout7, 'numeric');
+            app.MstartAmEditField_3.ValueChangedFcn = createCallbackFcn(app, @HarmonicsValueChanged, true);
+            app.MstartAmEditField_3.Layout.Row = 2;
+            app.MstartAmEditField_3.Layout.Column = 3;
+
+            % Create HstartAmEditField_3Label
+            app.HstartAmEditField_3Label = uilabel(app.GridLayout7);
+            app.HstartAmEditField_3Label.Layout.Row = 3;
+            app.HstartAmEditField_3Label.Layout.Column = 2;
+            app.HstartAmEditField_3Label.Text = 'Hstart [A/m]';
+
+            % Create HstartAmEditField_3
+            app.HstartAmEditField_3 = uieditfield(app.GridLayout7, 'numeric');
+            app.HstartAmEditField_3.ValueChangedFcn = createCallbackFcn(app, @HarmonicsValueChanged, true);
+            app.HstartAmEditField_3.Layout.Row = 3;
+            app.HstartAmEditField_3.Layout.Column = 3;
+
+            % Create StopcriterionDropDown_6Label
+            app.StopcriterionDropDown_6Label = uilabel(app.GridLayout7);
+            app.StopcriterionDropDown_6Label.Layout.Row = 4;
+            app.StopcriterionDropDown_6Label.Layout.Column = 1;
+            app.StopcriterionDropDown_6Label.Text = 'Stop criterion';
+
+            % Create StopcriterionDropDown_6
+            app.StopcriterionDropDown_6 = uidropdown(app.GridLayout7);
+            app.StopcriterionDropDown_6.Items = {'Until convergence', 'Fixed repetitions'};
+            app.StopcriterionDropDown_6.ValueChangedFcn = createCallbackFcn(app, @HarmonicsValueChanged, true);
+            app.StopcriterionDropDown_6.Layout.Row = 4;
+            app.StopcriterionDropDown_6.Layout.Column = [2 3];
+            app.StopcriterionDropDown_6.Value = 'Fixed repetitions';
+
+            % Create PeriodsEditFieldLabel
+            app.PeriodsEditFieldLabel = uilabel(app.GridLayout7);
+            app.PeriodsEditFieldLabel.Layout.Row = 5;
+            app.PeriodsEditFieldLabel.Layout.Column = 2;
+            app.PeriodsEditFieldLabel.Text = 'Periods';
+
+            % Create PeriodsEditField
+            app.PeriodsEditField = uieditfield(app.GridLayout7, 'numeric');
+            app.PeriodsEditField.Limits = [0 Inf];
+            app.PeriodsEditField.RoundFractionalValues = 'on';
+            app.PeriodsEditField.ValueChangedFcn = createCallbackFcn(app, @HarmonicsValueChanged, true);
+            app.PeriodsEditField.Layout.Row = 5;
+            app.PeriodsEditField.Layout.Column = 3;
+            app.PeriodsEditField.Value = 1;
+
+            % Create ReltoleranceEditField_4Label
+            app.ReltoleranceEditField_4Label = uilabel(app.GridLayout7);
+            app.ReltoleranceEditField_4Label.Layout.Row = 6;
+            app.ReltoleranceEditField_4Label.Layout.Column = 2;
+            app.ReltoleranceEditField_4Label.Text = 'Rel. tolerance';
+
+            % Create ReltoleranceEditField_4
+            app.ReltoleranceEditField_4 = uieditfield(app.GridLayout7, 'numeric');
+            app.ReltoleranceEditField_4.Limits = [0 Inf];
+            app.ReltoleranceEditField_4.ValueDisplayFormat = '%.0e';
+            app.ReltoleranceEditField_4.ValueChangedFcn = createCallbackFcn(app, @HarmonicsValueChanged, true);
+            app.ReltoleranceEditField_4.Layout.Row = 6;
+            app.ReltoleranceEditField_4.Layout.Column = 3;
+            app.ReltoleranceEditField_4.Value = 0.001;
+
+            % Create PlotDropDown_3Label
+            app.PlotDropDown_3Label = uilabel(app.GridLayout7);
+            app.PlotDropDown_3Label.Layout.Row = 7;
+            app.PlotDropDown_3Label.Layout.Column = 1;
+            app.PlotDropDown_3Label.Text = 'Plot';
+
+            % Create PlotDropDown_3
+            app.PlotDropDown_3 = uidropdown(app.GridLayout7);
+            app.PlotDropDown_3.Items = {'Last period only', 'Full history'};
+            app.PlotDropDown_3.Layout.Row = 7;
+            app.PlotDropDown_3.Layout.Column = [2 3];
+            app.PlotDropDown_3.Value = 'Full history';
+
+            % Create UITable2
+            app.UITable2 = uitable(app.GridLayout7);
+            app.UITable2.ColumnName = {'Order'; 'Amplitude [A/m]'; 'Phase [deg]'};
+            app.UITable2.RowName = {};
+            app.UITable2.ColumnSortable = [true false false];
+            app.UITable2.SelectionType = 'row';
+            app.UITable2.ColumnEditable = [true true true];
+            app.UITable2.CellEditCallback = createCallbackFcn(app, @HarmonicsTableCellEdit, true);
+            app.UITable2.Multiselect = 'off';
+            app.UITable2.Layout.Row = [9 10];
+            app.UITable2.Layout.Column = [1 4];
+
+            % Create HarmoniccompHtsum_kA_ksinkomegatphi_kLabel
+            app.HarmoniccompHtsum_kA_ksinkomegatphi_kLabel = uilabel(app.GridLayout7);
+            app.HarmoniccompHtsum_kA_ksinkomegatphi_kLabel.Layout.Row = 8;
+            app.HarmoniccompHtsum_kA_ksinkomegatphi_kLabel.Layout.Column = [1 4];
+            app.HarmoniccompHtsum_kA_ksinkomegatphi_kLabel.Text = 'Harmonic comp.: H(t) = sum_k[A_k*sin(k*omega*t + phi_k)]';
+
+            % Create JilesAthertonmodelrateindependentLabel_2
+            app.JilesAthertonmodelrateindependentLabel_2 = uilabel(app.GridLayout3);
+            app.JilesAthertonmodelrateindependentLabel_2.FontWeight = 'bold';
+            app.JilesAthertonmodelrateindependentLabel_2.Layout.Row = 1;
+            app.JilesAthertonmodelrateindependentLabel_2.Layout.Column = [1 4];
+            app.JilesAthertonmodelrateindependentLabel_2.Text = 'Jiles-Atherton model (rate-independent)';
+
+            % Create ModelparametersLabel_2
+            app.ModelparametersLabel_2 = uilabel(app.GridLayout3);
+            app.ModelparametersLabel_2.FontWeight = 'bold';
+            app.ModelparametersLabel_2.Layout.Row = 2;
+            app.ModelparametersLabel_2.Layout.Column = [1 2];
+            app.ModelparametersLabel_2.Text = 'Model parameters';
+
+            % Create JsTEditFieldLabel_9
+            app.JsTEditFieldLabel_9 = uilabel(app.GridLayout3);
+            app.JsTEditFieldLabel_9.FontWeight = 'bold';
+            app.JsTEditFieldLabel_9.Layout.Row = 4;
+            app.JsTEditFieldLabel_9.Layout.Column = 1;
+            app.JsTEditFieldLabel_9.Text = 'Ms [A/m]';
+
+            % Create JsField_9
+            app.JsField_9 = uieditfield(app.GridLayout3, 'text');
+            app.JsField_9.HorizontalAlignment = 'right';
+            app.JsField_9.Layout.Row = 4;
+            app.JsField_9.Layout.Column = 2;
+
+            % Create JsTEditFieldLabel_10
+            app.JsTEditFieldLabel_10 = uilabel(app.GridLayout3);
+            app.JsTEditFieldLabel_10.FontWeight = 'bold';
+            app.JsTEditFieldLabel_10.Layout.Row = 5;
+            app.JsTEditFieldLabel_10.Layout.Column = 1;
+            app.JsTEditFieldLabel_10.Text = 'a [A/m]';
+
+            % Create JsField_10
+            app.JsField_10 = uieditfield(app.GridLayout3, 'text');
+            app.JsField_10.HorizontalAlignment = 'right';
+            app.JsField_10.Layout.Row = 5;
+            app.JsField_10.Layout.Column = 2;
+
+            % Create JsTEditFieldLabel_11
+            app.JsTEditFieldLabel_11 = uilabel(app.GridLayout3);
+            app.JsTEditFieldLabel_11.FontWeight = 'bold';
+            app.JsTEditFieldLabel_11.Layout.Row = 6;
+            app.JsTEditFieldLabel_11.Layout.Column = 1;
+            app.JsTEditFieldLabel_11.Text = 'alpha';
+
+            % Create JsField_11
+            app.JsField_11 = uieditfield(app.GridLayout3, 'text');
+            app.JsField_11.HorizontalAlignment = 'right';
+            app.JsField_11.Layout.Row = 6;
+            app.JsField_11.Layout.Column = 2;
+
+            % Create JsTEditFieldLabel_12
+            app.JsTEditFieldLabel_12 = uilabel(app.GridLayout3);
+            app.JsTEditFieldLabel_12.FontWeight = 'bold';
+            app.JsTEditFieldLabel_12.Layout.Row = 7;
+            app.JsTEditFieldLabel_12.Layout.Column = 1;
+            app.JsTEditFieldLabel_12.Text = 'c';
+
+            % Create JsField_12
+            app.JsField_12 = uieditfield(app.GridLayout3, 'text');
+            app.JsField_12.HorizontalAlignment = 'right';
+            app.JsField_12.Layout.Row = 7;
+            app.JsField_12.Layout.Column = 2;
+
+            % Create JsTEditFieldLabel_13
+            app.JsTEditFieldLabel_13 = uilabel(app.GridLayout3);
+            app.JsTEditFieldLabel_13.FontWeight = 'bold';
+            app.JsTEditFieldLabel_13.Layout.Row = 8;
+            app.JsTEditFieldLabel_13.Layout.Column = 1;
+            app.JsTEditFieldLabel_13.Text = 'k [A/m]';
+
+            % Create JsField_13
+            app.JsField_13 = uieditfield(app.GridLayout3, 'text');
+            app.JsField_13.HorizontalAlignment = 'right';
+            app.JsField_13.Layout.Row = 8;
+            app.JsField_13.Layout.Column = 2;
+
+            % Create RetrieveparametersButton
+            app.RetrieveparametersButton = uibutton(app.GridLayout3, 'push');
+            app.RetrieveparametersButton.ButtonPushedFcn = createCallbackFcn(app, @RetrieveparametersButtonPushed, true);
+            app.RetrieveparametersButton.Layout.Row = 2;
+            app.RetrieveparametersButton.Layout.Column = [1 2];
+            app.RetrieveparametersButton.Text = 'Retrieve parameters';
+
+            % Create DrivingfieldLabel_2
+            app.DrivingfieldLabel_2 = uilabel(app.GridLayout3);
+            app.DrivingfieldLabel_2.FontWeight = 'bold';
+            app.DrivingfieldLabel_2.Layout.Row = 10;
+            app.DrivingfieldLabel_2.Layout.Column = 1;
+            app.DrivingfieldLabel_2.Text = 'Driving field';
+
+            % Create ShowgridCheckBoxM_4
+            app.ShowgridCheckBoxM_4 = uicheckbox(app.GridLayout3);
+            app.ShowgridCheckBoxM_4.ValueChangedFcn = createCallbackFcn(app, @ShowgridCheckBoxM_4ValueChanged, true);
+            app.ShowgridCheckBoxM_4.Text = 'Data curve';
+            app.ShowgridCheckBoxM_4.Layout.Row = 14;
+            app.ShowgridCheckBoxM_4.Layout.Column = [11 12];
+
+            % Create HcaseDropDown
+            app.HcaseDropDown = uidropdown(app.GridLayout3);
+            app.HcaseDropDown.Items = {'Major loop', 'Minor loops', 'Degaussing', 'Major loop with harmonics'};
+            app.HcaseDropDown.ValueChangedFcn = createCallbackFcn(app, @HcaseDropDownValueChanged, true);
+            app.HcaseDropDown.Layout.Row = 10;
+            app.HcaseDropDown.Layout.Column = [2 3];
+            app.HcaseDropDown.Value = 'Major loop';
+
+            % Create ShowgridCheckBoxM_5
+            app.ShowgridCheckBoxM_5 = uicheckbox(app.GridLayout3);
+            app.ShowgridCheckBoxM_5.ValueChangedFcn = createCallbackFcn(app, @ShowgridCheckBoxM_5ValueChanged, true);
+            app.ShowgridCheckBoxM_5.Text = 'Grid';
+            app.ShowgridCheckBoxM_5.Layout.Row = 14;
+            app.ShowgridCheckBoxM_5.Layout.Column = 10;
+            app.ShowgridCheckBoxM_5.Value = true;
+
+            % Create CalculatePlotButton_3
+            app.CalculatePlotButton_3 = uibutton(app.GridLayout3, 'push');
+            app.CalculatePlotButton_3.ButtonPushedFcn = createCallbackFcn(app, @CalculatePlotButton_3Pushed, true);
+            app.CalculatePlotButton_3.WordWrap = 'on';
+            app.CalculatePlotButton_3.Layout.Row = 14;
+            app.CalculatePlotButton_3.Layout.Column = [13 14];
+            app.CalculatePlotButton_3.Text = 'Calculate & Plot';
+
+            % Create HorizontalaxisfieldDropDown_2Label
+            app.HorizontalaxisfieldDropDown_2Label = uilabel(app.GridLayout3);
+            app.HorizontalaxisfieldDropDown_2Label.FontWeight = 'bold';
+            app.HorizontalaxisfieldDropDown_2Label.Layout.Row = 1;
+            app.HorizontalaxisfieldDropDown_2Label.Layout.Column = [10 11];
+            app.HorizontalaxisfieldDropDown_2Label.Text = 'Horizontal axis field';
+
+            % Create HorizontalaxisfieldDropDown_2
+            app.HorizontalaxisfieldDropDown_2 = uidropdown(app.GridLayout3);
+            app.HorizontalaxisfieldDropDown_2.Items = {'H [A/m]', 'H [kA/m]', 'H [Oe]', 'H [kOe]', 'Bext [T]', 'Bext [G]', 'Bext [kG]'};
+            app.HorizontalaxisfieldDropDown_2.ValueChangedFcn = createCallbackFcn(app, @HorizontalaxisfieldDropDown_2ValueChanged, true);
+            app.HorizontalaxisfieldDropDown_2.Layout.Row = 2;
+            app.HorizontalaxisfieldDropDown_2.Layout.Column = [10 11];
+            app.HorizontalaxisfieldDropDown_2.Value = 'H [A/m]';
+
+            % Create VerticalaxisfieldDropDown_2Label
+            app.VerticalaxisfieldDropDown_2Label = uilabel(app.GridLayout3);
+            app.VerticalaxisfieldDropDown_2Label.FontWeight = 'bold';
+            app.VerticalaxisfieldDropDown_2Label.Layout.Row = 1;
+            app.VerticalaxisfieldDropDown_2Label.Layout.Column = [13 14];
+            app.VerticalaxisfieldDropDown_2Label.Text = 'Vertical axis field';
+
+            % Create VerticalaxisfieldDropDown_2
+            app.VerticalaxisfieldDropDown_2 = uidropdown(app.GridLayout3);
+            app.VerticalaxisfieldDropDown_2.Items = {'M [A/m]', 'M [kA/m]', 'M [MA/m]', 'M [emu/cm^3]', 'J [T]', 'B [T]', 'B [G]', 'B [kG]'};
+            app.VerticalaxisfieldDropDown_2.ValueChangedFcn = createCallbackFcn(app, @VerticalaxisfieldDropDown_2ValueChanged, true);
+            app.VerticalaxisfieldDropDown_2.Layout.Row = 2;
+            app.VerticalaxisfieldDropDown_2.Layout.Column = [13 14];
+            app.VerticalaxisfieldDropDown_2.Value = 'M [A/m]';
 
             % Create OutputdataTab
             app.OutputdataTab = uitab(app.TabGroup);
