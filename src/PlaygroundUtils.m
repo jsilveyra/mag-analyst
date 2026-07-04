@@ -32,6 +32,10 @@ classdef PlaygroundUtils
             tf = PlaygroundUtils.normalize_mode_label(PlaygroundUtils.get_mode(app)) == "Major Loop";
         end
 
+        function tf = is_harmonics_mode(app)
+            tf = PlaygroundUtils.normalize_mode_label(PlaygroundUtils.get_mode(app)) == "Major Loop Harmonics";
+        end
+
         function tf = is_minor_mode(app)
             tf = PlaygroundUtils.normalize_mode_label(PlaygroundUtils.get_mode(app)) == "Minor Loops";
         end
@@ -66,6 +70,22 @@ classdef PlaygroundUtils
             end
         end
 
+        function set_enable(component, state)
+            % Guarded enable/disable: only touches the Enable property when
+            % the component actually has one (older-release uilabel safety),
+            % mirroring the app's set_enable_safe so labels can be greyed too.
+            if ~isempty(component) && isvalid(component) && isprop(component, 'Enable')
+                component.Enable = state;
+            end
+        end
+
+        function set_field_enable(field, label, state)
+            % Enable/disable a field together with its label so the whole
+            % row greys out as a unit.
+            PlaygroundUtils.set_enable(field, state);
+            PlaygroundUtils.set_enable(label, state);
+        end
+
         function sync_major_ui(app)
             if ~PlaygroundUtils.is_major_mode(app)
                 return;
@@ -78,9 +98,9 @@ classdef PlaygroundUtils
             if contains(start_mode, "demagnetized")
                 app.HstartAmEditField.Value = 0;
                 app.MstartAmEditField.Value = 0;
-                app.HstartAmEditField.Enable = 'off';
-                app.MstartAmEditField.Enable = 'off';
-                app.HamplitudeAmEditField.Enable = 'on';
+                PlaygroundUtils.set_field_enable(app.HstartAmEditField, app.HstartAmEditFieldLabel, 'off');
+                PlaygroundUtils.set_field_enable(app.MstartAmEditField, app.MstartAmEditFieldLabel, 'off');
+                PlaygroundUtils.set_field_enable(app.HamplitudeAmEditField, app.HamplitudeAmEditFieldLabel, 'on');
                 if has_data
                     [Htip_data, ~, ok_tip] = PlaygroundUtils.get_data_tip(app);
                     if ok_tip && (~isfinite(app.HamplitudeAmEditField.Value) || app.HamplitudeAmEditField.Value <= 0)
@@ -98,21 +118,41 @@ classdef PlaygroundUtils
                     app.MstartAmEditField.Value = 0;
                     app.HamplitudeAmEditField.Value = 0;
                 end
-                app.HstartAmEditField.Enable = 'off';
-                app.MstartAmEditField.Enable = 'off';
-                app.HamplitudeAmEditField.Enable = 'off';
+                PlaygroundUtils.set_field_enable(app.HstartAmEditField, app.HstartAmEditFieldLabel, 'off');
+                PlaygroundUtils.set_field_enable(app.MstartAmEditField, app.MstartAmEditFieldLabel, 'off');
+                PlaygroundUtils.set_field_enable(app.HamplitudeAmEditField, app.HamplitudeAmEditFieldLabel, 'off');
             else
-                app.HstartAmEditField.Enable = 'on';
-                app.MstartAmEditField.Enable = 'on';
-                app.HamplitudeAmEditField.Enable = 'on';
+                PlaygroundUtils.set_field_enable(app.HstartAmEditField, app.HstartAmEditFieldLabel, 'on');
+                PlaygroundUtils.set_field_enable(app.MstartAmEditField, app.MstartAmEditFieldLabel, 'on');
+                PlaygroundUtils.set_field_enable(app.HamplitudeAmEditField, app.HamplitudeAmEditFieldLabel, 'on');
             end
 
             if is_fixed
-                app.RepetitionsEditField.Enable = 'on';
-                app.ReltoleranceEditField.Enable = 'off';
+                PlaygroundUtils.set_field_enable(app.RepetitionsEditField, app.RepetitionsEditFieldLabel, 'on');
+                PlaygroundUtils.set_field_enable(app.ReltoleranceEditField_6, app.ReltoleranceEditField_6Label, 'off');
             else
-                app.RepetitionsEditField.Enable = 'off';
-                app.ReltoleranceEditField.Enable = 'on';
+                PlaygroundUtils.set_field_enable(app.RepetitionsEditField, app.RepetitionsEditFieldLabel, 'off');
+                PlaygroundUtils.set_field_enable(app.ReltoleranceEditField_6, app.ReltoleranceEditField_6Label, 'on');
+            end
+        end
+
+        function sync_minor_ui(app)
+            % Grey out the minor-loop Repetitions / Rel. tolerance fields (and
+            % their labels) according to the stop criterion, mirroring the
+            % major-loop behaviour. Only the stop-criterion group is
+            % conditional here — the minor loop always starts demagnetized and
+            % is driven by the Htip_i table.
+            if ~PlaygroundUtils.is_minor_mode(app)
+                return;
+            end
+
+            is_fixed = string(app.StopcriterionDropDown_4.Value) == "Fixed repetitions";
+            if is_fixed
+                PlaygroundUtils.set_field_enable(app.RepetitionsEditField_2, app.RepetitionsEditFieldLabel_2, 'on');
+                PlaygroundUtils.set_field_enable(app.ReltoleranceEditField_5, app.ReltoleranceEditField_5Label, 'off');
+            else
+                PlaygroundUtils.set_field_enable(app.RepetitionsEditField_2, app.RepetitionsEditFieldLabel_2, 'off');
+                PlaygroundUtils.set_field_enable(app.ReltoleranceEditField_5, app.ReltoleranceEditField_5Label, 'on');
             end
         end
 
@@ -170,6 +210,8 @@ classdef PlaygroundUtils
                 plot_option = string(app.PlotDropDown.Value);
             elseif PlaygroundUtils.is_minor_mode(app)
                 plot_option = string(app.PlotDropDown_2.Value);
+            elseif PlaygroundUtils.is_harmonics_mode(app)
+                plot_option = string(app.PlotDropDown_3.Value);
             else
                 plot_option = "";
             end
@@ -177,7 +219,8 @@ classdef PlaygroundUtils
 
         function tf = is_last_cycle_plot_option(plot_option)
             plot_option = lower(string(plot_option));
-            tf = plot_option == "last loop only" || plot_option == "last loops only" || plot_option == "last cycle only";
+            tf = plot_option == "last loop only" || plot_option == "last loops only" ...
+                || plot_option == "last cycle only" || plot_option == "last period only";
         end
 
         function [H_unit, M_unit] = get_axis_units(app)
@@ -219,7 +262,7 @@ classdef PlaygroundUtils
                         string(app.StartingpointDropDown.Value), ...
                         string(app.StopcriterionDropDown.Value), ...
                         app.RepetitionsEditField.Value, ...
-                        app.ReltoleranceEditField.Value, ...
+                        app.ReltoleranceEditField_6.Value, ...
                         odeset('RelTol', 1e-7, 'AbsTol', 1e-6));
                     info.status = "ok";
                 catch ME
@@ -238,7 +281,7 @@ classdef PlaygroundUtils
                         Htips, params, ...
                         string(app.StopcriterionDropDown_4.Value), ...
                         app.RepetitionsEditField_2.Value, ...
-                        app.ReltoleranceEditField_2.Value, ...
+                        app.ReltoleranceEditField_5.Value, ...
                         odeset('RelTol', 1e-7, 'AbsTol', 1e-6));
                     info.status = "ok";
                 catch ME
@@ -356,7 +399,11 @@ classdef PlaygroundUtils
 
         function mode = normalize_mode_label(mode)
             mode = lower(strtrim(string(mode)));
-            if contains(mode, "major loop")
+            if contains(mode, "harmonic")
+                % Must be tested before "major loop": the label
+                % "Major loop with harmonics" also contains "major loop".
+                mode = "Major Loop Harmonics";
+            elseif contains(mode, "major loop")
                 mode = "Major Loop";
             elseif contains(mode, "minor loop")
                 mode = "Minor Loops";
