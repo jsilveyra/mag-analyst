@@ -1,0 +1,39 @@
+classdef DataAnhystereticCurve
+%DATAANHYSTERETICCURVE  Measured anhysteretic M(H) curve plus its derivatives.
+%   DataAnhystereticCurve(H, M) stores the measured H, M and derives dMdH
+%   (negative slopes clamped to 0) and HdMdH = H.*dMdH (the semilog
+%   derivative dM/d(lnH), also clamped to 0). Used as the reference curve
+%   compared against ModeledAnhystereticCurve during fitting.
+
+    properties
+        H
+        M
+        dMdH
+        HdMdH
+    end
+
+    methods (Access = public)
+        function obj = DataAnhystereticCurve(H, M)
+            % if (H(1) ~= 0)  % Legacy behavior: enforced origin point for processed data. Probably unnecessary today, kept for reference
+            %     H = [0, H];
+            %     M = [0, M];
+            % end
+            obj.H = H;
+            obj.M = M;
+            obj.dMdH = obj.get_dMdH(H, M);
+            obj.HdMdH = obj.get_HdMdH(H, obj.dMdH);
+        end
+    end
+
+    methods (Access = private)
+        function dMdH = get_dMdH(~, H, M)
+            dMdH = transpose(gradient(M(:)) ./ gradient(H(:)));
+            dMdH(dMdH<0) = 0;
+        end
+
+        function HdMdH = get_HdMdH(~, H, dHdH)
+            HdMdH = H.*dHdH;
+            HdMdH(HdMdH<0) = 0;
+        end
+    end
+end
