@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MagAnalyst port guide — fix: missing "end" after calculate_and_plot</title>
+<style>
+  :root {
+    --bg: #1e1e1e; --panel: #252526; --text: #d4d4d4; --accent: #f15a29;
+    --before-bg: #3a2020; --before-border: #8b3a3a;
+    --after-bg: #20351f; --after-border: #4a8b3a;
+    --flag-bg: #4a3a10; --flag-border: #c98a1c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 6rem;
+    line-height: 1.5;
+  }
+  h1 { font-size: 1.4rem; border-bottom: 3px solid var(--accent); padding-bottom: 0.5rem; }
+  h2 { font-size: 1.1rem; margin-top: 2rem; color: var(--accent); }
+  .summary { background: var(--panel); border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0; }
+  .step { background: var(--panel); border-radius: 8px; padding: 1.25rem 1.5rem; margin: 1.5rem 0; border-left: 4px solid #555; }
+  .blocklabel { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: #aaa; margin-top: 0.75rem; }
+  pre { border-radius: 6px; padding: 0.75rem 1rem; overflow-x: auto; margin: 0.25rem 0 0; font-size: 0.9rem; }
+  pre.before { background: var(--before-bg); border: 1px solid var(--before-border); }
+  pre.after { background: var(--after-bg); border: 1px solid var(--after-border); }
+  code { white-space: pre; font-family: "SF Mono", Consolas, "Courier New", monospace; }
+  .flag { background: var(--flag-bg); border: 1px solid var(--flag-border); border-radius: 6px; padding: 0.6rem 0.9rem; margin: 0.5rem 0; font-weight: 600; font-size: 0.9rem; }
+  mark { background: #c98a1c55; color: #ffd27f; padding: 0 0.15rem; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<h1>Fix: missing "end" after calculate_and_plot</h1>
+
+<div class="summary">
+  <p>Root cause of the <code>Illegal use of reserved keyword "methods"</code> error at
+  <code>app.mlapp</code> line 2469: when the <strong>calculate_and_plot</strong> step of the
+  previous port guide was applied, the file lost one line it shouldn't have.</p>
+  <p>In the original code, the function's own closing <code>end</code> and the closing
+  <code>end</code> for the whole <code>methods (Access = public)</code> block sit on two
+  adjacent lines — easy to select as if they were one when replacing the method body. That
+  second <code>end</code> is currently missing, which is why MATLAB hits the next
+  <code>methods (Access = private)</code> keyword while it still thinks it's inside an
+  expression.</p>
+  <p>This is a single-line fix. No other issues were found — I diffed your whole regenerated
+  file against what the previous guide should have produced and this was the only
+  discrepancy (a few UIAxes components changed declaration order, which is harmless —
+  App Designer does that on its own and it doesn't affect behavior).</p>
+</div>
+
+<div class="step" id="step-1">
+  <h3>Step 1. Add back the missing block-closing "end"</h3>
+  <div class="blocklabel">Find this in Code View (calculate_and_plot, near the "% Callbacks that handle component events" comment)</div>
+  <pre class="before"><code>        function a = calculate_and_plot(app)
+            a = AnhystereticUtils.calculate_and_plot(app);
+        end
+
+
+    % Callbacks that handle component events
+    methods (Access = private)</code></pre>
+  <div class="flag">⚠ There are two lines that just say "end" once you're done — that's correct, not a duplicate. The first "end" (unchanged) closes the calculate_and_plot function. The new second "end" you're adding closes the enclosing methods (Access = public) block that started back at the "get_playground_axis_units" method.</div>
+  <div class="blocklabel">Replace with (only one line added, highlighted)</div>
+  <pre class="after"><code>        function a = calculate_and_plot(app)
+            a = AnhystereticUtils.calculate_and_plot(app);
+        end
+    <mark>end</mark>
+
+
+    % Callbacks that handle component events
+    methods (Access = private)</code></pre>
+</div>
+
+<div class="summary">
+  <p>After saving in App Designer, tell Claude — it will regenerate <code>app_exported.m</code>
+  and verify the app constructs cleanly in <code>matlab -batch</code> before you try launching
+  it again.</p>
+</div>
+
+</body>
+</html>

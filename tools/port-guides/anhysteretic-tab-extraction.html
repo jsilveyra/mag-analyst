@@ -1,0 +1,863 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MagAnalyst port guide — Anhysteretic tab extraction (2026-07-06)</title>
+<style>
+  :root {
+    --bg: #1e1e1e; --panel: #252526; --text: #d4d4d4; --accent: #f15a29;
+    --before-bg: #3a2020; --before-border: #8b3a3a;
+    --after-bg: #20351f; --after-border: #4a8b3a;
+    --flag-bg: #4a3a10; --flag-border: #c98a1c;
+    --note-bg: #1c2b3a; --note-border: #2d6da3;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 6rem;
+    line-height: 1.5;
+  }
+  h1 { font-size: 1.5rem; border-bottom: 3px solid var(--accent); padding-bottom: 0.5rem; }
+  h2 { font-size: 1.2rem; margin-top: 2.5rem; color: var(--accent); }
+  h3 { font-size: 1.05rem; margin-bottom: 0.25rem; }
+  .summary { background: var(--panel); border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0; }
+  .summary ul { margin: 0.5rem 0 0; padding-left: 1.25rem; }
+  .toc { background: var(--panel); border-radius: 8px; padding: 1rem 1.25rem; }
+  .toc ol { columns: 2; column-gap: 2rem; padding-left: 1.25rem; }
+  .toc a { color: #8ab4f8; text-decoration: none; font-size: 0.92rem; }
+  .toc a:hover { text-decoration: underline; }
+  .step { background: var(--panel); border-radius: 8px; padding: 1.25rem 1.5rem; margin: 1.5rem 0; border-left: 4px solid #555; }
+  .meta { font-size: 0.85rem; color: #9a9a9a; margin-bottom: 0.5rem; }
+  .blocklabel { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: #aaa; margin-top: 0.75rem; }
+  pre { border-radius: 6px; padding: 0.75rem 1rem; overflow-x: auto; margin: 0.25rem 0 0; font-size: 0.85rem; }
+  pre.before { background: var(--before-bg); border: 1px solid var(--before-border); }
+  pre.after { background: var(--after-bg); border: 1px solid var(--after-border); }
+  code { white-space: pre; font-family: "SF Mono", Consolas, "Courier New", monospace; }
+  .flag { background: var(--flag-bg); border: 1px solid var(--flag-border); border-radius: 6px; padding: 0.6rem 0.9rem; margin: 0.5rem 0; font-weight: 600; font-size: 0.9rem; }
+  .note { background: var(--note-bg); border: 1px solid var(--note-border); border-radius: 6px; padding: 0.6rem 0.9rem; margin: 0.5rem 0; font-size: 0.88rem; }
+  .newfile { background: var(--panel); border-radius: 8px; padding: 1rem 1.25rem; }
+  .newfile code.path { background: #333; padding: 0.15rem 0.4rem; border-radius: 4px; }
+  footer { margin-top: 3rem; font-size: 0.8rem; color: #888; border-top: 1px solid #444; padding-top: 1rem; }
+  .badge { display:inline-block; background:var(--accent); color:#fff; border-radius: 4px; padding: 0.1rem 0.5rem; font-size: 0.75rem; font-weight:600; }
+</style>
+</head>
+<body>
+
+<h1>MagAnalyst — Anhysteretic tab extraction port guide</h1>
+<div class="summary">
+  <p><span class="badge">2026-07-06</span> Part 2 of the src/ reorganization: extracting the Anhysteretic-fitting tab's
+  helper methods out of <code>app_old_exported.m</code> into a new static utility class,
+  mirroring the existing <code>PlaygroundUtils.m</code> pattern. Also includes one unrelated bug fix
+  found while mapping dependencies (Step 1).</p>
+  <ul>
+    <li><strong>23 edits</strong> to apply in App Designer Code View, all inside <code>app_old.mlapp</code>.</li>
+    <li><strong>2 signature change(s)</strong> flagged in orange below — read those callouts carefully.</li>
+    <li><strong>1 new file</strong> to add to the project: <code>src/Anhysteretic/AnhystereticUtils.m</code> (already created on disk — nothing to do in App Designer for this part, it's a plain file on the MATLAB path).</li>
+    <li><strong>No Design View changes</strong> — every edit here is a method body replacement in Code View. No component properties or callback wiring change.</li>
+  </ul>
+</div>
+
+<h2>Before you start</h2>
+<div class="summary">
+  <ol>
+    <li>Make sure <code>app_old.mlapp</code> is open in App Designer (or open it now) and switch to <strong>Code View</strong>.</li>
+    <li>For each step below: find the method named in the heading, select its <em>entire</em> body (from <code>function ...</code> to the matching <code>end</code> shown in the BEFORE block), and replace it with the AFTER block. The BEFORE blocks are exact copies of your current file, so you can use them to confirm you've found the right spot.</li>
+    <li>Steps are listed in the same order the methods appear in the file top-to-bottom, so you can work through it linearly without much scrolling back and forth.</li>
+    <li>When done, save in App Designer, then tell Claude — it will regenerate <code>app_old_exported.m</code> from your saved file and verify the app still constructs in <code>matlab -batch</code>.</li>
+  </ol>
+</div>
+
+<h2>Contents</h2>
+<div class="toc"><ol>
+<li><a href="#step-1">Fix broken Parser call in InputDatasetPathValueChanged</a></li><li><a href="#step-2">plot(app)</a></li><li><a href="#step-3">calculate_parameters(app)</a></li><li><a href="#step-4">fit_parameters(app)</a></li><li><a href="#step-5">write_m_lower_bound_messages(app, select_a, fit_lb, fit_select_fit)</a></li><li><a href="#step-6">update_components(app)</a></li><li><a href="#step-7">init_components(app)</a></li><li><a href="#step-8">init_parameters_table(app, default_values)</a></li><li><a href="#step-9">init_quantities_table(app, default_values)</a></li><li><a href="#step-10">refresh_table_value_display(app)</a></li><li><a href="#step-11">sync_fitted_parameter_values_from_components(app)</a></li><li><a href="#step-12">format_value_for_display(app, row, value)</a></li><li><a href="#step-13">format_value_for_edit(app, row)</a></li><li><a href="#step-14">format_m_display(~, value)  →  format_m_display(app, value)</a></li><li><a href="#step-15">is_m_row(app, row)</a></li><li><a href="#step-16">plot_M(app)</a></li><li><a href="#step-17">plot_dMdH(app)</a></li><li><a href="#step-18">plot_HdMdH(app)</a></li><li><a href="#step-19">get_first_anhysteretic_seeds(app)</a></li><li><a href="#step-20">subscript_to_number(~, str)  →  subscript_to_number(app, str)</a></li><li><a href="#step-21">export_residual(app, residue, file_name)</a></li><li><a href="#step-22">set_colors_and_plot(app, colors)</a></li><li><a href="#step-23">calculate_and_plot(app)</a></li>
+</ol></div>
+
+<h2>Steps</h2>
+
+    <section class="step" id="step-1">
+      <h3>Step 1. Fix broken Parser call in InputDatasetPathValueChanged</h3>
+      <div class="meta">Location in current app_old_exported.m: lines 3069–3075 (App Designer Code View)</div>
+      
+      <div class="note">Bug fix, not part of the reorg: Parser(dataset_path).get_data_csv doesn't exist (Parser needs 5 constructor args and only has an .import() method). This callback is live-wired, so typing a path directly into the Input tab's dataset-path field and pressing Enter would throw today. The fix mirrors the working InputBrowseButtonPushed pattern (same tab, same job, already correct) instead.</div>
+      <div class="blocklabel">BEFORE (delete this)</div><pre class="before"><code>        function InputDatasetPathValueChanged(app, event)
+            dataset_path = app.InputDatasetPath.Value;
+            [app.H, app.M] = Parser(dataset_path).get_data_csv;
+            PlaygroundUtils.clear_simulation(app);
+            update_components(app)
+            calculate_parameters(app)
+        end
+</code></pre>
+      <div class="blocklabel">AFTER (replace with this)</div><pre class="after"><code>        function InputDatasetPathValueChanged(app, event)
+            dataset_path = app.InputDatasetPath.Value;
+            try
+                app.import_data(dataset_path);
+                app.init_components();
+                update_components(app)
+                calculate_parameters(app)
+                app.plot_input();
+                app.write_message("Imported " + dataset_path);
+            catch e
+                app.write_message("Import failed: " + e.message);
+            end
+        end
+</code></pre>
+    </section>
+    <section class="step" id="step-2">
+      <h3>Step 2. plot(app)</h3>
+      <div class="meta">Location in current app_old_exported.m: lines 471–519 (App Designer Code View)</div>
+      
+      
+      <div class="blocklabel">BEFORE (delete this)</div><pre class="before"><code>        function plot(app)
+            app.plot_M();
+            app.plot_dMdH();
+            app.plot_HdMdH();
+
+            app.init_parameters_table(false);
+            app.init_quantities_table(false);
+            
+            app.sync_fitted_parameter_values_from_components();
+            app.refresh_table_value_display();
+            offset = (3*app.number_components - 1);
+            
+            for i = 1:offset
+                app.TableFittedParameters.Data(2*offset + i) = {app.format_short(str2double(app.TableFittedParameters.Data(2*offset + i)))};
+                app.TableFittedParameters.Data(3*offset + i) = {app.format_short(str2double(app.TableFittedParameters.Data(3*offset + i)))};
+            end
+            app.JsField.Value = app.format_short(app.magnetic_parameters.Js);
+            app.murinField.Value = app.format_engineering(app.magnetic_parameters.murin);
+
+            
+            utils = Utils();
+
+            [HTip, ~] = utils.find_tip(app.data_curve.H, app.data_curve.M);
+
+            select_a = app.TableParameters.Data{1:app.number_components,5};
+            app.magnetic_parameters = MagneticParameters(app.data_curve, app.Hcr, app.mcr, app.Hx, select_a);
+
+
+            error_type = string(app.ErrortominimizeDropDown.Value);
+            if (error_type == "Diagonal (H, sampled)")
+                error_calculator = DiagonalErrorCalculator(app.data_curve, app.modeled_curve, false, false);
+            elseif (error_type == "Diagonal (H, continuous)")
+                error_calculator = DiagonalErrorCalculator(app.data_curve, app.modeled_curve, false, true);
+            elseif (error_type == "Diagonal (logH, sampled)") || (error_type == "Diagonal (sampled)")
+                error_calculator = DiagonalErrorCalculator(app.data_curve, app.modeled_curve, true, false);
+            elseif (error_type == "Diagonal (logH, continuous)") || (error_type == "Diagonal") || (error_type == "Diagonal (continuous)")
+                error_calculator = DiagonalErrorCalculator(app.data_curve, app.modeled_curve, true, true);
+            elseif (error_type == "Vertical")
+                error_calculator = VerticalErrorCalculator(app.data_curve, app.modeled_curve);
+            elseif (error_type == "Horizontal")
+                error_calculator = HorizontalErrorCalculator(app.data_curve, app.modeled_curve);
+            else
+                app.write_message("Unknown error type: " + error_type);
+                return;
+            end
+
+            e = error_calculator.get_error();
+            app.ErrorDisplay.Value = app.format_engineering(e);
+        end
+</code></pre>
+      <div class="blocklabel">AFTER (replace with this)</div><pre class="after"><code>        function plot(app)
+            AnhystereticUtils.plot(app);
+        end
+</code></pre>
+    </section>
+    <section class="step" id="step-3">
+      <h3>Step 3. calculate_parameters(app)</h3>
+      <div class="meta">Location in current app_old_exported.m: lines 521–567 (App Designer Code View)</div>
+      
+      
+      <div class="blocklabel">BEFORE (delete this)</div><pre class="before"><code>        function calculate_parameters(app)
+            % Guard: no data yet
+            if ~isobject(app.data_curve) || ~isprop(app.data_curve, 'H') || isempty(app.data_curve.H)
+                return;
+            end
+        
+            N = max(2, round(app.NofpointsEditField.Value));
+        
+            H = app.data_curve.H(:).';
+            M = app.data_curve.M(:).';
+        
+            % Work only with positive H for log spacing
+            Hpos = H(H &gt; 0);
+            if numel(Hpos) &lt; 2
+                app.write_message("Not enough positive H points to build modeled curve.");
+                return;
+            end
+        
+            % Robust HTip default + safe tip detection
+            HTip = max(Hpos);
+            try
+                [HTip_tmp, ~] = Utils().find_tip(H, M);
+                if ~isempty(HTip_tmp) &amp;&amp; isfinite(HTip_tmp) &amp;&amp; (HTip_tmp &gt; 0)
+                    HTip = HTip_tmp;
+                end
+            catch
+                % keep fallback HTip
+            end
+        
+            Hstart = Hpos(1);
+            if HTip &lt;= Hstart
+                HTip = max(Hpos);
+            end
+        
+            select_a = app.TableParameters.Data{1:app.number_components,5};
+            app.magnetic_parameters = MagneticParameters(app.data_curve, app.Hcr, app.mcr, app.Hx, select_a);
+        
+            point_space = string(app.PointSpaceDropDown.Value);
+            if (point_space == "log") || (point_space == "Logarithmically spaced")
+                Hhat = logspace(log10(Hstart), log10(HTip), N-1);
+            else
+                Hhat = linspace(Hstart, HTip, N-1);
+            end
+        
+            Hhat = [0, Hhat];
+            app.modeled_curve = ModeledAnhystereticCurve(Hhat, app.magnetic_parameters);
+        end
+</code></pre>
+      <div class="blocklabel">AFTER (replace with this)</div><pre class="after"><code>        function calculate_parameters(app)
+            AnhystereticUtils.calculate_parameters(app);
+        end
+</code></pre>
+    </section>
+    <section class="step" id="step-4">
+      <h3>Step 4. fit_parameters(app)</h3>
+      <div class="meta">Location in current app_old_exported.m: lines 569–608 (App Designer Code View)</div>
+      
+      <div class="note">fit_stop_output_fcn (the next method, unchanged) stays on the app class — it's shared with the Hysteretic tab's fitter, not Anhysteretic-only.</div>
+      <div class="blocklabel">BEFORE (delete this)</div><pre class="before"><code>        function fit_parameters(app)
+            N = app.NofpointsEditField.Value;
+            app.calculate_parameters()
+            select_a = app.TableParameters.Data{1:app.number_components,5};
+            fit_lb = zeros(app.number_components*3 - 1, 1);
+            fit_ub = zeros(app.number_components*3 - 1, 1);
+            fit_select_fit = cell(app.number_components*3 - 1, 1);
+            for i=1:app.number_components
+                fit_lb(i) = app.lb(2*i - 1);
+                fit_lb(i + app.number_components) = app.lb(2*i);
+                fit_ub(i) = app.ub(2*i - 1);
+                fit_ub(i + app.number_components) = app.ub(2*i);
+                fit_select_fit(i) = app.select_fit(2*i - 1);
+                fit_select_fit(i + app.number_components) = app.select_fit(2*i);
+            end
+            for i=1:(app.number_components-1)
+                fit_lb(i + 2*app.number_components) = app.lb(2*app.number_components + i);
+                fit_ub(i + 2*app.number_components) = app.ub(2*app.number_components + i);
+                fit_select_fit(i + 2*app.number_components) = app.select_fit(2*app.number_components + i);
+            end
+            
+            app.stop_fit_requested = false;
+            app.write_message("Fitting started");
+            pause(0.01);
+            tic
+            try
+                outputFcn = @(x, optimValues, state) app.fit_stop_output_fcn(x, optimValues, state);
+                [app.Hcr, app.mcr, app.Hx] = fit(app.data_curve, cat(2, app.Hcr, app.mcr, app.Hx), N, select_a, app.ErrortominimizeDropDown.Value, fit_lb, fit_ub, fit_select_fit, outputFcn);
+                t = sprintf("%0.2f", toc);
+                if app.stop_fit_requested
+                    app.write_message("Fitting stopped by user after " + t + " s");
+                else
+                    app.write_message("Fitting finished after " + t + " s");
+                    app.write_m_lower_bound_messages(select_a, fit_lb, fit_select_fit);
+                end
+            catch e
+                t = sprintf("%0.2f", toc);
+                app.write_message("Fitting failed after " + t + " s: " + e.message);
+            end
+        end
+</code></pre>
+      <div class="blocklabel">AFTER (replace with this)</div><pre class="after"><code>        function fit_parameters(app)
+            AnhystereticUtils.fit_parameters(app);
+        end
+</code></pre>
+    </section>
+    <section class="step" id="step-5">
+      <h3>Step 5. write_m_lower_bound_messages(app, select_a, fit_lb, fit_select_fit)</h3>
+      <div class="meta">Location in current app_old_exported.m: lines 615–644 (App Designer Code View)</div>
+      
+      
+      <div class="blocklabel">BEFORE (delete this)</div><pre class="before"><code>        function write_m_lower_bound_messages(app, select_a, fit_lb, fit_select_fit)
+            tolerance = 1e-8;
+            select_a = string(select_a);
+        
+            for i = 1:app.number_components
+                m_index = app.number_components + i;
+                if m_index &gt; numel(fit_lb) || i &gt; numel(app.mcr)
+                    continue;
+                end
+                if m_index &lt;= numel(fit_select_fit) &amp;&amp; ~logical(fit_select_fit{m_index})
+                    continue;
+                end
+        
+                m_lower_bound = fit_lb(m_index);
+                if abs(app.mcr(i) - m_lower_bound) &gt; tolerance * max(1, abs(m_lower_bound))
+                    continue;
+                end
+        
+                current_select_a = lower(select_a(i));
+                if current_select_a == "low"
+                    alternative_select_a = "high";
+                elseif current_select_a == "high"
+                    alternative_select_a = "low";
+                else
+                    continue;
+                end
+        
+                app.write_message("Component " + string(i) + " fitted m" + string(i) + "(Hcr" + string(i) + ") reached its lower bound (" + app.format_m_display(m_lower_bound) + ") with select a" + string(i) + " = '" + current_select_a + "'. Consider exploring a fit with select a" + string(i) + " = '" + alternative_select_a + "'.");
+            end
+        end
+</code></pre>
+      <div class="blocklabel">AFTER (replace with this)</div><pre class="after"><code>        function write_m_lower_bound_messages(app, select_a, fit_lb, fit_select_fit)
+            AnhystereticUtils.write_m_lower_bound_messages(app, select_a, fit_lb, fit_select_fit);
+        end
+</code></pre>
+    </section>
+    <section class="step" id="step-6">
+      <h3>Step 6. update_components(app)</h3>
+      <div class="meta">Location in current app_old_exported.m: lines 646–678 (App Designer Code View)</div>
+      
+      
+      <div class="blocklabel">BEFORE (delete this)</div><pre class="before"><code>        function update_components(app)
+            app.Hcr = zeros(1, app.number_components);
+            app.mcr = zeros(1, app.number_components);
+            app.Hx = zeros(1, max(app.number_components - 1, 0));
+            offset = (3*app.number_components - 1);
+            if offset &gt; 0 &amp;&amp; numel(app.fitted_parameter_values) &gt;= offset &amp;&amp; numel(app.component_row_types) &gt;= offset
+                hcr_index = 1;
+                mcr_index = 1;
+                hx_index = 1;
+                for row = 1:offset
+                    value = app.fitted_parameter_values(row);
+                    switch app.component_row_types(row)
+                        case "Hcr"
+                            app.Hcr(hcr_index) = value;
+                            hcr_index = hcr_index + 1;
+                        case "m"
+                            app.mcr(mcr_index) = value;
+                            mcr_index = mcr_index + 1;
+                        case "Hx"
+                            app.Hx(hx_index) = value;
+                            hx_index = hx_index + 1;
+                    end
+                end
+            end
+            app.lb = zeros(1, offset);
+            app.ub = zeros(1, offset);
+            app.select_fit = cell(1, offset);
+            for i = 1:offset
+                app.lb(i) = str2double(app.TableFittedParameters.Data(2*offset + i));
+                app.ub(i) = str2double(app.TableFittedParameters.Data(3*offset + i));
+                app.select_fit(i) = app.TableFittedParameters.Data(4*offset + i);
+            end
+        end
+</code></pre>
+      <div class="blocklabel">AFTER (replace with this)</div><pre class="after"><code>        function update_components(app)
+            AnhystereticUtils.update_components(app);
+        end
+</code></pre>
+    </section>
+    <section class="step" id="step-7">
+      <h3>Step 7. init_components(app)</h3>
+      <div class="meta">Location in current app_old_exported.m: lines 680–744 (App Designer Code View)</div>
+      
+      
+      <div class="blocklabel">BEFORE (delete this)</div><pre class="before"><code>        function init_components(app)
+            row_count = 3*app.number_components - 1;
+            seed_Hcr = 0.01 * (1:app.number_components);
+            seed_mcr = 0.521657107787896 * ones(1, app.number_components);
+            seed_Hx = 0.015 * (1:max(app.number_components - 1, 0));
+
+            has_seed_curve = false;
+            try
+                has_seed_curve = ~isempty(app.data_curve) &amp;&amp; isobject(app.data_curve) &amp;&amp; ...
+                    isprop(app.data_curve, 'H') &amp;&amp; ~isempty(app.data_curve.H);
+            catch
+                has_seed_curve = false;
+            end
+
+            if has_seed_curve
+                try
+                    [seed_Hcr, seed_mcr, seed_Hx] = retrieve_anhysteretic_seeds(app.data_curve, app.number_components);
+                catch e
+                    app.write_message("Seed retrieval failed; using built-in seeds: " + e.message);
+                end
+            end
+
+            component_values = zeros(row_count, 1);
+            lb_col = zeros(row_count, 1);
+            ub_col = zeros(row_count, 1);
+            row_names = cell(row_count, 1);
+            row_types = strings(row_count, 1);
+            for i = 1:app.number_components
+                s = 'Hcr' + string(char(8320 + i));
+                row_names(2*i - 1,:) = {convertStringsToChars(s + ' [A/m]')};
+                component_values(2*i-1) = seed_Hcr(i); %legacy: 0.01*i;
+                row_types(2*i-1) = "Hcr";
+                s = 'm' + string(char(8320 + i)) + ' (' + s + ')';
+                row_names(2*i,:) = {convertStringsToChars(s)};
+                component_values(2*i) = seed_mcr(i); %legacy: 0.521657107787896;
+                row_types(2*i) = "m";
+                lb_col(2*i-1) = 0;
+                lb_col(2*i) = 0.4496;
+                ub_col(2*i-1) = 1000000;
+                ub_col(2*i) = 1;
+            end
+
+            for i = 1:(app.number_components-1)
+                row_index = i + 2*app.number_components;
+                s = 'Hx' + string(char(8320 + i)) + ' [A/m]';
+                row_names(row_index,:) = {convertStringsToChars(s)};
+                component_values(row_index) = seed_Hx(i); %legacy: i*0.015;
+                row_types(row_index) = "Hx";
+                lb_col(row_index) = 0;
+                ub_col(row_index) = 1000000;
+            end
+            app.component_row_types = row_types;
+            app.fitted_parameter_values = component_values;
+            component_values = num2cell(component_values);
+            lb_col = arrayfun(@(x) {app.format_short(x)}, lb_col);
+            ub_col = arrayfun(@(x) {app.format_short(x)}, ub_col);
+            app.select_fit = cell(row_count, 1);
+            app.select_fit(:) = {true};
+            t = table(row_names, component_values, lb_col, ub_col, app.select_fit);
+            app.TableFittedParameters.Data = table2cell(t);
+            app.refresh_table_value_display();
+
+            app.init_parameters_table(true);
+            app.init_quantities_table(true);
+        end
+</code></pre>
+      <div class="blocklabel">AFTER (replace with this)</div><pre class="after"><code>        function init_components(app)
+            AnhystereticUtils.init_components(app);
+        end
+</code></pre>
+    </section>
+    <section class="step" id="step-8">
+      <h3>Step 8. init_parameters_table(app, default_values)</h3>
+      <div class="meta">Location in current app_old_exported.m: lines 883–913 (App Designer Code View)</div>
+      
+      
+      <div class="blocklabel">BEFORE (delete this)</div><pre class="before"><code>        function init_parameters_table(app, default_values)
+            parameters_col = cell(app.number_components, 1);
+            for i = 1:app.number_components
+                s = string(i);
+                parameters_col(i,:) = {convertStringsToChars(s)};
+            end
+
+            Ms_col = cell(app.number_components, 1);
+            alpha_col = cell(app.number_components, 1);
+            a_col = cell(app.number_components, 1);
+
+            select_a_col = cell(app.number_components, 1);
+            for i = 1:app.number_components
+                select_a_col(i,:) = {'low'};
+            end
+   
+            if ~default_values
+                select_a_col = app.TableParameters.Data{:,5};
+
+                for i = 1:app.number_components
+                    Ms_col(i,:) = {app.format_short(app.magnetic_parameters.Ms(i))};
+                    alpha_col(i,:) = {app.format_engineering(app.magnetic_parameters.alpha(i))};
+                    a_col(i,:) = {app.format_short(app.magnetic_parameters.a(i))};
+                end
+            end
+
+            t = table(parameters_col, Ms_col, alpha_col, a_col, select_a_col);
+            t.(5) = categorical(t.(5), {'high', 'low'}, 'Ordinal', true);
+
+            app.TableParameters.Data = t;  
+        end
+</code></pre>
+      <div class="blocklabel">AFTER (replace with this)</div><pre class="after"><code>        function init_parameters_table(app, default_values)
+            AnhystereticUtils.init_parameters_table(app, default_values);
+        end
+</code></pre>
+    </section>
+    <section class="step" id="step-9">
+      <h3>Step 9. init_quantities_table(app, default_values)</h3>
+      <div class="meta">Location in current app_old_exported.m: lines 915–939 (App Designer Code View)</div>
+      
+      
+      <div class="blocklabel">BEFORE (delete this)</div><pre class="before"><code>        function init_quantities_table(app, default_values)
+            parameters_col = cell(app.number_components, 1);
+            for i = 1:app.number_components
+                s = string(i);
+                parameters_col(i,:) = {convertStringsToChars(s)};
+            end
+
+            dimensionless_alphaMs_col = cell(app.number_components, 1);
+            density_product_col = cell(app.number_components, 1);
+            Hk_col = cell(app.number_components, 1);
+            initial_relative_magnetic_permeability_col = cell(app.number_components, 1);
+
+            if ~default_values
+                for i = 1:app.number_components
+                    dimensionless_alphaMs_col(i,:) = {app.format_short(app.magnetic_parameters.dimensionless_alphaMs(i))};
+                    density_product_col(i,:) = {app.format_short(app.magnetic_parameters.density_product(i))};
+                    Hk_col(i,:) = {app.format_short(app.magnetic_parameters.Hk(i))};
+%                     initial_relative_magnetic_permeability_col(i,:) = {app.format_thousands_only(app.magnetic_parameters.initial_relative_magnetic_permeability(i))};
+                    initial_relative_magnetic_permeability_col(i,:) = {app.format_short(app.magnetic_parameters.initial_relative_magnetic_permeability(i))};
+                end
+            end
+
+            t = table(parameters_col, dimensionless_alphaMs_col, density_product_col, Hk_col, initial_relative_magnetic_permeability_col);
+            app.TableQuantities.Data = t;
+        end
+</code></pre>
+      <div class="blocklabel">AFTER (replace with this)</div><pre class="after"><code>        function init_quantities_table(app, default_values)
+            AnhystereticUtils.init_quantities_table(app, default_values);
+        end
+</code></pre>
+    </section>
+    <section class="step" id="step-10">
+      <h3>Step 10. refresh_table_value_display(app)</h3>
+      <div class="meta">Location in current app_old_exported.m: lines 974–983 (App Designer Code View)</div>
+      
+      
+      <div class="blocklabel">BEFORE (delete this)</div><pre class="before"><code>        function refresh_table_value_display(app)
+            row_count = size(app.TableFittedParameters.Data, 1);
+            if row_count == 0 || isempty(app.component_row_types) || isempty(app.fitted_parameter_values)
+                return;
+            end
+            valid_rows = min([row_count, numel(app.component_row_types), numel(app.fitted_parameter_values)]);
+            for row = 1:valid_rows
+                app.TableFittedParameters.Data(row, 2) = {app.format_value_for_display(row, app.fitted_parameter_values(row))};
+            end
+        end
+</code></pre>
+      <div class="blocklabel">AFTER (replace with this)</div><pre class="after"><code>        function refresh_table_value_display(app)
+            AnhystereticUtils.refresh_table_value_display(app);
+        end
+</code></pre>
+    </section>
+    <section class="step" id="step-11">
+      <h3>Step 11. sync_fitted_parameter_values_from_components(app)</h3>
+      <div class="meta">Location in current app_old_exported.m: lines 985–1002 (App Designer Code View)</div>
+      
+      
+      <div class="blocklabel">BEFORE (delete this)</div><pre class="before"><code>        function sync_fitted_parameter_values_from_components(app)
+            row_count = 3*app.number_components - 1;
+            if row_count &lt;= 0 || isempty(app.component_row_types)
+                return;
+            end
+            values = zeros(row_count, 1);
+            idx = 1;
+            for i = 1:app.number_components
+                values(idx) = app.Hcr(i);
+                values(idx + 1) = app.mcr(i);
+                idx = idx + 2;
+            end
+            for i = 1:(app.number_components - 1)
+                values(idx) = app.Hx(i);
+                idx = idx + 1;
+            end
+            app.fitted_parameter_values = values;
+        end
+</code></pre>
+      <div class="blocklabel">AFTER (replace with this)</div><pre class="after"><code>        function sync_fitted_parameter_values_from_components(app)
+            AnhystereticUtils.sync_fitted_parameter_values_from_components(app);
+        end
+</code></pre>
+    </section>
+    <section class="step" id="step-12">
+      <h3>Step 12. format_value_for_display(app, row, value)</h3>
+      <div class="meta">Location in current app_old_exported.m: lines 1004–1016 (App Designer Code View)</div>
+      
+      
+      <div class="blocklabel">BEFORE (delete this)</div><pre class="before"><code>        function ret = format_value_for_display(app, row, value)
+            if row &lt; 1 || row &gt; numel(app.component_row_types)
+                ret = char(sprintf("%g", value));
+                return;
+            end
+            row_type = app.component_row_types(row);
+            switch row_type
+                case "m"
+                    ret = app.format_m_display(value);
+                otherwise
+                    ret = app.format_short(value);
+            end
+        end
+</code></pre>
+      <div class="blocklabel">AFTER (replace with this)</div><pre class="after"><code>        function ret = format_value_for_display(app, row, value)
+            ret = AnhystereticUtils.format_value_for_display(app, row, value);
+        end
+</code></pre>
+    </section>
+    <section class="step" id="step-13">
+      <h3>Step 13. format_value_for_edit(app, row)</h3>
+      <div class="meta">Location in current app_old_exported.m: lines 1018–1024 (App Designer Code View)</div>
+      
+      
+      <div class="blocklabel">BEFORE (delete this)</div><pre class="before"><code>        function ret = format_value_for_edit(app, row)
+            if row &lt; 1 || row &gt; numel(app.fitted_parameter_values)
+                ret = "";
+                return;
+            end
+            ret = char(sprintf("%.16g", app.fitted_parameter_values(row)));
+        end
+</code></pre>
+      <div class="blocklabel">AFTER (replace with this)</div><pre class="after"><code>        function ret = format_value_for_edit(app, row)
+            ret = AnhystereticUtils.format_value_for_edit(app, row);
+        end
+</code></pre>
+    </section>
+    <section class="step" id="step-14">
+      <h3>Step 14. format_m_display(~, value)  →  format_m_display(app, value)</h3>
+      <div class="meta">Location in current app_old_exported.m: lines 1026–1028 (App Designer Code View)</div>
+      <div class="flag">⚠ SIGNATURE CHANGE — first parameter renamed from ~ to app (it was unused before; the delegator now needs the app handle to forward the call). This does not change how any caller invokes format_m_display — only the parameter name inside this method's own body.</div>
+      
+      <div class="blocklabel">BEFORE (delete this)</div><pre class="before"><code>        function ret = format_m_display(~, value)
+            ret = char(sprintf("%.4f", value));
+        end
+</code></pre>
+      <div class="blocklabel">AFTER (replace with this)</div><pre class="after"><code>        function ret = format_m_display(app, value)
+            ret = AnhystereticUtils.format_m_display(app, value);
+        end
+</code></pre>
+    </section>
+    <section class="step" id="step-15">
+      <h3>Step 15. is_m_row(app, row)</h3>
+      <div class="meta">Location in current app_old_exported.m: lines 1030–1036 (App Designer Code View)</div>
+      
+      
+      <div class="blocklabel">BEFORE (delete this)</div><pre class="before"><code>        function tf = is_m_row(app, row)
+            tf = false;
+            if row &lt; 1 || row &gt; numel(app.component_row_types)
+                return;
+            end
+            tf = app.component_row_types(row) == "m";
+        end
+</code></pre>
+      <div class="blocklabel">AFTER (replace with this)</div><pre class="after"><code>        function tf = is_m_row(app, row)
+            tf = AnhystereticUtils.is_m_row(app, row);
+        end
+</code></pre>
+    </section>
+    <section class="step" id="step-16">
+      <h3>Step 16. plot_M(app)</h3>
+      <div class="meta">Location in current app_old_exported.m: lines 1043–1059 (App Designer Code View)</div>
+      
+      
+      <div class="blocklabel">BEFORE (delete this)</div><pre class="before"><code>        function plot_M(app)
+            hcr_values = [];
+            if app.ShowhcrCheckBoxM.Value == 1
+                hcr_values = app.Hcr;
+            end
+            plotter = Plotter(app.data_curve, app.modeled_curve, hcr_values, app.Colors);
+            cla(app.AxesM,'reset');
+            plot_components = app.PlotcomponentsCheckBoxM.Value == 1;
+            show_grid = app.ShowgridCheckBoxM.Value == 1;
+            axis_scale = string(app.AxisScaleDropDownM.Value);
+            if app.axis_scale_has_x(axis_scale)
+                plotter.plot_M_log(app.AxesM, plot_components, show_grid);
+            else
+                plotter.plot_M(app.AxesM, plot_components, show_grid);
+            end
+            app.apply_axis_scale(app.AxesM, axis_scale);
+        end
+</code></pre>
+      <div class="blocklabel">AFTER (replace with this)</div><pre class="after"><code>        function plot_M(app)
+            AnhystereticUtils.plot_M(app);
+        end
+</code></pre>
+    </section>
+    <section class="step" id="step-17">
+      <h3>Step 17. plot_dMdH(app)</h3>
+      <div class="meta">Location in current app_old_exported.m: lines 1061–1077 (App Designer Code View)</div>
+      
+      
+      <div class="blocklabel">BEFORE (delete this)</div><pre class="before"><code>        function plot_dMdH(app)
+            hcr_values = [];
+            if app.ShowhcrCheckBoxdMdH.Value == 1
+                hcr_values = app.Hcr;
+            end
+            plotter = Plotter(app.data_curve, app.modeled_curve, hcr_values, app.Colors);
+            cla(app.AxesdMdH,'reset');
+            plot_components = app.PlotcomponentsCheckBoxdMdH.Value == 1;
+            show_grid = app.ShowgridCheckBoxdMdH.Value == 1;
+            axis_scale = string(app.AxisScaleDropDowndMdH.Value);
+            if app.axis_scale_has_x(axis_scale)
+                plotter.plot_dMdH_log(app.AxesdMdH, plot_components, show_grid);
+            else
+                plotter.plot_dMdH(app.AxesdMdH, plot_components, show_grid);
+            end
+            app.apply_axis_scale(app.AxesdMdH, axis_scale);
+        end
+</code></pre>
+      <div class="blocklabel">AFTER (replace with this)</div><pre class="after"><code>        function plot_dMdH(app)
+            AnhystereticUtils.plot_dMdH(app);
+        end
+</code></pre>
+    </section>
+    <section class="step" id="step-18">
+      <h3>Step 18. plot_HdMdH(app)</h3>
+      <div class="meta">Location in current app_old_exported.m: lines 1079–1095 (App Designer Code View)</div>
+      
+      
+      <div class="blocklabel">BEFORE (delete this)</div><pre class="before"><code>        function plot_HdMdH(app)
+            hcr_values = [];
+            if app.ShowhcrCheckBoxHdMdH.Value == 1
+                hcr_values = app.Hcr;
+            end
+            plotter = Plotter(app.data_curve, app.modeled_curve, hcr_values, app.Colors);
+            cla(app.AxesHdMdH,'reset');
+            plot_components = app.PlotcomponentsCheckBoxHdMdH.Value == 1;
+            show_grid = app.ShowgridCheckBoxHdMdH.Value == 1;
+            axis_scale = string(app.AxisScaleDropDownHdMdH.Value);
+            if app.axis_scale_has_x(axis_scale)
+                plotter.plot_HdMdH_log(app.AxesHdMdH, plot_components, show_grid);
+            else
+                plotter.plot_HdMdH(app.AxesHdMdH, plot_components, show_grid);
+            end
+            app.apply_axis_scale(app.AxesHdMdH, axis_scale);
+        end
+</code></pre>
+      <div class="blocklabel">AFTER (replace with this)</div><pre class="after"><code>        function plot_HdMdH(app)
+            AnhystereticUtils.plot_HdMdH(app);
+        end
+</code></pre>
+    </section>
+    <section class="step" id="step-19">
+      <h3>Step 19. get_first_anhysteretic_seeds(app)</h3>
+      <div class="meta">Location in current app_old_exported.m: lines 1570–1599 (App Designer Code View)</div>
+      
+      <div class="note">Called from the Hysteretic tab's retrieve_ja_seeds (unaffected — that method itself isn't being moved this pass) but reads only Anhysteretic-tab state (TableParameters), so it's grouped with Anhysteretic.</div>
+      <div class="blocklabel">BEFORE (delete this)</div><pre class="before"><code>        function [ms_seed, a_seed, alpha_seed, has_seeds] = get_first_anhysteretic_seeds(app)
+            has_seeds = false;
+            ms_seed = "";
+            a_seed = "";
+            alpha_seed = "";
+
+            if isempty(app.TableParameters.Data) || height(app.TableParameters.Data) &lt; 1
+                return;
+            end
+
+            ms_raw = string(app.TableParameters.Data{1,2});
+            alpha_raw = string(app.TableParameters.Data{1,3});
+            a_raw = string(app.TableParameters.Data{1,4});
+
+            if strlength(ms_raw) == 0 || strlength(alpha_raw) == 0 || strlength(a_raw) == 0
+                return;
+            end
+
+            ms_num = str2double(replace(ms_raw, ",", ""));
+            a_num = str2double(replace(a_raw, ",", ""));
+            alpha_num = str2double(replace(alpha_raw, ",", ""));
+            if isnan(ms_num) || isnan(a_num) || isnan(alpha_num)
+                return;
+            end
+
+            ms_seed = ms_raw;
+            a_seed = a_raw;
+            alpha_seed = alpha_raw;
+            has_seeds = true;
+        end
+</code></pre>
+      <div class="blocklabel">AFTER (replace with this)</div><pre class="after"><code>        function [ms_seed, a_seed, alpha_seed, has_seeds] = get_first_anhysteretic_seeds(app)
+            [ms_seed, a_seed, alpha_seed, has_seeds] = AnhystereticUtils.get_first_anhysteretic_seeds(app);
+        end
+</code></pre>
+    </section>
+    <section class="step" id="step-20">
+      <h3>Step 20. subscript_to_number(~, str)  →  subscript_to_number(app, str)</h3>
+      <div class="meta">Location in current app_old_exported.m: lines 1957–1965 (App Designer Code View)</div>
+      <div class="flag">⚠ SIGNATURE CHANGE — first parameter renamed from ~ to app (same reason as format_m_display above — unused before, needed now to forward the call). Does not change how callers invoke it.</div>
+      
+      <div class="blocklabel">BEFORE (delete this)</div><pre class="before"><code>        function ret = subscript_to_number(~, str)
+            chars = char(str);
+            for i = 1:length(chars)
+                if chars(i) &gt;= 8272
+                    chars(i) = 48 + chars(i) - '₀'; 
+                end
+            end
+            ret = string(chars);
+        end
+</code></pre>
+      <div class="blocklabel">AFTER (replace with this)</div><pre class="after"><code>        function ret = subscript_to_number(app, str)
+            ret = AnhystereticUtils.subscript_to_number(app, str);
+        end
+</code></pre>
+    </section>
+    <section class="step" id="step-21">
+      <h3>Step 21. export_residual(app, residue, file_name)</h3>
+      <div class="meta">Location in current app_old_exported.m: lines 1967–1974 (App Designer Code View)</div>
+      
+      
+      <div class="blocklabel">BEFORE (delete this)</div><pre class="before"><code>        function export_residual(app, residue, file_name)
+            t = table(transpose(app.data_curve.H), transpose(residue));
+            t.Properties.VariableNames(:) = {'H [A/m]' 'residue'};
+
+            path = fullfile(app.OutputDatasetPath.Value, file_name);
+            writetable(t,path, 'Delimiter', ';');
+            app.write_message("Data saved as " + file_name);
+        end
+</code></pre>
+      <div class="blocklabel">AFTER (replace with this)</div><pre class="after"><code>        function export_residual(app, residue, file_name)
+            AnhystereticUtils.export_residual(app, residue, file_name);
+        end
+</code></pre>
+    </section>
+    <section class="step" id="step-22">
+      <h3>Step 22. set_colors_and_plot(app, colors)</h3>
+      <div class="meta">Location in current app_old_exported.m: lines 2875–2884 (App Designer Code View)</div>
+      
+      
+      <div class="blocklabel">BEFORE (delete this)</div><pre class="before"><code>        function set_colors_and_plot(app, colors)
+            app.Colors = colors;
+            if ~isobject(app.data_curve) || ~isprop(app.data_curve, 'H') || isempty(app.data_curve.H)
+                app.write_message("Colors updated. Import data before recalculating.");
+                return;
+            end
+            update_components(app)
+            calculate_parameters(app)
+            plot(app)
+        end
+</code></pre>
+      <div class="blocklabel">AFTER (replace with this)</div><pre class="after"><code>        function set_colors_and_plot(app, colors)
+            AnhystereticUtils.set_colors_and_plot(app, colors);
+        end
+</code></pre>
+    </section>
+    <section class="step" id="step-23">
+      <h3>Step 23. calculate_and_plot(app)</h3>
+      <div class="meta">Location in current app_old_exported.m: lines 2886–2898 (App Designer Code View)</div>
+      
+      
+      <div class="blocklabel">BEFORE (delete this)</div><pre class="before"><code>        function a = calculate_and_plot(app)
+            path = app.InputDatasetPath.Value;
+            if isfile(path)
+                app.import_data(path);
+                update_components(app)
+                calculate_parameters(app)
+                app.plot_input();
+                a = 0;
+            else
+                app.write_message(path + " was not found, please browse the dataseth path again");
+                a = -1;
+            end
+        end
+</code></pre>
+      <div class="blocklabel">AFTER (replace with this)</div><pre class="after"><code>        function a = calculate_and_plot(app)
+            a = AnhystereticUtils.calculate_and_plot(app);
+        end
+</code></pre>
+    </section>
+
+<h2>New file (already created — nothing to do here)</h2>
+<div class="newfile">
+  <p><code class="path">src/Anhysteretic/AnhystereticUtils.m</code> now holds all 22 extracted methods as
+  <code>methods (Static)</code>, each taking <code>app</code> as the first argument — same style as
+  <code>src/Playground/PlaygroundUtils.m</code>. This file is already on disk in your repo; it's a plain
+  file on the MATLAB path (added via <code>addpath(genpath(...))</code> in <code>startupFcn</code>), so it
+  doesn't need anything done in App Designer.</p>
+</div>
+
+<footer>
+  Generated for the 2026-07-06 MagAnalyst reorg session. See <code>CLAUDE.md</code> §2a for the workflow this
+  guide follows, and §4 for the updated <code>src/</code> module map.
+</footer>
+
+</body>
+</html>
