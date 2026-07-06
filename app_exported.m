@@ -98,9 +98,9 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesM                           matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesHdMdH                       matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesM                           matlab.ui.control.UIAxes
         HystereticfittingTab            matlab.ui.container.Tab
         GridLayout2                     matlab.ui.container.GridLayout
         StopfitButton_2                 matlab.ui.control.Button
@@ -3812,6 +3812,7 @@ classdef app_exported < matlab.apps.AppBase
             app.InputNumberofPointsEditField.Limits = [2 Inf];
             app.InputNumberofPointsEditField.RoundFractionalValues = 'on';
             app.InputNumberofPointsEditField.ValueDisplayFormat = '%.0f';
+            app.InputNumberofPointsEditField.Tooltip = {'N° of points of processed anhysteretic curve'};
             app.InputNumberofPointsEditField.Layout.Row = 1;
             app.InputNumberofPointsEditField.Layout.Column = 2;
             app.InputNumberofPointsEditField.Value = 50;
@@ -3820,6 +3821,7 @@ classdef app_exported < matlab.apps.AppBase
             app.InputNumberofPointsLabel = uilabel(app.GridLayoutTips_3);
             app.InputNumberofPointsLabel.HorizontalAlignment = 'right';
             app.InputNumberofPointsLabel.FontWeight = 'bold';
+            app.InputNumberofPointsLabel.Tooltip = {'N° of points of processed anhysteretic curve'};
             app.InputNumberofPointsLabel.Layout.Row = 1;
             app.InputNumberofPointsLabel.Layout.Column = 1;
             app.InputNumberofPointsLabel.Text = 'N° of points';
@@ -3850,14 +3852,14 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -3868,14 +3870,14 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
@@ -4193,6 +4195,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create NofpointsEditFieldLabel
             app.NofpointsEditFieldLabel = uilabel(app.GridLayoutModeledCurve);
+            app.NofpointsEditFieldLabel.Tooltip = {'N° of points of modeled anhysteretic curve'};
             app.NofpointsEditFieldLabel.Layout.Row = 1;
             app.NofpointsEditFieldLabel.Layout.Column = 3;
             app.NofpointsEditFieldLabel.Text = 'N. of points';
@@ -4201,6 +4204,7 @@ classdef app_exported < matlab.apps.AppBase
             app.NofpointsEditField = uieditfield(app.GridLayoutModeledCurve, 'numeric');
             app.NofpointsEditField.Limits = [0 Inf];
             app.NofpointsEditField.ValueDisplayFormat = '%.0f';
+            app.NofpointsEditField.Tooltip = {'N° of points of modeled anhysteretic curve'};
             app.NofpointsEditField.Layout.Row = 1;
             app.NofpointsEditField.Layout.Column = 4;
             app.NofpointsEditField.Value = 100;
@@ -4293,7 +4297,7 @@ classdef app_exported < matlab.apps.AppBase
             app.JsTEditFieldLabel_4.FontWeight = 'bold';
             app.JsTEditFieldLabel_4.Layout.Row = 5;
             app.JsTEditFieldLabel_4.Layout.Column = 6;
-            app.JsTEditFieldLabel_4.Text = 'alpha';
+            app.JsTEditFieldLabel_4.Text = 'α';
 
             % Create JsField_4
             app.JsField_4 = uieditfield(app.GridLayout2, 'text');
