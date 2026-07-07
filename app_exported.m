@@ -98,9 +98,9 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesM                           matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesHdMdH                       matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesM                           matlab.ui.control.UIAxes
         HystereticfittingTab            matlab.ui.container.Tab
         GridLayout2                     matlab.ui.container.GridLayout
         StopfitButton_2                 matlab.ui.control.Button
@@ -126,21 +126,21 @@ classdef app_exported < matlab.apps.AppBase
         FitLabel                        matlab.ui.control.Label
         UpperboundLabel                 matlab.ui.control.Label
         LowerboundLabel                 matlab.ui.control.Label
-        kUpperField_2                   matlab.ui.control.EditField
-        kLowerField_2                   matlab.ui.control.EditField
-        cUpperField_2                   matlab.ui.control.EditField
-        cLowerField_2                   matlab.ui.control.EditField
-        alphaUpperField_2               matlab.ui.control.EditField
-        alphaLowerField_2               matlab.ui.control.EditField
-        aUpperField_2                   matlab.ui.control.EditField
-        aLowerField_2                   matlab.ui.control.EditField
-        MsUpperField_2                  matlab.ui.control.EditField
-        MsLowerField_2                  matlab.ui.control.EditField
-        JsField_8                       matlab.ui.control.EditField
+        kUpper_JA                       matlab.ui.control.NumericEditField
+        kLower_JA                       matlab.ui.control.NumericEditField
+        cUpper_JA                       matlab.ui.control.NumericEditField
+        cLower_JA                       matlab.ui.control.NumericEditField
+        alphaUpper_JA                   matlab.ui.control.NumericEditField
+        alphaLower_JA                   matlab.ui.control.NumericEditField
+        aUpper_JA                       matlab.ui.control.NumericEditField
+        aLower_JA                       matlab.ui.control.NumericEditField
+        MsUpper_JA                      matlab.ui.control.NumericEditField
+        MsLower_JA                      matlab.ui.control.NumericEditField
+        Mtip                            matlab.ui.control.NumericEditField
         JsTEditFieldLabel_8             matlab.ui.control.Label
         ResidualplotButtondMdH_2        matlab.ui.control.Button
         ShowgridCheckBoxM_2             matlab.ui.control.CheckBox
-        JsField_7                       matlab.ui.control.EditField
+        Htip                            matlab.ui.control.NumericEditField
         JsTEditFieldLabel_7             matlab.ui.control.Label
         DrivingfieldLabel               matlab.ui.control.Label
         RetrieveseedsButton             matlab.ui.control.Button
@@ -149,15 +149,15 @@ classdef app_exported < matlab.apps.AppBase
         ErrortominimizeDropDownLabel_2  matlab.ui.control.Label
         CalculatePlotButton_2           matlab.ui.control.Button
         FitButton_2                     matlab.ui.control.Button
-        JsField_6                       matlab.ui.control.EditField
+        k_JA                            matlab.ui.control.NumericEditField
         JsTEditFieldLabel_6             matlab.ui.control.Label
-        JsField_5                       matlab.ui.control.EditField
+        c_JA                            matlab.ui.control.NumericEditField
         JsTEditFieldLabel_5             matlab.ui.control.Label
-        JsField_4                       matlab.ui.control.EditField
+        alpha_JA                        matlab.ui.control.NumericEditField
         JsTEditFieldLabel_4             matlab.ui.control.Label
-        JsField_3                       matlab.ui.control.EditField
+        a_JA                            matlab.ui.control.NumericEditField
         JsTEditFieldLabel_3             matlab.ui.control.Label
-        JsField_2                       matlab.ui.control.EditField
+        Ms_JA                           matlab.ui.control.NumericEditField
         JsTEditFieldLabel_2             matlab.ui.control.Label
         ModelparametersLabel            matlab.ui.control.Label
         JilesAthertonmodelrateindependentLabel  matlab.ui.control.Label
@@ -343,6 +343,7 @@ classdef app_exported < matlab.apps.AppBase
         minor_loop_table_user_edited logical = false   % MOD: true once the user manually edits the Htip_i table
         degaussing_user_edited logical = false          % MOD: true once the user edits any Degaussing amplitude field/table
         harmonics_user_edited logical = false           % MOD: true once the user edits any harmonic drive field/table
+        hysteretic_ms_lower_bound_user_edited logical = false   % MOD: true once the user edits the Ms lower bound; stops auto-filling it from Mtip
         number_components
         lb
         ub
@@ -502,8 +503,8 @@ classdef app_exported < matlab.apps.AppBase
             [HTip, MTip] = Utils().find_tip(app.data_curve.H, app.data_curve.M);
             app.MTipField.Value = app.format_short(MTip);
             app.HTipField.Value = app.format_short(HTip);
-            app.JsField_7.Value = app.format_short(HTip);
-            app.JsField_8.Value = app.format_short(MTip);
+            app.Htip.Value = HTip;
+            app.Mtip.Value = MTip;
             cla(app.AxesProcessedInputData, 'reset')
             cla(app.AxesRawInputData, 'reset')
             plotter = Plotter(app.data_curve, app.modeled_curve, [], app.Colors, 5);
@@ -721,7 +722,7 @@ classdef app_exported < matlab.apps.AppBase
             curve_type = app.CurveDropDown.Value;
             app.imported_curve_type = string(curve_type);
             [H, M, app.H_raw, app.M_raw] = Parser(path, H_unit, M_unit, curve_type, number_of_points).import();
-            
+
             app.data_curve = DataAnhystereticCurve(H, M);
             app.refresh_playground_data_curve();
             app.maybe_refresh_minor_loop_defaults();   % MOD: update Htip_i defaults from the newly imported data tip
@@ -729,6 +730,7 @@ classdef app_exported < matlab.apps.AppBase
             app.sync_degaussing_ui();                  % MOD: refresh Degaussing start-point display from the new data
             app.maybe_refresh_harmonics_defaults();    % MOD: update harmonic amplitude defaults from the newly imported data tip
             app.sync_harmonics_ui();                   % MOD: refresh harmonic start-point display from the new data
+            app.maybe_refresh_ms_lower_bound_default(); % MOD: update the Hysteretic tab's Ms lower bound default from the newly imported data tip
             PlaygroundUtils.sync_major_ui(app);
             PlaygroundUtils.clear_simulation(app);
         end
@@ -862,6 +864,10 @@ classdef app_exported < matlab.apps.AppBase
             [Htip, Mtip, ok] = HystereticUtils.get_ja_tip_from_tab_or_data(app);
         end
 
+        function maybe_refresh_ms_lower_bound_default(app)
+            HystereticUtils.maybe_refresh_ms_lower_bound_default(app);
+        end
+
         function [ms_seed, a_seed, alpha_seed, has_seeds] = get_first_anhysteretic_seeds(app)
             [ms_seed, a_seed, alpha_seed, has_seeds] = AnhystereticUtils.get_first_anhysteretic_seeds(app);
         end
@@ -950,11 +956,11 @@ classdef app_exported < matlab.apps.AppBase
             s.semi_log_derivative_residual_checkbox = app.CheckBoxExportResiduesSemiLogMagDerivative.Value;
 
             s.params = struct( ...
-                'Ms', app.JsField_2.Value, ...
-                'a', app.JsField_3.Value, ...
-                'alpha', app.JsField_4.Value, ...
-                'c', app.JsField_5.Value, ...
-                'k', app.JsField_6.Value ...
+                'Ms', app.Ms_JA.Value, ...
+                'a', app.a_JA.Value, ...
+                'alpha', app.alpha_JA.Value, ...
+                'c', app.c_JA.Value, ...
+                'k', app.k_JA.Value ...
             );
 
             data = jsonencode(s, PrettyPrint=true);
@@ -1912,8 +1918,8 @@ classdef app_exported < matlab.apps.AppBase
             try
                 [Htip, Mtip, okTip] = app.get_ja_tip_from_tab_or_data();
                 if okTip
-                    app.JsField_7.Value = app.format_short(Htip);
-                    app.JsField_8.Value = app.format_short(Mtip);
+                    app.Htip.Value = Htip;
+                    app.Mtip.Value = Mtip;
                 end
             catch
                 % ignore any failure here
@@ -2340,11 +2346,11 @@ classdef app_exported < matlab.apps.AppBase
             app.CheckBoxExportResiduesSemiLogMagDerivative.Value = s.semi_log_derivative_residual_checkbox;
 
             if isfield(s, 'params')
-                if isfield(s.params, 'Ms'); app.JsField_2.Value = char(string(s.params.Ms)); end
-                if isfield(s.params, 'a'); app.JsField_3.Value = char(string(s.params.a)); end
-                if isfield(s.params, 'alpha'); app.JsField_4.Value = char(string(s.params.alpha)); end
-                if isfield(s.params, 'c'); app.JsField_5.Value = char(string(s.params.c)); end
-                if isfield(s.params, 'k'); app.JsField_6.Value = char(string(s.params.k)); end
+                if isfield(s.params, 'Ms'); app.Ms_JA.Value = str2double(string(s.params.Ms)); end
+                if isfield(s.params, 'a'); app.a_JA.Value = str2double(string(s.params.a)); end
+                if isfield(s.params, 'alpha'); app.alpha_JA.Value = str2double(string(s.params.alpha)); end
+                if isfield(s.params, 'c'); app.c_JA.Value = str2double(string(s.params.c)); end
+                if isfield(s.params, 'k'); app.k_JA.Value = str2double(string(s.params.k)); end
             end
 
             if isfield(s, 'hysteretic_starting_point'); app.StartingpointDropDown_4.Value = s.hysteretic_starting_point; end
@@ -2619,11 +2625,11 @@ classdef app_exported < matlab.apps.AppBase
         function RetrieveparametersButtonPushed(app, event)
             [~, has_hysteretic_params] = app.get_playground_hysteretic_params();
             if has_hysteretic_params
-                app.JsField_9.Value = app.JsField_2.Value;
-                app.JsField_10.Value = app.JsField_3.Value;
-                app.JsField_11.Value = app.JsField_4.Value;
-                app.JsField_12.Value = app.JsField_5.Value;
-                app.JsField_13.Value = app.JsField_6.Value;
+                app.JsField_9.Value = char(string(app.Ms_JA.Value));
+                app.JsField_10.Value = char(string(app.a_JA.Value));
+                app.JsField_11.Value = char(string(app.alpha_JA.Value));
+                app.JsField_12.Value = char(string(app.c_JA.Value));
+                app.JsField_13.Value = char(string(app.k_JA.Value));
                 app.write_message("Jiles-Atherton parameters retrieved from Hysteretic Fitting tab.");
                 return;
             end
@@ -2846,6 +2852,11 @@ classdef app_exported < matlab.apps.AppBase
             PlaygroundUtils.sync_minor_ui(app);
             PlaygroundUtils.clear_simulation(app);
             app.plot_playground();
+        end
+
+        % Value changed function: MsLower_JA
+        function MsLower_JAValueChanged(app, event)
+            app.hysteretic_ms_lower_bound_user_edited = true;   % MOD: stop auto-filling the Ms lower bound from Mtip once edited
         end
     end
 
@@ -3193,14 +3204,14 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -3211,14 +3222,14 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
@@ -3614,11 +3625,12 @@ classdef app_exported < matlab.apps.AppBase
             app.JsTEditFieldLabel_2.Layout.Column = 6;
             app.JsTEditFieldLabel_2.Text = 'Ms [A/m]';
 
-            % Create JsField_2
-            app.JsField_2 = uieditfield(app.GridLayout2, 'text');
-            app.JsField_2.HorizontalAlignment = 'right';
-            app.JsField_2.Layout.Row = 3;
-            app.JsField_2.Layout.Column = 7;
+            % Create Ms_JA
+            app.Ms_JA = uieditfield(app.GridLayout2, 'numeric');
+            app.Ms_JA.ValueDisplayFormat = '%.6g';
+            app.Ms_JA.AllowEmpty = 'on';
+            app.Ms_JA.Layout.Row = 3;
+            app.Ms_JA.Layout.Column = 7;
 
             % Create JsTEditFieldLabel_3
             app.JsTEditFieldLabel_3 = uilabel(app.GridLayout2);
@@ -3627,11 +3639,12 @@ classdef app_exported < matlab.apps.AppBase
             app.JsTEditFieldLabel_3.Layout.Column = 6;
             app.JsTEditFieldLabel_3.Text = 'a [A/m]';
 
-            % Create JsField_3
-            app.JsField_3 = uieditfield(app.GridLayout2, 'text');
-            app.JsField_3.HorizontalAlignment = 'right';
-            app.JsField_3.Layout.Row = 4;
-            app.JsField_3.Layout.Column = 7;
+            % Create a_JA
+            app.a_JA = uieditfield(app.GridLayout2, 'numeric');
+            app.a_JA.ValueDisplayFormat = '%.6g';
+            app.a_JA.AllowEmpty = 'on';
+            app.a_JA.Layout.Row = 4;
+            app.a_JA.Layout.Column = 7;
 
             % Create JsTEditFieldLabel_4
             app.JsTEditFieldLabel_4 = uilabel(app.GridLayout2);
@@ -3640,11 +3653,12 @@ classdef app_exported < matlab.apps.AppBase
             app.JsTEditFieldLabel_4.Layout.Column = 6;
             app.JsTEditFieldLabel_4.Text = 'α';
 
-            % Create JsField_4
-            app.JsField_4 = uieditfield(app.GridLayout2, 'text');
-            app.JsField_4.HorizontalAlignment = 'right';
-            app.JsField_4.Layout.Row = 5;
-            app.JsField_4.Layout.Column = 7;
+            % Create alpha_JA
+            app.alpha_JA = uieditfield(app.GridLayout2, 'numeric');
+            app.alpha_JA.ValueDisplayFormat = '%.5e';
+            app.alpha_JA.AllowEmpty = 'on';
+            app.alpha_JA.Layout.Row = 5;
+            app.alpha_JA.Layout.Column = 7;
 
             % Create JsTEditFieldLabel_5
             app.JsTEditFieldLabel_5 = uilabel(app.GridLayout2);
@@ -3653,11 +3667,12 @@ classdef app_exported < matlab.apps.AppBase
             app.JsTEditFieldLabel_5.Layout.Column = 6;
             app.JsTEditFieldLabel_5.Text = 'c';
 
-            % Create JsField_5
-            app.JsField_5 = uieditfield(app.GridLayout2, 'text');
-            app.JsField_5.HorizontalAlignment = 'right';
-            app.JsField_5.Layout.Row = 6;
-            app.JsField_5.Layout.Column = 7;
+            % Create c_JA
+            app.c_JA = uieditfield(app.GridLayout2, 'numeric');
+            app.c_JA.ValueDisplayFormat = '%.6g';
+            app.c_JA.AllowEmpty = 'on';
+            app.c_JA.Layout.Row = 6;
+            app.c_JA.Layout.Column = 7;
 
             % Create JsTEditFieldLabel_6
             app.JsTEditFieldLabel_6 = uilabel(app.GridLayout2);
@@ -3666,11 +3681,12 @@ classdef app_exported < matlab.apps.AppBase
             app.JsTEditFieldLabel_6.Layout.Column = 6;
             app.JsTEditFieldLabel_6.Text = 'k [A/m]';
 
-            % Create JsField_6
-            app.JsField_6 = uieditfield(app.GridLayout2, 'text');
-            app.JsField_6.HorizontalAlignment = 'right';
-            app.JsField_6.Layout.Row = 7;
-            app.JsField_6.Layout.Column = 7;
+            % Create k_JA
+            app.k_JA = uieditfield(app.GridLayout2, 'numeric');
+            app.k_JA.ValueDisplayFormat = '%.6g';
+            app.k_JA.AllowEmpty = 'on';
+            app.k_JA.Layout.Row = 7;
+            app.k_JA.Layout.Column = 7;
 
             % Create FitButton_2
             app.FitButton_2 = uibutton(app.GridLayout2, 'push');
@@ -3731,12 +3747,12 @@ classdef app_exported < matlab.apps.AppBase
             app.JsTEditFieldLabel_7.Layout.Column = 6;
             app.JsTEditFieldLabel_7.Text = 'Htip [A/m]';
 
-            % Create JsField_7
-            app.JsField_7 = uieditfield(app.GridLayout2, 'text');
-            app.JsField_7.Editable = 'off';
-            app.JsField_7.HorizontalAlignment = 'right';
-            app.JsField_7.Layout.Row = 10;
-            app.JsField_7.Layout.Column = 7;
+            % Create Htip
+            app.Htip = uieditfield(app.GridLayout2, 'numeric');
+            app.Htip.ValueDisplayFormat = '%.6g';
+            app.Htip.Editable = 'off';
+            app.Htip.Layout.Row = 10;
+            app.Htip.Layout.Column = 7;
 
             % Create ShowgridCheckBoxM_2
             app.ShowgridCheckBoxM_2 = uicheckbox(app.GridLayout2);
@@ -3760,72 +3776,87 @@ classdef app_exported < matlab.apps.AppBase
             app.JsTEditFieldLabel_8.Layout.Column = 6;
             app.JsTEditFieldLabel_8.Text = 'Mtip [A/m]';
 
-            % Create JsField_8
-            app.JsField_8 = uieditfield(app.GridLayout2, 'text');
-            app.JsField_8.Editable = 'off';
-            app.JsField_8.HorizontalAlignment = 'right';
-            app.JsField_8.Layout.Row = 11;
-            app.JsField_8.Layout.Column = 7;
+            % Create Mtip
+            app.Mtip = uieditfield(app.GridLayout2, 'numeric');
+            app.Mtip.ValueDisplayFormat = '%.6g';
+            app.Mtip.Editable = 'off';
+            app.Mtip.Layout.Row = 11;
+            app.Mtip.Layout.Column = 7;
 
-            % Create MsLowerField_2
-            app.MsLowerField_2 = uieditfield(app.GridLayout2, 'text');
-            app.MsLowerField_2.HorizontalAlignment = 'right';
-            app.MsLowerField_2.Layout.Row = 3;
-            app.MsLowerField_2.Layout.Column = 8;
+            % Create MsLower_JA
+            app.MsLower_JA = uieditfield(app.GridLayout2, 'numeric');
+            app.MsLower_JA.AllowEmpty = 'on';
+            app.MsLower_JA.ValueChangedFcn = createCallbackFcn(app, @MsLower_JAValueChanged, true);
+            app.MsLower_JA.Layout.Row = 3;
+            app.MsLower_JA.Layout.Column = 8;
 
-            % Create MsUpperField_2
-            app.MsUpperField_2 = uieditfield(app.GridLayout2, 'text');
-            app.MsUpperField_2.HorizontalAlignment = 'right';
-            app.MsUpperField_2.Layout.Row = 3;
-            app.MsUpperField_2.Layout.Column = 9;
+            % Create MsUpper_JA
+            app.MsUpper_JA = uieditfield(app.GridLayout2, 'numeric');
+            app.MsUpper_JA.ValueDisplayFormat = '%.6g';
+            app.MsUpper_JA.AllowEmpty = 'on';
+            app.MsUpper_JA.Layout.Row = 3;
+            app.MsUpper_JA.Layout.Column = 9;
+            app.MsUpper_JA.Value = Inf;
 
-            % Create aLowerField_2
-            app.aLowerField_2 = uieditfield(app.GridLayout2, 'text');
-            app.aLowerField_2.HorizontalAlignment = 'right';
-            app.aLowerField_2.Layout.Row = 4;
-            app.aLowerField_2.Layout.Column = 8;
+            % Create aLower_JA
+            app.aLower_JA = uieditfield(app.GridLayout2, 'numeric');
+            app.aLower_JA.ValueDisplayFormat = '%.6g';
+            app.aLower_JA.Layout.Row = 4;
+            app.aLower_JA.Layout.Column = 8;
 
-            % Create aUpperField_2
-            app.aUpperField_2 = uieditfield(app.GridLayout2, 'text');
-            app.aUpperField_2.HorizontalAlignment = 'right';
-            app.aUpperField_2.Layout.Row = 4;
-            app.aUpperField_2.Layout.Column = 9;
+            % Create aUpper_JA
+            app.aUpper_JA = uieditfield(app.GridLayout2, 'numeric');
+            app.aUpper_JA.ValueDisplayFormat = '%.6g';
+            app.aUpper_JA.AllowEmpty = 'on';
+            app.aUpper_JA.Layout.Row = 4;
+            app.aUpper_JA.Layout.Column = 9;
+            app.aUpper_JA.Value = Inf;
 
-            % Create alphaLowerField_2
-            app.alphaLowerField_2 = uieditfield(app.GridLayout2, 'text');
-            app.alphaLowerField_2.HorizontalAlignment = 'right';
-            app.alphaLowerField_2.Layout.Row = 5;
-            app.alphaLowerField_2.Layout.Column = 8;
+            % Create alphaLower_JA
+            app.alphaLower_JA = uieditfield(app.GridLayout2, 'numeric');
+            app.alphaLower_JA.ValueDisplayFormat = '%.5e';
+            app.alphaLower_JA.AllowEmpty = 'on';
+            app.alphaLower_JA.Layout.Row = 5;
+            app.alphaLower_JA.Layout.Column = 8;
+            app.alphaLower_JA.Value = -Inf;
 
-            % Create alphaUpperField_2
-            app.alphaUpperField_2 = uieditfield(app.GridLayout2, 'text');
-            app.alphaUpperField_2.HorizontalAlignment = 'right';
-            app.alphaUpperField_2.Layout.Row = 5;
-            app.alphaUpperField_2.Layout.Column = 9;
+            % Create alphaUpper_JA
+            app.alphaUpper_JA = uieditfield(app.GridLayout2, 'numeric');
+            app.alphaUpper_JA.ValueDisplayFormat = '%.5e';
+            app.alphaUpper_JA.AllowEmpty = 'on';
+            app.alphaUpper_JA.Layout.Row = 5;
+            app.alphaUpper_JA.Layout.Column = 9;
+            app.alphaUpper_JA.Value = Inf;
 
-            % Create cLowerField_2
-            app.cLowerField_2 = uieditfield(app.GridLayout2, 'text');
-            app.cLowerField_2.HorizontalAlignment = 'right';
-            app.cLowerField_2.Layout.Row = 6;
-            app.cLowerField_2.Layout.Column = 8;
+            % Create cLower_JA
+            app.cLower_JA = uieditfield(app.GridLayout2, 'numeric');
+            app.cLower_JA.ValueDisplayFormat = '%.6g';
+            app.cLower_JA.AllowEmpty = 'on';
+            app.cLower_JA.Layout.Row = 6;
+            app.cLower_JA.Layout.Column = 8;
 
-            % Create cUpperField_2
-            app.cUpperField_2 = uieditfield(app.GridLayout2, 'text');
-            app.cUpperField_2.HorizontalAlignment = 'right';
-            app.cUpperField_2.Layout.Row = 6;
-            app.cUpperField_2.Layout.Column = 9;
+            % Create cUpper_JA
+            app.cUpper_JA = uieditfield(app.GridLayout2, 'numeric');
+            app.cUpper_JA.ValueDisplayFormat = '%.6g';
+            app.cUpper_JA.AllowEmpty = 'on';
+            app.cUpper_JA.Layout.Row = 6;
+            app.cUpper_JA.Layout.Column = 9;
+            app.cUpper_JA.Value = 1;
 
-            % Create kLowerField_2
-            app.kLowerField_2 = uieditfield(app.GridLayout2, 'text');
-            app.kLowerField_2.HorizontalAlignment = 'right';
-            app.kLowerField_2.Layout.Row = 7;
-            app.kLowerField_2.Layout.Column = 8;
+            % Create kLower_JA
+            app.kLower_JA = uieditfield(app.GridLayout2, 'numeric');
+            app.kLower_JA.ValueDisplayFormat = '%.6g';
+            app.kLower_JA.AllowEmpty = 'on';
+            app.kLower_JA.Layout.Row = 7;
+            app.kLower_JA.Layout.Column = 8;
 
-            % Create kUpperField_2
-            app.kUpperField_2 = uieditfield(app.GridLayout2, 'text');
-            app.kUpperField_2.HorizontalAlignment = 'right';
-            app.kUpperField_2.Layout.Row = 7;
-            app.kUpperField_2.Layout.Column = 9;
+            % Create kUpper_JA
+            app.kUpper_JA = uieditfield(app.GridLayout2, 'numeric');
+            app.kUpper_JA.ValueDisplayFormat = '%.6g';
+            app.kUpper_JA.AllowEmpty = 'on';
+            app.kUpper_JA.Layout.Row = 7;
+            app.kUpper_JA.Layout.Column = 9;
+            app.kUpper_JA.Value = Inf;
 
             % Create LowerboundLabel
             app.LowerboundLabel = uilabel(app.GridLayout2);
