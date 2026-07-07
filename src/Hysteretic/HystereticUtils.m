@@ -5,19 +5,12 @@ classdef HystereticUtils
 %   called from thin delegator methods on the app class.
 
     methods (Static)
-        function ret = format_k_seed_display(app, v)
+        function ret = format_k_seed_display(~, v)
             if ~isfinite(v)
                 ret = "not available";
                 return;
             end
-            if abs(v) < 5e-5
-                v = 0;
-            end
-            if abs(v) < 1e-3 && v ~= 0
-                ret = string(sprintf("%0.4e", v));
-            else
-                ret = string(app.format_short(v));
-            end
+            ret = string(sprintf('%.6g', v));
         end
 
         function [H_cycle, M_cycle] = build_ja_data_cycle(app)
@@ -354,11 +347,15 @@ classdef HystereticUtils
             params = struct('Ms', NaN, 'a', NaN, 'alpha', NaN, 'k', NaN, 'c', NaN);
             ok = false;
 
-            Ms = str2double(replace(string(app.JsField_2.Value), ",", ""));
-            a = str2double(replace(string(app.JsField_3.Value), ",", ""));
-            alpha = str2double(replace(string(app.JsField_4.Value), ",", ""));
-            c = str2double(replace(string(app.JsField_5.Value), ",", ""));
-            k = str2double(replace(string(app.JsField_6.Value), ",", ""));
+            Ms = app.Ms_JA.Value;
+            a = app.a_JA.Value;
+            alpha = app.alpha_JA.Value;
+            c = app.c_JA.Value;
+            k = app.k_JA.Value;
+
+            if isempty(Ms) || isempty(a) || isempty(alpha) || isempty(c) || isempty(k)
+                return;
+            end
 
             if any(~isfinite([Ms, a, alpha, c, k]))
                 return;
@@ -381,9 +378,9 @@ classdef HystereticUtils
             Htip = NaN;
             Mtip = NaN;
 
-            Htip_tab = str2double(replace(string(app.JsField_7.Value), ",", ""));
-            Mtip_tab = str2double(replace(string(app.JsField_8.Value), ",", ""));
-            if isfinite(Htip_tab) && isfinite(Mtip_tab)
+            Htip_tab = app.Htip.Value;
+            Mtip_tab = app.Mtip.Value;
+            if ~isempty(Htip_tab) && ~isempty(Mtip_tab) && isfinite(Htip_tab) && isfinite(Mtip_tab)
                 Htip = Htip_tab;
                 Mtip = Mtip_tab;
                 ok = true;
@@ -400,6 +397,16 @@ classdef HystereticUtils
             end
         end
 
+        function maybe_refresh_ms_lower_bound_default(app)
+            if app.hysteretic_ms_lower_bound_user_edited
+                return;
+            end
+            [~, Mtip, ok] = HystereticUtils.get_ja_tip_from_tab_or_data(app);
+            if ok
+                app.MsLower_JA.Value = Mtip;
+            end
+        end
+
         function retrieve_ja_seeds(app)
             [ms_seed, a_seed, alpha_seed, has_seeds] = app.get_first_anhysteretic_seeds();
             c_seed = 1/3;
@@ -410,13 +417,13 @@ classdef HystereticUtils
                 (strlength(string(app.CurveDropDown.Value)) > 0 && string(app.CurveDropDown.Value) ~= parser_constants.ANHYSTERETIC_CURVE_TYPE);
 
             if has_seeds && is_hysteretic_context
-                app.JsField_2.Value = char(ms_seed);
-                app.JsField_3.Value = char(a_seed);
-                app.JsField_4.Value = char(alpha_seed);
-
                 ms_num = str2double(replace(ms_seed, ",", ""));
                 a_num = str2double(replace(a_seed, ",", ""));
                 alpha_num = str2double(replace(alpha_seed, ",", ""));
+
+                app.Ms_JA.Value = ms_num;
+                app.a_JA.Value = a_num;
+                app.alpha_JA.Value = alpha_num;
 
                 k_value = NaN;
                 if has_curve_data && isfinite(ms_num) && isfinite(a_num) && isfinite(alpha_num) && a_num ~= 0
@@ -432,42 +439,21 @@ classdef HystereticUtils
                 end
 
                 if isfinite(k_value)
-                    % Default bounds are set here (unbounded: -Inf to +Inf).
                     k_display = HystereticUtils.format_k_seed_display(app, k_value);
-                    app.JsField_6.Value = char(k_display);
-                    app.JsField_5.Value = app.format_short(c_seed);
-                    app.MsLowerField_2.Value = "-Inf";
-                    app.MsUpperField_2.Value = "Inf";
-                    app.aLowerField_2.Value = "-Inf";
-                    app.aUpperField_2.Value = "Inf";
-                    app.alphaLowerField_2.Value = "-Inf";
-                    app.alphaUpperField_2.Value = "Inf";
-                    app.cLowerField_2.Value = "0";
-                    app.cUpperField_2.Value = "1";
-                    app.kLowerField_2.Value = "-Inf";
-                    app.kUpperField_2.Value = "Inf";
+                    app.k_JA.Value = k_value;
+                    app.c_JA.Value = c_seed;
                     app.write_message("Jiles–Atherton seeds retrieved: Ms=" + ms_seed + " [A/m], a=" + a_seed + " [A/m], α=" + alpha_seed + ", c=" + app.format_short(c_seed) + ", k=" + k_display + " [A/m].");
                 else
-                    app.JsField_6.Value = "";
-                    app.JsField_5.Value = app.format_short(c_seed);
+                    app.k_JA.Value = [];
+                    app.c_JA.Value = c_seed;
                     app.write_message("Jiles–Atherton seeds retrieved: Ms=" + ms_seed + " [A/m], a=" + a_seed + " [A/m], α=" + alpha_seed + ", c=" + app.format_short(c_seed) + ", k=not available.");
                 end
             else
-                app.JsField_2.Value = "";
-                app.JsField_3.Value = "";
-                app.JsField_4.Value = "";
-                app.JsField_6.Value = "";
-                app.MsLowerField_2.Value = "";
-                app.MsUpperField_2.Value = "";
-                app.aLowerField_2.Value = "";
-                app.aUpperField_2.Value = "";
-                app.alphaLowerField_2.Value = "";
-                app.alphaUpperField_2.Value = "";
-                app.cLowerField_2.Value = "";
-                app.cUpperField_2.Value = "";
-                app.kLowerField_2.Value = "";
-                app.kUpperField_2.Value = "";
-                app.JsField_5.Value = app.format_short(c_seed);
+                app.Ms_JA.Value = [];
+                app.a_JA.Value = [];
+                app.alpha_JA.Value = [];
+                app.k_JA.Value = [];
+                app.c_JA.Value = c_seed;
                 app.write_message("Warning: No anhysteretic magnetization modelling has been performed.");
                 app.write_message("Jiles–Atherton seeds for Ms, a, α, and k were not initialized; the coupling parameter c was set to 1/3.");
             end
@@ -533,9 +519,13 @@ classdef HystereticUtils
         end
 
         function [v, ok] = read_numeric_field(~, fieldHandle)
-            s = string(fieldHandle.Value);
-            v = str2double(replace(s, ",", ""));
-            ok = isfinite(v);
+            v = fieldHandle.Value;
+            if isempty(v)
+                v = NaN;
+                ok = false;
+            else
+                ok = isfinite(v);
+            end
         end
 
         function sync_k_fit_mode_ui(app)
@@ -559,10 +549,10 @@ classdef HystereticUtils
 
             [params_seed, has_params] = HystereticUtils.get_ja_params_from_tab(app);
             if ~has_params && mask.kDependent
-                [msVal, okMs] = HystereticUtils.read_numeric_field(app, app.JsField_2);
-                [aVal, okA] = HystereticUtils.read_numeric_field(app, app.JsField_3);
-                [alphaVal, okAlpha] = HystereticUtils.read_numeric_field(app, app.JsField_4);
-                [cVal, okC] = HystereticUtils.read_numeric_field(app, app.JsField_5);
+                [msVal, okMs] = HystereticUtils.read_numeric_field(app, app.Ms_JA);
+                [aVal, okA] = HystereticUtils.read_numeric_field(app, app.a_JA);
+                [alphaVal, okAlpha] = HystereticUtils.read_numeric_field(app, app.alpha_JA);
+                [cVal, okC] = HystereticUtils.read_numeric_field(app, app.c_JA);
                 if okMs && okA && okAlpha && okC && aVal ~= 0
                     params_seed = struct('Ms', msVal, 'a', aVal, 'alpha', alphaVal, 'c', cVal, 'k', 1);
                     has_params = true;
@@ -612,16 +602,16 @@ classdef HystereticUtils
                 MfitData = M_cycle;
             end
 
-            [msLB, ok1] = JAFitUtils.readBoundFieldValue(app.MsLowerField_2);
-            [msUB, ok2] = JAFitUtils.readBoundFieldValue(app.MsUpperField_2);
-            [aLB, ok3] = JAFitUtils.readBoundFieldValue(app.aLowerField_2);
-            [aUB, ok4] = JAFitUtils.readBoundFieldValue(app.aUpperField_2);
-            [alphaLB, ok5] = JAFitUtils.readBoundFieldValue(app.alphaLowerField_2);
-            [alphaUB, ok6] = JAFitUtils.readBoundFieldValue(app.alphaUpperField_2);
-            [cLB, ok7] = JAFitUtils.readBoundFieldValue(app.cLowerField_2);
-            [cUB, ok8] = JAFitUtils.readBoundFieldValue(app.cUpperField_2);
-            [kLB, ok9] = JAFitUtils.readBoundFieldValue(app.kLowerField_2);
-            [kUB, ok10] = JAFitUtils.readBoundFieldValue(app.kUpperField_2);
+            [msLB, ok1] = JAFitUtils.readBoundFieldValue(app.MsLower_JA);
+            [msUB, ok2] = JAFitUtils.readBoundFieldValue(app.MsUpper_JA);
+            [aLB, ok3] = JAFitUtils.readBoundFieldValue(app.aLower_JA);
+            [aUB, ok4] = JAFitUtils.readBoundFieldValue(app.aUpper_JA);
+            [alphaLB, ok5] = JAFitUtils.readBoundFieldValue(app.alphaLower_JA);
+            [alphaUB, ok6] = JAFitUtils.readBoundFieldValue(app.alphaUpper_JA);
+            [cLB, ok7] = JAFitUtils.readBoundFieldValue(app.cLower_JA);
+            [cUB, ok8] = JAFitUtils.readBoundFieldValue(app.cUpper_JA);
+            [kLB, ok9] = JAFitUtils.readBoundFieldValue(app.kLower_JA);
+            [kUB, ok10] = JAFitUtils.readBoundFieldValue(app.kUpper_JA);
 
             if ~(ok1 && ok2 && ok3 && ok4 && ok5 && ok6 && ok7 && ok8 && ok9 && ok10)
                 app.write_message("JA fit skipped: invalid bounds.");
@@ -663,11 +653,11 @@ classdef HystereticUtils
                 end
 
                 params_opt = fit_result.params_opt;
-                app.JsField_2.Value = app.format_short(params_opt.Ms);
-                app.JsField_3.Value = app.format_short(params_opt.a);
-                app.JsField_4.Value = app.format_short(params_opt.alpha);
-                app.JsField_5.Value = app.format_short(params_opt.c);
-                app.JsField_6.Value = app.format_short(params_opt.k);
+                app.Ms_JA.Value = params_opt.Ms;
+                app.a_JA.Value = params_opt.a;
+                app.alpha_JA.Value = params_opt.alpha;
+                app.c_JA.Value = params_opt.c;
+                app.k_JA.Value = params_opt.k;
 
                 app.plot_hysteretic_tab_data();
                 app.ErrorDisplay_2.Value = app.format_engineering(fit_result.Jopt);

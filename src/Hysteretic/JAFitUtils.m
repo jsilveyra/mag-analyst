@@ -62,13 +62,12 @@ classdef JAFitUtils
         end
 
         function [v, ok] = readBoundFieldValue(fieldHandle)
-            s = strtrim(string(fieldHandle.Value));
-            if strlength(s) == 0
+            v = fieldHandle.Value;
+            if isempty(v)
                 v = [];
                 ok = true;
                 return;
             end
-            v = str2double(replace(s, ",", ""));
             ok = isfinite(v) || isinf(v);
         end
 
