@@ -18,11 +18,11 @@ classdef AnhystereticUtils
             offset = (3*app.number_components - 1);
 
             for i = 1:offset
-                app.TableFittedParameters.Data(2*offset + i) = {app.format_short(str2double(app.TableFittedParameters.Data(2*offset + i)))};
-                app.TableFittedParameters.Data(3*offset + i) = {app.format_short(str2double(app.TableFittedParameters.Data(3*offset + i)))};
+                app.TableFittedParameters.Data(2*offset + i) = {AnhystereticUtils.format_sigfigs(str2double(app.TableFittedParameters.Data(2*offset + i)))};
+                app.TableFittedParameters.Data(3*offset + i) = {AnhystereticUtils.format_sigfigs(str2double(app.TableFittedParameters.Data(3*offset + i)))};
             end
-            app.JsField.Value = app.format_short(app.magnetic_parameters.Js);
-            app.murinField.Value = app.format_engineering(app.magnetic_parameters.murin);
+            app.JsField.Value = app.magnetic_parameters.Js;
+            app.murinField.Value = app.magnetic_parameters.murin;
 
 
             utils = Utils();
@@ -52,7 +52,7 @@ classdef AnhystereticUtils
             end
 
             e = error_calculator.get_error();
-            app.ErrorDisplay.Value = app.format_engineering(e);
+            app.ErrorDisplay.Value = e;
         end
 
         function calculate_parameters(app)
@@ -295,9 +295,9 @@ classdef AnhystereticUtils
                 select_a_col = app.TableParameters.Data{:,5};
 
                 for i = 1:app.number_components
-                    Ms_col(i,:) = {app.format_short(app.magnetic_parameters.Ms(i))};
+                    Ms_col(i,:) = {AnhystereticUtils.format_sigfigs(app.magnetic_parameters.Ms(i))};
                     alpha_col(i,:) = {app.format_engineering(app.magnetic_parameters.alpha(i))};
-                    a_col(i,:) = {app.format_short(app.magnetic_parameters.a(i))};
+                    a_col(i,:) = {AnhystereticUtils.format_sigfigs(app.magnetic_parameters.a(i))};
                 end
             end
 
@@ -321,11 +321,10 @@ classdef AnhystereticUtils
 
             if ~default_values
                 for i = 1:app.number_components
-                    dimensionless_alphaMs_col(i,:) = {app.format_short(app.magnetic_parameters.dimensionless_alphaMs(i))};
-                    density_product_col(i,:) = {app.format_short(app.magnetic_parameters.density_product(i))};
-                    Hk_col(i,:) = {app.format_short(app.magnetic_parameters.Hk(i))};
-%                     initial_relative_magnetic_permeability_col(i,:) = {app.format_thousands_only(app.magnetic_parameters.initial_relative_magnetic_permeability(i))};
-                    initial_relative_magnetic_permeability_col(i,:) = {app.format_short(app.magnetic_parameters.initial_relative_magnetic_permeability(i))};
+                    dimensionless_alphaMs_col(i,:) = {AnhystereticUtils.format_sigfigs(app.magnetic_parameters.dimensionless_alphaMs(i))};
+                    density_product_col(i,:) = {AnhystereticUtils.format_sigfigs(app.magnetic_parameters.density_product(i))};
+                    Hk_col(i,:) = {AnhystereticUtils.format_sigfigs(app.magnetic_parameters.Hk(i))};
+                    initial_relative_magnetic_permeability_col(i,:) = {AnhystereticUtils.format_sigfigs(app.magnetic_parameters.initial_relative_magnetic_permeability(i))};
                 end
             end
 
@@ -363,18 +362,12 @@ classdef AnhystereticUtils
             app.fitted_parameter_values = values;
         end
 
-        function ret = format_value_for_display(app, row, value)
-            if row < 1 || row > numel(app.component_row_types)
-                ret = char(sprintf("%g", value));
-                return;
-            end
-            row_type = app.component_row_types(row);
-            switch row_type
-                case "m"
-                    ret = AnhystereticUtils.format_m_display(app, value);
-                otherwise
-                    ret = app.format_short(value);
-            end
+        function ret = format_value_for_display(~, ~, value)
+            ret = AnhystereticUtils.format_sigfigs(value);
+        end
+
+        function ret = format_sigfigs(value)
+            ret = char(sprintf('%.6g', value));
         end
 
         function ret = format_value_for_edit(app, row)

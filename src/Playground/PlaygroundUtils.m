@@ -434,13 +434,13 @@ classdef PlaygroundUtils
             params = struct('Ms', NaN, 'a', NaN, 'alpha', NaN, 'k', NaN, 'c', NaN);
             ok = false;
 
-            try
-                Ms = str2double(replace(string(app.JsField_9.Value), ",", ""));
-                a = str2double(replace(string(app.JsField_10.Value), ",", ""));
-                alpha = str2double(replace(string(app.JsField_11.Value), ",", ""));
-                c = str2double(replace(string(app.JsField_12.Value), ",", ""));
-                k = str2double(replace(string(app.JsField_13.Value), ",", ""));
-            catch
+            Ms = app.JsField_9.Value;
+            a = app.JsField_10.Value;
+            alpha = app.JsField_11.Value;
+            c = app.JsField_12.Value;
+            k = app.JsField_13.Value;
+
+            if isempty(Ms) || isempty(a) || isempty(alpha) || isempty(c) || isempty(k)
                 return;
             end
 

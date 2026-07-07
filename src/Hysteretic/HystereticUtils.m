@@ -214,7 +214,7 @@ classdef HystereticUtils
         end
 
         function update_hysteretic_error_display(app)
-            app.ErrorDisplay_2.Value = "";
+            app.ErrorDisplay_2.Value = [];
 
             has_raw_data = ~isempty(app.H_raw) && ~isempty(app.M_raw);
             if ~has_raw_data || app.is_last_import_anhysteretic()
@@ -237,10 +237,10 @@ classdef HystereticUtils
                 error_type = string(app.ErrortominimizeDropDown_2.Value);
                 [J, ok] = HystereticUtils.compute_ja_left_branch_error_core(app, error_type, H_data, M_data, H_model, M_model);
                 if ok
-                    app.ErrorDisplay_2.Value = app.format_engineering(J);
+                    app.ErrorDisplay_2.Value = J;
                 end
             catch
-                app.ErrorDisplay_2.Value = "";
+                app.ErrorDisplay_2.Value = [];
             end
         end
 
@@ -660,7 +660,7 @@ classdef HystereticUtils
                 app.k_JA.Value = params_opt.k;
 
                 app.plot_hysteretic_tab_data();
-                app.ErrorDisplay_2.Value = app.format_engineering(fit_result.Jopt);
+                app.ErrorDisplay_2.Value = fit_result.Jopt;
 
                 t = toc(fit_timer);
                 if app.stop_fit_requested

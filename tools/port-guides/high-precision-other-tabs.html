@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MagAnalyst port guide — high precision across the remaining tabs</title>
+<style>
+  :root {
+    --bg: #1e1e1e; --panel: #252526; --text: #d4d4d4; --accent: #f15a29;
+    --before-bg: #3a2020; --before-border: #8b3a3a;
+    --after-bg: #20351f; --after-border: #4a8b3a;
+    --flag-bg: #4a3a10; --flag-border: #c98a1c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    max-width: 1040px; margin: 0 auto; padding: 2rem 1.5rem 6rem;
+    line-height: 1.5;
+  }
+  h1 { font-size: 1.4rem; border-bottom: 3px solid var(--accent); padding-bottom: 0.5rem; }
+  h2 { font-size: 1.15rem; margin-top: 2.5rem; color: var(--accent); border-bottom: 1px solid #444; padding-bottom: 0.3rem;}
+  h3 { font-size: 1rem; }
+  .summary { background: var(--panel); border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0; }
+  .summary ul { margin: 0.5rem 0 0; padding-left: 1.25rem; }
+  .step { background: var(--panel); border-radius: 8px; padding: 1.25rem 1.5rem; margin: 1.5rem 0; border-left: 4px solid #555; }
+  .blocklabel { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: #aaa; margin-top: 0.75rem; }
+  pre { border-radius: 6px; padding: 0.75rem 1rem; overflow-x: auto; margin: 0.25rem 0 0; font-size: 0.85rem; }
+  pre.before { background: var(--before-bg); border: 1px solid var(--before-border); }
+  pre.after { background: var(--after-bg); border: 1px solid var(--after-border); }
+  code { white-space: pre; font-family: "SF Mono", Consolas, "Courier New", monospace; }
+  .flag { background: var(--flag-bg); border: 1px solid var(--flag-border); border-radius: 6px; padding: 0.6rem 0.9rem; margin: 0.5rem 0; font-weight: 600; font-size: 0.9rem; }
+  .note { color: #aaa; font-size: 0.9rem; font-style: italic; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.82rem; }
+  th, td { border: 1px solid #444; padding: 0.4rem 0.6rem; text-align: left; }
+  th { background: #2d2d2d; }
+  tr:nth-child(even) { background: #232323; }
+  .tablenote { color: #aaa; font-style: italic; font-size: 0.8rem; }
+  .recipe { background: var(--panel); border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0; }
+  .recipe ol { padding-left: 1.4rem; }
+  .recipe li { margin-bottom: 0.5rem; }
+  code.inline { background: #333; padding: 0.1rem 0.3rem; border-radius: 3px; }
+  .toc { background: var(--panel); border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0; }
+  .toc a { color: #9cdcfe; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<h1>High-precision numeric fields — remaining tabs</h1>
+
+<div class="summary">
+  <p>Extends the Hysteretic-tab precision fix to Input, Anhysteretic, and Playground. Four kinds
+  of change, roughly in order of manual effort:</p>
+  <ul>
+    <li><strong>Part A</strong> (heaviest): 11 fields are currently plain text edit fields with
+    no separate precision storage — same category of fix as the original Hysteretic bug. All 11
+    are <strong>read-only displays</strong> (Input's Htip/Mtip mirrors, Anhysteretic's Js/murin/
+    error, Hysteretic's error) <em>except</em> the 5 Playground JA-parameter fields
+    (<code>JsField_9-13</code> = Ms/a/alpha/c/k), which are user-editable exactly like the
+    Hysteretic tab's <code>Ms_JA</code> etc. were before that fix. Same recipe as before: delete,
+    add a Numeric Edit Field in the same cell, rename back to the original name.</li>
+    <li><strong>Part B</strong>: 9 fields in the Playground tab are <em>already</em> Numeric Edit
+    Fields (they always stored full precision — no bug there) but have no explicit
+    <code>ValueDisplayFormat</code>, so they were falling back to MATLAB's default
+    (<code>%11.4g</code>, 4 significant digits). Pure property tweak, no recreation needed.</li>
+    <li><strong>Part C</strong>: 4 "Rel. tolerance" fields already show scientific notation but
+    at only 1 significant digit (<code>%.0e</code>), and a copy/paste artifact left a stray
+    newline in 3 of them (<code>%.0e\n</code>) — bumping to <code>%.5e</code> (6 sig figs)
+    fixes both.</li>
+    <li><strong>Part D</strong>: the 3 Playground tables (Minor-loop tip, Degaussing amplitudes,
+    Harmonics) were already safe — their <code>Data</code> is a plain numeric array with no
+    string round-trip, so there was never a precision-loss risk there. This is a pure display
+    polish (<code>ColumnFormat</code>), optional but cheap.</li>
+  </ul>
+  <p>All the accompanying code changes in <code>AnhystereticUtils.m</code>, <code>PlaygroundUtils.m</code>,
+  and <code>HystereticUtils.m</code> are already applied directly (plain <code>src/</code> files,
+  no port needed). This guide is only the <code>app.mlapp</code>/<code>app_exported.m</code> side.</p>
+</div>
+
+<div class="toc">
+  <a href="#partA">Part A: recreate 11 fields</a> ·
+  <a href="#partB">Part B: 9 format-only tweaks</a> ·
+  <a href="#partC">Part C: 4 tolerance fields</a> ·
+  <a href="#partD">Part D: 3 tables</a> ·
+  <a href="#partE">Part E: 3 Code View edits</a>
+</div>
+
+<h2 id="partA">Part A — Design View: recreate 11 fields as Numeric Edit Fields</h2>
+
+<div class="recipe">
+  <p>Same recipe as the Hysteretic-tab conversion: delete the old text field, drag a Numeric Edit
+  Field into the same grid cell, rename it back to the exact original name, set
+  <code class="inline">Layout.Row</code>/<code class="inline">Layout.Column</code>/
+  <code class="inline">Editable</code>/<code class="inline">AllowEmpty</code>/
+  <code class="inline">ValueDisplayFormat</code> per the table, leave
+  <code class="inline">Limits</code> at its default <code class="inline">[-Inf Inf]</code>. None
+  of these 11 fields have any callback wired, so there's nothing to re-wire.</p>
+</div>
+
+<table>
+  <tr><th>Field</th><th>Tab</th><th>Parent grid</th><th>Row</th><th>Col</th><th>Editable</th><th>AllowEmpty</th><th>ValueDisplayFormat</th><th>Note</th></tr>
+    <tr><td><code>HTipField</code></td><td>Input</td><td><code>GridLayoutTips</code></td><td>1</td><td>2</td><td>off</td><td>off</td><td><code>%.6g</code></td><td class="tablenote">mirrors Hysteretic's Htip</td></tr>
+    <tr><td><code>MTipField</code></td><td>Input</td><td><code>GridLayoutTips</code></td><td>2</td><td>2</td><td>off</td><td>off</td><td><code>%.6g</code></td><td class="tablenote">mirrors Hysteretic's Mtip</td></tr>
+    <tr><td><code>JsField</code></td><td>Anhysteretic</td><td><code>GridLayoutOtherQuantities</code></td><td>1</td><td>5</td><td>off</td><td>off</td><td><code>%.6g</code></td><td class="tablenote">Js (spontaneous magnetization)</td></tr>
+    <tr><td><code>murinField</code></td><td>Anhysteretic</td><td><code>GridLayoutOtherQuantities</code></td><td>1</td><td>3</td><td>off</td><td>off</td><td><code>%.6g</code></td><td class="tablenote">initial relative permeability</td></tr>
+    <tr><td><code>ErrorDisplay</code></td><td>Anhysteretic</td><td><code>GridLayoutButtons</code></td><td>1</td><td>3</td><td>off</td><td>off</td><td><code>%.6g</code></td><td class="tablenote">fit error metric</td></tr>
+    <tr><td><code>ErrorDisplay_2</code></td><td>Hysteretic</td><td><code>GridLayout2</code></td><td>15</td><td>9</td><td>off</td><td>off</td><td><code>%.6g</code></td><td class="tablenote">fit error metric</td></tr>
+    <tr><td><code>JsField_9</code></td><td>Playground</td><td><code>GridLayout3</code></td><td>4</td><td>2</td><td>on</td><td>off</td><td><code>%.6g</code></td><td class="tablenote">Ms</td></tr>
+    <tr><td><code>JsField_10</code></td><td>Playground</td><td><code>GridLayout3</code></td><td>5</td><td>2</td><td>on</td><td>off</td><td><code>%.6g</code></td><td class="tablenote">a</td></tr>
+    <tr><td><code>JsField_11</code></td><td>Playground</td><td><code>GridLayout3</code></td><td>6</td><td>2</td><td>on</td><td>off</td><td><code>%.5e</code></td><td class="tablenote">alpha — scientific, matching the Hysteretic tab's alpha_JA</td></tr>
+    <tr><td><code>JsField_12</code></td><td>Playground</td><td><code>GridLayout3</code></td><td>7</td><td>2</td><td>on</td><td>off</td><td><code>%.6g</code></td><td class="tablenote">c</td></tr>
+    <tr><td><code>JsField_13</code></td><td>Playground</td><td><code>GridLayout3</code></td><td>8</td><td>2</td><td>on</td><td>off</td><td><code>%.6g</code></td><td class="tablenote">k</td></tr>
+</table>
+
+<h2 id="partB">Part B — Design View: format-only tweaks (already numeric, no recreation)</h2>
+
+<div class="recipe">
+  <p>These are already Numeric Edit Fields. Just select each in the Component Browser and set
+  <code class="inline">ValueDisplayFormat</code> in the Inspector — no delete/recreate, no rename.</p>
+</div>
+
+<table>
+  <tr><th>Field</th><th>Panel</th><th>ValueDisplayFormat</th></tr>
+    <tr><td><code>MstartAmEditField</code></td><td>Playground / Major loop</td><td><code>%.6g</code></td></tr>
+    <tr><td><code>HstartAmEditField</code></td><td>Playground / Major loop</td><td><code>%.6g</code></td></tr>
+    <tr><td><code>HamplitudeAmEditField</code></td><td>Playground / Major loop</td><td><code>%.6g</code></td></tr>
+    <tr><td><code>MstartAmEditField_2</code></td><td>Playground / Degaussing</td><td><code>%.6g</code></td></tr>
+    <tr><td><code>HstartAmEditField_2</code></td><td>Playground / Degaussing</td><td><code>%.6g</code></td></tr>
+    <tr><td><code>InitialamplitudeAmEditField</code></td><td>Playground / Degaussing</td><td><code>%.6g</code></td></tr>
+    <tr><td><code>FinalamplitudeAmEditField</code></td><td>Playground / Degaussing</td><td><code>%.6g</code></td></tr>
+    <tr><td><code>MstartAmEditField_3</code></td><td>Playground / Harmonics</td><td><code>%.6g</code></td></tr>
+    <tr><td><code>HstartAmEditField_3</code></td><td>Playground / Harmonics</td><td><code>%.6g</code></td></tr>
+</table>
+
+<h2 id="partC">Part C — Design View: fix the 4 "Rel. tolerance" fields</h2>
+
+<table>
+  <tr><th>Field</th><th>Panel</th><th>Current format</th><th>New format</th></tr>
+    <tr><td><code>ReltoleranceEditField_3</code></td><td>Hysteretic</td><td><code>%.0e</code> (or <code>%.0e\n</code>)</td><td><code>%.5e</code></td></tr>
+    <tr><td><code>ReltoleranceEditField_4</code></td><td>Playground / Harmonics</td><td><code>%.0e</code> (or <code>%.0e\n</code>)</td><td><code>%.5e</code></td></tr>
+    <tr><td><code>ReltoleranceEditField_5</code></td><td>Playground / Minor loop</td><td><code>%.0e</code> (or <code>%.0e\n</code>)</td><td><code>%.5e</code></td></tr>
+    <tr><td><code>ReltoleranceEditField_6</code></td><td>Playground / Major loop</td><td><code>%.0e</code> (or <code>%.0e\n</code>)</td><td><code>%.5e</code></td></tr>
+</table>
+
+<h2 id="partD">Part D — Design View: table display polish (optional, no bug here)</h2>
+
+<div class="recipe">
+  <p>Select each table, Inspector → <code class="inline">ColumnFormat</code>. For
+  <code class="inline">UITable2</code> the first column (Order) stays <code class="inline">'numeric'</code>
+  since it's an integer column.</p>
+</div>
+
+<table>
+  <tr><th>Table</th><th>Panel</th><th>ColumnFormat</th></tr>
+    <tr><td><code>UITable</code></td><td>Playground / Minor loop (Htip_i)</td><td><code>{'short g'}</code></td></tr>
+    <tr><td><code>UITable_3</code></td><td>Playground / Degaussing (Htip_i)</td><td><code>{'short g'}</code></td></tr>
+    <tr><td><code>UITable2</code></td><td>Playground / Harmonics (Order / Amplitude / Phase)</td><td><code>{'numeric', 'short g', 'short g'}</code></td></tr>
+</table>
+
+<h2 id="partE">Part E — Code View: 3 edits</h2>
+
+
+<div class="step" id="step-1">
+  <h3>Code edit 1. plot_input(app) — stop truncating HTipField/MTipField before display</h3>
+  <p class="note">HTipField/MTipField become Numeric Edit Fields in this pass (see Design View section) so these become plain numeric assignments — no more format_short() truncation.</p>
+  <div class="blocklabel">Find this in Code View</div>
+  <pre class="before"><code>        function plot_input(app)
+            [HTip, MTip] = Utils().find_tip(app.data_curve.H, app.data_curve.M);
+            app.MTipField.Value = app.format_short(MTip);
+            app.HTipField.Value = app.format_short(HTip);
+            app.Htip.Value = HTip;
+            app.Mtip.Value = MTip;</code></pre>
+  
+  <div class="blocklabel">Replace with</div>
+  <pre class="after"><code>        function plot_input(app)
+            [HTip, MTip] = Utils().find_tip(app.data_curve.H, app.data_curve.M);
+            app.MTipField.Value = MTip;
+            app.HTipField.Value = HTip;
+            app.Htip.Value = HTip;
+            app.Mtip.Value = MTip;</code></pre>
+</div>
+<div class="step" id="step-2">
+  <h3>Code edit 2. TableFittedParametersCellSelection — reveal full precision on select for ALL rows (Hcr/Hx too, not just m)</h3>
+  <p class="note">Previously only m-rows revealed full precision on click; Hcr/Hx rows always showed the truncated display even while editing. Dropping the is_m_row condition extends the same behavior to every row.</p>
+  <div class="blocklabel">Find this in Code View</div>
+  <pre class="before"><code>        function TableFittedParametersCellSelection(app, event)
+            if isempty(event.Indices)
+                return
+            end
+            row = event.Indices(1,1);
+            col = event.Indices(1,2);
+            if row &gt; size(app.TableFittedParameters.Data, 1)
+                return
+            end
+            app.refresh_table_value_display();
+            if col == 2 &amp;&amp; app.is_m_row(row)
+                app.TableFittedParameters.Data(row, 2) = {app.format_value_for_edit(row)};
+            end
+            
+        end</code></pre>
+  
+  <div class="blocklabel">Replace with</div>
+  <pre class="after"><code>        function TableFittedParametersCellSelection(app, event)
+            if isempty(event.Indices)
+                return
+            end
+            row = event.Indices(1,1);
+            col = event.Indices(1,2);
+            if row &gt; size(app.TableFittedParameters.Data, 1)
+                return
+            end
+            app.refresh_table_value_display();
+            if col == 2
+                app.TableFittedParameters.Data(row, 2) = {app.format_value_for_edit(row)};
+            end
+
+        end</code></pre>
+</div>
+<div class="step" id="step-3">
+  <h3>Code edit 3. RetrieveparametersButtonPushed — JsField_9-13 become numeric, drop string round-trip</h3>
+  <p class="note">ms_seed/a_seed/alpha_seed are strings from the Anhysteretic table (e.g. "1.2345e-03"); str2double parses them into the now-numeric fields.</p>
+  <div class="blocklabel">Find this in Code View</div>
+  <pre class="before"><code>        function RetrieveparametersButtonPushed(app, event)
+            [~, has_hysteretic_params] = app.get_playground_hysteretic_params();
+            if has_hysteretic_params
+                app.JsField_9.Value = char(string(app.Ms_JA.Value));
+                app.JsField_10.Value = char(string(app.a_JA.Value));
+                app.JsField_11.Value = char(string(app.alpha_JA.Value));
+                app.JsField_12.Value = char(string(app.c_JA.Value));
+                app.JsField_13.Value = char(string(app.k_JA.Value));
+                app.write_message("Jiles-Atherton parameters retrieved from Hysteretic Fitting tab.");
+                return;
+            end
+
+            [ms_seed, a_seed, alpha_seed, has_seeds] = app.get_first_anhysteretic_seeds();
+            if has_seeds
+                app.JsField_9.Value = ms_seed;
+                app.JsField_10.Value = a_seed;
+                app.JsField_11.Value = alpha_seed;
+                app.JsField_12.Value = "0";
+                app.JsField_13.Value = "0";
+                app.write_message("Anhysteretic parameters retrieved from Anhysteretic Fitting tab.");
+                return;
+            end
+
+            app.write_message("No parameters available to retrieve.");
+        end</code></pre>
+  
+  <div class="blocklabel">Replace with</div>
+  <pre class="after"><code>        function RetrieveparametersButtonPushed(app, event)
+            [~, has_hysteretic_params] = app.get_playground_hysteretic_params();
+            if has_hysteretic_params
+                app.JsField_9.Value = app.Ms_JA.Value;
+                app.JsField_10.Value = app.a_JA.Value;
+                app.JsField_11.Value = app.alpha_JA.Value;
+                app.JsField_12.Value = app.c_JA.Value;
+                app.JsField_13.Value = app.k_JA.Value;
+                app.write_message("Jiles-Atherton parameters retrieved from Hysteretic Fitting tab.");
+                return;
+            end
+
+            [ms_seed, a_seed, alpha_seed, has_seeds] = app.get_first_anhysteretic_seeds();
+            if has_seeds
+                app.JsField_9.Value = str2double(replace(ms_seed, ",", ""));
+                app.JsField_10.Value = str2double(replace(a_seed, ",", ""));
+                app.JsField_11.Value = str2double(replace(alpha_seed, ",", ""));
+                app.JsField_12.Value = 0;
+                app.JsField_13.Value = 0;
+                app.write_message("Anhysteretic parameters retrieved from Anhysteretic Fitting tab.");
+                return;
+            end
+
+            app.write_message("No parameters available to retrieve.");
+        end</code></pre>
+</div>
+
+<div class="summary">
+  <p>After saving in App Designer, tell Claude — it will regenerate <code>app_exported.m</code>,
+  grep for leftover old-format usages as a safety net, and verify the app constructs and runs
+  <code>startupFcn</code> cleanly in <code>matlab -batch</code> before you launch it yourself.</p>
+</div>
+
+</body>
+</html>
