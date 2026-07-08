@@ -15,12 +15,6 @@ classdef AnhystereticUtils
 
             AnhystereticUtils.sync_fitted_parameter_values_from_components(app);
             AnhystereticUtils.refresh_table_value_display(app);
-            offset = (3*app.number_components - 1);
-
-            for i = 1:offset
-                app.TableFittedParameters.Data(2*offset + i) = {AnhystereticUtils.format_sigfigs(str2double(app.TableFittedParameters.Data(2*offset + i)))};
-                app.TableFittedParameters.Data(3*offset + i) = {AnhystereticUtils.format_sigfigs(str2double(app.TableFittedParameters.Data(3*offset + i)))};
-            end
             app.JsField.Value = app.magnetic_parameters.Js;
             app.murinField.Value = app.magnetic_parameters.murin;
 
@@ -199,12 +193,8 @@ classdef AnhystereticUtils
                     end
                 end
             end
-            app.lb = zeros(1, offset);
-            app.ub = zeros(1, offset);
             app.select_fit = cell(1, offset);
             for i = 1:offset
-                app.lb(i) = str2double(app.TableFittedParameters.Data(2*offset + i));
-                app.ub(i) = str2double(app.TableFittedParameters.Data(3*offset + i));
                 app.select_fit(i) = app.TableFittedParameters.Data(4*offset + i);
             end
         end
@@ -262,12 +252,14 @@ classdef AnhystereticUtils
             end
             app.component_row_types = row_types;
             app.fitted_parameter_values = component_values;
+            app.lb = lb_col(:)';
+            app.ub = ub_col(:)';
             component_values = num2cell(component_values);
-            lb_col = arrayfun(@(x) {app.format_short(x)}, lb_col);
-            ub_col = arrayfun(@(x) {app.format_short(x)}, ub_col);
+            lb_col_display = arrayfun(@(x) {AnhystereticUtils.format_sigfigs(x)}, lb_col);
+            ub_col_display = arrayfun(@(x) {AnhystereticUtils.format_sigfigs(x)}, ub_col);
             app.select_fit = cell(row_count, 1);
             app.select_fit(:) = {true};
-            t = table(row_names, component_values, lb_col, ub_col, app.select_fit);
+            t = table(row_names, component_values, lb_col_display, ub_col_display, app.select_fit);
             app.TableFittedParameters.Data = table2cell(t);
             AnhystereticUtils.refresh_table_value_display(app);
 
@@ -340,6 +332,11 @@ classdef AnhystereticUtils
             valid_rows = min([row_count, numel(app.component_row_types), numel(app.fitted_parameter_values)]);
             for row = 1:valid_rows
                 app.TableFittedParameters.Data(row, 2) = {AnhystereticUtils.format_value_for_display(app, row, app.fitted_parameter_values(row))};
+            end
+            bound_rows = min([row_count, numel(app.lb), numel(app.ub)]);
+            for row = 1:bound_rows
+                app.TableFittedParameters.Data(row, 3) = {AnhystereticUtils.format_sigfigs(app.lb(row))};
+                app.TableFittedParameters.Data(row, 4) = {AnhystereticUtils.format_sigfigs(app.ub(row))};
             end
         end
 
