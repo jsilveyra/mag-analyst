@@ -257,7 +257,7 @@ classdef PlaygroundUtils
                 end
 
                 try
-                    [Hsim, Msim, info] = solveJA_majorLoop_playground( ...
+                    [Hsim, Msim, info] = solve_ja_major_loop_playground( ...
                         Hstart, Mstart, Htip, params, ...
                         string(app.StartingpointDropDown.Value), ...
                         string(app.StopcriterionDropDown.Value), ...
@@ -277,7 +277,7 @@ classdef PlaygroundUtils
                 end
 
                 try
-                    [Hsim, Msim, info] = solveJA_minorLoop_playground( ...
+                    [Hsim, Msim, info] = solve_ja_minor_loop_playground( ...
                         Htips, params, ...
                         string(app.StopcriterionDropDown_4.Value), ...
                         app.RepetitionsEditField_2.Value, ...
@@ -318,16 +318,16 @@ classdef PlaygroundUtils
             H_plot = cache.H;
             M_plot = cache.M;
 
-            if isfield(cache.info, 'cyclesSimulated') && cache.info.cyclesSimulated > 0 ...
+            if isfield(cache.info, 'cycles_simulated') && cache.info.cycles_simulated > 0 ...
                     && PlaygroundUtils.is_last_cycle_plot_option(PlaygroundUtils.get_plot_option(app))
-                if isfield(cache.info, 'tipLastLoopStarts') && isfield(cache.info, 'tipEnds') ...
-                        && numel(cache.info.tipLastLoopStarts) == numel(cache.info.tipEnds) ...
-                        && ~isempty(cache.info.tipLastLoopStarts)
+                if isfield(cache.info, 'tip_last_loop_starts') && isfield(cache.info, 'tip_ends') ...
+                        && numel(cache.info.tip_last_loop_starts) == numel(cache.info.tip_ends) ...
+                        && ~isempty(cache.info.tip_last_loop_starts)
                     H_last = [];
                     M_last = [];
-                    for i = 1:numel(cache.info.tipLastLoopStarts)
-                        start_idx = cache.info.tipLastLoopStarts(i);
-                        end_idx = cache.info.tipEnds(i);
+                    for i = 1:numel(cache.info.tip_last_loop_starts)
+                        start_idx = cache.info.tip_last_loop_starts(i);
+                        end_idx = cache.info.tip_ends(i);
                         if start_idx > end_idx
                             continue;
                         end
@@ -349,8 +349,8 @@ classdef PlaygroundUtils
                         H_plot = H_last;
                         M_plot = M_last;
                     end
-                elseif isfield(cache.info, 'branchStarts') && numel(cache.info.branchStarts) >= 2
-                    start_idx = cache.info.branchStarts(end - 1);
+                elseif isfield(cache.info, 'branch_starts') && numel(cache.info.branch_starts) >= 2
+                    start_idx = cache.info.branch_starts(end - 1);
                     H_plot = H_plot(start_idx:end);
                     M_plot = M_plot(start_idx:end);
                 end
@@ -389,16 +389,16 @@ classdef PlaygroundUtils
             M = cache.M;
             info = cache.info;
 
-            if isfield(cache.info, 'cyclesSimulated') && cache.info.cyclesSimulated > 0 ...
+            if isfield(cache.info, 'cycles_simulated') && cache.info.cycles_simulated > 0 ...
                     && PlaygroundUtils.is_last_cycle_plot_option(PlaygroundUtils.get_plot_option(app))
-                if isfield(cache.info, 'tipLastLoopStarts') && isfield(cache.info, 'tipEnds') ...
-                        && numel(cache.info.tipLastLoopStarts) == numel(cache.info.tipEnds) ...
-                        && ~isempty(cache.info.tipLastLoopStarts)
+                if isfield(cache.info, 'tip_last_loop_starts') && isfield(cache.info, 'tip_ends') ...
+                        && numel(cache.info.tip_last_loop_starts) == numel(cache.info.tip_ends) ...
+                        && ~isempty(cache.info.tip_last_loop_starts)
                     H_last = [];
                     M_last = [];
-                    for i = 1:numel(cache.info.tipLastLoopStarts)
-                        start_idx = cache.info.tipLastLoopStarts(i);
-                        end_idx = cache.info.tipEnds(i);
+                    for i = 1:numel(cache.info.tip_last_loop_starts)
+                        start_idx = cache.info.tip_last_loop_starts(i);
+                        end_idx = cache.info.tip_ends(i);
                         if start_idx > end_idx
                             continue;
                         end
@@ -416,8 +416,8 @@ classdef PlaygroundUtils
                         H = H_last;
                         M = M_last;
                     end
-                elseif isfield(cache.info, 'branchStarts') && numel(cache.info.branchStarts) >= 2
-                    start_idx = cache.info.branchStarts(end - 1);
+                elseif isfield(cache.info, 'branch_starts') && numel(cache.info.branch_starts) >= 2
+                    start_idx = cache.info.branch_starts(end - 1);
                     H = H(start_idx:end);
                     M = M(start_idx:end);
                 end
@@ -658,8 +658,8 @@ classdef PlaygroundUtils
             end
 
             row = event.Indices(1);
-            newValue = event.NewData;
-            if ~(isscalar(row) && isfinite(row) && row >= 1 && isfinite(newValue) && newValue > 0)
+            new_value = event.NewData;
+            if ~(isscalar(row) && isfinite(row) && row >= 1 && isfinite(new_value) && new_value > 0)
                 return;
             end
 
@@ -801,7 +801,7 @@ classdef PlaygroundUtils
                 pause(0.01);
                 calc_timer = tic;
 
-                [Hsim, Msim, info] = solveJA_minorLoop_playground( ...
+                [Hsim, Msim, info] = solve_ja_minor_loop_playground( ...
                     Htips, params, ...
                     string(app.StopcriterionDropDown_4.Value), ...
                     app.RepetitionsEditField_2.Value, ...
@@ -842,7 +842,7 @@ classdef PlaygroundUtils
             pause(0.01);
             calc_timer = tic;
             try
-                [Hsim, Msim, info] = solveJA_majorLoop_playground( ...
+                [Hsim, Msim, info] = solve_ja_major_loop_playground( ...
                     Hstart, Mstart, Htip, params, ...
                     string(app.StartingpointDropDown.Value), ...
                     string(app.StopcriterionDropDown.Value), ...
@@ -1182,7 +1182,7 @@ classdef PlaygroundUtils
                 pause(0.01);
                 calc_timer = tic;
 
-                [Hsim, Msim, info] = solveJA_degaussing_playground( ...
+                [Hsim, Msim, info] = solve_ja_degaussing_playground( ...
                     Hstart, Mstart, amplitudes, params, ...
                     odeset('RelTol', 1e-7, 'AbsTol', 1e-6));
                 info.status = "ok";
@@ -1210,8 +1210,8 @@ classdef PlaygroundUtils
             end
 
             row = event.Indices(1);
-            newValue = event.NewData;
-            if ~(isscalar(row) && isfinite(row) && row >= 1 && isfinite(newValue) && newValue > 0)
+            new_value = event.NewData;
+            if ~(isscalar(row) && isfinite(row) && row >= 1 && isfinite(new_value) && new_value > 0)
                 return;
             end
             data = app.UITable_3.Data;
@@ -1423,10 +1423,10 @@ classdef PlaygroundUtils
             end
 
             row = event.Indices(1);
-            lastRow = size(data, 1);
-            if row == lastRow
-                ord = data(lastRow, 1);
-                amp = data(lastRow, 2);
+            last_row = size(data, 1);
+            if row == last_row
+                ord = data(last_row, 1);
+                amp = data(last_row, 2);
                 if isfinite(ord) && ord >= 1 && isfinite(amp)
                     app.UITable2.Data = [data; NaN(1, size(data, 2))];
                 end
@@ -1462,13 +1462,13 @@ classdef PlaygroundUtils
                 pause(0.01);
                 calc_timer = tic;
 
-                [Hsim, Msim, info] = solveJA_majorHarmonics_playground( ...
+                [Hsim, Msim, info] = solve_ja_major_harmonics_playground( ...
                     Hstart, Mstart, orders, amplitudes, phases, params, ...
                     string(app.StopcriterionDropDown_6.Value), ...
                     app.PeriodsEditField.Value, ...
                     app.ReltoleranceEditField_4.Value, ...
                     odeset('RelTol', 1e-7, 'AbsTol', 1e-6));
-                info.startMode = string(app.StartingpointDropDown_5.Value);
+                info.start_mode = string(app.StartingpointDropDown_5.Value);
                 info.status = "ok";
                 PlaygroundUtils.set_simulation(app, Hsim, Msim, info);
                 app.plot_playground();

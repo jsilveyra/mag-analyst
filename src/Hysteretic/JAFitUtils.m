@@ -1,15 +1,15 @@
 classdef JAFitUtils
 %JAFITUTILS  Static helpers for JAFitter parameter/bound packing and UI parsing.
-%   packParams/unpackParams convert between a JA parameter struct (Ms, a,
+%   pack_params/unpack_params convert between a JA parameter struct (Ms, a,
 %   alpha, c, k) and the flat vector used by the optimizer, per a fit mask.
-%   packBounds builds matching lower/upper bound vectors from a Bounds
-%   struct. readBoundFieldValue and makeBoundPair parse/assemble bound
+%   pack_bounds builds matching lower/upper bound vectors from a Bounds
+%   struct. read_bound_field_value and make_bound_pair parse/assemble bound
 %   values from app edit-field text.
     methods (Static)
-        function [x, map] = packParams(p, mask)
+        function [x, map] = pack_params(p, mask)
             x = [];
             map = {};
-            if mask.fitMs
+            if mask.fit_Ms
                 x(end+1,1) = p.Ms; %#ok<AGROW>
                 map{end+1} = 'Ms'; %#ok<AGROW>
             end
@@ -31,14 +31,14 @@ classdef JAFitUtils
             end
         end
 
-        function [lb, ub] = packBounds(bounds, mask)
+        function [lb, ub] = pack_bounds(bounds, mask)
             lb = [];
             ub = [];
-            paramOrder = {'Ms','a','alpha','c','k'};
-            fitFlags = [mask.fitMs, mask.fita, mask.fitalpha, mask.fitc, isfield(mask,'fitk') && mask.fitk];
-            for i = 1:numel(paramOrder)
-                if fitFlags(i)
-                    name = paramOrder{i};
+            param_order = {'Ms','a','alpha','c','k'};
+            fit_flags = [mask.fit_Ms, mask.fita, mask.fitalpha, mask.fitc, isfield(mask,'fitk') && mask.fitk];
+            for i = 1:numel(param_order)
+                if fit_flags(i)
+                    name = param_order{i};
                     if isempty(bounds.(name))
                         lb(end+1,1) = -Inf; %#ok<AGROW>
                         ub(end+1,1) = Inf; %#ok<AGROW>
@@ -50,19 +50,19 @@ classdef JAFitUtils
             end
         end
 
-        function p = unpackParams(x, map, p_seed, mask, estimateKFn)
+        function p = unpack_params(x, map, p_seed, mask, estimate_k_fn)
             p = p_seed;
             for i = 1:numel(x)
                 pname = map{i};
                 p.(pname) = x(i);
             end
-            if isfield(mask, 'kDependent') && mask.kDependent
-                p.k = estimateKFn(p);
+            if isfield(mask, 'k_dependent') && mask.k_dependent
+                p.k = estimate_k_fn(p);
             end
         end
 
-        function [v, ok] = readBoundFieldValue(fieldHandle)
-            v = fieldHandle.Value;
+        function [v, ok] = read_bound_field_value(field_handle)
+            v = field_handle.Value;
             if isempty(v)
                 v = [];
                 ok = true;
@@ -71,7 +71,7 @@ classdef JAFitUtils
             ok = isfinite(v) || isinf(v);
         end
 
-        function b = makeBoundPair(lo, hi)
+        function b = make_bound_pair(lo, hi)
             if isempty(lo) && isempty(hi)
                 b = [];
                 return;

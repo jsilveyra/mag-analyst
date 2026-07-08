@@ -225,27 +225,27 @@ files share a basename (checked at the 2026-07-06 reorg: none do).
   - `retrieve_anhysteretic_seeds.m` — seed estimation for the fit (distinct
     from the Hysteretic tab's `retrieve_ja_seeds` **app method** — similar
     name, unrelated feature).
-  - `colorDialog.m` / `colorDialog.mlapp` — small App-Designer popup (its own
+  - `ColorDialog.m` / `ColorDialog.mlapp` — small App-Designer popup (its own
     `.mlapp`, separate from `app.mlapp`) opened by the tab's "Set Colors"
     button; recolors the Anhysteretic M/dM-dH/H·dM-dH plots only (not an
     app-wide theme — see `src/Theme/`).
 - **`src/Hysteretic/`** — Hysteretic-fitting tab only.
-  - `solveJA_fromTip.m`, `solveJA_hysteretic_region.m`,
-    `buildJA_majorLoopBranchConditions.m`, `JAFitter.m`, `JAFitUtils.m` — JA
+  - `solve_ja_from_tip.m`, `solve_ja_hysteretic_region.m`,
+    `build_ja_major_loop_branch_conditions.m`, `JAFitter.m`, `JAFitUtils.m` — JA
     **fitting** support (distinct from the Playground forward sim; reaches
-    `Common/solveJA_monotonic.m` transitively).
+    `Common/solve_ja_monotonic.m` transitively).
   - `HystereticLeftBranchResidueCalculator.m` — residual **plot** only (the
     fit objective itself, `compute_ja_left_branch_error_core` in
     `app_exported.m`, does its own inline math and doesn't use this class).
 - **`src/Playground/`** — Playground tab only (all four sub-modes).
-  - `solveJA_majorLoop_playground.m`, `solveJA_minorLoop_playground.m`,
-    `solveJA_degaussing_playground.m`, `solveJA_majorHarmonics_playground.m` —
+  - `solve_ja_major_loop_playground.m`, `solve_ja_minor_loop_playground.m`,
+    `solve_ja_degaussing_playground.m`, `solve_ja_major_harmonics_playground.m` —
     forward simulations (see §5). Each has its own inline branch/segment
-    logic and calls `Common/solveJA_monotonic.m` directly (does **not** go
-    through `Hysteretic/buildJA_majorLoopBranchConditions.m`).
+    logic and calls `Common/solve_ja_monotonic.m` directly (does **not** go
+    through `Hysteretic/build_ja_major_loop_branch_conditions.m`).
   - `PlaygroundUtils.m` — static class holding most Playground UI/state logic
     (see §5). Cross-folder hub: calls `Common/Utils.find_tip`, `Common/
-    UnitConvertor`, and the `solveJA_*_playground` siblings above.
+    UnitConvertor`, and the `solve_ja_*_playground` siblings above.
 - **`src/Menus/`** — reserved for Project Open/Save/Save-as (and future
   Export dialog) logic. **Currently empty** — that logic still lives inline
   in `app_old_exported.m` (`OpenMenuSelected`, `SaveMenuSelected`,
@@ -258,14 +258,14 @@ files share a basename (checked at the 2026-07-06 reorg: none do).
   `src/Theme/README.md`.
 - **`src/Common/`** — used by 2+ tabs; do not assume a change here is
   scoped to one tab.
-  - `JA_ODE.m` (JA ODE RHS, see §6), `anhysteretic.m` (JA's anhysteretic
-    term, called only from `JA_ODE.m`), `solveJA_monotonic.m` (core ODE
+  - `ja_ode.m` (JA ODE RHS, see §6), `anhysteretic.m` (JA's anhysteretic
+    term, called only from `ja_ode.m`), `solve_ja_monotonic.m` (core ODE
     integrator — shared by Hysteretic-fitting **and** Playground).
   - `Langevin.m` / `LangevinPrivate.m` — Langevin function `L(x)` and
     derivative. The most widely shared file in the tree: used by the
     Anhysteretic pipeline (`ModeledAnhystereticCurve`, `MagneticParameters`,
     `Utils`, `retrieve_anhysteretic_seeds`) **and** the JA pipeline
-    (`anhysteretic.m`, and directly by `estimateK_fromCoercivePoint` in
+    (`anhysteretic.m`, and directly by `estimate_k_from_coercive_point` in
     `app_exported.m`).
   - `Utils.m` (`get_m`, `find_tip`) — shared by **all four** fitting/sim
     tabs (Input, Anhysteretic, Hysteretic, Playground).
@@ -288,11 +288,11 @@ files share a basename (checked at the 2026-07-06 reorg: none do).
   `app_old_exported.m`** as of the 2026-07-06 audit, kept but not deleted
   (user's call — accommodate their real use when it comes up, rather than
   guessing now):
-  - `Bounds.m`, `buildJA_minorLoopBranchConditions.m` — zero callers
+  - `Bounds.m`, `build_ja_minor_loop_branch_conditions.m` — zero callers
     *anywhere* in `src/`, not even demos. `JAFitter.m`/`JAFitUtils.m` take a
-    plain `bounds` struct, never a `Bounds` object; `solveJA_minorLoop_
-    playground.m` has its own independent inline branch logic and never
-    calls `buildJA_minorLoopBranchConditions.m`.
+    plain `bounds` struct, never a `Bounds` object; `solve_ja_minor_loop_playground.m`
+    has its own independent inline branch logic and never
+    calls `build_ja_minor_loop_branch_conditions.m`.
   - `MagneticParametersConstants.m`, `FitConstants.m` — the app hardcodes the
     same literal strings directly (e.g. `'low'`/`'high'`,
     `"Diagonal (H, continuous)"`) instead of referencing these; only
@@ -339,8 +339,8 @@ renders the axes.
 - Simulation result is cached, then `plot_playground` calls
   `get_simulation_curve` and draws it as a single red line (`plot(ax, H, M, 'r-')`).
 
-### Minor-loop simulation — `solveJA_minorLoop_playground.m`
-Protocol (all driven by the ODE via `solveJA_monotonic`):
+### Minor-loop simulation — `solve_ja_minor_loop_playground.m`
+Protocol (all driven by the ODE via `solve_ja_monotonic`):
 1. Tips sorted **ascending** — **smallest `Htip_i` first**.
    (NOTE: an earlier revision briefly reversed this to largest-first; the correct
    order is **smallest-first**.)
@@ -352,18 +352,18 @@ Protocol (all driven by the ODE via `solveJA_monotonic`):
 5. **Bridge up** to the next (larger) tip: `+Htip_i → +Htip_{i+1}` with
    `delta=+1` (increasing field), then loop there. Repeat.
 6. Returns `Hmod, Mmod` (concatenated) plus an `info` struct with per-tip index
-   bookkeeping: `branchStarts`, `tipStarts`, `tipEnds`, `tipLastLoopStarts`,
-   `cyclesSimulated`, `converged`.
+   bookkeeping: `branch_starts`, `tip_starts`, `tip_ends`, `tip_last_loop_starts`,
+   `cycles_simulated`, `converged`.
 
 Index bookkeeping convention: segments are concatenated dropping each segment's
-first (duplicated boundary) point; `branchStarts`/`tipLastLoopStarts` point at the
-shared boundary index. `tipLastLoopStarts(i)..tipEnds(i)` = the last full loop of
+first (duplicated boundary) point; `branch_starts`/`tip_last_loop_starts` point at the
+shared boundary index. `tip_last_loop_starts(i)..tip_ends(i)` = the last full loop of
 tip `i`.
 
 ### Plot options (`PlotDropDown_2`: `Last loops only` | `Full history`)
 Handled in `PlaygroundUtils.get_simulation_curve`:
 - **Full history** — returns the entire concatenated path (one continuous line).
-- **Last loops only** — extracts `tipLastLoopStarts(i)..tipEnds(i)` for each tip
+- **Last loops only** — extracts `tip_last_loop_starts(i)..tip_ends(i)` for each tip
   and stitches them with a **`NaN` separator between tips**, so each tip's last
   loop plots as a **separate, disconnected curve** (no join between tip `i`'s last
   point and tip `i+1`'s first point).
@@ -394,19 +394,19 @@ Minor loop: only `Repetitions_2` vs `ReltoleranceEditField_2` (+ labels) keyed o
 text + tooltip (set in `startupFcn`) because "Until convergence" still caps at
 `max(100, Repetitions)` cycles (per tip for minor loops).
 
-### Degaussing simulation — `solveJA_degaussing_playground.m` [deep]
+### Degaussing simulation — `solve_ja_degaussing_playground.m` [deep]
 Forward AC-demagnetization sim. Entry: `CalculatePlotButton_3Pushed` dispatches to
 `run_playground_degaussing` when `PlaygroundUtils.is_degaussing_mode(app)`.
-`solveJA_degaussing_playground(Hstart, Mstart, amplitudes, params, opts)`:
+`solve_ja_degaussing_playground(Hstart, Mstart, amplitudes, params, opts)`:
 1. `amplitudes` are positive peak reversal fields, sorted **descending** (largest
    swing first) → a decaying envelope regardless of input order.
 2. First reversal sign = `-sign(Mstart)` (drive M toward/past zero); alternates
    each step. Targets: `s·(-1)^(i-1)·amplitudes(i)`, then a **final sweep to 0**.
-3. Each leg integrated with `solveJA_monotonic` (delta = `sign(Htarget-Hcur)`;
+3. Each leg integrated with `solve_ja_monotonic` (delta = `sign(Htarget-Hcur)`;
    zero-length legs skipped). Segments concatenated dropping duplicated boundary
    point (same convention as minor loop).
-4. `info`: `mode="Degaussing"`, `amplitudes`, `branchStarts`, `Hfinal`, `Mfinal`;
-   `cyclesSimulated=0` and empty `tipLastLoopStarts`/`tipEnds` so `get_simulation_curve`
+4. `info`: `mode="Degaussing"`, `amplitudes`, `branch_starts`, `Hfinal`, `Mfinal`;
+   `cycles_simulated=0` and empty `tip_last_loop_starts`/`tip_ends` so `get_simulation_curve`
    plots the **full path** (degaussing has no "last loop" plot option).
 
 UI (Degaussing panel, `GridLayout5`), all wired via `sync_degaussing_ui`:
@@ -428,7 +428,7 @@ UI (Degaussing panel, `GridLayout5`), all wired via `sync_degaussing_ui`:
   reset by `configure_degaussing_table`. `set_enable_safe` skips components lacking
   an `Enable` property (older-release uilabel safety).
 
-### Major loop with harmonics — `solveJA_majorHarmonics_playground.m` [deep]
+### Major loop with harmonics — `solve_ja_major_harmonics_playground.m` [deep]
 Forward sim of a major loop driven by a **distorted (harmonic) field**
 `H(θ) = Σ_j A_j·sin(k_j·θ + φ_j)` over one period `θ∈[0,2π)`. Entry:
 `CalculatePlotButton_3Pushed` dispatches to `run_playground_major_harmonics` when
@@ -439,14 +439,14 @@ the field's turning points matter:
    per-period vertex field values `pv` (in θ order). Harmonics add extra extrema →
    **minor loops nested inside the major loop**.
 2. Bridge from `(Hstart,Mstart)` to `pv(1)`, then for each period walk the targets
-   `pv(2..end), pv(1)` (returns to `pv(1)`), each leg via `solveJA_monotonic`
+   `pv(2..end), pv(1)` (returns to `pv(1)`), each leg via `solve_ja_monotonic`
    (`delta=sign(Δ)`, zero-length legs skipped). Same drop-duplicate-boundary
    concatenation as the other modes.
 3. Steady state: `Fixed repetitions` = number of periods; `Until convergence`
    compares period-end M at `pv(1)` within `relTol` (cap 200 periods).
-4. `info`: `mode="Major Loop Harmonics"`, `cyclesSimulated`, `branchStarts`
-   (per-period boundary indices), `tipLastLoopStarts=[branchStarts(end)]`,
-   `tipEnds=[numel(Hmod)]`, `vertices=pv`. The `tipLastLoopStarts/tipEnds` pair
+4. `info`: `mode="Major Loop Harmonics"`, `cycles_simulated`, `branch_starts`
+   (per-period boundary indices), `tip_last_loop_starts=[branch_starts(end)]`,
+   `tip_ends=[numel(Hmod)]`, `vertices=pv`. The `tip_last_loop_starts/tip_ends` pair
    makes `get_simulation_curve` slice the **last full period** for the `Last period
    only` plot option (a single closed loop, no NaN separators).
 
@@ -492,7 +492,7 @@ since the slice is derived from the cached simulation, not recomputed.
 
 ## 6. Jiles–Atherton ODE model [deep]
 
-`JA_ODE(H, M, p, delta)` with `p = {Ms, a, alpha, k, c}`, `delta = sign(dH) ∈ {+1,-1}`:
+`ja_ode(H, M, p, delta)` with `p = {Ms, a, alpha, k, c}`, `delta = sign(dH) ∈ {+1,-1}`:
 
 ```
 Heff        = H + alpha*M
@@ -503,7 +503,7 @@ den         = k*delta - alpha*num
 dM/dH       = num/den
 ```
 
-`solveJA_monotonic(Hstart, Hend, Mstart, params, delta, opts)` integrates this with
+`solve_ja_monotonic(Hstart, Hend, Mstart, params, delta, opts)` integrates this with
 `ode23tb` over `[Hstart, Hend]`; default opts `odeset('RelTol',1e-7,'AbsTol',1e-6)`.
 Returns `Hsol, Msol` as column vectors (adaptive step). If `Hstart==Hend` it returns
 the single point.

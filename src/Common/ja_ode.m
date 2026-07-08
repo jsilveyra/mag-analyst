@@ -1,4 +1,4 @@
-function dMdH = JA_ODE(H, M, p, delta)
+function dMdH = ja_ode(H, M, p, delta)
 %JA_ODE Right-hand side of the Jiles-Atherton differential equation
 %
 %   dM/dH = num / den
@@ -17,12 +17,12 @@ function dMdH = JA_ODE(H, M, p, delta)
 
     required_fields = {'Ms', 'a', 'alpha', 'k', 'c'};
     if ~isstruct(p) || ~all(isfield(p, required_fields))
-        error('JA_ODE:InvalidParams', ...
+        error('ja_ode:InvalidParams', ...
             'Input p must be a struct with fields Ms, a, alpha, k, c.');
     end
 
     if ~(isscalar(delta) && (delta == 1 || delta == -1))
-        error('JA_ODE:InvalidDelta', 'delta must be +1 or -1.');
+        error('ja_ode:InvalidDelta', 'delta must be +1 or -1.');
     end
 
     Heff = H + p.alpha .* M;

@@ -1,4 +1,4 @@
-classdef colorDialog < matlab.apps.AppBase
+classdef ColorDialog < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
@@ -29,18 +29,8 @@ classdef colorDialog < matlab.apps.AppBase
         function set_color(app, i)
             c = uisetcolor;
             app.Colors(i,:) = c;
-
-            try
-                app.MainApp.set_colors_and_plot(app.Colors);
-            catch ME
-                if contains(ME.message, 'Dot indexing is not supported for variables of this type.')
-                    if ismethod(app.MainApp, 'write_message')
-                        app.MainApp.write_message("Colors updated. Import data before recalculating.");
-                    end
-                    return;
-                end
-                rethrow(ME);
-            end
+            
+            app.MainApp.set_colors_and_plot(app.Colors);
         end
     end
     
@@ -232,7 +222,7 @@ classdef colorDialog < matlab.apps.AppBase
     methods (Access = public)
 
         % Construct app
-        function app = colorDialog(varargin)
+        function app = ColorDialog(varargin)
 
             % Create UIFigure and components
             createComponents(app)

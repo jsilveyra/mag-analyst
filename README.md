@@ -1,37 +1,61 @@
-
 ![Image](https://github.com/matias-gonz/mag-analyst/blob/main/assets/logo_light_maganalyst.png#gh-light-mode-only)
 ![Image](https://github.com/matias-gonz/mag-analyst/blob/main/assets/logo_dark_maganalyst.png#gh-dark-mode-only)
+
 # *<div dir="rtl"> a Matlab toolbox for magnetization analysis </div>*
 
 ## Table of contents
+
 1. [Authors](#authors)
+
 2. [Statement of need](#statement-of-need)
+
 3. [Setup and usage instructions](#setup-and-usage-instructions)
+
 4. [Description of the files and directory structure](#description-of-the-files-and-directory-structure)
+
 5. [External libraries](#external-libraries)
+
 6. [Explanation document](#explanation-document)
+
 7. [Examples](#examples)
+
 8. [Cite as](#cite-as)
+
 9. [Contact us](#contact-us)
+
 10. [License](#license)
+
 11. [Acknowledgement](#acknowledgment)
- 
- ## Authors
-  - Marina Zoe Petean
-  - Matías Ignacio González
-  - Tomás Francisco González
-  - Josefina María Silveyra
-  - Juan Manuel Conde Garrido
-	
+    
+    ## Authors
+    
+    - Marina Zoe Petean
+    - Tomás Francisco González
+    - Matías Ignacio González
+      
+      
+    - Juan Manuel Conde Garrido
+    - Josefina María Silveyra
+
+
+
 University of Buenos Aires – CONICET, Buenos Aires, Argentina.
-   
+
 ## Statement of need
 
-The accurate description of magnetization is crucial for designing devices with soft magnetic cores. MagAnalyst is an easy-to-use MATLAB toolbox that models the magnetization of soft magnetic materials. It implements a physically based approach, proposed by Silveyra and Conde Garrido, to describe the ideal anhysteretic curve. The equation of state is simple yet accurate for various material scenarios. The toolbox first plots a set of curves to help the user determine the number of component magnetizations to model and the seeds for the fitting process. It then retrieves the model parameters without the need for programming or optimization skills. As a result, even noisy data from challenging scenarios can be accurately described by a single analytic function, with continuous and differentiable magnetization and susceptibility. We believe that MagAnalyst will be a valuable resource for the magnetic materials community.
+The accurate description of magnetization is crucial for designing devices with soft magnetic cores. MagAnalyst is an easy-to-use MATLAB toolbox that models the magnetization of soft magnetic materials.
+
+It implements a physically based approach, proposed by Silveyra and Conde Garrido, to describe the ideal **anhysteretic** curve. The equation of state is simple yet accurate for various material scenarios. The toolbox first plots a set of curves to help the user determine the number of component magnetizations to model and the seeds for the fitting process. It then retrieves the model parameters without the need for programming or optimization skills. As a result, even noisy data from challenging scenarios can be accurately described by a single analytic function, with continuous and differentiable magnetization and susceptibility.
+
+**New in version 2.0.** In addition to anhysteretic modeling, MagAnalyst now covers the **hysteretic** behavior of soft magnetic materials through the rate-independent **Jiles–Atherton (JA) model**. The anhysteretic fitting already delivers seeds for the JA parameters Ms, a, and α. The strategy proposed by Conde Garrido et al. yields good seeds for the JA parameters k and c. All five parameters can then be quickly optimized to accurately described a measured symmetric hysteresis loop. Moreover, an interactive **Playground** allows to forward-simulate major loops, nested minor loops, AC degaussing, and loops driven by distorted (harmonic) fields.
+
+A unified **Export** dialog lets you save every result — measured/processed data, anhysteretic and hysteretic fits, playground simulations, optimization-progress curves, and figures — as CSV, TXT, and image files. All of these features are also available programmatically, without the GUI, to embed them into custom scripts (see the demo scripts).
+
+The toolbox is shared as open-source with the aim of allowing researchers to taylor it for their specific needs, such as variants of the classic JA model (temperature dependence, rate-dependence, etc.)
 
 ## Setup and usage instructions
 
-You need to create a copy on a local directory on your machine to use MagAnalyst. Obtain a copy by downloading and unzipping the latest [release](https://github.com/matias-gonz/mag-analyst/releases) or clone MagAanalyst instead e.g. using: git clone https://github.com/matias-gonz/mag-analyst. You can place the MagAnalyst folder anywhere on your machine.
+You need to create a copy on a local directory on your machine to use MagAnalyst. Obtain a copy by downloading and unzipping the latest [release](https://github.com/matias-gonz/mag-analyst/releases) or clone MagAanalyst instead e.g. using: git clone https://github.com/jsilveyra/mag-analyst. You can place the MagAnalyst folder anywhere on your machine.
 
 We recommend using [GitHub Desktop](https://desktop.github.com/), which allows users to easily synchronize with the latest version of MagAnalyst.
 
@@ -39,19 +63,35 @@ After downloading the main folder and placing it in a suitable location, MagAnal
 
 MagAnalyst is platform-agnostic and works on Windows, macOS, or Linux. The GUI loads sample projects from paths relative to the toolbox root (for example `data/sampleData/`), so you can place the MagAnalyst folder anywhere you like; if you move it after opening a sample project you may need to re-import the curve file.
 
-To start using the application with the graphical user interface, simply run the `app.mlapp` file.
+To start using the application with the graphical user interface, run the `MagAnalyst.m` launcher (type `MagAnalyst` in the MATLAB Command Window). It shows a loading splash while the app builds and then opens the GUI. The first launch after starting MATLAB is slower because MATLAB warms up the App Designer graphics framework; later launches in the same session are faster. Alternatively, you can still run the `app.mlapp` file directly.
 
-If you prefer to run MagAnalyst using command lines, you can follow the instructions in the `mag-analyst/src/demo.m` and `mag-analyst/src/demo_2_components.m` files.
+If you prefer to run MagAnalyst using command lines (or to call it from your own scripts), follow the demo scripts in `mag-analyst/src/`:
 
-Both demo scripts build their data paths with Matlab's `fullfile` helper (e.g., `fullfile('data','sampleData','Finemet - TA.csv')`), so they load the same files on Windows, macOS, and Linux without requiring manual path tweaks.
- 
-MagAnalyst was implemented and tested with the Matlab 2022b version on Windows 10. Authors cannot guarantee that the code can run on previous versions.
+* `demo.m` — anhysteretic fit with a single component;
+* `demo_2_components.m` — anhysteretic fit with two components;
+* `demo_hysteretic_playground.m` — Jiles–Atherton hysteretic simulation of the four Playground modes (major loop, minor loops, degaussing, harmonics) and CSV export, all without the GUI.
+
+The demo scripts build their data paths with Matlab's `fullfile` helper (e.g., `fullfile('data','sampleData','Finemet - TA.csv')`), so they load the same files on Windows, macOS, and Linux without requiring manual path tweaks.
+
+MagAnalyst 2.0.0 was implemented and tested with Matlab R2025b. It relies on App Designer / `uifigure` features (e.g. `exportgraphics`, `uigridlayout`); the authors cannot guarantee that the code runs on earlier versions.
+
+## Overview of the GUI
+
+The application is organized into tabs:
+
+1. **Input data** — import a measured dataset (anhysteretic curve or symmetric hysteresis loop), choose fields/units, and preview the raw and processed curves.
+2. **Anhysteretic fitting** — fit the physically based distribution model (per-component `Hcr`, `m(Hcr)`, `Hx`) and retrieve the magnetic parameters (`Ms`, `a`, `α`); view magnetization, susceptibility, and the semilog derivative plots. A live optimization-progress plot (error vs. iteration) is shown during fits, which can be run until convergence or stopped when wanted.
+3. **Hysteretic fitting** — fit the Jiles–Atherton parameters (`Ms`, `a`, `α`, `k`, `c`) to a measured hysteresis loop (left branch or entire loop). A live optimization-progress plot (error vs. iteration) is shown during fits, which can be run until convergence or stopped when wanted.
+4. **Playground** — forward-simulate the JA model: **major loop**, **minor loops**, **degaussing**, and **loop with harmonics** (a distorted driving field).
+
+Results are saved through a single Export action in the Project menu (*Project → Export…*), which opens a dialog listing every exportable artifact — measured/processed data, anhysteretic fit (parameters, curve, residuals, errors), hysteretic fit (parameters, loop, residuals), playground simulations (curve, metadata), optimization-progress data, and figures — as CSV, TXT, or image (PNG/PDF/SVG). Whole sessions can be saved and reopened via *Project → Save / Open*.
 
 ## Description of the files and directory structure
 
 ```tree
-├── app.mlapp                      # Main App Designer GUI
-├── app_exported.m                 # Exported app code (reference/debug)
+├── MagAnalyst.m                   # Launcher: shows a loading splash, then opens the GUI
+├── app.mlapp                      # Main App Designer GUI (edit here)
+├── app_exported.m                 # Exported app code (run by the launcher; keep in sync with app.mlapp)
 ├── data/                          # Input/output datasets and sample projects
 ├── assets/                        # Images, logos, and UI assets
 ├── articles/                      # Reference papers and supporting material
@@ -59,24 +99,30 @@ MagAnalyst was implemented and tested with the Matlab 2022b version on Windows 1
 ├── README.md
 ├── license.txt
 └── src/
-    ├── AnhystereticCurve/         # Data/model curve classes
+    ├── AnhystereticCurve/         # Measured/modeled anhysteretic curve classes
     ├── ErrorCalculator/           # Error metrics (vertical, horizontal, diagonal)
-    ├── MagneticParameters/        # Magnetic parameter estimation and utilities
+    ├── MagneticParameters/        # Anhysteretic parameters + Jiles–Atherton model, fitter and solvers
     ├── Parser/                    # Data import and unit conversion
     ├── Plotter/                   # Plot generation utilities
-    ├── ResidueCalculator/         # Residual calculations
+    ├── ResidueCalculator/         # Residual calculations (incl. hysteretic left branch)
     ├── minimize/                  # External library: constrained minimization
     ├── interparc/                 # External library: curve resampling
     ├── distance2curve.m           # External library: point-to-curve distance
     ├── import_src.m               # Adds project source folders to MATLAB path
-    ├── fit.m                      # Main fitting entry point
-    ├── colorDialog.m              # Color selection dialog
+    ├── fit.m                      # Anhysteretic fitting entry point
+    ├── ExportUtils.m              # Standalone file writers used by the Export dialog
+    ├── PlaygroundUtils.m          # Helpers for the Playground forward simulations
+    ├── Bounds.m, FitConstants.m   # Fitting bounds and constants
+    ├── retrieve_anhysteretic_seeds.m  # Automatic seed estimation
+    ├── ColorDialog.m              # Color selection dialog
+    ├── demo.m, demo_2_components.m, demo_hysteretic_playground.m  # Command-line examples
     └── license.txt                # Third-party license notices
 ```
 
 ## External libraries
 
 MagAnalyst currently uses the following third-party libraries:
+
 * [minimize](https://www.mathworks.com/matlabcentral/fileexchange/24298-minimize) to find the constrained minimum of the objective function starting at the user’s initial estimates.
 * [interparc](https://in.mathworks.com/matlabcentral/fileexchange/34874-interparc) to calculate a set of equally spaced points from an original curve with unevenly spaced points.
 * [distance2curve](https://la.mathworks.com/matlabcentral/fileexchange/34869-distance2curve) to compute minimum Euclidean distance from data points to the modeled curve for the continuous diagonal error modes.
@@ -95,18 +141,29 @@ These are the examples provided in the `data/sampleData` folder with the current
 * GOSS - 67 MPa: A grain-oriented silicon steel sheet, cut parallel to the rolling direction, longitudinally compressed up to 67 MPa. Analyzed in [JOM article](https://doi.org/10.1007/s11837-023-05704-x). 
 
 The files provided include:
+
 * data tables of either anhysteretic curves or hysteresis loops in CSV format, where the first and second column correspond to the horizontal and vertical axes field, respectively (the headers specify the fields and units)
 * saved projects in TXT format, where the anhysteretic curves have been fitted with either one or two components
 
 ## Cite as
 
 If you use MagAnalyst in your work, please cite:
+
 * J. M. Silveyra, M. I. González, T. F. González, and J. M. Conde Garrido, "MagAnalyst: A MATLAB Toolbox for Anhysteretic Magnetization Analysis," IEEE Transactions on Magnetics, 2024. https://doi.org/10.1109/TMAG.2024.3408681
 
+If you use the hysteretic Jiles–Atherton fitting features, please also cite:
+
+* J. M. Conde Garrido et al., "Blind efficient method for optimizing Jiles–Atherton model parameters," IEEE Transactions on Magnetics, 2025.
+
 You may also cite the following papers on the approach used by MagAnalyst to describe anhysteretic curves:
+
 * J. M. Silveyra and J. M. Conde Garrido, "A physically based model for soft magnets’ anhysteretic curve," JOM, pp. 1-14, 2023. https://doi.org/10.1007/s11837-023-05704-x
 * J. M. Silveyra and J. M. Conde Garrido, "On the anhysteretic magnetization of soft magnetic materials," AIP Advances, vol. 12, p. 035019, 2022. https://doi.org/10.1063/9.0000328
 * J. M. Silveyra and J. M. Conde Garrido, "On the modelling of the anhysteretic magnetization of homogeneous soft magnetic materials," Journal of Magnetism and Magnetic Materials, vol. 540, p. 168430, 2021. https://doi.org/10.1016/j.jmmm.2021.168430
+
+If you want to use MagAnalyst to fit mass magnetization curves, follow and cite the approach described in:
+
+- J. M. Silveyra, A. Rosales Rivera, N. Salazar Henao, D. Salazar, and J. M. Conde Garrido, "Magnetometry analysis via a multicomponent Langevin-Weiss model with susceptibility-dependent demagnetization," Journal of Magnetism and Magnetic Materials, vol. 647, p. 174000, 2026. [https://doi.org/10.1016/j.jmmm.2026.174000]([Redirecting](https://doi.org/10.1016/j.jmmm.2026.174000))
 
 If you don't have access to any of these articles, request them through ResearchGate! We will be happy to share them with you.
 

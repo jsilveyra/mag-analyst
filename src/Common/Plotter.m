@@ -1,6 +1,6 @@
 classdef Plotter
 %PLOTTER  Draws measured vs. modeled anhysteretic curves on a given axes.
-%   Plotter(data_curve, modeled_curve, Hcr, colors, markerSize) plots M,
+%   Plotter(data_curve, modeled_curve, Hcr, colors, marker_size) plots M,
 %   dM/dH, and the semilog derivative H*dM/dH (linear or log-H variants via
 %   plot_M/plot_M_log/plot_dMdH/plot_dMdH_log/plot_HdMdH/plot_HdMdH_log),
 %   optionally overlaying per-component curves and Hcr marker lines

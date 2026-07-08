@@ -1,21 +1,21 @@
 classdef JAFitter
 %JAFITTER  Static Jiles-Atherton parameter fitter.
 %   JAFitter.fit(params_seed, mask, bounds, Hleft, Mleft, Htip, Mtip,
-%   error_type, estimateKFn, modelFn, errorCoreFn, outputFcn) packs the free
+%   error_type, estimate_k_fn, model_fn, error_core_fn, output_fcn) packs the free
 %   JA parameters (per mask) into a vector, minimizes an error function that
-%   simulates the hysteretic left branch (via modelFn/solveJA_monotonic) and
-%   compares it to the measured Hleft/Mleft using errorCoreFn, and returns a
-%   result struct with params_opt, Jseed, Jopt, ok, errorMessage.
+%   simulates the hysteretic left branch (via model_fn/solve_ja_monotonic) and
+%   compares it to the measured Hleft/Mleft using error_core_fn, and returns a
+%   result struct with params_opt, Jseed, Jopt, ok, error_message.
     methods (Static)
-        function result = fit(params_seed, mask, bounds, Hleft, Mleft, Htip, Mtip, error_type, estimateKFn, modelFn, errorCoreFn, outputFcn)
+        function result = fit(params_seed, mask, bounds, Hleft, Mleft, Htip, Mtip, error_type, estimate_k_fn, model_fn, error_core_fn, output_fcn)
             BIG = 1e6;
             opts = odeset('RelTol', 1e-7, 'AbsTol', 1e-6);
 
-            if nargin < 11 || isempty(modelFn)
-                modelFn = @(params) solveJA_monotonic(Htip, -Htip, Mtip, params, -1, opts);
+            if nargin < 11 || isempty(model_fn)
+                model_fn = @(params) solve_ja_monotonic(Htip, -Htip, Mtip, params, -1, opts);
             end
             if nargin < 12
-                outputFcn = [];
+                output_fcn = [];
             end
 
             result = struct( ...
@@ -23,17 +23,17 @@ classdef JAFitter
                 'params_opt', params_seed, ...
                 'Jseed', BIG, ...
                 'Jopt', BIG, ...
-                'errorMessage', "");
+                'error_message', "");
 
-            [x0, map] = JAFitUtils.packParams(params_seed, mask);
-            [lb, ub] = JAFitUtils.packBounds(bounds, mask);
+            [x0, map] = JAFitUtils.pack_params(params_seed, mask);
+            [lb, ub] = JAFitUtils.pack_bounds(bounds, mask);
             if any(lb > ub)
-                result.errorMessage = "lower bound is greater than upper bound.";
+                result.error_message = "lower bound is greater than upper bound.";
                 return;
             end
 
-            function J = objFun(x)
-                params = JAFitUtils.unpackParams(x, map, params_seed, mask, estimateKFn);
+            function J = obj_fun(x)
+                params = JAFitUtils.unpack_params(x, map, params_seed, mask, estimate_k_fn);
                 if ~isfinite(params.k)
                     J = BIG; return;
                 end
@@ -41,53 +41,53 @@ classdef JAFitter
                     J = BIG; return;
                 end
                 try
-                    [Hhat, Mhat] = modelFn(params);
-                    [J, okJ] = errorCoreFn(error_type, Hleft, Mleft, Hhat, Mhat);
-                    if ~okJ, J = BIG; end
+                    [Hhat, Mhat] = model_fn(params);
+                    [J, ok_J] = error_core_fn(error_type, Hleft, Mleft, Hhat, Mhat);
+                    if ~ok_J, J = BIG; end
                 catch
                     J = BIG;
                 end
             end
 
             try
-                result.Jseed = objFun(x0);
+                result.Jseed = obj_fun(x0);
                 if mask.fitk
-                    optimOpts = optimset( ...
+                    optim_opts = optimset( ...
                         'MaxIter', 500, ...
                         'MaxFunEvals', 4000, ...
                         'TolX', 1e-5, ...
                         'TolFun', 1e-5, ...
                         'Display', 'off');
                 else
-                    optimOpts = optimset( ...
+                    optim_opts = optimset( ...
                         'MaxIter', 1000, ...
                         'MaxFunEvals', 1e4, ...
                         'TolX', 1e-5, ...
                         'TolFun', 1e-5, ...
                         'Display', 'off');
                 end
-                if ~isempty(outputFcn)
-                    optimOpts = optimset(optimOpts, 'OutputFcn', outputFcn);
+                if ~isempty(output_fcn)
+                    optim_opts = optimset(optim_opts, 'OutputFcn', output_fcn);
                 end
 
                 if isempty(x0)
                     xopt = x0;
                     Jopt = result.Jseed;
                 else
-                    [xopt_1, Jopt_1] = minimize(@objFun, x0, [], [], [], [], lb, ub, [], optimOpts);
+                    [xopt_1, Jopt_1] = minimize(@obj_fun, x0, [], [], [], [], lb, ub, [], optim_opts);
                     if mask.fitk
                         xopt = xopt_1;
                         Jopt = Jopt_1;
                     else
-                        [xopt, Jopt] = minimize(@objFun, xopt_1, [], [], [], [], lb, ub, [], optimOpts);
+                        [xopt, Jopt] = minimize(@obj_fun, xopt_1, [], [], [], [], lb, ub, [], optim_opts);
                     end
                 end
 
-                result.params_opt = JAFitUtils.unpackParams(xopt, map, params_seed, mask, estimateKFn);
+                result.params_opt = JAFitUtils.unpack_params(xopt, map, params_seed, mask, estimate_k_fn);
                 result.Jopt = Jopt;
                 result.ok = true;
             catch ME
-                result.errorMessage = string(ME.message);
+                result.error_message = string(ME.message);
             end
         end
     end

@@ -1,12 +1,12 @@
-function [Hmod, Mmod, info] = solveJA_majorHarmonics_playground( ...
+function [Hmod, Mmod, info] = solve_ja_major_harmonics_playground( ...
     Hstart, Mstart, orders, amplitudes, phases, params, ...
-    stopCriterion, repetitions, relTol, opts, samplesPerPeriod)
-%SOLVEJA_MAJORHARMONICS_PLAYGROUND Simulate a major loop driven by a distorted
+    stop_criterion, repetitions, rel_tol, opts, samples_per_period)
+%SOLVE_JA_MAJOR_HARMONICS_PLAYGROUND Simulate a major loop driven by a distorted
 %   (harmonic) field in the Playground.
 %
-%   [Hmod, Mmod, info] = solveJA_majorHarmonics_playground( ...
+%   [Hmod, Mmod, info] = solve_ja_major_harmonics_playground( ...
 %       Hstart, Mstart, orders, amplitudes, phases, params, ...
-%       stopCriterion, repetitions, relTol, opts, samplesPerPeriod)
+%       stop_criterion, repetitions, rel_tol, opts, samples_per_period)
 %
 %   The applied field is a Fourier series over one period theta in [0, 2*pi):
 %
@@ -17,7 +17,7 @@ function [Hmod, Mmod, info] = solveJA_majorHarmonics_playground( ...
 %   Jiles-Atherton model is rate independent, only the sequence of turning
 %   points (local extrema) of H(theta) governs the M(H) trajectory: between two
 %   consecutive extrema the field is monotonic and is integrated with
-%   solveJA_monotonic. Harmonics add extra turning points inside each period,
+%   solve_ja_monotonic. Harmonics add extra turning points inside each period,
 %   producing minor loops nested inside the major loop.
 %
 %   The simulation starts at (Hstart, Mstart), bridges to the first turning
@@ -26,22 +26,22 @@ function [Hmod, Mmod, info] = solveJA_majorHarmonics_playground( ...
 %
 %   info fields (consumed by PlaygroundUtils.get_simulation_curve):
 %       mode                = "Major Loop Harmonics"
-%       startMode/stopCriterion
-%       cyclesSimulated     = number of full periods integrated
+%       start_mode/stop_criterion
+%       cycles_simulated     = number of full periods integrated
 %       converged
-%       branchStarts        = concatenated index at the start of each period
-%       tipLastLoopStarts   = [start index of the last full period]
-%       tipEnds             = [numel(Hmod)]  (so "Last period only" slices it)
+%       branch_starts        = concatenated index at the start of each period
+%       tip_last_loop_starts   = [start index of the last full period]
+%       tip_ends             = [numel(Hmod)]  (so "Last period only" slices it)
 %       vertices            = the per-period extrema field values used
 
-    if nargin < 11 || isempty(samplesPerPeriod)
-        samplesPerPeriod = 4000;
+    if nargin < 11 || isempty(samples_per_period)
+        samples_per_period = 4000;
     end
     if nargin < 10
         opts = [];
     end
-    if nargin < 9 || isempty(relTol)
-        relTol = 1e-3;
+    if nargin < 9 || isempty(rel_tol)
+        rel_tol = 1e-3;
     end
     if nargin < 8 || isempty(repetitions)
         repetitions = 1;
@@ -50,21 +50,21 @@ function [Hmod, Mmod, info] = solveJA_majorHarmonics_playground( ...
         opts = odeset('RelTol', 1e-7, 'AbsTol', 1e-6);
     end
 
-    stopCriterion = string(stopCriterion);
+    stop_criterion = string(stop_criterion);
     repetitions   = max(0, round(repetitions));
-    relTol        = max(relTol, 0);
-    samplesPerPeriod = max(64, round(samplesPerPeriod));
+    rel_tol        = max(rel_tol, 0);
+    samples_per_period = max(64, round(samples_per_period));
 
     orders     = double(orders(:));
     amplitudes = double(amplitudes(:));
     phases     = double(phases(:));
 
     if ~(isscalar(Hstart) && isfinite(Hstart) && isscalar(Mstart) && isfinite(Mstart))
-        error('solveJA_majorHarmonics_playground:InvalidInputs', ...
+        error('solve_ja_major_harmonics_playground:InvalidInputs', ...
             'Hstart and Mstart must be finite scalars.');
     end
     if isempty(orders) || numel(orders) ~= numel(amplitudes) || numel(orders) ~= numel(phases)
-        error('solveJA_majorHarmonics_playground:InvalidHarmonics', ...
+        error('solve_ja_major_harmonics_playground:InvalidHarmonics', ...
             'orders, amplitudes and phases must be non-empty vectors of equal length.');
     end
     valid = isfinite(orders) & isfinite(amplitudes) & isfinite(phases) & orders >= 1;
@@ -72,33 +72,33 @@ function [Hmod, Mmod, info] = solveJA_majorHarmonics_playground( ...
     amplitudes = amplitudes(valid);
     phases     = phases(valid);
     if isempty(orders) || ~any(abs(amplitudes) > 0)
-        error('solveJA_majorHarmonics_playground:InvalidHarmonics', ...
+        error('solve_ja_major_harmonics_playground:InvalidHarmonics', ...
             'At least one harmonic with a non-zero amplitude and integer order >= 1 is required.');
     end
 
     info = struct( ...
         'mode', "Major Loop Harmonics", ...
-        'startMode', "", ...
-        'stopCriterion', stopCriterion, ...
-        'cyclesSimulated', 0, ...
+        'start_mode', "", ...
+        'stop_criterion', stop_criterion, ...
+        'cycles_simulated', 0, ...
         'converged', false, ...
-        'branchStarts', [], ...
-        'tipLastLoopStarts', [], ...
-        'tipEnds', [], ...
+        'branch_starts', [], ...
+        'tip_last_loop_starts', [], ...
+        'tip_ends', [], ...
         'vertices', []);
 
     % --- per-period turning points (local extrema of the periodic waveform) ---
-    pv = localPeriodVertices(orders, amplitudes, phases, samplesPerPeriod);
+    pv = local_period_vertices(orders, amplitudes, phases, samples_per_period);
     info.vertices = pv;
     if numel(pv) < 2
-        error('solveJA_majorHarmonics_playground:DegenerateWaveform', ...
+        error('solve_ja_major_harmonics_playground:DegenerateWaveform', ...
             'The harmonic waveform has fewer than two turning points; check the amplitudes.');
     end
 
-    segmentsH = {};
-    segmentsM = {};
-    branchStarts = [];
-    nextStartIndex = 1;
+    segments_H = {};
+    segments_M = {};
+    branch_starts = [];
+    next_start_index = 1;
 
     % --- bridge from the start point to the first turning point -------------
     delta0 = sign(pv(1) - Hstart);
@@ -106,106 +106,106 @@ function [Hmod, Mmod, info] = solveJA_majorHarmonics_playground( ...
         delta0 = sign(pv(2) - pv(1));
         if delta0 == 0, delta0 = 1; end
     end
-    [Hseg, Mseg] = solveJA_monotonic(Hstart, pv(1), Mstart, params, delta0, opts);
-    segmentsH{end + 1} = Hseg;   %#ok<AGROW>
-    segmentsM{end + 1} = Mseg;   %#ok<AGROW>
-    nextStartIndex = nextStartIndex + numel(Hseg) - 1;
-    currentM = Mseg(end);
-    currentH = pv(1);
+    [Hseg, Mseg] = solve_ja_monotonic(Hstart, pv(1), Mstart, params, delta0, opts);
+    segments_H{end + 1} = Hseg;   %#ok<AGROW>
+    segments_M{end + 1} = Mseg;   %#ok<AGROW>
+    next_start_index = next_start_index + numel(Hseg) - 1;
+    current_M = Mseg(end);
+    current_H = pv(1);
 
     % Targets traversed within one period, starting and ending at pv(1):
     %   pv(2), pv(3), ..., pv(end), pv(1)
-    periodTargets = [pv(2:end); pv(1)];
+    period_targets = [pv(2:end); pv(1)];
 
-    previousPeriodM = currentM;
-    maxPeriods = max(1, repetitions);
-    if stopCriterion == "Until convergence"
+    previous_period_M = current_M;
+    max_periods = max(1, repetitions);
+    if stop_criterion == "Until convergence"
         % With the convergence criterion, the simulation keeps going until
         % the magnetization at the period-start vertex stops changing from one
         % period to the next. This is a practical steady-state check for
         % periodic forcing: if the loop has settled, the next period is almost
         % identical to the previous one.
-        maxPeriods = max(maxPeriods, 100);
+        max_periods = max(max_periods, 100);
     end
 
-    for period = 1:maxPeriods
-        if stopCriterion ~= "Until convergence" && period > repetitions
+    for period = 1:max_periods
+        if stop_criterion ~= "Until convergence" && period > repetitions
             break;
         end
 
         % index of the pv(1) boundary at which this period begins
-        branchStarts(end + 1) = nextStartIndex; %#ok<AGROW>
+        branch_starts(end + 1) = next_start_index; %#ok<AGROW>
 
-        for t = 1:numel(periodTargets)
-            target = periodTargets(t);
-            delta = sign(target - currentH);
+        for t = 1:numel(period_targets)
+            target = period_targets(t);
+            delta = sign(target - current_H);
             if delta == 0
                 continue;   % zero-length leg, skip
             end
-            [Hseg, Mseg] = solveJA_monotonic(currentH, target, currentM, params, delta, opts);
-            segmentsH{end + 1} = Hseg;   %#ok<AGROW>
-            segmentsM{end + 1} = Mseg;   %#ok<AGROW>
-            nextStartIndex = nextStartIndex + numel(Hseg) - 1;
-            currentM = Mseg(end);
-            currentH = target;
+            [Hseg, Mseg] = solve_ja_monotonic(current_H, target, current_M, params, delta, opts);
+            segments_H{end + 1} = Hseg;   %#ok<AGROW>
+            segments_M{end + 1} = Mseg;   %#ok<AGROW>
+            next_start_index = next_start_index + numel(Hseg) - 1;
+            current_M = Mseg(end);
+            current_H = target;
         end
 
-        info.cyclesSimulated = period;
+        info.cycles_simulated = period;
 
-        if stopCriterion == "Until convergence"
-            relBase = max(abs(previousPeriodM), eps);
-            if abs(currentM - previousPeriodM) / relBase < relTol
+        if stop_criterion == "Until convergence"
+            rel_base = max(abs(previous_period_M), eps);
+            if abs(current_M - previous_period_M) / rel_base < rel_tol
                 info.converged = true;
                 break;
             end
-            previousPeriodM = currentM;
+            previous_period_M = current_M;
         end
     end
 
-    [Hmod, Mmod] = localConcatSegments(segmentsH, segmentsM);
+    [Hmod, Mmod] = local_concat_segments(segments_H, segments_M);
 
     if isempty(Hmod)
         Hmod = Hstart;
-        Mmod = currentM;
-        branchStarts = 1;
+        Mmod = current_M;
+        branch_starts = 1;
     end
 
-    info.branchStarts = branchStarts;
+    info.branch_starts = branch_starts;
 
     % "Last period only" support: the last full period is the segment from the
     % last recorded period boundary through to the end of the trajectory.
-    if info.cyclesSimulated > 0 && ~isempty(branchStarts)
-        info.tipLastLoopStarts = branchStarts(end);
-        info.tipEnds = numel(Hmod);
+    if info.cycles_simulated > 0 && ~isempty(branch_starts)
+        info.tip_last_loop_starts = branch_starts(end);
+        info.tip_ends = numel(Hmod);
     else
-        info.tipLastLoopStarts = [];
-        info.tipEnds = [];
+        info.tip_last_loop_starts = [];
+        info.tip_ends = [];
     end
 end
 
 % -------------------------------------------------------------------------
-function pv = localPeriodVertices(orders, amplitudes, phases, N)
+function pv = local_period_vertices(orders, amplitudes, phases, N)
 %LOCALPERIODVERTICES Field values at the local extrema of the periodic drive.
 %   Returns the extrema in the order they are encountered as theta increases
 %   from 0, using a dense grid over one period with cyclic neighbour tests so
 %   extrema sitting on the 0/2*pi boundary are captured.
     theta = linspace(0, 2*pi, N + 1);
     theta = theta(1:end - 1);          % N points over [0, 2*pi)
-    H = localWaveform(theta, orders, amplitudes, phases);
+    H = local_waveform(theta, orders, amplitudes, phases);
 
-    prevH = H([end, 1:end - 1]);       % cyclic shift (H at theta - dtheta)
-    nextH = H([2:end, 1]);             % cyclic shift (H at theta + dtheta)
+    prev_H = H([end, 1:end - 1]);       % cyclic shift (H at theta - dtheta)
+    next_H = H([2:end, 1]);             % cyclic shift (H at theta + dtheta)
 
-    isMax = (H > prevH) & (H >= nextH);
-    isMin = (H < prevH) & (H <= nextH);
-    isVertex = isMax | isMin;
+    is_max = (H > prev_H) & (H >= next_H);
+    is_min = (H < prev_H) & (H <= next_H);
+    is_vertex = is_max | is_min;
 
-    pv = H(isVertex);
+    pv = H(is_vertex);
     pv = pv(:);
 end
 
 % -------------------------------------------------------------------------
-function H = localWaveform(theta, orders, amplitudes, phases)
+function H = local_waveform(theta, orders, amplitudes, phases)
     theta = theta(:).';
     H = zeros(size(theta));
     for j = 1:numel(orders)
@@ -214,16 +214,16 @@ function H = localWaveform(theta, orders, amplitudes, phases)
 end
 
 % -------------------------------------------------------------------------
-function [Hout, Mout] = localConcatSegments(segmentsH, segmentsM)
+function [Hout, Mout] = local_concat_segments(segments_H, segments_M)
     Hout = [];
     Mout = [];
-    for i = 1:numel(segmentsH)
+    for i = 1:numel(segments_H)
         if isempty(Hout)
-            Hout = segmentsH{i};
-            Mout = segmentsM{i};
+            Hout = segments_H{i};
+            Mout = segments_M{i};
         else
-            Hout = [Hout; segmentsH{i}(2:end)]; %#ok<AGROW>
-            Mout = [Mout; segmentsM{i}(2:end)]; %#ok<AGROW>
+            Hout = [Hout; segments_H{i}(2:end)]; %#ok<AGROW>
+            Mout = [Mout; segments_M{i}(2:end)]; %#ok<AGROW>
         end
     end
 end

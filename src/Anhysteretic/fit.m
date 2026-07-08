@@ -1,6 +1,6 @@
-function [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub, select_fit, outputFcn)
+function [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub, select_fit, output_fcn)
     if nargin < 9
-        outputFcn = [];
+        output_fcn = [];
     end
     [HTip, ~] = Utils().find_tip(data_curve.H, data_curve.M);
     Hhat = logspace(log10(data_curve.H(2)),log10(HTip),N);
@@ -62,8 +62,8 @@ function [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub,
     end
 
     options = optimset('MaxIter', 2000, 'MaxFunEvals', 1e4); % Increase iterations and evaluations
-    if ~isempty(outputFcn)
-        options = optimset(options, 'OutputFcn', outputFcn);
+    if ~isempty(output_fcn)
+        options = optimset(options, 'OutputFcn', output_fcn);
     end
     params = minimize(@fit_parameters, seed, [],[], [],[], lb , ub, [], options);
 

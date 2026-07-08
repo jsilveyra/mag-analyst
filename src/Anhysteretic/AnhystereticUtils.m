@@ -27,7 +27,7 @@ classdef AnhystereticUtils
             app.magnetic_parameters = MagneticParameters(app.data_curve, app.Hcr, app.mcr, app.Hx, select_a);
 
 
-            error_type = string(app.ErrortominimizeDropDown.Value);
+            error_type = string(app.ErrorDropDown.Value);
             if (error_type == "Diagonal (H, sampled)")
                 error_calculator = DiagonalErrorCalculator(app.data_curve, app.modeled_curve, false, false);
             elseif (error_type == "Diagonal (H, continuous)")
@@ -123,8 +123,8 @@ classdef AnhystereticUtils
             pause(0.01);
             tic
             try
-                outputFcn = @(x, optimValues, state) app.fit_stop_output_fcn(x, optimValues, state);
-                [app.Hcr, app.mcr, app.Hx] = fit(app.data_curve, cat(2, app.Hcr, app.mcr, app.Hx), N, select_a, app.ErrortominimizeDropDown.Value, fit_lb, fit_ub, fit_select_fit, outputFcn);
+                output_fcn = @(x, optimValues, state) app.fit_stop_output_fcn(x, optimValues, state);
+                [app.Hcr, app.mcr, app.Hx] = fit(app.data_curve, cat(2, app.Hcr, app.mcr, app.Hx), N, select_a, app.ErrorDropDown.Value, fit_lb, fit_ub, fit_select_fit, output_fcn);
                 t = sprintf("%0.2f", toc);
                 if app.stop_fit_requested
                     app.write_message("Fitting stopped by user after " + t + " s");

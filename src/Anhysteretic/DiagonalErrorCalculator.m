@@ -1,6 +1,6 @@
 classdef DiagonalErrorCalculator < ErrorCalculator
 %DIAGONALERRORCALCULATOR  Point-to-curve (perpendicular) fit error.
-%   DiagonalErrorCalculator(data_curve, modeled_curve, useLogH, continuous)
+%   DiagonalErrorCalculator(data_curve, modeled_curve, use_log_H, continuous)
 %   measures the RMS perpendicular distance from each data point to the
 %   modeled curve, in either the (logH, M) or (H, M) plane. continuous=true
 %   uses distance2curve for a true point-to-curve distance; false falls
