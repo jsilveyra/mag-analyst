@@ -124,40 +124,40 @@ classdef app_exported < matlab.apps.AppBase
         CheckBox_2                      matlab.ui.control.CheckBox
         CheckBox                        matlab.ui.control.CheckBox
         FitLabel                        matlab.ui.control.Label
-        UpperboundLabel                 matlab.ui.control.Label
-        LowerboundLabel                 matlab.ui.control.Label
         kUpper_JA                       matlab.ui.control.NumericEditField
+        UpperboundLabel                 matlab.ui.control.Label
         kLower_JA                       matlab.ui.control.NumericEditField
+        LowerboundLabel                 matlab.ui.control.Label
         cUpper_JA                       matlab.ui.control.NumericEditField
         cLower_JA                       matlab.ui.control.NumericEditField
         alphaUpper_JA                   matlab.ui.control.NumericEditField
         alphaLower_JA                   matlab.ui.control.NumericEditField
         aUpper_JA                       matlab.ui.control.NumericEditField
         aLower_JA                       matlab.ui.control.NumericEditField
+        Mtip                            matlab.ui.control.NumericEditField
         MsUpper_JA                      matlab.ui.control.NumericEditField
         MsLower_JA                      matlab.ui.control.NumericEditField
-        Mtip                            matlab.ui.control.NumericEditField
         JsTEditFieldLabel_8             matlab.ui.control.Label
+        Htip                            matlab.ui.control.NumericEditField
         ResidualplotButtondMdH_2        matlab.ui.control.Button
         ShowgridCheckBoxM_2             matlab.ui.control.CheckBox
-        Htip                            matlab.ui.control.NumericEditField
         JsTEditFieldLabel_7             matlab.ui.control.Label
+        ErrorDisplay_2                  matlab.ui.control.NumericEditField
         DrivingfieldLabel               matlab.ui.control.Label
         RetrieveseedsButton             matlab.ui.control.Button
-        ErrorDisplay_2                  matlab.ui.control.NumericEditField
         ErrortominimizeDropDown_2       matlab.ui.control.DropDown
         ErrortominimizeDropDownLabel_2  matlab.ui.control.Label
+        k_JA                            matlab.ui.control.NumericEditField
         CalculatePlotButton_2           matlab.ui.control.Button
         FitButton_2                     matlab.ui.control.Button
-        k_JA                            matlab.ui.control.NumericEditField
-        JsTEditFieldLabel_6             matlab.ui.control.Label
         c_JA                            matlab.ui.control.NumericEditField
-        JsTEditFieldLabel_5             matlab.ui.control.Label
+        JsTEditFieldLabel_6             matlab.ui.control.Label
         alpha_JA                        matlab.ui.control.NumericEditField
-        JsTEditFieldLabel_4             matlab.ui.control.Label
+        JsTEditFieldLabel_5             matlab.ui.control.Label
         a_JA                            matlab.ui.control.NumericEditField
-        JsTEditFieldLabel_3             matlab.ui.control.Label
+        JsTEditFieldLabel_4             matlab.ui.control.Label
         Ms_JA                           matlab.ui.control.NumericEditField
+        JsTEditFieldLabel_3             matlab.ui.control.Label
         JsTEditFieldLabel_2             matlab.ui.control.Label
         ModelparametersLabel            matlab.ui.control.Label
         JilesAthertonmodelrateindependentLabel  matlab.ui.control.Label
@@ -439,43 +439,7 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         function plot_playground(app)
-            ax = app.AxesM_5;
-            cla(ax, 'reset');
-            hold(ax, 'on');
-            
-            [H_label, M_label] = app.get_playground_axis_units();
-            if app.ShowgridCheckBoxM_4.Value == 1
-                [H_plot, M_plot, has_data] = app.get_playground_data_curve();
-                if has_data
-                    [H_plot, M_plot] = app.convert_playground_curve_units( ...
-                        H_plot, M_plot, ...
-                        "H [A/m]", "M [A/m]", ...
-                        H_label, M_label);
-                    plot(ax, H_plot, M_plot, '.', 'Color', [0 0 0], 'LineWidth', 1.0, 'MarkerSize', 7, 'DisplayName', 'Measured');
-                else
-                    app.write_message("Warning: No input curve is available to plot in Playground.");
-                end
-            end
-
-            [H_sim, M_sim, has_sim] = PlaygroundUtils.get_simulation_curve(app);
-            if has_sim
-                [H_sim, M_sim] = app.convert_playground_curve_units( ...
-                    H_sim, M_sim, ...
-                    "H [A/m]", "M [A/m]", ...
-                    H_label, M_label);
-                plot(ax, H_sim, M_sim, 'r-', 'LineWidth', 1.2, 'DisplayName', 'JA simulated');
-            end
-
-            xline(ax, 0, 'k-', 'LineWidth', 1.2);
-            yline(ax, 0, 'k-', 'LineWidth', 1.2);
-            app.apply_detailed_grid(ax, app.ShowgridCheckBoxM_5.Value == 1);
-
-            xlabel(ax, H_label);
-            ylabel(ax, M_label);
-            box(ax, 'on');
-            ax.LineWidth = 1.2;
-            legend(ax, 'off');
-            hold(ax, 'off');
+            PlaygroundUtils.plot_playground(app);
         end
 
         function apply_detailed_grid(app, ax, show_grid)
@@ -497,34 +461,7 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         function sync_playground_mode_ui(app)
-            mode = lower(string(app.HcaseDropDown.Value));
-
-            if contains(mode, "harmonic")
-                app.MajorloopPanel.Visible = 'off';
-                app.MinorloopPanel.Visible = 'off';
-                app.DegaussingPanel.Visible = 'off';
-                app.MajorloopwithharmonicsPanel.Visible = 'on';
-            elseif contains(mode, "major loop")
-                app.MajorloopPanel.Visible = 'on';
-                app.MinorloopPanel.Visible = 'off';
-                app.DegaussingPanel.Visible = 'off';
-                app.MajorloopwithharmonicsPanel.Visible = 'off';
-            elseif contains(mode, "minor loop")
-                app.MajorloopPanel.Visible = 'off';
-                app.MinorloopPanel.Visible = 'on';
-                app.DegaussingPanel.Visible = 'off';
-                app.MajorloopwithharmonicsPanel.Visible = 'off';
-            elseif contains(mode, "degaussing")
-                app.MajorloopPanel.Visible = 'off';
-                app.MinorloopPanel.Visible = 'off';
-                app.DegaussingPanel.Visible = 'on';
-                app.MajorloopwithharmonicsPanel.Visible = 'off';
-            else
-                app.MajorloopPanel.Visible = 'on';
-                app.MinorloopPanel.Visible = 'on';
-                app.DegaussingPanel.Visible = 'on';
-                app.MajorloopwithharmonicsPanel.Visible = 'on';
-            end
+            PlaygroundUtils.sync_playground_mode_ui(app);
         end
 
         function apply_axis_scale(app, ax, selection)
@@ -834,220 +771,50 @@ classdef app_exported < matlab.apps.AppBase
     methods (Access = public)
         
         function [H_unit, M_unit] = get_playground_axis_units(app)
-            H_unit = string(app.HorizontalaxisfieldDropDown_2.Value);
-            M_unit = string(app.VerticalaxisfieldDropDown_2.Value);
+            [H_unit, M_unit] = PlaygroundUtils.get_playground_axis_units(app);
         end
 
         function values = get_minor_loop_default_values(app)
-            % MOD: default Htip_i are derived from the measured-curve tip
-            % (Htip, Htip*2/3, Htip*1/3) when data is available; otherwise
-            % fall back to a plain 1/2/3 placeholder. Display order is
-            % cosmetic: the solver sorts the tips ascending and simulates
-            % the smallest tip first.
-            [Htip, ~, ok] = PlaygroundUtils.get_data_tip(app);
-            if ok && isfinite(Htip) && Htip > 0
-                values = [Htip; Htip*2/3; Htip*1/3; NaN];
-            else
-                values = [1; 2; 3; NaN];
-            end
+            values = PlaygroundUtils.get_minor_loop_default_values(app);
         end
 
         function configure_minor_loop_table(app)
-            if ~isprop(app, 'UITable') || isempty(app.UITable) || ~isvalid(app.UITable)
-                return;
+            PlaygroundUtils.configure_minor_loop_table(app);
+            if isprop(app, 'UITable') && ~isempty(app.UITable) && isvalid(app.UITable)
+                app.UITable.CellEditCallback = createCallbackFcn(app, @UITableCellEdit, true);
             end
-
-            app.UITable.SelectionType = 'cell';
-            app.UITable.ColumnEditable = [true];
-            app.UITable.ColumnFormat = {'short g'};
-            app.UITable.Data = app.get_minor_loop_default_values();
-            app.minor_loop_table_user_edited = false;   % MOD: table now holds untouched defaults
-            app.UITable.CellEditCallback = createCallbackFcn(app, @UITableCellEdit, true);
         end
 
         function maybe_refresh_minor_loop_defaults(app)
-            % MOD: re-fill the Htip_i table with data-tip-based defaults, but
-            % only while the user has not manually edited it (so we never
-            % clobber user-entered tip fields).
-            if ~isprop(app, 'UITable') || isempty(app.UITable) || ~isvalid(app.UITable)
-                return;
-            end
-            if app.minor_loop_table_user_edited
-                return;
-            end
-            app.UITable.Data = app.get_minor_loop_default_values();
-            app.minor_loop_table_user_edited = false;
+            PlaygroundUtils.maybe_refresh_minor_loop_defaults(app);
         end
 
         function expand_minor_loop_table_if_needed(app, event)
-            if nargin < 2 || isempty(event) || ~isprop(app, 'UITable') || isempty(app.UITable) || ~isvalid(app.UITable)
-                return;
-            end
-
-            if ~isprop(event, 'Indices') || isempty(event.Indices) || ~isprop(event, 'NewData')
-                return;
-            end
-
-            row = event.Indices(1);
-            newValue = event.NewData;
-            if ~(isscalar(row) && isfinite(row) && row >= 1 && isfinite(newValue) && newValue > 0)
-                return;
-            end
-
-            data = app.UITable.Data;
-            if isempty(data) || ~isnumeric(data)
-                return;
-            end
-
-            data = data(:);
-            if row == numel(data)
-                app.UITable.Data = [data; NaN];
-            end
+            PlaygroundUtils.expand_minor_loop_table_if_needed(app, event);
         end
 
         function refresh_playground_data_curve(app)
-            app.playground_curve_H = [];
-            app.playground_curve_M = [];
-            app.playground_curve_ready = false;
-
-            if isempty(app.H_raw) || isempty(app.M_raw)
-                return;
-            end
-
-            if app.is_last_import_anhysteretic()
-                H_plot = app.data_curve.H(:).';
-                M_plot = app.data_curve.M(:).';
-            else
-                [H_plot, M_plot] = app.build_ja_data_cycle();
-            end
-
-            if ~isempty(H_plot) && ~isempty(M_plot) && numel(H_plot) >= 2 && numel(M_plot) >= 2
-                app.playground_curve_H = H_plot;
-                app.playground_curve_M = M_plot;
-                app.playground_curve_ready = true;
-            end
+            PlaygroundUtils.refresh_playground_data_curve(app);
         end
 
         function [H_plot, M_plot, has_data] = get_playground_data_curve(app)
-            if ~app.playground_curve_ready
-                app.refresh_playground_data_curve();
-            end
-
-            H_plot = app.playground_curve_H;
-            M_plot = app.playground_curve_M;
-            has_data = app.playground_curve_ready && ~isempty(H_plot) && ~isempty(M_plot) ...
-                && numel(H_plot) >= 2 && numel(M_plot) >= 2;
+            [H_plot, M_plot, has_data] = PlaygroundUtils.get_playground_data_curve(app);
         end
 
         function [H_out, M_out] = convert_playground_curve_units(app, H_in, M_in, H_source_unit, M_source_unit, H_target_unit, M_target_unit)
-            uc = UnitConvertor();
-            H_source_unit = string(H_source_unit);
-            M_source_unit = string(M_source_unit);
-            H_target_unit = string(H_target_unit);
-            M_target_unit = string(M_target_unit);
-
-            H_source_factor = uc.UnitConversions(H_source_unit);
-            H_target_factor = uc.UnitConversions(H_target_unit);
-            M_source_factor = uc.UnitConversions(M_source_unit);
-            M_target_factor = uc.UnitConversions(M_target_unit);
-
-            H_base = H_in .* H_source_factor;
-            H_out = H_base ./ H_target_factor;
-
-            source_is_B = M_source_unit == "B [T]" || M_source_unit == "B [G]" || M_source_unit == "B [kG]";
-            target_is_B = M_target_unit == "B [T]" || M_target_unit == "B [G]" || M_target_unit == "B [kG]";
-
-            if source_is_B
-                M_base = (M_in .* M_source_factor) - H_base;
-            else
-                M_base = M_in .* M_source_factor;
-            end
-
-            if target_is_B
-                M_out = (M_base + H_base) ./ M_target_factor;
-            else
-                M_out = M_base ./ M_target_factor;
-            end
+            [H_out, M_out] = PlaygroundUtils.convert_playground_curve_units(app, H_in, M_in, H_source_unit, M_source_unit, H_target_unit, M_target_unit);
         end
 
         function [Htips, ok] = get_minor_loop_inputs(app)
-            Htips = [];
-            ok = false;
-
-            if ~isprop(app, 'UITable') || isempty(app.UITable) || ~isvalid(app.UITable)
-                return;
-            end
-
-            raw = [];
-            if isprop(app.UITable, 'Data')
-                raw = app.UITable.Data;
-            elseif isprop(app.UITable, 'Value')
-                raw = app.UITable.Value;
-            end
-
-            if isempty(raw)
-                return;
-            end
-
-            if isnumeric(raw)
-                values = raw(:);
-            else
-                raw = string(raw);
-                
-                tokens = split(strjoin(raw(:).', newline), {newline, ",", ";", " "});
-                tokens = tokens(strlength(strtrim(tokens)) > 0);
-                values = str2double(replace(strtrim(tokens), ",", ""));
-            end
-
-            values = values(isfinite(values) & values > 0);
-            if isempty(values)
-                return;
-            end
-
-            Htips = sort(values(:), 'ascend');
-            ok = true;
+            [Htips, ok] = PlaygroundUtils.get_minor_loop_inputs(app);
         end
 
         function run_playground_minor_loop(app)
-            failure_message = "The magnetization path cannot be computed with the current initial condition M(Hstart) and model parameters.";
-            try
-                [params, ok_params] = PlaygroundUtils.get_playground_params(app);
-                if ~ok_params
-                    PlaygroundUtils.clear_simulation(app);
-                    app.plot_playground();
-                    app.write_message(failure_message);
-                    return;
-                end
+            PlaygroundUtils.run_playground_minor_loop(app);
+        end
 
-                [Htips, ok_inputs] = app.get_minor_loop_inputs();
-                if ~ok_inputs
-                    PlaygroundUtils.clear_simulation(app);
-                    app.plot_playground();
-                    app.write_message(failure_message);
-                    return;
-                end
-                PlaygroundUtils.sync_minor_ui(app);
-
-                app.write_message("Calculate & Plot started");
-                pause(0.01);
-                calc_timer = tic;
-
-                [Hsim, Msim, info] = solveJA_minorLoop_playground( ...
-                    Htips, params, ...
-                    string(app.StopcriterionDropDown_4.Value), ...
-                    app.RepetitionsEditField_2.Value, ...
-                    app.ReltoleranceEditField_5.Value, ...
-                    odeset('RelTol', 1e-7, 'AbsTol', 1e-6));
-                info.status = "ok";
-                PlaygroundUtils.set_simulation(app, Hsim, Msim, info);
-                app.plot_playground();
-                t = sprintf("%0.2f", toc(calc_timer));
-                app.write_message("Calculate & Plot finished after " + t + " s");
-            catch
-                PlaygroundUtils.clear_simulation(app);
-                app.plot_playground();
-                app.write_message(failure_message);
-            end
+        function run_playground_major_loop(app)
+            PlaygroundUtils.run_playground_major_loop(app);
         end
 
         % =====================================================
@@ -1055,361 +822,62 @@ classdef app_exported < matlab.apps.AppBase
         % =====================================================
 
         function [Mr, ok] = get_data_remanence(app)
-            % MOD: retrieve the remanence M(H=0)=Mr from the measured
-            % hysteresis loop. The upper (descending) branch is extracted from
-            % the raw data (converted to A/m) and M is interpolated at H = 0
-            % with interp1. Only available when a hysteretic dataset has been
-            % imported; an anhysteretic import carries no hysteresis loop.
-            Mr = NaN;
-            ok = false;
-
-            if isempty(app.H_raw) || isempty(app.M_raw) || app.is_last_import_anhysteretic()
-                return;
-            end
-
-            try
-                H_unit = app.HorizontalaxisfieldDropDown.Value;
-                M_unit = app.VerticalaxisfieldDropDown.Value;
-                [H_conv, M_conv] = UnitConvertor().convert_H_M(app.H_raw, H_unit, app.M_raw, M_unit);
-
-                % Upper (descending) branch, from the +tip corner through H=0
-                % down to the -tip corner, in base units (A/m).
-                [H_up, M_up] = app.extract_left_branch_uniform_arc(H_conv, M_conv, []);
-
-                H_up = H_up(:);
-                M_up = M_up(:);
-                valid = isfinite(H_up) & isfinite(M_up);
-                H_up = H_up(valid);
-                M_up = M_up(valid);
-                if numel(H_up) < 2 || min(H_up) > 0 || max(H_up) < 0
-                    return;
-                end
-
-                % interp1 needs distinct sample points: sort by H and drop dups.
-                [H_sorted, idx] = unique(H_up);
-                M_sorted = M_up(idx);
-                Mr = interp1(H_sorted, M_sorted, 0, 'linear');
-                ok = isfinite(Mr);
-            catch
-                Mr = NaN;
-                ok = false;
-            end
+            [Mr, ok] = PlaygroundUtils.get_data_remanence(app);
         end
 
         function [amps, ok] = get_degaussing_amplitudes_auto(app)
-            % MOD: build the automatic decaying degaussing envelope from the
-            % user's N-of-steps, initial and final amplitude settings. A
-            % geometric (exponential) decay is used when both amplitudes are
-            % positive, which matches the physical AC-demagnetization envelope;
-            % otherwise a linear ramp is used.
-            amps = [];
-            ok = false;
-
-            N = round(app.NofstepsEditField.Value);
-            A0 = app.InitialamplitudeAmEditField.Value;
-            Af = app.FinalamplitudeAmEditField.Value;
-
-            if ~isfinite(N) || N < 1 || ~isfinite(A0) || A0 <= 0 || ~isfinite(Af) || Af < 0
-                return;
-            end
-
-            if N == 1
-                amps = A0;
-            elseif A0 > 0 && Af > 0
-                amps = logspace(log10(A0), log10(Af), N);
-            else
-                amps = linspace(A0, Af, N);
-            end
-
-            amps = amps(isfinite(amps) & amps > 0);
-            amps = sort(amps(:), 'descend');
-            ok = ~isempty(amps);
+            [amps, ok] = PlaygroundUtils.get_degaussing_amplitudes_auto(app);
         end
 
         function [amps, ok] = get_degaussing_table_inputs(app)
-            % MOD: read the user-defined Htip_i amplitude table (UITable_3) and
-            % return the reversal amplitudes sorted in descending order (largest
-            % swing first) so they form a decaying degaussing envelope.
-            amps = [];
-            ok = false;
-
-            if ~isprop(app, 'UITable_3') || isempty(app.UITable_3) || ~isvalid(app.UITable_3)
-                return;
-            end
-
-            raw = [];
-            if isprop(app.UITable_3, 'Data')
-                raw = app.UITable_3.Data;
-            elseif isprop(app.UITable_3, 'Value')
-                raw = app.UITable_3.Value;
-            end
-
-            if isempty(raw)
-                return;
-            end
-
-            if isnumeric(raw)
-                values = raw(:);
-            else
-                raw = string(raw);
-                tokens = split(strjoin(raw(:).', newline), {newline, ",", ";", " "});
-                tokens = tokens(strlength(strtrim(tokens)) > 0);
-                values = str2double(replace(strtrim(tokens), ",", ""));
-            end
-
-            values = values(isfinite(values) & values > 0);
-            if isempty(values)
-                return;
-            end
-
-            amps = sort(values(:), 'descend');
-            ok = true;
+            [amps, ok] = PlaygroundUtils.get_degaussing_table_inputs(app);
         end
 
         function values = get_degaussing_default_table_values(app)
-            % MOD: default Htip_i amplitudes derived from the measured-curve tip
-            % (Htip, Htip*2/3, Htip*1/3) when data is available; otherwise a
-            % plain placeholder. Display order is cosmetic — the solver sorts
-            % the amplitudes descending.
-            [Htip, ~, ok] = PlaygroundUtils.get_data_tip(app);
-            if ok && isfinite(Htip) && Htip > 0
-                values = [Htip; Htip*2/3; Htip*1/3; NaN];
-            else
-                values = [3; 2; 1; NaN];
-            end
+            values = PlaygroundUtils.get_degaussing_default_table_values(app);
         end
 
         function configure_degaussing_table(app)
-            % MOD: initialise the Degaussing user-defined amplitude table.
-            if ~isprop(app, 'UITable_3') || isempty(app.UITable_3) || ~isvalid(app.UITable_3)
-                return;
+            PlaygroundUtils.configure_degaussing_table(app);
+            if isprop(app, 'UITable_3') && ~isempty(app.UITable_3) && isvalid(app.UITable_3)
+                app.UITable_3.CellEditCallback = createCallbackFcn(app, @DegaussingTableCellEdit, true);
             end
-
-            app.UITable_3.SelectionType = 'cell';
-            app.UITable_3.ColumnEditable = [true];
-            app.UITable_3.ColumnFormat = {'short g'};
-            app.UITable_3.Data = app.get_degaussing_default_table_values();
-            app.degaussing_user_edited = false;
-            app.UITable_3.CellEditCallback = createCallbackFcn(app, @DegaussingTableCellEdit, true);
         end
 
         function maybe_refresh_degaussing_defaults(app)
-            % MOD: re-fill the Degaussing amplitude settings (N of steps,
-            % initial = Htip, final = 0.02*Htip) and the amplitude table with
-            % data-tip-based defaults, but only while the user has not manually
-            % edited them (mirrors the minor-loop default behaviour).
-            if app.degaussing_user_edited
-                return;
-            end
-
-            [Htip, ~, ok] = PlaygroundUtils.get_data_tip(app);
-            if ok && isfinite(Htip) && Htip > 0
-                app.NofstepsEditField.Value = 10;
-                app.InitialamplitudeAmEditField.Value = Htip;
-                app.FinalamplitudeAmEditField.Value = 0.02 * Htip;
-            end
-
-            if isprop(app, 'UITable_3') && ~isempty(app.UITable_3) && isvalid(app.UITable_3)
-                app.UITable_3.Data = app.get_degaussing_default_table_values();
-            end
+            PlaygroundUtils.maybe_refresh_degaussing_defaults(app);
         end
 
         function sync_degaussing_ui(app)
-            % MOD: enable/disable and populate the Degaussing controls according
-            % to the selected starting-point and H-amplitude options.
-            if ~PlaygroundUtils.is_degaussing_mode(app)
-                return;
-            end
-
-            start_mode = lower(string(app.StartingpointDropDown_3.Value));
-            if contains(start_mode, "remanence")
-                [Mr, ok_r] = app.get_data_remanence();
-                app.HstartAmEditField_2.Value = 0;
-                if ok_r
-                    app.MstartAmEditField_2.Value = Mr;
-                else
-                    app.MstartAmEditField_2.Value = 0;
-                end
-                app.set_degaussing_start_enable('off');
-            elseif contains(start_mode, "tip")
-                [Htip, Mtip, ok_t] = PlaygroundUtils.get_data_tip(app);
-                if ok_t
-                    app.HstartAmEditField_2.Value = Htip;
-                    app.MstartAmEditField_2.Value = Mtip;
-                else
-                    app.HstartAmEditField_2.Value = 0;
-                    app.MstartAmEditField_2.Value = 0;
-                end
-                app.set_degaussing_start_enable('off');
-            else
-                app.set_degaussing_start_enable('on');
-            end
-
-            amp_mode = lower(string(app.HamplitudeDropDown.Value));
-            if contains(amp_mode, "automatic")
-                app.set_degaussing_auto_enable('on');
-                app.set_degaussing_table_enable('off');
-            else
-                app.set_degaussing_auto_enable('off');
-                app.set_degaussing_table_enable('on');
-            end
+            PlaygroundUtils.sync_degaussing_ui(app);
         end
 
         function set_degaussing_start_enable(app, state)
-            app.set_enable_safe(app.MstartAmEditField_2, state);
-            app.set_enable_safe(app.HstartAmEditField_2, state);
-            app.set_enable_safe(app.MstartAmEditField_2Label, state);
-            app.set_enable_safe(app.HstartAmEditField_2Label, state);
+            PlaygroundUtils.set_degaussing_start_enable(app, state);
         end
 
         function set_degaussing_auto_enable(app, state)
-            app.set_enable_safe(app.NofstepsEditField, state);
-            app.set_enable_safe(app.InitialamplitudeAmEditField, state);
-            app.set_enable_safe(app.FinalamplitudeAmEditField, state);
-            app.set_enable_safe(app.NofstepsEditFieldLabel, state);
-            app.set_enable_safe(app.InitialamplitudeAmEditFieldLabel, state);
-            app.set_enable_safe(app.FinalamplitudeAmEditFieldLabel, state);
+            PlaygroundUtils.set_degaussing_auto_enable(app, state);
         end
 
         function set_degaussing_table_enable(app, state)
-            if isprop(app, 'UITable_3') && ~isempty(app.UITable_3) && isvalid(app.UITable_3)
-                app.set_enable_safe(app.UITable_3, state);
-            end
+            PlaygroundUtils.set_degaussing_table_enable(app, state);
         end
 
-        function set_enable_safe(~, component, state)
-            % MOD: set the Enable property only when the component actually has
-            % one (uilabel gained Enable only in recent releases), so greying
-            % out never errors on older MATLAB.
-            if ~isempty(component) && isvalid(component) && isprop(component, 'Enable')
-                component.Enable = state;
-            end
+        function set_enable_safe(app, component, state)
+            PlaygroundUtils.set_enable_safe(app, component, state);
         end
 
         function [Hstart, Mstart, amplitudes, ok, message] = get_degaussing_inputs(app)
-            % MOD: gather the degaussing starting point and amplitude schedule
-            % from the UI. Returns ok=false plus a user-facing warning message
-            % when a required data-derived quantity is unavailable.
-            Hstart = NaN;
-            Mstart = NaN;
-            amplitudes = [];
-            ok = false;
-            message = "";
-
-            start_mode = lower(string(app.StartingpointDropDown_3.Value));
-            if contains(start_mode, "remanence")
-                [Mr, ok_r] = app.get_data_remanence();
-                if ~ok_r
-                    message = "Warning: The data hysteresis loop is unavailable; the remanence (H=0, Mr) starting point cannot be retrieved. Import a hysteretic dataset or choose another starting point.";
-                    return;
-                end
-                Hstart = 0;
-                Mstart = Mr;
-            elseif contains(start_mode, "tip")
-                [Htip, Mtip, ok_t] = PlaygroundUtils.get_data_tip(app);
-                if ~ok_t
-                    message = "Warning: The data tip point (Htip, Mtip) is unavailable; import a dataset or choose another starting point.";
-                    return;
-                end
-                Hstart = Htip;
-                Mstart = Mtip;
-            else
-                Hstart = app.HstartAmEditField_2.Value;
-                Mstart = app.MstartAmEditField_2.Value;
-                if ~isfinite(Hstart) || ~isfinite(Mstart)
-                    message = "Warning: User-defined Hstart and Mstart must be finite numbers.";
-                    return;
-                end
-            end
-
-            amp_mode = lower(string(app.HamplitudeDropDown.Value));
-            if contains(amp_mode, "automatic")
-                [amplitudes, ok_a] = app.get_degaussing_amplitudes_auto();
-                if ~ok_a
-                    message = "Warning: Invalid automatic H amplitude settings (need N >= 1 steps and a positive initial amplitude).";
-                    return;
-                end
-            else
-                [amplitudes, ok_a] = app.get_degaussing_table_inputs();
-                if ~ok_a
-                    message = "Warning: The user-defined H amplitude table must contain at least one positive value.";
-                    return;
-                end
-            end
-
-            ok = true;
+            [Hstart, Mstart, amplitudes, ok, message] = PlaygroundUtils.get_degaussing_inputs(app);
         end
 
         function run_playground_degaussing(app)
-            failure_message = "The magnetization path cannot be computed with the current initial condition M(Hstart) and model parameters.";
-            try
-                [params, ok_params] = PlaygroundUtils.get_playground_params(app);
-                if ~ok_params
-                    PlaygroundUtils.clear_simulation(app);
-                    app.plot_playground();
-                    app.write_message(failure_message);
-                    return;
-                end
-
-                [Hstart, Mstart, amplitudes, ok_inputs, message] = app.get_degaussing_inputs();
-                if ~ok_inputs
-                    PlaygroundUtils.clear_simulation(app);
-                    app.plot_playground();
-                    if strlength(message) > 0
-                        app.write_message(message);
-                    else
-                        app.write_message(failure_message);
-                    end
-                    return;
-                end
-
-                app.sync_degaussing_ui();   % keep displayed start values consistent
-
-                app.write_message("Calculate & Plot started");
-                pause(0.01);
-                calc_timer = tic;
-
-                [Hsim, Msim, info] = solveJA_degaussing_playground( ...
-                    Hstart, Mstart, amplitudes, params, ...
-                    odeset('RelTol', 1e-7, 'AbsTol', 1e-6));
-                info.status = "ok";
-                PlaygroundUtils.set_simulation(app, Hsim, Msim, info);
-                app.plot_playground();
-                t = sprintf("%0.2f", toc(calc_timer));
-                app.write_message("Calculate & Plot finished after " + t + " s");
-            catch
-                PlaygroundUtils.clear_simulation(app);
-                app.plot_playground();
-                app.write_message(failure_message);
-            end
+            PlaygroundUtils.run_playground_degaussing(app);
         end
 
         function expand_degaussing_table_if_needed(app, event)
-            % MOD: auto-grow the Degaussing amplitude table by one empty row when
-            % the last row receives a valid positive value (mirrors the minor
-            % loop table's growing behaviour).
-            if nargin < 2 || isempty(event) || ~isprop(app, 'UITable_3') || isempty(app.UITable_3) || ~isvalid(app.UITable_3)
-                return;
-            end
-
-            if ~isprop(event, 'Indices') || isempty(event.Indices) || ~isprop(event, 'NewData')
-                return;
-            end
-
-            row = event.Indices(1);
-            newValue = event.NewData;
-            if ~(isscalar(row) && isfinite(row) && row >= 1 && isfinite(newValue) && newValue > 0)
-                return;
-            end
-            data = app.UITable_3.Data;
-            if isempty(data) || ~isnumeric(data)
-                return;
-            end
-
-            data = data(:);
-            if row == numel(data)
-                app.UITable_3.Data = [data; NaN];
-            end
+            PlaygroundUtils.expand_degaussing_table_if_needed(app, event);
         end
         
         % =====================================================
@@ -1417,254 +885,42 @@ classdef app_exported < matlab.apps.AppBase
         % =====================================================
 
         function [orders, amplitudes, phases, ok] = get_harmonics_table_inputs(app)
-            % MOD: read the harmonic drive table (UITable2). Columns are
-            % [Order k, Amplitude [A/m], Phase [deg]]. Rows with a non-integer
-            % or missing order, or a missing amplitude, are dropped; a blank
-            % phase is treated as 0 deg. Returns phases in DEGREES.
-            orders = [];
-            amplitudes = [];
-            phases = [];
-            ok = false;
-
-            if ~isprop(app, 'UITable2') || isempty(app.UITable2) || ~isvalid(app.UITable2)
-                return;
-            end
-
-            data = app.UITable2.Data;
-            if isempty(data) || ~isnumeric(data) || size(data, 2) < 2
-                return;
-            end
-
-            ord = data(:, 1);
-            amp = data(:, 2);
-            if size(data, 2) >= 3
-                ph = data(:, 3);
-            else
-                ph = zeros(size(ord));
-            end
-            ph(~isfinite(ph)) = 0;   % blank phase => 0 deg
-
-            keep = isfinite(ord) & ord >= 1 & isfinite(amp);
-            ord = round(ord(keep));
-            amp = amp(keep);
-            ph = ph(keep);
-
-            if isempty(ord) || ~any(abs(amp) > 0)
-                return;
-            end
-
-            orders = ord(:);
-            amplitudes = amp(:);
-            phases = ph(:);
-            ok = true;
+            [orders, amplitudes, phases, ok] = PlaygroundUtils.get_harmonics_table_inputs(app);
         end
 
         function [Hstart, Mstart, orders, amplitudes, phases, ok, message] = get_harmonics_inputs(app)
-            % MOD: gather the harmonic-drive starting point and the Fourier
-            % components from the UI. Returns ok=false plus a user-facing
-            % warning when a required data-derived quantity is unavailable or
-            % the harmonics table is empty. phases are returned in RADIANS.
-            Hstart = NaN;
-            Mstart = NaN;
-            orders = [];
-            amplitudes = [];
-            phases = [];
-            ok = false;
-            message = "";
-
-            start_mode = lower(string(app.StartingpointDropDown_5.Value));
-            if contains(start_mode, "demagnetized")
-                Hstart = 0;
-                Mstart = 0;
-            elseif contains(start_mode, "tip")
-                [Htip, Mtip, ok_t] = PlaygroundUtils.get_data_tip(app);
-                if ~ok_t
-                    message = "Warning: The data tip point (Htip, Mtip) is unavailable; import a dataset or choose another starting point.";
-                    return;
-                end
-                Hstart = Htip;
-                Mstart = Mtip;
-            else
-                Hstart = app.HstartAmEditField_3.Value;
-                Mstart = app.MstartAmEditField_3.Value;
-                if ~isfinite(Hstart) || ~isfinite(Mstart)
-                    message = "Warning: User-defined Hstart and Mstart must be finite numbers.";
-                    return;
-                end
-            end
-
-            [orders, amplitudes, phases_deg, ok_tbl] = app.get_harmonics_table_inputs();
-            if ~ok_tbl
-                message = "Warning: The harmonics table must contain at least one row with an integer order >= 1 and a non-zero amplitude.";
-                return;
-            end
-
-            phases = phases_deg * pi / 180;   % degrees -> radians
-            ok = true;
+            [Hstart, Mstart, orders, amplitudes, phases, ok, message] = PlaygroundUtils.get_harmonics_inputs(app);
         end
 
         function values = get_harmonics_default_table_values(app)
-            % Default harmonic drive chosen to resemble the example waveform
-            % more closely: a fundamental plus a few lower-amplitude odd harmonics
-            % with zero phase, which already create nested minor loops without
-            % overcomplicating the initial pattern.
-            [Htip, ~, ok] = PlaygroundUtils.get_data_tip(app);
-            if ok && isfinite(Htip) && Htip > 0
-                A1 = Htip;
-            else
-                A1 = 1;
-            end
-            values = [1, A1,     0; ...
-                      5, A1 / 2, 60; ...
-                      NaN, NaN, NaN];
+            values = PlaygroundUtils.get_harmonics_default_table_values(app);
         end
 
         function configure_harmonics_table(app)
-            % MOD: initialise the harmonic drive table.
-            if ~isprop(app, 'UITable2') || isempty(app.UITable2) || ~isvalid(app.UITable2)
-                return;
+            PlaygroundUtils.configure_harmonics_table(app);
+            if isprop(app, 'UITable2') && ~isempty(app.UITable2) && isvalid(app.UITable2)
+                app.UITable2.CellEditCallback = createCallbackFcn(app, @HarmonicsTableCellEdit, true);
             end
-
-            app.UITable2.ColumnEditable = [true true true];
-            app.UITable2.ColumnFormat = {'numeric', 'short g', 'short g'};
-            app.UITable2.Data = app.get_harmonics_default_table_values();
-            app.harmonics_user_edited = false;
-            app.UITable2.CellEditCallback = createCallbackFcn(app, @HarmonicsTableCellEdit, true);
         end
 
         function maybe_refresh_harmonics_defaults(app)
-            % MOD: re-fill the harmonic drive table with data-tip-based
-            % defaults, but only while the user has not manually edited it
-            % (mirrors the minor-loop / degaussing default behaviour).
-            if app.harmonics_user_edited
-                return;
-            end
-
-            if isprop(app, 'UITable2') && ~isempty(app.UITable2) && isvalid(app.UITable2)
-                app.UITable2.Data = app.get_harmonics_default_table_values();
-            end
+            PlaygroundUtils.maybe_refresh_harmonics_defaults(app);
         end
 
         function sync_harmonics_ui(app)
-            % MOD: enable/disable and populate the harmonic-drive controls
-            % according to the selected starting-point and stop criterion.
-            if ~PlaygroundUtils.is_harmonics_mode(app)
-                return;
-            end
-
-            start_mode = lower(string(app.StartingpointDropDown_5.Value));
-            if contains(start_mode, "demagnetized")
-                app.HstartAmEditField_3.Value = 0;
-                app.MstartAmEditField_3.Value = 0;
-                app.set_harmonics_start_enable('off');
-            elseif contains(start_mode, "tip")
-                [Htip, Mtip, ok_t] = PlaygroundUtils.get_data_tip(app);
-                if ok_t
-                    app.HstartAmEditField_3.Value = Htip;
-                    app.MstartAmEditField_3.Value = Mtip;
-                else
-                    app.HstartAmEditField_3.Value = 0;
-                    app.MstartAmEditField_3.Value = 0;
-                end
-                app.set_harmonics_start_enable('off');
-            else
-                app.set_harmonics_start_enable('on');
-            end
-
-            is_fixed = string(app.StopcriterionDropDown_6.Value) == "Fixed repetitions";
-            if is_fixed
-                app.set_enable_safe(app.PeriodsEditField, 'on');
-                app.set_enable_safe(app.PeriodsEditFieldLabel, 'on');
-                app.set_enable_safe(app.ReltoleranceEditField_4, 'off');
-                app.set_enable_safe(app.ReltoleranceEditField_4Label, 'off');
-            else
-                app.set_enable_safe(app.PeriodsEditField, 'off');
-                app.set_enable_safe(app.PeriodsEditFieldLabel, 'off');
-                app.set_enable_safe(app.ReltoleranceEditField_4, 'on');
-                app.set_enable_safe(app.ReltoleranceEditField_4Label, 'on');
-            end
+            PlaygroundUtils.sync_harmonics_ui(app);
         end
 
         function set_harmonics_start_enable(app, state)
-            app.set_enable_safe(app.MstartAmEditField_3, state);
-            app.set_enable_safe(app.HstartAmEditField_3, state);
-            app.set_enable_safe(app.MstartAmEditField_3Label, state);
-            app.set_enable_safe(app.HstartAmEditField_3Label, state);
+            PlaygroundUtils.set_harmonics_start_enable(app, state);
         end
 
         function expand_harmonics_table_if_needed(app, event)
-            % MOD: auto-grow the harmonics table by one empty row when the last
-            % row receives a valid (order, amplitude) pair (mirrors the minor
-            % loop / degaussing growing tables).
-            if nargin < 2 || isempty(event) || ~isprop(app, 'UITable2') || isempty(app.UITable2) || ~isvalid(app.UITable2)
-                return;
-            end
-            if ~isprop(event, 'Indices') || isempty(event.Indices)
-                return;
-            end
-
-            data = app.UITable2.Data;
-            if isempty(data) || ~isnumeric(data)
-                return;
-            end
-
-            row = event.Indices(1);
-            lastRow = size(data, 1);
-            if row == lastRow
-                ord = data(lastRow, 1);
-                amp = data(lastRow, 2);
-                if isfinite(ord) && ord >= 1 && isfinite(amp)
-                    app.UITable2.Data = [data; NaN(1, size(data, 2))];
-                end
-            end
+            PlaygroundUtils.expand_harmonics_table_if_needed(app, event);
         end
 
         function run_playground_major_harmonics(app)
-            failure_message = "The magnetization path cannot be computed with the current initial condition M(Hstart) and model parameters.";
-            try
-                [params, ok_params] = PlaygroundUtils.get_playground_params(app);
-                if ~ok_params
-                    PlaygroundUtils.clear_simulation(app);
-                    app.plot_playground();
-                    app.write_message(failure_message);
-                    return;
-                end
-
-                [Hstart, Mstart, orders, amplitudes, phases, ok_inputs, message] = app.get_harmonics_inputs();
-                if ~ok_inputs
-                    PlaygroundUtils.clear_simulation(app);
-                    app.plot_playground();
-                    if strlength(message) > 0
-                        app.write_message(message);
-                    else
-                        app.write_message(failure_message);
-                    end
-                    return;
-                end
-
-                app.sync_harmonics_ui();   % keep displayed start values consistent
-
-                app.write_message("Calculate & Plot started");
-                pause(0.01);
-                calc_timer = tic;
-
-                [Hsim, Msim, info] = solveJA_majorHarmonics_playground( ...
-                    Hstart, Mstart, orders, amplitudes, phases, params, ...
-                    string(app.StopcriterionDropDown_6.Value), ...
-                    app.PeriodsEditField.Value, ...
-                    app.ReltoleranceEditField_4.Value, ...
-                    odeset('RelTol', 1e-7, 'AbsTol', 1e-6));
-                info.startMode = string(app.StartingpointDropDown_5.Value);
-                info.status = "ok";
-                PlaygroundUtils.set_simulation(app, Hsim, Msim, info);
-                app.plot_playground();
-                t = sprintf("%0.2f", toc(calc_timer));
-                app.write_message("Calculate & Plot finished after " + t + " s");
-            catch
-                PlaygroundUtils.clear_simulation(app);
-                app.plot_playground();
-                app.write_message(failure_message);
-            end
+            PlaygroundUtils.run_playground_major_harmonics(app);
         end
 
         function set_colors_and_plot(app, colors)
@@ -2390,54 +1646,14 @@ classdef app_exported < matlab.apps.AppBase
 
         % Button pushed function: CalculatePlotButton_3
         function CalculatePlotButton_3Pushed(app, event)
-            failure_message = "The magnetization path cannot be computed with the current initial condition M(Hstart) and model parameters.";
-            
             if PlaygroundUtils.is_minor_mode(app)
                 app.run_playground_minor_loop();
-            elseif PlaygroundUtils.is_degaussing_mode(app)     % MOD: ADD these two lines
-                app.run_playground_degaussing();               % MOD: ADD
-            elseif PlaygroundUtils.is_harmonics_mode(app)      % MOD: ADD these two lines
-                app.run_playground_major_harmonics();          % MOD: ADD
+            elseif PlaygroundUtils.is_degaussing_mode(app)
+                app.run_playground_degaussing();
+            elseif PlaygroundUtils.is_harmonics_mode(app)
+                app.run_playground_major_harmonics();
             else
-                [params, ok_params] = PlaygroundUtils.get_playground_params(app);
-                if ~ok_params
-                    PlaygroundUtils.clear_simulation(app);
-                    app.plot_playground();
-                    app.write_message(failure_message);
-                    return;
-                end
-
-                [Hstart, Mstart, Htip, ok_inputs] = PlaygroundUtils.get_major_inputs(app);
-                if ~ok_inputs
-                    PlaygroundUtils.clear_simulation(app);
-                    app.plot_playground();
-                    app.write_message(failure_message);
-                    return;
-                end
-
-                PlaygroundUtils.sync_major_ui(app);
-                app.write_message("Calculate & Plot started");
-                pause(0.01);
-                calc_timer = tic;
-                try
-                    [Hsim, Msim, info] = solveJA_majorLoop_playground( ...
-                        Hstart, Mstart, Htip, params, ...
-                        string(app.StartingpointDropDown.Value), ...
-                        string(app.StopcriterionDropDown.Value), ...
-                        app.RepetitionsEditField.Value, ...
-                        app.ReltoleranceEditField_6.Value, ...
-                        odeset('RelTol', 1e-7, 'AbsTol', 1e-6));
-                    info.status = "ok";
-                    PlaygroundUtils.set_simulation(app, Hsim, Msim, info);
-                    app.plot_playground();
-                    t = sprintf("%0.2f", toc(calc_timer));
-                    app.write_message("Calculate & Plot finished after " + t + " s");
-                catch
-                    PlaygroundUtils.clear_simulation(app);
-                    app.plot_playground();
-                    t = sprintf("%0.2f", toc(calc_timer));
-                    app.write_message("Calculate & Plot failed after " + t + " s: " + failure_message);
-                end
+                app.run_playground_major_loop();
             end
         end
 
@@ -3328,6 +2544,13 @@ classdef app_exported < matlab.apps.AppBase
             app.JsTEditFieldLabel_2.Layout.Column = 6;
             app.JsTEditFieldLabel_2.Text = 'Ms [A/m]';
 
+            % Create JsTEditFieldLabel_3
+            app.JsTEditFieldLabel_3 = uilabel(app.GridLayout2);
+            app.JsTEditFieldLabel_3.FontWeight = 'bold';
+            app.JsTEditFieldLabel_3.Layout.Row = 4;
+            app.JsTEditFieldLabel_3.Layout.Column = 6;
+            app.JsTEditFieldLabel_3.Text = 'a [A/m]';
+
             % Create Ms_JA
             app.Ms_JA = uieditfield(app.GridLayout2, 'numeric');
             app.Ms_JA.ValueDisplayFormat = '%.6g';
@@ -3336,12 +2559,12 @@ classdef app_exported < matlab.apps.AppBase
             app.Ms_JA.Layout.Column = 7;
             app.Ms_JA.Value = [];
 
-            % Create JsTEditFieldLabel_3
-            app.JsTEditFieldLabel_3 = uilabel(app.GridLayout2);
-            app.JsTEditFieldLabel_3.FontWeight = 'bold';
-            app.JsTEditFieldLabel_3.Layout.Row = 4;
-            app.JsTEditFieldLabel_3.Layout.Column = 6;
-            app.JsTEditFieldLabel_3.Text = 'a [A/m]';
+            % Create JsTEditFieldLabel_4
+            app.JsTEditFieldLabel_4 = uilabel(app.GridLayout2);
+            app.JsTEditFieldLabel_4.FontWeight = 'bold';
+            app.JsTEditFieldLabel_4.Layout.Row = 5;
+            app.JsTEditFieldLabel_4.Layout.Column = 6;
+            app.JsTEditFieldLabel_4.Text = 'α';
 
             % Create a_JA
             app.a_JA = uieditfield(app.GridLayout2, 'numeric');
@@ -3351,12 +2574,12 @@ classdef app_exported < matlab.apps.AppBase
             app.a_JA.Layout.Column = 7;
             app.a_JA.Value = [];
 
-            % Create JsTEditFieldLabel_4
-            app.JsTEditFieldLabel_4 = uilabel(app.GridLayout2);
-            app.JsTEditFieldLabel_4.FontWeight = 'bold';
-            app.JsTEditFieldLabel_4.Layout.Row = 5;
-            app.JsTEditFieldLabel_4.Layout.Column = 6;
-            app.JsTEditFieldLabel_4.Text = 'α';
+            % Create JsTEditFieldLabel_5
+            app.JsTEditFieldLabel_5 = uilabel(app.GridLayout2);
+            app.JsTEditFieldLabel_5.FontWeight = 'bold';
+            app.JsTEditFieldLabel_5.Layout.Row = 6;
+            app.JsTEditFieldLabel_5.Layout.Column = 6;
+            app.JsTEditFieldLabel_5.Text = 'c';
 
             % Create alpha_JA
             app.alpha_JA = uieditfield(app.GridLayout2, 'numeric');
@@ -3366,12 +2589,12 @@ classdef app_exported < matlab.apps.AppBase
             app.alpha_JA.Layout.Column = 7;
             app.alpha_JA.Value = [];
 
-            % Create JsTEditFieldLabel_5
-            app.JsTEditFieldLabel_5 = uilabel(app.GridLayout2);
-            app.JsTEditFieldLabel_5.FontWeight = 'bold';
-            app.JsTEditFieldLabel_5.Layout.Row = 6;
-            app.JsTEditFieldLabel_5.Layout.Column = 6;
-            app.JsTEditFieldLabel_5.Text = 'c';
+            % Create JsTEditFieldLabel_6
+            app.JsTEditFieldLabel_6 = uilabel(app.GridLayout2);
+            app.JsTEditFieldLabel_6.FontWeight = 'bold';
+            app.JsTEditFieldLabel_6.Layout.Row = 7;
+            app.JsTEditFieldLabel_6.Layout.Column = 6;
+            app.JsTEditFieldLabel_6.Text = 'k [A/m]';
 
             % Create c_JA
             app.c_JA = uieditfield(app.GridLayout2, 'numeric');
@@ -3380,21 +2603,6 @@ classdef app_exported < matlab.apps.AppBase
             app.c_JA.Layout.Row = 6;
             app.c_JA.Layout.Column = 7;
             app.c_JA.Value = [];
-
-            % Create JsTEditFieldLabel_6
-            app.JsTEditFieldLabel_6 = uilabel(app.GridLayout2);
-            app.JsTEditFieldLabel_6.FontWeight = 'bold';
-            app.JsTEditFieldLabel_6.Layout.Row = 7;
-            app.JsTEditFieldLabel_6.Layout.Column = 6;
-            app.JsTEditFieldLabel_6.Text = 'k [A/m]';
-
-            % Create k_JA
-            app.k_JA = uieditfield(app.GridLayout2, 'numeric');
-            app.k_JA.ValueDisplayFormat = '%.6g';
-            app.k_JA.AllowEmpty = 'on';
-            app.k_JA.Layout.Row = 7;
-            app.k_JA.Layout.Column = 7;
-            app.k_JA.Value = [];
 
             % Create FitButton_2
             app.FitButton_2 = uibutton(app.GridLayout2, 'push');
@@ -3413,6 +2621,14 @@ classdef app_exported < matlab.apps.AppBase
             app.CalculatePlotButton_2.Layout.Column = 10;
             app.CalculatePlotButton_2.Text = 'Calculate & Plot';
 
+            % Create k_JA
+            app.k_JA = uieditfield(app.GridLayout2, 'numeric');
+            app.k_JA.ValueDisplayFormat = '%.6g';
+            app.k_JA.AllowEmpty = 'on';
+            app.k_JA.Layout.Row = 7;
+            app.k_JA.Layout.Column = 7;
+            app.k_JA.Value = [];
+
             % Create ErrortominimizeDropDownLabel_2
             app.ErrortominimizeDropDownLabel_2 = uilabel(app.GridLayout2);
             app.ErrortominimizeDropDownLabel_2.WordWrap = 'on';
@@ -3428,16 +2644,6 @@ classdef app_exported < matlab.apps.AppBase
             app.ErrortominimizeDropDown_2.Layout.Column = [7 8];
             app.ErrortominimizeDropDown_2.Value = 'Diagonal (H, continuous)';
 
-            % Create ErrorDisplay_2
-            app.ErrorDisplay_2 = uieditfield(app.GridLayout2, 'numeric');
-            app.ErrorDisplay_2.ValueDisplayFormat = '%.5e';
-            app.ErrorDisplay_2.AllowEmpty = 'on';
-            app.ErrorDisplay_2.Editable = 'off';
-            app.ErrorDisplay_2.HorizontalAlignment = 'left';
-            app.ErrorDisplay_2.Layout.Row = 15;
-            app.ErrorDisplay_2.Layout.Column = 9;
-            app.ErrorDisplay_2.Value = [];
-
             % Create RetrieveseedsButton
             app.RetrieveseedsButton = uibutton(app.GridLayout2, 'push');
             app.RetrieveseedsButton.ButtonPushedFcn = createCallbackFcn(app, @RetrieveseedsButtonPushed, true);
@@ -3452,21 +2658,22 @@ classdef app_exported < matlab.apps.AppBase
             app.DrivingfieldLabel.Layout.Column = [6 11];
             app.DrivingfieldLabel.Text = 'Driving field';
 
+            % Create ErrorDisplay_2
+            app.ErrorDisplay_2 = uieditfield(app.GridLayout2, 'numeric');
+            app.ErrorDisplay_2.ValueDisplayFormat = '%.5e';
+            app.ErrorDisplay_2.AllowEmpty = 'on';
+            app.ErrorDisplay_2.Editable = 'off';
+            app.ErrorDisplay_2.HorizontalAlignment = 'left';
+            app.ErrorDisplay_2.Layout.Row = 15;
+            app.ErrorDisplay_2.Layout.Column = 9;
+            app.ErrorDisplay_2.Value = [];
+
             % Create JsTEditFieldLabel_7
             app.JsTEditFieldLabel_7 = uilabel(app.GridLayout2);
             app.JsTEditFieldLabel_7.FontWeight = 'bold';
             app.JsTEditFieldLabel_7.Layout.Row = 10;
             app.JsTEditFieldLabel_7.Layout.Column = 6;
             app.JsTEditFieldLabel_7.Text = 'Htip [A/m]';
-
-            % Create Htip
-            app.Htip = uieditfield(app.GridLayout2, 'numeric');
-            app.Htip.ValueDisplayFormat = '%.6g';
-            app.Htip.AllowEmpty = 'on';
-            app.Htip.Editable = 'off';
-            app.Htip.Layout.Row = 10;
-            app.Htip.Layout.Column = 7;
-            app.Htip.Value = [];
 
             % Create ShowgridCheckBoxM_2
             app.ShowgridCheckBoxM_2 = uicheckbox(app.GridLayout2);
@@ -3483,21 +2690,21 @@ classdef app_exported < matlab.apps.AppBase
             app.ResidualplotButtondMdH_2.Layout.Column = 2;
             app.ResidualplotButtondMdH_2.Text = 'Residuals';
 
+            % Create Htip
+            app.Htip = uieditfield(app.GridLayout2, 'numeric');
+            app.Htip.ValueDisplayFormat = '%.6g';
+            app.Htip.AllowEmpty = 'on';
+            app.Htip.Editable = 'off';
+            app.Htip.Layout.Row = 10;
+            app.Htip.Layout.Column = 7;
+            app.Htip.Value = [];
+
             % Create JsTEditFieldLabel_8
             app.JsTEditFieldLabel_8 = uilabel(app.GridLayout2);
             app.JsTEditFieldLabel_8.FontWeight = 'bold';
             app.JsTEditFieldLabel_8.Layout.Row = 11;
             app.JsTEditFieldLabel_8.Layout.Column = 6;
             app.JsTEditFieldLabel_8.Text = 'Mtip [A/m]';
-
-            % Create Mtip
-            app.Mtip = uieditfield(app.GridLayout2, 'numeric');
-            app.Mtip.ValueDisplayFormat = '%.6g';
-            app.Mtip.AllowEmpty = 'on';
-            app.Mtip.Editable = 'off';
-            app.Mtip.Layout.Row = 11;
-            app.Mtip.Layout.Column = 7;
-            app.Mtip.Value = [];
 
             % Create MsLower_JA
             app.MsLower_JA = uieditfield(app.GridLayout2, 'numeric');
@@ -3513,6 +2720,15 @@ classdef app_exported < matlab.apps.AppBase
             app.MsUpper_JA.Layout.Row = 3;
             app.MsUpper_JA.Layout.Column = 9;
             app.MsUpper_JA.Value = Inf;
+
+            % Create Mtip
+            app.Mtip = uieditfield(app.GridLayout2, 'numeric');
+            app.Mtip.ValueDisplayFormat = '%.6g';
+            app.Mtip.AllowEmpty = 'on';
+            app.Mtip.Editable = 'off';
+            app.Mtip.Layout.Row = 11;
+            app.Mtip.Layout.Column = 7;
+            app.Mtip.Value = [];
 
             % Create aLower_JA
             app.aLower_JA = uieditfield(app.GridLayout2, 'numeric');
@@ -3559,12 +2775,24 @@ classdef app_exported < matlab.apps.AppBase
             app.cUpper_JA.Layout.Column = 9;
             app.cUpper_JA.Value = 1;
 
+            % Create LowerboundLabel
+            app.LowerboundLabel = uilabel(app.GridLayout2);
+            app.LowerboundLabel.Layout.Row = 2;
+            app.LowerboundLabel.Layout.Column = 8;
+            app.LowerboundLabel.Text = 'Lower bound';
+
             % Create kLower_JA
             app.kLower_JA = uieditfield(app.GridLayout2, 'numeric');
             app.kLower_JA.ValueDisplayFormat = '%.6g';
             app.kLower_JA.AllowEmpty = 'on';
             app.kLower_JA.Layout.Row = 7;
             app.kLower_JA.Layout.Column = 8;
+
+            % Create UpperboundLabel
+            app.UpperboundLabel = uilabel(app.GridLayout2);
+            app.UpperboundLabel.Layout.Row = 2;
+            app.UpperboundLabel.Layout.Column = 9;
+            app.UpperboundLabel.Text = 'Upper bound';
 
             % Create kUpper_JA
             app.kUpper_JA = uieditfield(app.GridLayout2, 'numeric');
@@ -3573,18 +2801,6 @@ classdef app_exported < matlab.apps.AppBase
             app.kUpper_JA.Layout.Row = 7;
             app.kUpper_JA.Layout.Column = 9;
             app.kUpper_JA.Value = Inf;
-
-            % Create LowerboundLabel
-            app.LowerboundLabel = uilabel(app.GridLayout2);
-            app.LowerboundLabel.Layout.Row = 2;
-            app.LowerboundLabel.Layout.Column = 8;
-            app.LowerboundLabel.Text = 'Lower bound';
-
-            % Create UpperboundLabel
-            app.UpperboundLabel = uilabel(app.GridLayout2);
-            app.UpperboundLabel.Layout.Row = 2;
-            app.UpperboundLabel.Layout.Column = 9;
-            app.UpperboundLabel.Text = 'Upper bound';
 
             % Create FitLabel
             app.FitLabel = uilabel(app.GridLayout2);
