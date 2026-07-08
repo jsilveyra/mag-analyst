@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MagAnalyst port guide — full precision for Model-Retrieved Parameters and Calculated Quantities</title>
+<style>
+  :root {
+    --bg: #1e1e1e; --panel: #252526; --text: #d4d4d4; --accent: #f15a29;
+    --before-bg: #3a2020; --before-border: #8b3a3a;
+    --after-bg: #20351f; --after-border: #4a8b3a;
+    --flag-bg: #4a3a10; --flag-border: #c98a1c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 6rem;
+    line-height: 1.5;
+  }
+  h1 { font-size: 1.4rem; border-bottom: 3px solid var(--accent); padding-bottom: 0.5rem; }
+  h2 { font-size: 1.15rem; margin-top: 2.5rem; color: var(--accent); border-bottom: 1px solid #444; padding-bottom: 0.3rem;}
+  h3 { font-size: 1rem; }
+  .summary { background: var(--panel); border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0; }
+  .summary ul { margin: 0.5rem 0 0; padding-left: 1.25rem; }
+  .step { background: var(--panel); border-radius: 8px; padding: 1.25rem 1.5rem; margin: 1.5rem 0; border-left: 4px solid #555; }
+  .blocklabel { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: #aaa; margin-top: 0.75rem; }
+  pre { border-radius: 6px; padding: 0.75rem 1rem; overflow-x: auto; margin: 0.25rem 0 0; font-size: 0.82rem; }
+  pre.before { background: var(--before-bg); border: 1px solid var(--before-border); }
+  pre.after { background: var(--after-bg); border: 1px solid var(--after-border); }
+  code { white-space: pre; font-family: "SF Mono", Consolas, "Courier New", monospace; }
+  .flag { background: var(--flag-bg); border: 1px solid var(--flag-border); border-radius: 6px; padding: 0.6rem 0.9rem; margin: 0.5rem 0; font-weight: 600; font-size: 0.9rem; }
+  .note { color: #aaa; font-size: 0.9rem; font-style: italic; }
+  .recipe { background: var(--panel); border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0; }
+  .recipe ol { padding-left: 1.4rem; }
+  .recipe li { margin-bottom: 0.5rem; }
+  code.inline { background: #333; padding: 0.1rem 0.3rem; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<h1>Full precision for Model-Retrieved Parameters &amp; Calculated Quantities</h1>
+
+<div class="summary">
+  <p>You'd flagged before that these two read-only Anhysteretic tables need full precision, and
+  I'd only fixed their <em>display</em> formatting last time (6 sig figs instead of 4 decimals) —
+  not the underlying gap. Two separate problems, both fixed here:</p>
+  <ul>
+    <li><strong>Step 1</strong>: <code>ExportParametersButtonPushed</code> (the "Export
+    parameters" button, Output tab) built its report by re-parsing the tables' <em>displayed</em>
+    text with <code>str2double</code> — for all three sections (Fitted Parameters, Model-Retrieved
+    Parameters, Calculated Quantities). Now reads straight from the full-precision source instead:
+    <code>app.fitted_parameter_values</code> for the Value column, and
+    <code>app.magnetic_parameters.{Ms,alpha,a,dimensionless_alphaMs,density_product,Hk,
+    initial_relative_magnetic_permeability}</code> (already full double precision, recomputed on
+    every calculate/fit) for the two read-only tables. The report's own printed precision
+    (<code>%0.4f</code>/<code>%0.4e</code>, a deliberate choice for a human-readable file) is
+    unchanged — only the number feeding into it is now correct.</li>
+    <li><strong>Step 2</strong>: gives <strong>TableParameters</strong> and
+    <strong>TableQuantities</strong> the same click-to-reveal-full-precision behavior
+    <code>TableFittedParameters</code> already has — select a cell to see its exact value, click
+    elsewhere to return to the compact 6-sig-fig display. Two brand new callbacks
+    (<code>TableParametersCellSelection</code>, <code>TableQuantitiesCellSelection</code>) since
+    neither table had a <code>CellSelectionCallback</code> before.</li>
+  </ul>
+</div>
+
+<h2>Part A — Design View: add the two new callbacks first</h2>
+
+<div class="recipe">
+  <p>App Designer blocks typing brand-new (non-callback) methods directly into the Code View
+  callbacks section — same restriction that blocked <code>reprocess_dataset</code> earlier. These
+  two <em>are</em> real callbacks though, so add them the normal way:</p>
+  <ol>
+    <li>Select <code class="inline">TableParameters</code> in the Component Browser, go to its
+    Callbacks tab, add a new <code class="inline">CellSelectionCallback</code> and name it exactly
+    <code class="inline">TableParametersCellSelection</code>. This creates an empty stub in Code
+    View.</li>
+    <li>Do the same for <code class="inline">TableQuantities</code>: new
+    <code class="inline">CellSelectionCallback</code> named exactly
+    <code class="inline">TableQuantitiesCellSelection</code>.</li>
+  </ol>
+</div>
+
+<h2>Part B — Code View: 2 edits</h2>
+
+
+<div class="step" id="step-1">
+  <h3>Step 1. ExportParametersButtonPushed -- read full-precision sources instead of re-parsing table display text</h3>
+  
+  <div class="blocklabel">Find this in Code View</div>
+  <pre class="before"><code>        function ExportParametersButtonPushed(app, event)
+            if(app.ExportFittedparametersCheckBox.Value == 0 &amp;&amp; app.ExportModelparametersCheckBox.Value == 0 &amp;&amp; app.ExportOtherquantitiesCheckBox.Value == 0 &amp;&amp; app.ExportErrorsCheckBox.Value == 0)
+                app.write_message("No parameters were selected to be exported");
+                return;
+            end
+            file_name = strcat(app.EditFieldFileNameParameters.Value, app.DropDownOutputParametersExtension.Value);
+            path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+            file = fopen(path,'w');
+            fprintf(file, "Parameters:" + newline);
+            if(app.ExportFittedparametersCheckBox.Value == 1)
+                fprintf(file, "Fitted Parameters:" + newline);
+                for i = 1:height(app.TableFittedParameters.Data)
+                    name = string(app.TableFittedParameters.Data(i, 1));
+                    name = subscript_to_number(app, name);
+                    value = str2double(app.TableFittedParameters.Data(i, 2));
+                    s = sprintf("%s: \t%f", name, value);
+                    fprintf(file, s + newline);
+                end
+                fprintf(file, newline);
+            end     
+            if(app.ExportModelparametersCheckBox.Value == 1)
+                fprintf(file, "Model-Retrieved Parameters:" + newline);
+                for i = 1:height(app.TableParameters.Data)
+                    Ms_value = str2double(app.TableParameters.Data(i, 2).Ms_col);
+                    alpha_value = str2double(app.TableParameters.Data(i, 3).alpha_col);
+                    a_value = str2double(app.TableParameters.Data(i, 4).a_col);
+                    s_component = sprintf("Component: %i", i);
+                    s_Ms_value = sprintf("    Ms%i [A/m]: \t%0.4f", i, Ms_value);
+                    s_alpha_value = sprintf("            α: \t%0.4e", alpha_value);
+                    s_a_value = sprintf("     a%i [A/m]: \t%0.4f", i, a_value);
+                    fprintf(file, s_component + newline + s_Ms_value + newline + s_alpha_value + newline + s_a_value + newline);
+                end
+                fprintf(file, newline);
+            end
+            if(app.ExportOtherquantitiesCheckBox.Value == 1)
+            fprintf(file, "Calculated Quantities:" + newline);
+                for i = 1:height(app.TableQuantities.Data)
+                    alpha_Ms_value = str2double(app.TableQuantities.Data(i, 2).dimensionless_alphaMs_col);
+                    density_product_value = str2double(app.TableQuantities.Data(i, 3).density_product_col);
+                    Hk_value = str2double(app.TableQuantities.Data(i, 4).Hk_col);
+                    magnetic_permeability_value = str2double(app.TableQuantities.Data(i, 5).initial_relative_magnetic_permeability_col);
+                    s_component = sprintf("Component: %i", i);
+                    s_alpha_Ms_value = sprintf("    α%i|Ms%i|/(3a%i): \t%0.4f", i, i, i, alpha_Ms_value);
+                    s_density_product_value = sprintf("    N%ikBT [J/m^3]: \t%0.4f", i, density_product_value);
+                    s_Hk = sprintf("        Hk%i [A/m]: \t%0.4f", i, Hk_value);
+                    s_magnetic_permeability_value = sprintf("            μrin%i: \t%i", i, magnetic_permeability_value);
+                    fprintf(file, s_component + newline + s_alpha_Ms_value + newline + s_density_product_value + newline + s_Hk + newline + s_magnetic_permeability_value + newline);
+                end
+                fprintf(file, newline);
+            end
+
+            if (app.ExportErrorsCheckBox.Value == 1)
+                diagonal_error = DiagonalErrorCalculator(app.data_curve, app.modeled_curve).get_error();
+                horizontal_error = HorizontalErrorCalculator(app.data_curve, app.modeled_curve).get_error();
+                vertical_error = VerticalErrorCalculator(app.data_curve, app.modeled_curve).get_error();
+                s_diagonal_error = sprintf("  Diagonal error: \t%10.4e", diagonal_error);
+                s_horizontal_error = sprintf("Horizontal error: \t%10.4e", horizontal_error);
+                s_vertical_error = sprintf("  Vertical error: \t%10.4e", vertical_error);
+                s = "Errors:" + newline + s_diagonal_error + newline + s_horizontal_error + newline + s_vertical_error + newline;
+                fprintf(file, s + newline);
+            end
+
+            fclose(file);
+            app.write_message("Parameter data saved as " + file_name);
+        end</code></pre>
+  <div class="blocklabel">Replace with</div>
+  <pre class="after"><code>        function ExportParametersButtonPushed(app, event)
+            if(app.ExportFittedparametersCheckBox.Value == 0 &amp;&amp; app.ExportModelparametersCheckBox.Value == 0 &amp;&amp; app.ExportOtherquantitiesCheckBox.Value == 0 &amp;&amp; app.ExportErrorsCheckBox.Value == 0)
+                app.write_message("No parameters were selected to be exported");
+                return;
+            end
+            file_name = strcat(app.EditFieldFileNameParameters.Value, app.DropDownOutputParametersExtension.Value);
+            path = strcat(app.OutputDatasetPath.Value, '\', file_name);
+            file = fopen(path,'w');
+            fprintf(file, "Parameters:" + newline);
+            if(app.ExportFittedparametersCheckBox.Value == 1)
+                fprintf(file, "Fitted Parameters:" + newline);
+                for i = 1:height(app.TableFittedParameters.Data)
+                    name = string(app.TableFittedParameters.Data(i, 1));
+                    name = subscript_to_number(app, name);
+                    value = app.fitted_parameter_values(i);
+                    s = sprintf("%s: \t%f", name, value);
+                    fprintf(file, s + newline);
+                end
+                fprintf(file, newline);
+            end
+            if(app.ExportModelparametersCheckBox.Value == 1)
+                fprintf(file, "Model-Retrieved Parameters:" + newline);
+                for i = 1:height(app.TableParameters.Data)
+                    Ms_value = app.magnetic_parameters.Ms(i);
+                    alpha_value = app.magnetic_parameters.alpha(i);
+                    a_value = app.magnetic_parameters.a(i);
+                    s_component = sprintf("Component: %i", i);
+                    s_Ms_value = sprintf("    Ms%i [A/m]: \t%0.4f", i, Ms_value);
+                    s_alpha_value = sprintf("            α: \t%0.4e", alpha_value);
+                    s_a_value = sprintf("     a%i [A/m]: \t%0.4f", i, a_value);
+                    fprintf(file, s_component + newline + s_Ms_value + newline + s_alpha_value + newline + s_a_value + newline);
+                end
+                fprintf(file, newline);
+            end
+            if(app.ExportOtherquantitiesCheckBox.Value == 1)
+            fprintf(file, "Calculated Quantities:" + newline);
+                for i = 1:height(app.TableQuantities.Data)
+                    alpha_Ms_value = app.magnetic_parameters.dimensionless_alphaMs(i);
+                    density_product_value = app.magnetic_parameters.density_product(i);
+                    Hk_value = app.magnetic_parameters.Hk(i);
+                    magnetic_permeability_value = app.magnetic_parameters.initial_relative_magnetic_permeability(i);
+                    s_component = sprintf("Component: %i", i);
+                    s_alpha_Ms_value = sprintf("    α%i|Ms%i|/(3a%i): \t%0.4f", i, i, i, alpha_Ms_value);
+                    s_density_product_value = sprintf("    N%ikBT [J/m^3]: \t%0.4f", i, density_product_value);
+                    s_Hk = sprintf("        Hk%i [A/m]: \t%0.4f", i, Hk_value);
+                    s_magnetic_permeability_value = sprintf("            μrin%i: \t%i", i, magnetic_permeability_value);
+                    fprintf(file, s_component + newline + s_alpha_Ms_value + newline + s_density_product_value + newline + s_Hk + newline + s_magnetic_permeability_value + newline);
+                end
+                fprintf(file, newline);
+            end
+
+            if (app.ExportErrorsCheckBox.Value == 1)
+                diagonal_error = DiagonalErrorCalculator(app.data_curve, app.modeled_curve).get_error();
+                horizontal_error = HorizontalErrorCalculator(app.data_curve, app.modeled_curve).get_error();
+                vertical_error = VerticalErrorCalculator(app.data_curve, app.modeled_curve).get_error();
+                s_diagonal_error = sprintf("  Diagonal error: \t%10.4e", diagonal_error);
+                s_horizontal_error = sprintf("Horizontal error: \t%10.4e", horizontal_error);
+                s_vertical_error = sprintf("  Vertical error: \t%10.4e", vertical_error);
+                s = "Errors:" + newline + s_diagonal_error + newline + s_horizontal_error + newline + s_vertical_error + newline;
+                fprintf(file, s + newline);
+            end
+
+            fclose(file);
+            app.write_message("Parameter data saved as " + file_name);
+        end</code></pre>
+  <p class="note">Three separate precision leaks in one method: all three export sections (Fitted Parameters, Model-Retrieved Parameters, Calculated Quantities) parsed the tables' DISPLAYED text (str2double on the 6-sig-fig rendered string) instead of reading the full-precision source that's already sitting right there -- app.fitted_parameter_values for the Value column, and app.magnetic_parameters.{Ms,alpha,a,dimensionless_alphaMs,density_product,Hk,initial_relative_magnetic_permeability} for the two read-only tables (these are plain double arrays, already full precision, recomputed by calculate_parameters/plot every time -- nothing needs saving/restoring for them). The exported report's own chosen print precision (%0.4f/%0.4e, a deliberate readability choice for a human-readable .txt file) is unchanged -- only the SOURCE value feeding into it is now the true double instead of an already-truncated string.</p>
+</div>
+<div class="step" id="step-2">
+  <h3>Step 2. Add two new callbacks: TableParametersCellSelection and TableQuantitiesCellSelection</h3>
+  <div class="flag">These two callbacks don't exist yet -- add them via Design View first (select TableParameters, Callbacks tab, add CellSelectionCallback named exactly TableParametersCellSelection; same for TableQuantities with TableQuantitiesCellSelection), which creates empty stubs in Code View, THEN paste these bodies in to replace the stubs. Do not try to type brand-new methods directly into this callbacks section -- App Designer blocks that (same restriction that blocked reprocess_dataset earlier).</div>
+  <div class="blocklabel">Find this in Code View</div>
+  <pre class="before"><code>        function TableFittedParametersCellSelection(app, event)
+            if isempty(event.Indices)
+                return
+            end
+            row = event.Indices(1,1);
+            col = event.Indices(1,2);
+            if row &gt; size(app.TableFittedParameters.Data, 1)
+                return
+            end
+            app.refresh_table_value_display();
+            if col == 2
+                app.TableFittedParameters.Data(row, 2) = {app.format_value_for_edit(row)};
+            elseif col == 3 &amp;&amp; row &lt;= numel(app.lb)
+                app.TableFittedParameters.Data(row, 3) = {char(sprintf('%.16g', app.lb(row)))};
+            elseif col == 4 &amp;&amp; row &lt;= numel(app.ub)
+                app.TableFittedParameters.Data(row, 4) = {char(sprintf('%.16g', app.ub(row)))};
+            end
+        end</code></pre>
+  <div class="blocklabel">Replace with</div>
+  <pre class="after"><code>        function TableFittedParametersCellSelection(app, event)
+            if isempty(event.Indices)
+                return
+            end
+            row = event.Indices(1,1);
+            col = event.Indices(1,2);
+            if row &gt; size(app.TableFittedParameters.Data, 1)
+                return
+            end
+            app.refresh_table_value_display();
+            if col == 2
+                app.TableFittedParameters.Data(row, 2) = {app.format_value_for_edit(row)};
+            elseif col == 3 &amp;&amp; row &lt;= numel(app.lb)
+                app.TableFittedParameters.Data(row, 3) = {char(sprintf('%.16g', app.lb(row)))};
+            elseif col == 4 &amp;&amp; row &lt;= numel(app.ub)
+                app.TableFittedParameters.Data(row, 4) = {char(sprintf('%.16g', app.ub(row)))};
+            end
+        end
+
+        % Cell selection callback: TableParameters
+        function TableParametersCellSelection(app, event)
+            if isempty(event.Indices)
+                return
+            end
+            row = event.Indices(1,1);
+            col = event.Indices(1,2);
+            if row &gt; height(app.TableParameters.Data) || isempty(app.magnetic_parameters) || row &gt; numel(app.magnetic_parameters.Ms)
+                return
+            end
+            app.init_parameters_table(false);
+            switch col
+                case 2
+                    app.TableParameters.Data.Ms_col{row} = sprintf('%.16g', app.magnetic_parameters.Ms(row));
+                case 3
+                    app.TableParameters.Data.alpha_col{row} = sprintf('%.16g', app.magnetic_parameters.alpha(row));
+                case 4
+                    app.TableParameters.Data.a_col{row} = sprintf('%.16g', app.magnetic_parameters.a(row));
+            end
+        end
+
+        % Cell selection callback: TableQuantities
+        function TableQuantitiesCellSelection(app, event)
+            if isempty(event.Indices)
+                return
+            end
+            row = event.Indices(1,1);
+            col = event.Indices(1,2);
+            if row &gt; height(app.TableQuantities.Data) || isempty(app.magnetic_parameters) || row &gt; numel(app.magnetic_parameters.dimensionless_alphaMs)
+                return
+            end
+            app.init_quantities_table(false);
+            switch col
+                case 2
+                    app.TableQuantities.Data.dimensionless_alphaMs_col{row} = sprintf('%.16g', app.magnetic_parameters.dimensionless_alphaMs(row));
+                case 3
+                    app.TableQuantities.Data.density_product_col{row} = sprintf('%.16g', app.magnetic_parameters.density_product(row));
+                case 4
+                    app.TableQuantities.Data.Hk_col{row} = sprintf('%.16g', app.magnetic_parameters.Hk(row));
+                case 5
+                    app.TableQuantities.Data.initial_relative_magnetic_permeability_col{row} = sprintf('%.16g', app.magnetic_parameters.initial_relative_magnetic_permeability(row));
+            end
+        end</code></pre>
+  <p class="note">Mirrors TableFittedParameters' existing reveal-on-select behavior: click a cell to see the full-precision value (app.magnetic_parameters is already full double precision, recomputed on every calculate/fit), release focus (click elsewhere) to see the compact 6-sig-fig display again. Neither table is editable in these columns (only TableParameters' Select-a column, col 5, is), so there's no matching CellEdit to add.</p>
+</div>
+
+<div class="summary">
+  <p>After saving in App Designer, tell Claude — it will regenerate <code>app_exported.m</code>
+  and verify the app constructs and runs <code>startupFcn</code> cleanly in
+  <code>matlab -batch</code> before you launch it yourself.</p>
+</div>
+
+</body>
+</html>

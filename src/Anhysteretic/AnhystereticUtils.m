@@ -442,33 +442,33 @@ classdef AnhystereticUtils
         end
 
         function [ms_seed, a_seed, alpha_seed, has_seeds] = get_first_anhysteretic_seeds(app)
+            % MOD: reads the full-precision source (app.magnetic_parameters) directly,
+            % not the TableParameters display text -- that text is a 6-sig-fig rendering,
+            % and parsing it back was silently truncating the seeds handed to the
+            % Hysteretic and Playground tabs.
             has_seeds = false;
-            ms_seed = "";
-            a_seed = "";
-            alpha_seed = "";
+            ms_seed = NaN;
+            a_seed = NaN;
+            alpha_seed = NaN;
 
             if isempty(app.TableParameters.Data) || height(app.TableParameters.Data) < 1
                 return;
             end
-
-            ms_raw = string(app.TableParameters.Data{1,2});
-            alpha_raw = string(app.TableParameters.Data{1,3});
-            a_raw = string(app.TableParameters.Data{1,4});
-
-            if strlength(ms_raw) == 0 || strlength(alpha_raw) == 0 || strlength(a_raw) == 0
+            if isempty(app.magnetic_parameters) || isempty(app.magnetic_parameters.Ms) ...
+                    || isempty(app.magnetic_parameters.alpha) || isempty(app.magnetic_parameters.a)
                 return;
             end
 
-            ms_num = str2double(replace(ms_raw, ",", ""));
-            a_num = str2double(replace(a_raw, ",", ""));
-            alpha_num = str2double(replace(alpha_raw, ",", ""));
-            if isnan(ms_num) || isnan(a_num) || isnan(alpha_num)
+            ms_num = app.magnetic_parameters.Ms(1);
+            alpha_num = app.magnetic_parameters.alpha(1);
+            a_num = app.magnetic_parameters.a(1);
+            if ~isfinite(ms_num) || ~isfinite(alpha_num) || ~isfinite(a_num)
                 return;
             end
 
-            ms_seed = ms_raw;
-            a_seed = a_raw;
-            alpha_seed = alpha_raw;
+            ms_seed = ms_num;
+            a_seed = a_num;
+            alpha_seed = alpha_num;
             has_seeds = true;
         end
 

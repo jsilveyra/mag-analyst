@@ -534,3 +534,22 @@ The app also has `convert_playground_curve_units` for the Playground axes dropdo
   (`.../memory/MEMORY.md`): a-root selection rule, MATLAB R2024a environment /
   mlapp patching notes, the distribution-model project, and the
   "flag app_exported.m changes" rule.
+- **Keep Code View thin (as of 2026-07-08).** Every tab now has its own
+  `<Tab>Utils.m` (`AnhystereticUtils`, `HystereticUtils`, `PlaygroundUtils`,
+  `InputUtils`, `MenuUtils`), plus `Common/FileDialogUtils.m` for anything
+  shared by 2+ tabs. New business logic for a tab goes in that file as a
+  static method + a one-line delegator in `app_exported.m` — never written
+  directly into `app.mlapp`'s Code View. Only callbacks, `createComponents`,
+  and these thin delegators belong on the app class itself. Exception:
+  `createCallbackFcn` is a `protected` method of `matlab.apps.AppBase`, so
+  any line that calls it (wiring a `CellEditCallback` etc.) must stay on the
+  app class — a Utils static method cannot call it even with `app` passed in.
+- **New numeric fields default to high precision.** Any new editable,
+  non-integer field must be a `NumericEditField` (not `EditField`) with an
+  explicit `ValueDisplayFormat` (`'%.6g'` generally, `'%.5e'` for
+  small/scientific values like `alpha`) — never a text field storing a
+  formatted string, which silently truncates precision on every re-display.
+  For `uitable` cells, mirror the Anhysteretic `TableFittedParameters`
+  pattern: a full-precision numeric array is the source of truth, the table
+  shows a `format_sigfigs`-style 6-sig-fig rendering, and selecting a cell
+  reveals full precision for editing.

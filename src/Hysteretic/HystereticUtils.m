@@ -417,13 +417,17 @@ classdef HystereticUtils
                 (strlength(string(app.CurveDropDown.Value)) > 0 && string(app.CurveDropDown.Value) ~= parser_constants.ANHYSTERETIC_CURVE_TYPE);
 
             if has_seeds && is_hysteretic_context
-                ms_num = str2double(replace(ms_seed, ",", ""));
-                a_num = str2double(replace(a_seed, ",", ""));
-                alpha_num = str2double(replace(alpha_seed, ",", ""));
+                ms_num = ms_seed;
+                a_num = a_seed;
+                alpha_num = alpha_seed;
 
                 app.Ms_JA.Value = ms_num;
                 app.a_JA.Value = a_num;
                 app.alpha_JA.Value = alpha_num;
+
+                ms_display = AnhystereticUtils.format_sigfigs(ms_num);
+                a_display = AnhystereticUtils.format_sigfigs(a_num);
+                alpha_display = AnhystereticUtils.format_sigfigs(alpha_num);
 
                 k_value = NaN;
                 if has_curve_data && isfinite(ms_num) && isfinite(a_num) && isfinite(alpha_num) && a_num ~= 0
@@ -442,11 +446,11 @@ classdef HystereticUtils
                     k_display = HystereticUtils.format_k_seed_display(app, k_value);
                     app.k_JA.Value = k_value;
                     app.c_JA.Value = c_seed;
-                    app.write_message("Jiles–Atherton seeds retrieved: Ms=" + ms_seed + " [A/m], a=" + a_seed + " [A/m], α=" + alpha_seed + ", c=" + app.format_short(c_seed) + ", k=" + k_display + " [A/m].");
+                    app.write_message("Jiles–Atherton seeds retrieved: Ms=" + ms_display + " [A/m], a=" + a_display + " [A/m], α=" + alpha_display + ", c=" + app.format_short(c_seed) + ", k=" + k_display + " [A/m].");
                 else
                     app.k_JA.Value = [];
                     app.c_JA.Value = c_seed;
-                    app.write_message("Jiles–Atherton seeds retrieved: Ms=" + ms_seed + " [A/m], a=" + a_seed + " [A/m], α=" + alpha_seed + ", c=" + app.format_short(c_seed) + ", k=not available.");
+                    app.write_message("Jiles–Atherton seeds retrieved: Ms=" + ms_display + " [A/m], a=" + a_display + " [A/m], α=" + alpha_display + ", c=" + app.format_short(c_seed) + ", k=not available.");
                 end
             else
                 app.Ms_JA.Value = [];

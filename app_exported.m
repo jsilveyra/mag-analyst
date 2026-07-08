@@ -9,7 +9,7 @@ classdef app_exported < matlab.apps.AppBase
         SaveasMenu                      matlab.ui.container.Menu
         AppGridLayout                   matlab.ui.container.GridLayout
         MessagesTabPanel                matlab.ui.container.TabGroup
-        MessagesTab                     matlab.ui.container.Tab
+        ActivitylogTab                  matlab.ui.container.Tab
         MessagesGridLayout              matlab.ui.container.GridLayout
         MessagesTextArea                matlab.ui.control.TextArea
         TabGroup                        matlab.ui.container.TabGroup
@@ -58,7 +58,7 @@ classdef app_exported < matlab.apps.AppBase
         SetColorsButton                 matlab.ui.control.Button
         PointSpaceDropDown              matlab.ui.control.DropDown
         NofpointsEditField              matlab.ui.control.NumericEditField
-        NofpointsEditFieldLabel         matlab.ui.control.Label
+        NofpointsLabel                  matlab.ui.control.Label
         NofcompSpinner                  matlab.ui.control.Spinner
         NofcompSpinnerLabel             matlab.ui.control.Label
         ModeledcurveLabel               matlab.ui.control.Label
@@ -98,9 +98,9 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesHdMdH                       matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesM                           matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesHdMdH                       matlab.ui.control.UIAxes
         HystereticfittingTab            matlab.ui.container.Tab
         GridLayout2                     matlab.ui.container.GridLayout
         StopfitButton_2                 matlab.ui.control.Button
@@ -1255,18 +1255,18 @@ classdef app_exported < matlab.apps.AppBase
                 for i = 1:height(app.TableFittedParameters.Data)
                     name = string(app.TableFittedParameters.Data(i, 1));
                     name = subscript_to_number(app, name);
-                    value = str2double(app.TableFittedParameters.Data(i, 2));
+                    value = app.fitted_parameter_values(i);
                     s = sprintf("%s: \t%f", name, value);
                     fprintf(file, s + newline);
                 end
                 fprintf(file, newline);
-            end     
+            end
             if(app.ExportModelparametersCheckBox.Value == 1)
                 fprintf(file, "Model-Retrieved Parameters:" + newline);
                 for i = 1:height(app.TableParameters.Data)
-                    Ms_value = str2double(app.TableParameters.Data(i, 2).Ms_col);
-                    alpha_value = str2double(app.TableParameters.Data(i, 3).alpha_col);
-                    a_value = str2double(app.TableParameters.Data(i, 4).a_col);
+                    Ms_value = app.magnetic_parameters.Ms(i);
+                    alpha_value = app.magnetic_parameters.alpha(i);
+                    a_value = app.magnetic_parameters.a(i);
                     s_component = sprintf("Component: %i", i);
                     s_Ms_value = sprintf("    Ms%i [A/m]: \t%0.4f", i, Ms_value);
                     s_alpha_value = sprintf("            α: \t%0.4e", alpha_value);
@@ -1278,10 +1278,10 @@ classdef app_exported < matlab.apps.AppBase
             if(app.ExportOtherquantitiesCheckBox.Value == 1)
             fprintf(file, "Calculated Quantities:" + newline);
                 for i = 1:height(app.TableQuantities.Data)
-                    alpha_Ms_value = str2double(app.TableQuantities.Data(i, 2).dimensionless_alphaMs_col);
-                    density_product_value = str2double(app.TableQuantities.Data(i, 3).density_product_col);
-                    Hk_value = str2double(app.TableQuantities.Data(i, 4).Hk_col);
-                    magnetic_permeability_value = str2double(app.TableQuantities.Data(i, 5).initial_relative_magnetic_permeability_col);
+                    alpha_Ms_value = app.magnetic_parameters.dimensionless_alphaMs(i);
+                    density_product_value = app.magnetic_parameters.density_product(i);
+                    Hk_value = app.magnetic_parameters.Hk(i);
+                    magnetic_permeability_value = app.magnetic_parameters.initial_relative_magnetic_permeability(i);
                     s_component = sprintf("Component: %i", i);
                     s_alpha_Ms_value = sprintf("    α%i|Ms%i|/(3a%i): \t%0.4f", i, i, i, alpha_Ms_value);
                     s_density_product_value = sprintf("    N%ikBT [J/m^3]: \t%0.4f", i, density_product_value);
@@ -1583,9 +1583,9 @@ classdef app_exported < matlab.apps.AppBase
 
             [ms_seed, a_seed, alpha_seed, has_seeds] = app.get_first_anhysteretic_seeds();
             if has_seeds
-                app.JsField_9.Value = str2double(replace(ms_seed, ",", ""));
-                app.JsField_10.Value = str2double(replace(a_seed, ",", ""));
-                app.JsField_11.Value = str2double(replace(alpha_seed, ",", ""));
+                app.JsField_9.Value = ms_seed;
+                app.JsField_10.Value = a_seed;
+                app.JsField_11.Value = alpha_seed;
                 app.JsField_12.Value = 0;
                 app.JsField_13.Value = 0;
                 app.write_message("Anhysteretic parameters retrieved from Anhysteretic Fitting tab.");
@@ -1764,6 +1764,50 @@ classdef app_exported < matlab.apps.AppBase
         % Value changed function: MsLower_JA
         function MsLower_JAValueChanged(app, event)
             app.hysteretic_ms_lower_bound_user_edited = true;   % MOD: stop auto-filling the Ms lower bound from Mtip once edited
+        end
+
+        % Cell selection callback: TableParameters
+        function TableParametersCellSelection(app, event)
+            if isempty(event.Indices)
+                return
+            end
+            row = event.Indices(1,1);
+            col = event.Indices(1,2);
+            if row > height(app.TableParameters.Data) || isempty(app.magnetic_parameters) || row > numel(app.magnetic_parameters.Ms)
+                return
+            end
+            app.init_parameters_table(false);
+            switch col
+                case 2
+                    app.TableParameters.Data.Ms_col{row} = sprintf('%.16g', app.magnetic_parameters.Ms(row));
+                case 3
+                    app.TableParameters.Data.alpha_col{row} = sprintf('%.16g', app.magnetic_parameters.alpha(row));
+                case 4
+                    app.TableParameters.Data.a_col{row} = sprintf('%.16g', app.magnetic_parameters.a(row));
+            end
+        end
+
+        % Cell selection callback: TableQuantities
+        function TableQuantitiesCellSelection(app, event)
+            if isempty(event.Indices)
+                return
+            end
+            row = event.Indices(1,1);
+            col = event.Indices(1,2);
+            if row > height(app.TableQuantities.Data) || isempty(app.magnetic_parameters) || row > numel(app.magnetic_parameters.dimensionless_alphaMs)
+                return
+            end
+            app.init_quantities_table(false);
+            switch col
+                case 2
+                    app.TableQuantities.Data.dimensionless_alphaMs_col{row} = sprintf('%.16g', app.magnetic_parameters.dimensionless_alphaMs(row));
+                case 3
+                    app.TableQuantities.Data.density_product_col{row} = sprintf('%.16g', app.magnetic_parameters.density_product(row));
+                case 4
+                    app.TableQuantities.Data.Hk_col{row} = sprintf('%.16g', app.magnetic_parameters.Hk(row));
+                case 5
+                    app.TableQuantities.Data.initial_relative_magnetic_permeability_col{row} = sprintf('%.16g', app.magnetic_parameters.initial_relative_magnetic_permeability(row));
+            end
         end
     end
 
@@ -2115,14 +2159,14 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -2133,14 +2177,14 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
@@ -2318,6 +2362,7 @@ classdef app_exported < matlab.apps.AppBase
             app.TableParameters.ColumnName = {'Component'; 'Msᵢ [A/m]'; 'αᵢ'; 'aᵢ [A/m]'; 'Select aᵢ'};
             app.TableParameters.RowName = {};
             app.TableParameters.ColumnEditable = [false false false false true];
+            app.TableParameters.CellSelectionCallback = createCallbackFcn(app, @TableParametersCellSelection, true);
             app.TableParameters.Layout.Row = 6;
             app.TableParameters.Layout.Column = 1;
 
@@ -2431,6 +2476,7 @@ classdef app_exported < matlab.apps.AppBase
             app.TableQuantities = uitable(app.GridLayoutNumbers);
             app.TableQuantities.ColumnName = {'Component'; 'αᵢ⏐Msᵢ⏐/(3aᵢ)'; 'NᵢkвT [J/m³]'; 'Hkᵢ [A/m]'; 'μrᵢₙ ᵢ'};
             app.TableQuantities.RowName = {};
+            app.TableQuantities.CellSelectionCallback = createCallbackFcn(app, @TableQuantitiesCellSelection, true);
             app.TableQuantities.Layout.Row = 8;
             app.TableQuantities.Layout.Column = 1;
 
@@ -2464,12 +2510,12 @@ classdef app_exported < matlab.apps.AppBase
             app.NofcompSpinner.Layout.Column = 2;
             app.NofcompSpinner.Value = 1;
 
-            % Create NofpointsEditFieldLabel
-            app.NofpointsEditFieldLabel = uilabel(app.GridLayoutModeledCurve);
-            app.NofpointsEditFieldLabel.Tooltip = {'N° of points of modeled anhysteretic curve'};
-            app.NofpointsEditFieldLabel.Layout.Row = 1;
-            app.NofpointsEditFieldLabel.Layout.Column = 3;
-            app.NofpointsEditFieldLabel.Text = 'N. of points';
+            % Create NofpointsLabel
+            app.NofpointsLabel = uilabel(app.GridLayoutModeledCurve);
+            app.NofpointsLabel.Tooltip = {'N° of points of modeled anhysteretic curve'};
+            app.NofpointsLabel.Layout.Row = 1;
+            app.NofpointsLabel.Layout.Column = 3;
+            app.NofpointsLabel.Text = 'N° of points';
 
             % Create NofpointsEditField
             app.NofpointsEditField = uieditfield(app.GridLayoutModeledCurve, 'numeric');
@@ -2508,7 +2554,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayout2
             app.GridLayout2 = uigridlayout(app.HystereticfittingTab);
-            app.GridLayout2.ColumnWidth = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
+            app.GridLayout2.ColumnWidth = {'1x', '1x', '1x', '1x', '1x', '1x', '1.2x', '1x', '1x', '0.75x', '0.75x', '0.75x'};
             app.GridLayout2.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '0.5x', '1.3x'};
             app.GridLayout2.ColumnSpacing = 2.77317164494441;
             app.GridLayout2.RowSpacing = 6.31337694021372;
@@ -2957,7 +3003,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayout3
             app.GridLayout3 = uigridlayout(app.PlaygroundTab);
-            app.GridLayout3.ColumnWidth = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
+            app.GridLayout3.ColumnWidth = {'0.75x', '1.3x', '0.5x', '1x', '1x', '1x', '1x', '1x', '0.5x', '1x', '1x', '1x', '1x', '1x'};
             app.GridLayout3.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1.5x'};
             app.GridLayout3.ColumnSpacing = 4.37498664855957;
             app.GridLayout3.RowSpacing = 2.24000155131022;
@@ -4081,12 +4127,12 @@ classdef app_exported < matlab.apps.AppBase
             app.MessagesTabPanel.Layout.Row = 2;
             app.MessagesTabPanel.Layout.Column = 1;
 
-            % Create MessagesTab
-            app.MessagesTab = uitab(app.MessagesTabPanel);
-            app.MessagesTab.Title = 'Messages';
+            % Create ActivitylogTab
+            app.ActivitylogTab = uitab(app.MessagesTabPanel);
+            app.ActivitylogTab.Title = 'Activity log';
 
             % Create MessagesGridLayout
-            app.MessagesGridLayout = uigridlayout(app.MessagesTab);
+            app.MessagesGridLayout = uigridlayout(app.ActivitylogTab);
             app.MessagesGridLayout.ColumnWidth = {'1x'};
             app.MessagesGridLayout.RowHeight = {'1x'};
 
