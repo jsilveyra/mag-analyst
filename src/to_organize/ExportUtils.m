@@ -13,9 +13,9 @@ classdef ExportUtils
 %       written as vector graphics (pdf/svg).
 
     methods (Static)
-        function write_columns_csv(path, varNames, columns)
+        function write_columns_csv(path, var_names, columns)
             %WRITE_COLUMNS_CSV Write equal-length numeric columns to a ';' CSV.
-            %   varNames : cellstr of column headers (may contain spaces/units).
+            %   var_names : cellstr of column headers (may contain spaces/units).
             %   columns  : cell array of numeric vectors, all the same length.
             data = zeros(numel(columns{1}), numel(columns));
             for j = 1:numel(columns)
@@ -23,7 +23,7 @@ classdef ExportUtils
                 data(:, j) = col(:);
             end
             t = array2table(data);
-            t.Properties.VariableNames = varNames;   % arbitrary headers preserved
+            t.Properties.VariableNames = var_names;   % arbitrary headers preserved
             writetable(t, path, 'Delimiter', ';');
         end
 

@@ -18,7 +18,7 @@ addpath(genpath(fullfile(project_root, 'src')));
 
 %% Parser
 parser_constants = ParserConstants();
-data_file = fullfile(project_root, 'data', 'sampleData', 'Finemet - TA.csv');
+data_file = fullfile(project_root, 'data', 'sampleData', 'Finemet_TA.csv');
 
 % Initialize parser: parser = Parser(file_path, x_field_and_unit, y_field_and_unit, curve_type)
 % Refer to ParserConstants for the supported fields/units for both axes.

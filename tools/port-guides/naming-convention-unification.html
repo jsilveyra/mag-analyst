@@ -1,0 +1,157 @@
+<!doctype html><html><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><title>MagAnalyst port guide &mdash; naming unification</title><style>:root{--b:#b3261e;--a:#0b6b3a;--line:#e3e3e3;--code:#f4f4f6}
+*{box-sizing:border-box}h1{font-size:1.5rem;margin:0 0 .3rem}
+h2{font-size:1.15rem;margin:1.6rem 0 .5rem;border-bottom:1px solid var(--line);padding-bottom:.25rem}
+h3{font-size:1rem;margin:0 0 .6rem}.meta{color:#555}
+code{background:var(--code);padding:.08em .35em;border-radius:4px;font-size:.92em}
+section{border:1px solid var(--line);border-radius:8px;padding:.9rem 1rem;margin:.8rem 0;background:#fff}
+.pair{display:flex;gap:.75rem;flex-wrap:wrap}.col{flex:1 1 320px;min-width:280px}
+.lbl{font-size:.7rem;font-weight:700;letter-spacing:.05em;margin-bottom:.2rem}
+.lbl.b,.b{color:var(--b)}.lbl.a,.a{color:var(--a)}
+pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:6px;padding:.6rem .7rem;overflow-x:auto;font-size:.82rem;line-height:1.45;white-space:pre}
+.col:first-child pre{border-left:3px solid var(--b)}.col:last-child pre{border-left:3px solid var(--a)}
+.callout{border-radius:8px;padding:.7rem .9rem;margin:.7rem 0;font-size:.92rem}
+.callout.ok{background:#eafaf0;border:1px solid #b9e6c9}.callout.warn{background:#fff6e5;border:1px solid #f3d79b}
+.sig{background:#fde7e7;color:var(--b);border:1px solid #f3b9b9;border-radius:999px;padding:.05em .55em;font-size:.68rem;font-weight:700;vertical-align:middle}
+.note{color:#666;font-size:.85rem}ol,ul{padding-left:1.2rem}
+body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:1000px;margin:1.5rem auto;padding:0 1rem;color:#1a1a1a;line-height:1.5}</style></head><body><h1>App Designer port guide &mdash; naming-convention unification</h1>
+<p class="meta">Generated 2026-07-08. Target app: <code>app.mlapp</code>. Every edit below is a <strong>Code&nbsp;View</strong> identifier rename &mdash; there are <strong>no Design&nbsp;View / <code>createComponents</code> changes</strong>, no component renames, no callback-wiring changes.</p>
+<div class="callout ok"><strong>Status:</strong> <code>app_exported.m</code> is <em>already</em> updated to the target state and was construct-verified in MATLAB R2025b (<code>a = app_exported</code> builds cleanly) plus exercised via the headless demos. This guide applies the <em>same</em> renames to <code>app.mlapp</code> so App&nbsp;Designer (the source of truth) stays in sync and future re-exports don't revert them. After you apply &amp; save, no regeneration is needed &mdash; the files already match.</div>
+<div class="callout warn"><strong>Signature edits (&#9888; flagged):</strong> a few edits change a <code>function</code> line (method name or a parameter name). These are the easiest to paste past &mdash; where you see the badge, edit the <code>function</code> declaration line itself, not just the body.</div>
+<h2>How to apply</h2>
+<ol>
+<li>Open <code>app.mlapp</code> in App&nbsp;Designer &rarr; <strong>Code&nbsp;View</strong>.</li>
+<li>Use the Code&nbsp;Browser <em>Functions</em> list to jump to each method below.</li>
+<li>Replace the <span class="b">BEFORE</span> text with the <span class="a">AFTER</span> text. Pure identifier renames; indentation unchanged.</li>
+<li>Save, then do the <a href="#cd">ColorDialog.mlapp</a> file rename.</li>
+</ol>
+<section><h3>1. Method <code>function fullpath = safe_getfile(app, filter, startpath, dialogTitle)</code> <span class="sig">&#9888; signature line</span></h3>
+<div class="pair"><div class="col"><div class="lbl b">BEFORE</div><pre>
+        function fullpath = safe_getfile(app, filter, startpath, dialogTitle) % MOD
+            fullpath = FileDialogUtils.safe_getfile(app, filter, startpath, dialogTitle);
+        end
+
+
+        function fullpath = safe_putfile(app, filter, startpath, dialogTitle, defaultName) % MOD
+            fullpath = FileDialogUtils.safe_putfile(app, filter, startpath, dialogTitle, defaultName);
+        end
+
+
+        function folder = safe_getdir(app, startpath, dialogTitle) % MOD
+            folder = FileDialogUtils.safe_getdir(app, startpath, dialogTitle);
+        end</pre></div><div class="col"><div class="lbl a">AFTER</div><pre>
+        function fullpath = safe_getfile(app, filter, startpath, dialog_title) % MOD
+            fullpath = FileDialogUtils.safe_getfile(app, filter, startpath, dialog_title);
+        end
+
+
+        function fullpath = safe_putfile(app, filter, startpath, dialog_title, default_name) % MOD
+            fullpath = FileDialogUtils.safe_putfile(app, filter, startpath, dialog_title, default_name);
+        end
+
+
+        function folder = safe_getdir(app, startpath, dialog_title) % MOD
+            folder = FileDialogUtils.safe_getdir(app, startpath, dialog_title);
+        end</pre></div></div>
+</section>
+<section><h3>2. Method <code>function adjustWindow(app)</code> <span class="sig">&#9888; signature line</span></h3>
+<div class="pair"><div class="col"><div class="lbl b">BEFORE</div><pre>%%
+        function adjustWindow(app)
+        </pre></div><div class="col"><div class="lbl a">AFTER</div><pre>%%
+        function adjust_window(app)
+        </pre></div></div>
+<div class="pair"><div class="col"><div class="lbl b">BEFORE</div><pre>        
+            maxHeight = scr(4) * 0.85;
+            if pos(4) &gt; maxHeight
+                pos(4) = maxHeight;
+            end</pre></div><div class="col"><div class="lbl a">AFTER</div><pre>        
+            max_height = scr(4) * 0.85;
+            if pos(4) &gt; max_height
+                pos(4) = max_height;
+            end</pre></div></div>
+</section>
+<section><h3>3. Method <code>function [v, ok] = read_numeric_field(app, fieldHandle)</code> <span class="sig">&#9888; signature line</span></h3>
+<div class="pair"><div class="col"><div class="lbl b">BEFORE</div><pre>
+        function [v, ok] = read_numeric_field(app, fieldHandle)
+            [v, ok] = HystereticUtils.read_numeric_field(app, fieldHandle);
+        end</pre></div><div class="col"><div class="lbl a">AFTER</div><pre>
+        function [v, ok] = read_numeric_field(app, field_handle)
+            [v, ok] = HystereticUtils.read_numeric_field(app, field_handle);
+        end</pre></div></div>
+</section>
+<section><h3>4. Method <code>function k_est = estimateK_fromCoercivePoint(app, Hleft, Mleft, Ms, a, alpha, c)</code> <span class="sig">&#9888; signature line</span></h3>
+<div class="pair"><div class="col"><div class="lbl b">BEFORE</div><pre>
+        function k_est = estimateK_fromCoercivePoint(app, Hleft, Mleft, Ms, a, alpha, c)
+            k_est = HystereticUtils.estimateK_fromCoercivePoint(app, Hleft, Mleft, Ms, a, alpha, c);
+        end</pre></div><div class="col"><div class="lbl a">AFTER</div><pre>
+        function k_est = estimate_k_from_coercive_point(app, Hleft, Mleft, Ms, a, alpha, c)
+            k_est = HystereticUtils.estimate_k_from_coercive_point(app, Hleft, Mleft, Ms, a, alpha, c);
+        end</pre></div></div>
+</section>
+<section><h3>5. Method <code>function calculate_plot_and_refresh_hysteretic(app)</code> </h3>
+<div class="pair"><div class="col"><div class="lbl b">BEFORE</div><pre>            try
+                [Htip, Mtip, okTip] = app.get_ja_tip_from_tab_or_data();
+                if okTip
+                    app.Htip.Value = Htip;</pre></div><div class="col"><div class="lbl a">AFTER</div><pre>            try
+                [Htip, Mtip, ok_tip] = app.get_ja_tip_from_tab_or_data();
+                if ok_tip
+                    app.Htip.Value = Htip;</pre></div></div>
+</section>
+<section><h3>6. Method <code>function startupFcn(app)</code> </h3>
+<div class="pair"><div class="col"><div class="lbl b">BEFORE</div><pre>            % Add src folder (portable)
+            srcFolder = fullfile(app.AppRoot, &quot;src&quot;);
+            if isfolder(srcFolder)
+                addpath(genpath(char(srcFolder)));
+            end</pre></div><div class="col"><div class="lbl a">AFTER</div><pre>            % Add src folder (portable)
+            src_folder = fullfile(app.AppRoot, &quot;src&quot;);
+            if isfolder(src_folder)
+                addpath(genpath(char(src_folder)));
+            end</pre></div></div>
+<div class="pair"><div class="col"><div class="lbl b">BEFORE</div><pre>            % Default output folder
+            outFolder = app.default_data_folder();
+            app.ensure_folder(outFolder);
+            app.OutputDatasetPath.Value = char(outFolder);
+        </pre></div><div class="col"><div class="lbl a">AFTER</div><pre>            % Default output folder
+            out_folder = app.default_data_folder();
+            app.ensure_folder(out_folder);
+            app.OutputDatasetPath.Value = char(out_folder);
+        </pre></div></div>
+<div class="pair"><div class="col"><div class="lbl b">BEFORE</div><pre>                &#x27;ExecutionMode&#x27;, &#x27;singleShot&#x27;, ...
+                &#x27;TimerFcn&#x27;, @(~,~) adjustWindow(app) );
+            start(t);</pre></div><div class="col"><div class="lbl a">AFTER</div><pre>                &#x27;ExecutionMode&#x27;, &#x27;singleShot&#x27;, ...
+                &#x27;TimerFcn&#x27;, @(~,~) adjust_window(app) );
+            start(t);</pre></div></div>
+</section>
+<section><h3>7. Method <code>function InputBrowseButtonPushed(app, event)</code> </h3>
+<div class="pair"><div class="col"><div class="lbl b">BEFORE</div><pre>            % MOD: Callback modified for safe file handling
+            startFolder = app.default_data_folder();
+            fullpath = app.safe_getfile(&#x27;*.csv&#x27;, startFolder, ...
+                &quot;Select dataset file&quot;);</pre></div><div class="col"><div class="lbl a">AFTER</div><pre>            % MOD: Callback modified for safe file handling
+            start_folder = app.default_data_folder();
+            fullpath = app.safe_getfile(&#x27;*.csv&#x27;, start_folder, ...
+                &quot;Select dataset file&quot;);</pre></div></div>
+</section>
+<section><h3>8. Method <code>function OutputBrowseButtonPushed(app, event)</code> </h3>
+<div class="pair"><div class="col"><div class="lbl b">BEFORE</div><pre>            % MOD: Callback modified for safe file handling
+            startFolder = string(app.OutputDatasetPath.Value);
+            folder = app.safe_getdir(startFolder, ...
+                &quot;Select output folder&quot;);</pre></div><div class="col"><div class="lbl a">AFTER</div><pre>            % MOD: Callback modified for safe file handling
+            start_folder = string(app.OutputDatasetPath.Value);
+            folder = app.safe_getdir(start_folder, ...
+                &quot;Select output folder&quot;);</pre></div></div>
+</section>
+<section><h3>9. Method <code>function SetColorsButtonPushed(app, event)</code> </h3>
+<div class="pair"><div class="col"><div class="lbl b">BEFORE</div><pre>            app.SetColorsButton.Enable = false;
+            app.ColorDialogApp = colorDialog(app, app.Colors, app.number_components);
+        end</pre></div><div class="col"><div class="lbl a">AFTER</div><pre>            app.SetColorsButton.Enable = false;
+            app.ColorDialogApp = ColorDialog(app, app.Colors, app.number_components);
+        end</pre></div></div>
+</section>
+<section id="cd"><h3>10. Rename companion app <code>colorDialog.mlapp</code> &rarr; <code>ColorDialog.mlapp</code></h3>
+<p>The &ldquo;Set Colors&rdquo; popup is its own App&nbsp;Designer app (<code>src/Anhysteretic/colorDialog.mlapp</code>), source of truth for <code>src/Anhysteretic/ColorDialog.m</code> (already renamed on disk, class <code>ColorDialog</code>). To make the class name PascalCase-consistent:</p>
+<ol>
+<li>Close the popup in App&nbsp;Designer if open.</li>
+<li>Open it, then <strong>Save&nbsp;As&hellip;</strong> &rarr; <code>ColorDialog.mlapp</code> (App&nbsp;Designer derives the class name from the file name, so the class becomes <code>ColorDialog</code>, matching the caller and <code>ColorDialog.m</code>). Delete the old <code>colorDialog.mlapp</code>.</li>
+<li>No further export needed &mdash; <code>ColorDialog.m</code> is already in place and matches.</li>
+</ol>
+<p class="note">Source-of-truth cleanup only; the running app already resolves <code>ColorDialog</code> to <code>ColorDialog.m</code> (verified). Prefer I patch the <code>.mlapp</code> directly? Tell me it&rsquo;s closed in App&nbsp;Designer and I will.</p>
+</section></body></html>

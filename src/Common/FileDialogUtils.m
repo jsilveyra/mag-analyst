@@ -4,15 +4,15 @@ classdef FileDialogUtils
 %   the Output tab's browse button, and the Menus (Open/Save/Save As).
 
     methods (Static)
-        function fullpath = safe_getfile(~, filter, startpath, dialogTitle)
-            if nargin < 4 || strlength(string(dialogTitle)) == 0
-                dialogTitle = "Select file";
+        function fullpath = safe_getfile(~, filter, startpath, dialog_title)
+            if nargin < 4 || strlength(string(dialog_title)) == 0
+                dialog_title = "Select file";
             end
             if nargin < 3 || strlength(string(startpath)) == 0
                 startpath = pwd;
             end
 
-            [file, path] = uigetfile(filter, char(dialogTitle), char(startpath));
+            [file, path] = uigetfile(filter, char(dialog_title), char(startpath));
 
             if isequal(file,0) || isequal(path,0)
                 fullpath = "";
@@ -22,22 +22,22 @@ classdef FileDialogUtils
             fullpath = string(fullfile(path, file));
         end
 
-        function fullpath = safe_putfile(~, filter, startpath, dialogTitle, defaultName)
+        function fullpath = safe_putfile(~, filter, startpath, dialog_title, default_name)
             if nargin < 5
-                defaultName = "";
+                default_name = "";
             end
-            if nargin < 4 || strlength(string(dialogTitle)) == 0
-                dialogTitle = "Save file";
+            if nargin < 4 || strlength(string(dialog_title)) == 0
+                dialog_title = "Save file";
             end
             if nargin < 3 || strlength(string(startpath)) == 0
                 startpath = pwd;
             end
 
-            if strlength(string(defaultName)) > 0
-                startpath = fullfile(startpath, char(defaultName));
+            if strlength(string(default_name)) > 0
+                startpath = fullfile(startpath, char(default_name));
             end
 
-            [file, path] = uiputfile(filter, char(dialogTitle), char(startpath));
+            [file, path] = uiputfile(filter, char(dialog_title), char(startpath));
 
             if isequal(file,0) || isequal(path,0)
                 fullpath = "";
@@ -47,15 +47,15 @@ classdef FileDialogUtils
             fullpath = string(fullfile(path, file));
         end
 
-        function folder = safe_getdir(~, startpath, dialogTitle)
-            if nargin < 3 || strlength(string(dialogTitle)) == 0
-                dialogTitle = "Select folder";
+        function folder = safe_getdir(~, startpath, dialog_title)
+            if nargin < 3 || strlength(string(dialog_title)) == 0
+                dialog_title = "Select folder";
             end
             if nargin < 2 || strlength(string(startpath)) == 0
                 startpath = pwd;
             end
 
-            p = uigetdir(char(startpath), char(dialogTitle));
+            p = uigetdir(char(startpath), char(dialog_title));
 
             if isequal(p,0)
                 folder = "";

@@ -57,13 +57,13 @@ classdef HystereticUtils
 
             try
                 opts = odeset('RelTol', 1e-7, 'AbsTol', 1e-6);
-                [Hsim, Msim] = solveJA_hysteretic_region( ...
+                [Hsim, Msim] = solve_ja_hysteretic_region( ...
                     Htip, Mtip, params, ...
                     app.StartingpointDropDown_4.Value, ...
                     app.FittingregionDropDown.Value, ...
                     app.StopcriterionDropDown_5.Value, ...
                     HystereticUtils.get_hysteretic_repetition_value(app), ...
-                    app.ReltoleranceEditField_3.Value, ...
+                    app.RelativetoleranceEditField.Value, ...
                     HystereticUtils.get_hysteretic_max_repetitions_value(app), ...
                     opts);
                 if isempty(Hsim) || isempty(Msim)
@@ -86,7 +86,7 @@ classdef HystereticUtils
         end
 
         function max_repetitions = get_hysteretic_max_repetitions_value(app)
-            max_repetitions = max(1, round(app.MaxrepetEditField.Value));
+            max_repetitions = max(1, round(app.MaximumrepetitionsEditField.Value));
         end
 
         function sync_hysteretic_fitting_ui(app)
@@ -102,13 +102,13 @@ classdef HystereticUtils
 
             app.RepetitionsEditField_3Label.Enable = 'off';
             app.RepetitionsEditField_3.Enable = 'off';
-            app.ReltoleranceEditField_3Label.Enable = 'off';
-            app.ReltoleranceEditField_3.Enable = 'off';
-            if isprop(app, 'MaxrepetitionsEditField_3Label')
-                app.MaxrepetitionsEditField_3Label.Enable = 'off';
+            app.RelativetoleranceEditFieldLabel.Enable = 'off';
+            app.RelativetoleranceEditField.Enable = 'off';
+            if isprop(app, 'MaximumrepetitionsEditFieldLabel')
+                app.MaximumrepetitionsEditFieldLabel.Enable = 'off';
             end
             if isprop(app, 'MaxrepetitionsEditField_3')
-                app.MaxrepetEditField.Enable = 'off';
+                app.MaximumrepetitionsEditField.Enable = 'off';
             end
 
             if is_entire_loop
@@ -125,13 +125,13 @@ classdef HystereticUtils
                 app.StopcriterionDropDown_5.Enable = 'off';
                 app.RepetitionsEditField_3Label.Enable = 'off';
                 app.RepetitionsEditField_3.Enable = 'off';
-                app.ReltoleranceEditField_3Label.Enable = 'off';
-                app.ReltoleranceEditField_3.Enable = 'off';
-                if isprop(app, 'MaxrepetitionsEditField_3Label')
-                    app.MaxrepetitionsEditField_3Label.Enable = 'off';
+                app.RelativetoleranceEditFieldLabel.Enable = 'off';
+                app.RelativetoleranceEditField.Enable = 'off';
+                if isprop(app, 'MaximumrepetitionsEditFieldLabel')
+                    app.MaximumrepetitionsEditFieldLabel.Enable = 'off';
                 end
                 if isprop(app, 'MaxrepetitionsEditField_3')
-                    app.MaxrepetEditField.Enable = 'off';
+                    app.MaximumrepetitionsEditField.Enable = 'off';
                 end
                 return;
             end
@@ -142,24 +142,24 @@ classdef HystereticUtils
             if is_fixed
                 app.RepetitionsEditField_3Label.Enable = 'on';
                 app.RepetitionsEditField_3.Enable = 'on';
-                app.ReltoleranceEditField_3Label.Enable = 'off';
-                app.ReltoleranceEditField_3.Enable = 'off';
-                if isprop(app, 'MaxrepetitionsEditField_3Label')
-                    app.MaxrepetitionsEditField_3Label.Enable = 'off';
+                app.RelativetoleranceEditFieldLabel.Enable = 'off';
+                app.RelativetoleranceEditField.Enable = 'off';
+                if isprop(app, 'MaximumrepetitionsEditFieldLabel')
+                    app.MaximumrepetitionsEditFieldLabel.Enable = 'off';
                 end
                 if isprop(app, 'MaxrepetitionsEditField_3')
-                    app.MaxrepetEditField.Enable = 'off';
+                    app.MaximumrepetitionsEditField.Enable = 'off';
                 end
             else
                 app.RepetitionsEditField_3Label.Enable = 'off';
                 app.RepetitionsEditField_3.Enable = 'off';
-                app.ReltoleranceEditField_3Label.Enable = 'on';
-                app.ReltoleranceEditField_3.Enable = 'on';
-                if isprop(app, 'MaxrepetitionsEditField_3Label')
-                    app.MaxrepetitionsEditField_3Label.Enable = 'on';
+                app.RelativetoleranceEditFieldLabel.Enable = 'on';
+                app.RelativetoleranceEditField.Enable = 'on';
+                if isprop(app, 'MaximumrepetitionsEditFieldLabel')
+                    app.MaximumrepetitionsEditFieldLabel.Enable = 'on';
                 end
                 if isprop(app, 'MaxrepetitionsEditField_3')
-                    app.MaxrepetEditField.Enable = 'on';
+                    app.MaximumrepetitionsEditField.Enable = 'on';
                 end
             end
         end
@@ -435,7 +435,7 @@ classdef HystereticUtils
                         [H_cycle, M_cycle] = HystereticUtils.build_ja_data_cycle(app);
                         n_left = max(2, round(app.InputNumberofPointsEditField.Value));
                         [H_left, M_left] = app.extract_left_branch_uniform_arc(H_cycle, M_cycle, n_left);
-                        k_value = HystereticUtils.estimateK_fromCoercivePoint(app, H_left, M_left, ms_num, a_num, alpha_num, c_seed);
+                        k_value = HystereticUtils.estimate_k_from_coercive_point(app, H_left, M_left, ms_num, a_num, alpha_num, c_seed);
                     catch ME
                         k_value = NaN;
                         app.write_message("k-seed debug: " + string(ME.message));
@@ -494,17 +494,17 @@ classdef HystereticUtils
                     [~, d] = distance2curve(curv, data, 'linear');
                     J = sqrt(mean(d.^2));
                 elseif error_type == "Vertical"
-                    [Hhat_s, idxH] = sort(Hhat, 'ascend');
-                    Mhat_s = Mhat(idxH);
-                    [Hhat_u, idxHu] = unique(Hhat_s, 'stable');
-                    Mhat_u = Mhat_s(idxHu);
+                    [Hhat_s, idx_H] = sort(Hhat, 'ascend');
+                    Mhat_s = Mhat(idx_H);
+                    [Hhat_u, idx_Hu] = unique(Hhat_s, 'stable');
+                    Mhat_u = Mhat_s(idx_Hu);
                     Minterp = interp1(Hhat_u, Mhat_u, Hleft, 'linear', 'extrap');
                     J = sqrt(mean((Mleft - Minterp).^2));
                 elseif error_type == "Horizontal"
-                    [Mhat_s, idxM] = sort(Mhat, 'ascend');
-                    Hhat_s = Hhat(idxM);
-                    [Mhat_u, idxMu] = unique(Mhat_s, 'stable');
-                    Hhat_u = Hhat_s(idxMu);
+                    [Mhat_s, idx_M] = sort(Mhat, 'ascend');
+                    Hhat_s = Hhat(idx_M);
+                    [Mhat_u, idx_Mu] = unique(Mhat_s, 'stable');
+                    Hhat_u = Hhat_s(idx_Mu);
                     Hinterp = interp1(Mhat_u, Hhat_u, Mleft, 'linear', 'extrap');
                     J = sqrt(mean((Hleft - Hinterp).^2));
                 else
@@ -522,8 +522,8 @@ classdef HystereticUtils
             end
         end
 
-        function [v, ok] = read_numeric_field(~, fieldHandle)
-            v = fieldHandle.Value;
+        function [v, ok] = read_numeric_field(~, field_handle)
+            v = field_handle.Value;
             if isempty(v)
                 v = NaN;
                 ok = false;
@@ -544,21 +544,21 @@ classdef HystereticUtils
 
         function fit_ja_parameters(app)
             mask = struct( ...
-                'fitMs', logical(app.CheckBox.Value), ...
+                'fit_Ms', logical(app.CheckBox.Value), ...
                 'fita', logical(app.CheckBox_2.Value), ...
                 'fitalpha', logical(app.CheckBox_3.Value), ...
                 'fitc', logical(app.CheckBox_4.Value), ...
-                'kDependent', logical(app.kConstrainedCheckBox_2.Value), ...
+                'k_dependent', logical(app.kConstrainedCheckBox_2.Value), ...
                 'fitk', logical(app.FitkCheckBox.Value) && ~logical(app.kConstrainedCheckBox_2.Value));
 
             [params_seed, has_params] = HystereticUtils.get_ja_params_from_tab(app);
-            if ~has_params && mask.kDependent
-                [msVal, okMs] = HystereticUtils.read_numeric_field(app, app.Ms_JA);
-                [aVal, okA] = HystereticUtils.read_numeric_field(app, app.a_JA);
-                [alphaVal, okAlpha] = HystereticUtils.read_numeric_field(app, app.alpha_JA);
-                [cVal, okC] = HystereticUtils.read_numeric_field(app, app.c_JA);
-                if okMs && okA && okAlpha && okC && aVal ~= 0
-                    params_seed = struct('Ms', msVal, 'a', aVal, 'alpha', alphaVal, 'c', cVal, 'k', 1);
+            if ~has_params && mask.k_dependent
+                [ms_val, ok_Ms] = HystereticUtils.read_numeric_field(app, app.Ms_JA);
+                [a_val, ok_A] = HystereticUtils.read_numeric_field(app, app.a_JA);
+                [alpha_val, ok_alpha] = HystereticUtils.read_numeric_field(app, app.alpha_JA);
+                [c_val, ok_C] = HystereticUtils.read_numeric_field(app, app.c_JA);
+                if ok_Ms && ok_A && ok_alpha && ok_C && a_val ~= 0
+                    params_seed = struct('Ms', ms_val, 'a', a_val, 'alpha', alpha_val, 'c', c_val, 'k', 1);
                     has_params = true;
                 end
             end
@@ -595,7 +595,7 @@ classdef HystereticUtils
             start_mode = string(app.StartingpointDropDown_4.Value);
             stop_criterion = string(app.StopcriterionDropDown_5.Value);
             repetitions = HystereticUtils.get_hysteretic_repetition_value(app);
-            rel_tolerance = app.ReltoleranceEditField_3.Value;
+            rel_tolerance = app.RelativetoleranceEditField.Value;
             max_repetitions = HystereticUtils.get_hysteretic_max_repetitions_value(app);
             opts = odeset('RelTol', 1e-7, 'AbsTol', 1e-6);
             if fitting_region == "Left branch only"
@@ -606,16 +606,16 @@ classdef HystereticUtils
                 MfitData = M_cycle;
             end
 
-            [msLB, ok1] = JAFitUtils.readBoundFieldValue(app.MsLower_JA);
-            [msUB, ok2] = JAFitUtils.readBoundFieldValue(app.MsUpper_JA);
-            [aLB, ok3] = JAFitUtils.readBoundFieldValue(app.aLower_JA);
-            [aUB, ok4] = JAFitUtils.readBoundFieldValue(app.aUpper_JA);
-            [alphaLB, ok5] = JAFitUtils.readBoundFieldValue(app.alphaLower_JA);
-            [alphaUB, ok6] = JAFitUtils.readBoundFieldValue(app.alphaUpper_JA);
-            [cLB, ok7] = JAFitUtils.readBoundFieldValue(app.cLower_JA);
-            [cUB, ok8] = JAFitUtils.readBoundFieldValue(app.cUpper_JA);
-            [kLB, ok9] = JAFitUtils.readBoundFieldValue(app.kLower_JA);
-            [kUB, ok10] = JAFitUtils.readBoundFieldValue(app.kUpper_JA);
+            [ms_lb, ok1] = JAFitUtils.read_bound_field_value(app.MsLower_JA);
+            [ms_ub, ok2] = JAFitUtils.read_bound_field_value(app.MsUpper_JA);
+            [a_lb, ok3] = JAFitUtils.read_bound_field_value(app.aLower_JA);
+            [a_ub, ok4] = JAFitUtils.read_bound_field_value(app.aUpper_JA);
+            [alpha_lb, ok5] = JAFitUtils.read_bound_field_value(app.alphaLower_JA);
+            [alpha_ub, ok6] = JAFitUtils.read_bound_field_value(app.alphaUpper_JA);
+            [c_lb, ok7] = JAFitUtils.read_bound_field_value(app.cLower_JA);
+            [c_ub, ok8] = JAFitUtils.read_bound_field_value(app.cUpper_JA);
+            [k_lb, ok9] = JAFitUtils.read_bound_field_value(app.kLower_JA);
+            [k_ub, ok10] = JAFitUtils.read_bound_field_value(app.kUpper_JA);
 
             if ~(ok1 && ok2 && ok3 && ok4 && ok5 && ok6 && ok7 && ok8 && ok9 && ok10)
                 app.write_message("JA fit skipped: invalid bounds.");
@@ -623,13 +623,13 @@ classdef HystereticUtils
             end
 
             bounds = struct( ...
-                'Ms', JAFitUtils.makeBoundPair(msLB, msUB), ...
-                'a', JAFitUtils.makeBoundPair(aLB, aUB), ...
-                'alpha', JAFitUtils.makeBoundPair(alphaLB, alphaUB), ...
-                'c', JAFitUtils.makeBoundPair(cLB, cUB), ...
-                'k', JAFitUtils.makeBoundPair(kLB, kUB));
+                'Ms', JAFitUtils.make_bound_pair(ms_lb, ms_ub), ...
+                'a', JAFitUtils.make_bound_pair(a_lb, a_ub), ...
+                'alpha', JAFitUtils.make_bound_pair(alpha_lb, alpha_ub), ...
+                'c', JAFitUtils.make_bound_pair(c_lb, c_ub), ...
+                'k', JAFitUtils.make_bound_pair(k_lb, k_ub));
 
-            [lb, ub] = JAFitUtils.packBounds(bounds, mask);
+            [lb, ub] = JAFitUtils.pack_bounds(bounds, mask);
             if any(lb > ub)
                 app.write_message("JA fit skipped: lower bound is greater than upper bound.");
                 return;
@@ -640,20 +640,20 @@ classdef HystereticUtils
              app.stop_fit_requested = false;
              fit_timer = tic;
             try
-                modelFn = @(p) solveJA_hysteretic_region( ...
+                model_fn = @(p) solve_ja_hysteretic_region( ...
                     Htip, Mtip, p, start_mode, fitting_region, stop_criterion, ...
                     repetitions, rel_tolerance, max_repetitions, opts);
 
-                outputFcn = @(x, optimValues, state) app.fit_stop_output_fcn(x, optimValues, state);
+                output_fcn = @(x, optimValues, state) app.fit_stop_output_fcn(x, optimValues, state);
                 fit_result = JAFitter.fit( ...
                     params_seed, mask, bounds, HfitData, MfitData, Htip, Mtip, error_type, ...
-                    @(p) HystereticUtils.estimateK_fromCoercivePoint(app, Hleft, Mleft, p.Ms, p.a, p.alpha, p.c), ...
-                    modelFn, ...
-                    @(errType, hL, mL, hHat, mHat) HystereticUtils.compute_ja_left_branch_error_core(app, errType, hL, mL, hHat, mHat), ...
-                    outputFcn);
+                    @(p) HystereticUtils.estimate_k_from_coercive_point(app, Hleft, Mleft, p.Ms, p.a, p.alpha, p.c), ...
+                    model_fn, ...
+                    @(err_type, hL, mL, hHat, mHat) HystereticUtils.compute_ja_left_branch_error_core(app, err_type, hL, mL, hHat, mHat), ...
+                    output_fcn);
 
                 if ~fit_result.ok
-                    error(char(fit_result.errorMessage));
+                    error(char(fit_result.error_message));
                 end
 
                 params_opt = fit_result.params_opt;
@@ -678,7 +678,7 @@ classdef HystereticUtils
             end
         end
 
-        function k_est = estimateK_fromCoercivePoint(app, Hleft, Mleft, Ms, a, alpha, c)
+        function k_est = estimate_k_from_coercive_point(app, Hleft, Mleft, Ms, a, alpha, c)
             Hleft = Hleft(:);
             Mleft = Mleft(:);
 
@@ -690,12 +690,12 @@ classdef HystereticUtils
                 error('Insufficient left-branch points to estimate k.');
             end
 
-            [Mleft, idxSort] = sort(Mleft, 'ascend');
-            Hleft = Hleft(idxSort);
+            [Mleft, idx_sort] = sort(Mleft, 'ascend');
+            Hleft = Hleft(idx_sort);
 
             Hc = -interp1(Mleft, Hleft, 0, 'linear', 'extrap');
 
-            polyOrder = 3;
+            poly_order = 3;
             W = 21;
 
             [~, i0] = min(abs(Mleft));
@@ -714,7 +714,7 @@ classdef HystereticUtils
 
             Mseg = Mleft(i1:i2);
             Hseg = Hleft(i1:i2);
-            pOrd = min(polyOrder, numel(Mseg) - 1);
+            p_ord = min(poly_order, numel(Mseg) - 1);
 
             M0 = mean(Mseg);
             Mscl = max(abs(Mseg - M0));
@@ -725,7 +725,7 @@ classdef HystereticUtils
             x = (Mseg - M0) / Mscl;
             y = Hseg;
 
-            p = polyfit(x, y, pOrd);
+            p = polyfit(x, y, p_ord);
             dp = polyder(p);
             chi_inv_c = polyval(dp, (0 - M0)/Mscl) / Mscl;
             if ~isfinite(chi_inv_c)

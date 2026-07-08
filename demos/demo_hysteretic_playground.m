@@ -32,39 +32,39 @@ Htip = 5e3;                                  % peak driving field [A/m]
 opts = odeset('RelTol', 1e-7, 'AbsTol', 1e-6);
 
 %% 1) Major hysteresis loop (starting from a demagnetized state)
-% solveJA_majorLoop_playground(Hstart, Mstart, Htip, params, startMode, ...
-%                              stopCriterion, repetitions, relTol, opts)
-%   startMode      : "Demagnetized" | "Tip point (data)" | "User-defined"
-%   stopCriterion  : "Fixed repetitions" | "Until convergence"
-[Hmaj, Mmaj, infoMaj] = solveJA_majorLoop_playground( ...
+% solve_ja_major_loop_playground(Hstart, Mstart, Htip, params, start_mode, ...
+%                              stop_criterion, repetitions, rel_tol, opts)
+%   start_mode      : "Demagnetized" | "Tip point (data)" | "User-defined"
+%   stop_criterion  : "Fixed repetitions" | "Until convergence"
+[Hmaj, Mmaj, infoMaj] = solve_ja_major_loop_playground( ...
     0, 0, Htip, params, "Demagnetized", "Fixed repetitions", 2, 1e-3, opts);
 
 %% 2) Nested minor loops (tips sorted ascending by the solver)
-% solveJA_minorLoop_playground(Htips, params, stopCriterion, repetitions, relTol, opts)
+% solve_ja_minor_loop_playground(Htips, params, stop_criterion, repetitions, rel_tol, opts)
 Htips = [Htip/3; 2*Htip/3; Htip];
-[Hmin, Mmin, infoMin] = solveJA_minorLoop_playground( ...
+[Hmin, Mmin, infoMin] = solve_ja_minor_loop_playground( ...
     Htips, params, "Fixed repetitions", 2, 1e-3, opts);
 
 %% 3) AC degaussing (decaying reversal envelope -> demagnetized state)
-% solveJA_degaussing_playground(Hstart, Mstart, amplitudes, params, opts)
+% solve_ja_degaussing_playground(Hstart, Mstart, amplitudes, params, opts)
 amplitudes = Htip * (0.8).^(0:6).';         % geometrically decaying peaks
-[Hdeg, Mdeg, infoDeg] = solveJA_degaussing_playground( ...
+[Hdeg, Mdeg, infoDeg] = solve_ja_degaussing_playground( ...
     Htip, Mmaj(end), amplitudes, params, opts);
 
 %% 4) Major loop with a harmonic (distorted) driving field
 % H(theta) = sum_k amplitudes(k) * sin(orders(k)*theta + phases(k))
-% solveJA_majorHarmonics_playground(Hstart, Mstart, orders, amplitudes, ...
-%                                   phases, params, stopCriterion, ...
-%                                   repetitions, relTol, opts, samplesPerPeriod)
+% solve_ja_major_harmonics_playground(Hstart, Mstart, orders, amplitudes, ...
+%                                   phases, params, stop_criterion, ...
+%                                   repetitions, rel_tol, opts, samples_per_period)
 orders     = [1; 2; 3];
 harmAmps   = [Htip; 0.40*Htip; 0.60*Htip];
 phases     = [0; pi/3; pi/4];
-[Hharm, Mharm, infoHarm] = solveJA_majorHarmonics_playground( ...
+[Hharm, Mharm, infoHarm] = solve_ja_major_harmonics_playground( ...
     0, 0, orders, harmAmps, phases, params, "Fixed repetitions", 2, 1e-3, opts, 4000);
 
 %% 5) Single monotonic branch from the core ODE solver (building block)
-% solveJA_monotonic(Hstart, Hend, Mstart, params, delta, opts), delta=sign(dH)
-[Hup, Mup] = solveJA_monotonic(-Htip, Htip, -Mmaj(end), params, +1, opts);
+% solve_ja_monotonic(Hstart, Hend, Mstart, params, delta, opts), delta=sign(dH)
+[Hup, Mup] = solve_ja_monotonic(-Htip, Htip, -Mmaj(end), params, +1, opts);
 
 %% Plot everything
 figure('Name', 'MagAnalyst - Jiles-Atherton Playground');
@@ -75,7 +75,7 @@ nexttile; plot(Hdeg,  Mdeg,  'k-');  title('Degaussing');            xlabel('H [
 nexttile; plot(Hharm, Mharm, 'm-');  title('Major loop w/ harmonics'); xlabel('H [A/m]'); ylabel('M [A/m]'); grid on;
 
 fprintf('Major loop: %d cycles simulated, converged = %d\n', ...
-    infoMaj.cyclesSimulated, infoMaj.converged);
+    infoMaj.cycles_simulated, infoMaj.converged);
 
 %% Export the simulated curves to CSV (same writer the GUI uses)
 % ExportUtils is a standalone helper usable outside the app.

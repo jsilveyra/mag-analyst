@@ -18,7 +18,7 @@ classdef MenuUtils
             s.select_a = app.TableParameters.Data.(5);
             s.number_points = app.NofpointsEditField.Value;
             s.point_space = app.PointSpaceDropDown.Value;
-            s.error_type = app.ErrortominimizeDropDown.Value;
+            s.error_type = app.ErrorDropDown.Value;
             s.input_path = app.InputDatasetPath.Value;
             s.horizontal_axis = app.HorizontalaxisfieldDropDown.Value;
             s.vertical_axis = app.VerticalaxisfieldDropDown.Value;
@@ -74,8 +74,8 @@ classdef MenuUtils
         end
 
         function select_output_folder(app)
-            startFolder = string(app.OutputDatasetPath.Value);
-            folder = app.safe_getdir(startFolder, ...
+            start_folder = string(app.OutputDatasetPath.Value);
+            folder = app.safe_getdir(start_folder, ...
                 "Select output folder");
 
             if folder == ""
@@ -127,10 +127,10 @@ classdef MenuUtils
             elseif (loaded_error_type == "Diagonal (sampled)")
                 loaded_error_type = "Diagonal (logH, sampled)";
             end
-            if any(strcmp(app.ErrortominimizeDropDown.Items, char(loaded_error_type)))
-                app.ErrortominimizeDropDown.Value = char(loaded_error_type);
+            if any(strcmp(app.ErrorDropDown.Items, char(loaded_error_type)))
+                app.ErrorDropDown.Value = char(loaded_error_type);
             else
-                app.ErrortominimizeDropDown.Value = app.ErrortominimizeDropDown.Items{1};
+                app.ErrorDropDown.Value = app.ErrorDropDown.Items{1};
             end
             app.InputDatasetPath.Value = s.input_path;
             app.HorizontalaxisfieldDropDown.Value = s.horizontal_axis;
@@ -189,10 +189,10 @@ classdef MenuUtils
                 app.RepetitionsEditField_3.Value = max(1, round(s.hysteretic_repetitions));
             end
             if isfield(s, 'hysteretic_rel_tolerance')
-                app.ReltoleranceEditField_3.Value = max(0, s.hysteretic_rel_tolerance);
+                app.RelativetoleranceEditField.Value = max(0, s.hysteretic_rel_tolerance);
             end
             if isfield(s, 'hysteretic_max_repetitions')
-                app.MaxrepetEditField.Value = max(1, round(s.hysteretic_max_repetitions));
+                app.MaximumrepetitionsEditField.Value = max(1, round(s.hysteretic_max_repetitions));
             end
             app.sync_hysteretic_fitting_ui();
 
@@ -206,8 +206,8 @@ classdef MenuUtils
         end
 
         function save_project(app)
-            startFolder = app.default_data_folder();
-            fullpath = app.safe_putfile('*.txt', startFolder, ...
+            start_folder = app.default_data_folder();
+            fullpath = app.safe_putfile('*.txt', start_folder, ...
                 "Save project", "project.txt");
 
             if fullpath == ""
