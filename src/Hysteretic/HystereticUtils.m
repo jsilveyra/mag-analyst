@@ -343,6 +343,8 @@ classdef HystereticUtils
             [Hsim, Msim, has_model] = HystereticUtils.get_hysteretic_modeled_region(app);
             if has_model
                 plot(ax, Hsim, Msim, 'r-', 'LineWidth', 1.2, 'DisplayName', 'JA simulated');
+            elseif ~isempty(app.k_JA.Value) && isfinite(app.k_JA.Value) && app.k_JA.Value <= 0
+                app.write_message("Warning: The magnetization path cannot be computed with the current unphysical k<0 parameter.");
             end
             xline(ax, 0, 'k-', 'LineWidth', 1.2);
             yline(ax, 0, 'k-', 'LineWidth', 1.2);

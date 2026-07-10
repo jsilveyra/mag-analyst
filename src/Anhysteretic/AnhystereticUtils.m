@@ -245,7 +245,7 @@ classdef AnhystereticUtils
                 row_types(2*i) = "m";
                 lb_col(2*i-1) = 0;
                 lb_col(2*i) = 0.4496;
-                ub_col(2*i-1) = 1000000;
+                ub_col(2*i-1) = Inf;
                 ub_col(2*i) = 1;
             end
 
@@ -270,6 +270,7 @@ classdef AnhystereticUtils
             t = table(row_names, component_values, lb_col_display, ub_col_display, app.select_fit);
             app.TableFittedParameters.Data = table2cell(t);
             AnhystereticUtils.refresh_table_value_display(app);
+            AnhystereticUtils.shade_fitted_parameters_table(app);
 
             AnhystereticUtils.init_parameters_table(app, true);
             AnhystereticUtils.init_quantities_table(app, true);
@@ -295,7 +296,7 @@ classdef AnhystereticUtils
                 select_a_col = app.TableParameters.Data{:,5};
 
                 for i = 1:app.number_components
-                    Ms_col(i,:) = {AnhystereticUtils.format_sigfigs(app.magnetic_parameters.Ms(i))};
+                    Ms_col(i,:) = {AnhystereticUtils.format_scientific(app.magnetic_parameters.Ms(i))};
                     alpha_col(i,:) = {app.format_engineering(app.magnetic_parameters.alpha(i))};
                     a_col(i,:) = {AnhystereticUtils.format_sigfigs(app.magnetic_parameters.a(i))};
                 end
@@ -305,6 +306,7 @@ classdef AnhystereticUtils
             t.(5) = categorical(t.(5), {'high', 'low'}, 'Ordinal', true);
 
             app.TableParameters.Data = t;
+            AnhystereticUtils.shade_parameters_table(app);
         end
 
         function init_quantities_table(app, default_values)
@@ -330,6 +332,7 @@ classdef AnhystereticUtils
 
             t = table(parameters_col, dimensionless_alphaMs_col, density_product_col, Hk_col, chi_in_col);
             app.TableQuantities.Data = t;
+            AnhystereticUtils.shade_quantities_table(app);
         end
 
         function refresh_table_value_display(app)
@@ -373,6 +376,10 @@ classdef AnhystereticUtils
 
         function ret = format_sigfigs(value)
             ret = char(sprintf('%.6g', value));
+        end
+
+        function ret = format_scientific(value)
+            ret = char(sprintf('%.5e', value));
         end
 
         function ret = format_value_for_edit(app, row)
@@ -501,6 +508,7 @@ classdef AnhystereticUtils
 
         function set_colors_and_plot(app, colors)
             app.Colors = colors;
+            AnhystereticUtils.apply_component_color_styles(app);
             if ~isobject(app.data_curve) || ~isprop(app.data_curve, 'H') || isempty(app.data_curve.H)
                 app.write_message("Colors updated. Import data before recalculating.");
                 return;
@@ -508,6 +516,71 @@ classdef AnhystereticUtils
             AnhystereticUtils.update_components(app);
             AnhystereticUtils.calculate_parameters(app);
             AnhystereticUtils.plot(app);
+        end
+
+        function apply_component_color_styles(app)
+            AnhystereticUtils.shade_fitted_parameters_table(app);
+            AnhystereticUtils.shade_parameters_table(app);
+            AnhystereticUtils.shade_quantities_table(app);
+        end
+
+        function light_color = lighten_color(color)
+            % Blend the component/curve color 90% of the way toward white so
+            % the table cell background reads as a faint tint of the curve
+            % color, not the fully-saturated line color itself.
+            light_color = min(max(color + (1 - color) * 0.9, 0), 1);
+        end
+
+        function shade_fitted_parameters_table(app)
+            removeStyle(app.TableFittedParameters);
+            if isempty(app.Colors) || isempty(app.component_row_types)
+                return;
+            end
+            for row = 1:numel(app.component_row_types)
+                if app.component_row_types(row) == "Hx"
+                    component = row - 2*app.number_components;
+                else
+                    component = ceil(row/2);
+                end
+                color_row = component + 1;
+                if color_row < 1 || color_row > size(app.Colors, 1)
+                    continue;
+                end
+                addStyle(app.TableFittedParameters, ...
+                    uistyle('BackgroundColor', AnhystereticUtils.lighten_color(app.Colors(color_row,:))), ...
+                    'row', row);
+            end
+        end
+
+        function shade_parameters_table(app)
+            removeStyle(app.TableParameters);
+            for col = 1:5
+                addStyle(app.TableParameters, uistyle('HorizontalAlignment','right'), "column", col);
+            end
+            AnhystereticUtils.shade_component_table_rows(app, app.TableParameters);
+        end
+
+        function shade_quantities_table(app)
+            removeStyle(app.TableQuantities);
+            for col = 1:5
+                addStyle(app.TableQuantities, uistyle('HorizontalAlignment','right'), "column", col);
+            end
+            AnhystereticUtils.shade_component_table_rows(app, app.TableQuantities);
+        end
+
+        function shade_component_table_rows(app, table)
+            if isempty(app.Colors)
+                return;
+            end
+            for i = 1:app.number_components
+                color_row = i + 1;
+                if color_row > size(app.Colors, 1)
+                    continue;
+                end
+                addStyle(table, ...
+                    uistyle('BackgroundColor', AnhystereticUtils.lighten_color(app.Colors(color_row,:))), ...
+                    'row', i);
+            end
         end
 
         function a = calculate_and_plot(app)
