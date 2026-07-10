@@ -601,3 +601,13 @@ MAJOR:
 
 Don't bump the version for changes with no user-visible effect (comments,
 internal refactors that don't change behavior, this doc).
+
+---
+
+## 10. Git commit conventions [deep]
+
+**Commit messages carry only the user's name — no `Co-Authored-By: Claude`
+trailer.** This overrides the harness's default commit-message behavior for
+this repo. Author/committer identity still comes from the normal git config
+(`user.name`/`user.email`); this rule is only about not appending the
+Claude co-author trailer line.

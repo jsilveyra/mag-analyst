@@ -1,5 +1,5 @@
-![Image](https://github.com/matias-gonz/mag-analyst/blob/main/assets/logo_light_maganalyst.png#gh-light-mode-only)
-![Image](https://github.com/matias-gonz/mag-analyst/blob/main/assets/logo_dark_maganalyst.png#gh-dark-mode-only)
+![Image](https://github.com/jsilveyra/mag-analyst/blob/main/assets/logo_light_maganalyst.png#gh-light-mode-only)
+![Image](https://github.com/jsilveyra/mag-analyst/blob/main/assets/logo_dark_maganalyst.png#gh-dark-mode-only)
 
 # *<div dir="rtl"> a Matlab toolbox for magnetization analysis </div>*
 
@@ -55,7 +55,7 @@ The toolbox is shared as open-source with the aim of allowing researchers to tay
 
 ## Setup and usage instructions
 
-You need to create a copy on a local directory on your machine to use MagAnalyst. Obtain a copy by downloading and unzipping the latest [release](https://github.com/matias-gonz/mag-analyst/releases) or clone MagAanalyst instead e.g. using: git clone https://github.com/jsilveyra/mag-analyst. You can place the MagAnalyst folder anywhere on your machine.
+You need to create a copy on a local directory on your machine to use MagAnalyst. Obtain a copy by downloading and unzipping the latest [release](https://github.com/jsilveyra/mag-analyst/releases) or clone MagAnalyst instead e.g. using: git clone https://github.com/jsilveyra/mag-analyst. You can place the MagAnalyst folder anywhere on your machine.
 
 We recommend using [GitHub Desktop](https://desktop.github.com/), which allows users to easily synchronize with the latest version of MagAnalyst.
 
@@ -173,7 +173,7 @@ If you encounter bugs or problems using MagAnalyst, have any suggestions for imp
 
 ## License
 
-MagAnalyst is provided under the [MIT License](https://github.com/matias-gonz/mag-analyst/blob/main/license.txt).
+MagAnalyst is provided under the [MIT License](https://github.com/jsilveyra/mag-analyst/blob/main/license.txt).
 
 ## Acknowledgment
 

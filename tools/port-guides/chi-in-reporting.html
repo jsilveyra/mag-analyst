@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MagAnalyst port guide — Report χᵢₙ instead of μrᵢₙ</title>
+<style>
+  :root {
+    --bg: #1e1e1e; --panel: #252526; --text: #d4d4d4; --accent: #f15a29;
+    --before-bg: #3a2020; --before-border: #8b3a3a;
+    --after-bg: #20351f; --after-border: #4a8b3a;
+    --flag-bg: #4a3a10; --flag-border: #c98a1c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 6rem;
+    line-height: 1.5;
+  }
+  h1 { font-size: 1.4rem; border-bottom: 3px solid var(--accent); padding-bottom: 0.5rem; }
+  h2 { font-size: 1.15rem; margin-top: 2.5rem; color: var(--accent); border-bottom: 1px solid #444; padding-bottom: 0.3rem;}
+  h3 { font-size: 1rem; }
+  .summary { background: var(--panel); border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0; }
+  .summary ul { margin: 0.5rem 0 0; padding-left: 1.25rem; }
+  .step { background: var(--panel); border-radius: 8px; padding: 1.25rem 1.5rem; margin: 1.5rem 0; border-left: 4px solid #555; }
+  .blocklabel { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: #aaa; margin-top: 0.75rem; }
+  pre { border-radius: 6px; padding: 0.75rem 1rem; overflow-x: auto; margin: 0.25rem 0 0; font-size: 0.85rem; }
+  pre.before { background: var(--before-bg); border: 1px solid var(--before-border); }
+  pre.after { background: var(--after-bg); border: 1px solid var(--after-border); }
+  code { white-space: pre; font-family: "SF Mono", Consolas, "Courier New", monospace; }
+  .flag { background: var(--flag-bg); border: 1px solid var(--flag-border); border-radius: 6px; padding: 0.6rem 0.9rem; margin: 0.5rem 0; font-weight: 600; font-size: 0.9rem; }
+  .note { color: #aaa; font-size: 0.9rem; font-style: italic; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.85rem; }
+  th, td { border: 1px solid #444; padding: 0.4rem 0.6rem; text-align: left; }
+  th { background: #2d2d2d; }
+  tr:nth-child(even) { background: #232323; }
+  .tablenote { color: #aaa; font-style: italic; font-size: 0.8rem; }
+  .recipe { background: var(--panel); border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0; }
+  .recipe ol { padding-left: 1.4rem; }
+  .recipe li { margin-bottom: 0.5rem; }
+  code.inline { background: #333; padding: 0.1rem 0.3rem; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<h1>Anhysteretic tab — report χᵢₙ instead of μrᵢₙ</h1>
+
+<div class="summary">
+  <p>Both the per-component quantity (previously "μrᵢₙ ᵢ" in the <code>TableQuantities</code>
+  column) and the total quantity (previously the <code>murinField</code> display next to
+  "Js [T]") now report <strong>χᵢₙ</strong> (initial susceptibility) instead of
+  <strong>μrᵢₙ</strong> (initial relative permeability). The μrᵢₙ computation itself
+  (<code>MagneticParameters.murin</code> / <code>get_murin</code>) is <strong>kept, not
+  deleted</strong> — it's just no longer wired to the UI. A new
+  <code>MagneticParameters.chi_in_total</code> property (= <code>sum(chi_in)</code>) backs the
+  total-field display; the per-component <code>chi_in</code> property already existed (it was
+  computed but unused before this change).</p>
+  <p><code>src/Anhysteretic/MagneticParameters.m</code> and
+  <code>src/Anhysteretic/AnhystereticUtils.m</code> are already updated (plain <code>src/</code>
+  files, no port needed) — this guide is only the <code>app.mlapp</code>/<code>app_exported.m</code>
+  side.</p>
+</div>
+
+<h2>Part A — Design View: rename 2 components</h2>
+
+<div class="recipe">
+  <p>In the Component Browser, select each field/label below and use its rename action
+  (double-click the name, or right-click &gt; Rename). App Designer's rename is a smart rename:
+  it updates every reference to that component inside <code>app.mlapp</code> automatically
+  (<code>createComponents</code>, the properties block, and the
+  <code>TableQuantitiesCellSelection</code>/export code you'll edit by hand in Part C) — so you
+  only need to do the renames here, not hunt down every reference yourself.</p>
+</div>
+
+<table>
+  <tr><th>Old name</th><th></th><th>New name</th></tr>
+    <tr><td><code>murinField</code></td><td>→</td><td><code>chiinField</code></td></tr>
+    <tr><td><code>murinLabel</code></td><td>→</td><td><code>chiinLabel</code></td></tr>
+</table>
+
+<p class="note">For reference, this is what App Designer currently auto-generates for these two
+components in <code>createComponents</code> (read-only there — don't hand-edit it; renaming in
+the Component Browser regenerates it for you):</p>
+<pre class="before"><code>            % Create murinField
+            app.murinField = uieditfield(app.GridLayoutOtherQuantities, 'numeric');
+            app.murinField.ValueDisplayFormat = '%.6g';
+            app.murinField.AllowEmpty = 'on';
+            app.murinField.Editable = 'off';
+            app.murinField.Layout.Row = 1;
+            app.murinField.Layout.Column = 3;
+            app.murinField.Value = [];</code></pre>
+<pre class="before"><code>            % Create murinLabel
+            app.murinLabel = uilabel(app.GridLayoutOtherQuantities);
+            app.murinLabel.HorizontalAlignment = 'right';
+            app.murinLabel.FontWeight = 'bold';
+            app.murinLabel.Layout.Row = 1;
+            app.murinLabel.Layout.Column = 2;
+            app.murinLabel.Text = 'μrᵢₙ';</code></pre>
+
+<h2>Part B — Design View: update displayed text (Inspector)</h2>
+
+<div class="recipe">
+  <ol>
+    <li>Select <code class="inline">chiinLabel</code> (the renamed label) in the Component
+    Browser. In the Inspector, set its <code class="inline">Text</code> property from
+    <code class="inline">μrᵢₙ</code> to <code class="inline">χᵢₙ</code>.</li>
+    <li>Select <code class="inline">TableQuantities</code> in the Component Browser. In the
+    Inspector, edit the <code class="inline">ColumnName</code> property: the 5th (last) entry
+    changes from <code class="inline">μrᵢₙ ᵢ</code> to <code class="inline">χᵢₙ ᵢ</code>. The
+    other four entries ("Component", "αᵢ⏐Msᵢ⏐/(3aᵢ)", "NᵢkвT [J/m³]", "Hkᵢ [A/m]") are
+    unchanged.</li>
+  </ol>
+</div>
+
+<h2>Part C — Code View: 2 edits</h2>
+
+<div class="step" id="step-1">
+  <h3>Code edit 1. TableQuantitiesCellSelection(app, event) — full-precision reveal on cell click</h3>
+  <p class="note">This is the "click a table cell to see full precision" pattern (CLAUDE.md §8) —
+  the table var name (<code>chi_in_col</code>) must match what
+  <code>AnhystereticUtils.init_quantities_table</code> now uses, already updated in
+  <code>AnhystereticUtils.m</code>.</p>
+  <div class="blocklabel">Find this in Code View</div>
+  <pre class="before"><code>        % Cell selection callback: TableQuantities
+        function TableQuantitiesCellSelection(app, event)
+            if isempty(event.Indices)
+                return
+            end
+            row = event.Indices(1,1);
+            col = event.Indices(1,2);
+            if row > height(app.TableQuantities.Data) || isempty(app.magnetic_parameters) || row > numel(app.magnetic_parameters.dimensionless_alphaMs)
+                return
+            end
+            app.init_quantities_table(false);
+            switch col
+                case 2
+                    app.TableQuantities.Data.dimensionless_alphaMs_col{row} = sprintf('%.16g', app.magnetic_parameters.dimensionless_alphaMs(row));
+                case 3
+                    app.TableQuantities.Data.density_product_col{row} = sprintf('%.16g', app.magnetic_parameters.density_product(row));
+                case 4
+                    app.TableQuantities.Data.Hk_col{row} = sprintf('%.16g', app.magnetic_parameters.Hk(row));
+                case 5
+                    app.TableQuantities.Data.initial_relative_magnetic_permeability_col{row} = sprintf('%.16g', app.magnetic_parameters.initial_relative_magnetic_permeability(row));
+            end
+        end</code></pre>
+
+  <div class="blocklabel">Replace with</div>
+  <pre class="after"><code>        % Cell selection callback: TableQuantities
+        function TableQuantitiesCellSelection(app, event)
+            if isempty(event.Indices)
+                return
+            end
+            row = event.Indices(1,1);
+            col = event.Indices(1,2);
+            if row > height(app.TableQuantities.Data) || isempty(app.magnetic_parameters) || row > numel(app.magnetic_parameters.dimensionless_alphaMs)
+                return
+            end
+            app.init_quantities_table(false);
+            switch col
+                case 2
+                    app.TableQuantities.Data.dimensionless_alphaMs_col{row} = sprintf('%.16g', app.magnetic_parameters.dimensionless_alphaMs(row));
+                case 3
+                    app.TableQuantities.Data.density_product_col{row} = sprintf('%.16g', app.magnetic_parameters.density_product(row));
+                case 4
+                    app.TableQuantities.Data.Hk_col{row} = sprintf('%.16g', app.magnetic_parameters.Hk(row));
+                case 5
+                    app.TableQuantities.Data.chi_in_col{row} = sprintf('%.16g', app.magnetic_parameters.chi_in(row));
+            end
+        end</code></pre>
+</div>
+
+<div class="step" id="step-2">
+  <h3>Code edit 2. Output-data CSV/TXT export — "Calculated Quantities" block</h3>
+  <p class="note">Same rename applied to the per-component export line — was "μrin%i", now "χin%i".
+  Only the per-component value is exported here; there was no separate exported line for the old
+  total <code>murin</code>, so nothing else changes in this export block.</p>
+  <div class="blocklabel">Find this in Code View</div>
+  <pre class="before"><code>            if(app.ExportOtherquantitiesCheckBox.Value == 1)
+            fprintf(file, "Calculated Quantities:" + newline);
+                for i = 1:height(app.TableQuantities.Data)
+                    alpha_Ms_value = app.magnetic_parameters.dimensionless_alphaMs(i);
+                    density_product_value = app.magnetic_parameters.density_product(i);
+                    Hk_value = app.magnetic_parameters.Hk(i);
+                    magnetic_permeability_value = app.magnetic_parameters.initial_relative_magnetic_permeability(i);
+                    s_component = sprintf("Component: %i", i);
+                    s_alpha_Ms_value = sprintf("    α%i|Ms%i|/(3a%i): \t%0.4f", i, i, i, alpha_Ms_value);
+                    s_density_product_value = sprintf("    N%ikBT [J/m^3]: \t%0.4f", i, density_product_value);
+                    s_Hk = sprintf("        Hk%i [A/m]: \t%0.4f", i, Hk_value);
+                    s_magnetic_permeability_value = sprintf("            μrin%i: \t%i", i, magnetic_permeability_value);
+                    fprintf(file, s_component + newline + s_alpha_Ms_value + newline + s_density_product_value + newline + s_Hk + newline + s_magnetic_permeability_value + newline);
+                end
+                fprintf(file, newline);
+            end</code></pre>
+
+  <div class="blocklabel">Replace with</div>
+  <pre class="after"><code>            if(app.ExportOtherquantitiesCheckBox.Value == 1)
+            fprintf(file, "Calculated Quantities:" + newline);
+                for i = 1:height(app.TableQuantities.Data)
+                    alpha_Ms_value = app.magnetic_parameters.dimensionless_alphaMs(i);
+                    density_product_value = app.magnetic_parameters.density_product(i);
+                    Hk_value = app.magnetic_parameters.Hk(i);
+                    chi_in_value = app.magnetic_parameters.chi_in(i);
+                    s_component = sprintf("Component: %i", i);
+                    s_alpha_Ms_value = sprintf("    α%i|Ms%i|/(3a%i): \t%0.4f", i, i, i, alpha_Ms_value);
+                    s_density_product_value = sprintf("    N%ikBT [J/m^3]: \t%0.4f", i, density_product_value);
+                    s_Hk = sprintf("        Hk%i [A/m]: \t%0.4f", i, Hk_value);
+                    s_chi_in_value = sprintf("            χin%i: \t%i", i, chi_in_value);
+                    fprintf(file, s_component + newline + s_alpha_Ms_value + newline + s_density_product_value + newline + s_Hk + newline + s_chi_in_value + newline);
+                end
+                fprintf(file, newline);
+            end</code></pre>
+</div>
+
+<h2>Part D — Version bump</h2>
+
+<div class="flag">⚠️ Design View, not Code View: App Designer → Share button → Sharing Details… →
+set <strong>Version</strong> to <code>2.1</code>. This is bundled with a launcher fix (the splash
+window's title-bar icon now shows the app's own mark instead of the generic MATLAB icon — no port
+needed, that change is in the standalone <code>MagAnalyst.m</code>, already applied directly) and
+the README naming-consistency fixes into one MINOR release. <code>AppVersion.m</code> is already
+updated to <code>"2.1"</code> in the repo.</div>
+
+<div class="summary">
+  <p>After saving in App Designer, tell Claude — it will regenerate <code>app_exported.m</code>
+  from the saved <code>.mlapp</code>, grep for any leftover <code>murin</code>/
+  <code>initial_relative_magnetic_permeability</code> references as a safety net, and verify the
+  app constructs and runs <code>startupFcn</code> cleanly in <code>matlab -batch</code> before you
+  launch it yourself.</p>
+</div>
+
+</body>
+</html>
