@@ -4,8 +4,10 @@ classdef MagneticParameters
 %   fitted distribution parameters (Hcr, mcr, Hx per component, plus the
 %   select_a root choice, LOW_A/HIGH_A) into physical quantities: a,
 %   alphaMs, Ms, alpha, Hk, chi_in, Js, initial_relative_magnetic_permeability,
-%   murin, etc. Ms is solved so the modeled curve matches the measured tip
-%   (and, for multi-component fits, additional points at Hx).
+%   murin, chi_in_total, etc. Ms is solved so the modeled curve matches the
+%   measured tip (and, for multi-component fits, additional points at Hx).
+%   chi_in_total (= sum(chi_in)) is the reported total susceptibility; murin
+%   (= 1 + chi_in_total) is kept computed but currently unwired from the UI.
 
     properties
         a
@@ -19,6 +21,7 @@ classdef MagneticParameters
         density_product
         initial_relative_magnetic_permeability
         murin
+        chi_in_total
         VACUUM_PERMEABILITY
     end
 
@@ -36,6 +39,7 @@ classdef MagneticParameters
             obj.density_product = obj.get_density_product();
             obj.initial_relative_magnetic_permeability = obj.get_initial_relative_magnetic_permeability();
             obj.murin = obj.get_murin();
+            obj.chi_in_total = obj.get_chi_in_total();
         end
     end
 
@@ -161,6 +165,10 @@ classdef MagneticParameters
                 chiin = chiin + obj.Ms(i)/obj.Hk(i);
             end
             murin = 1 + chiin;
+        end
+
+        function chi_in_total = get_chi_in_total(obj)
+            chi_in_total = sum(obj.chi_in);
         end
     end
 

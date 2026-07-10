@@ -16,7 +16,7 @@ classdef AnhystereticUtils
             AnhystereticUtils.sync_fitted_parameter_values_from_components(app);
             AnhystereticUtils.refresh_table_value_display(app);
             app.JsField.Value = app.magnetic_parameters.Js;
-            app.murinField.Value = app.magnetic_parameters.murin;
+            app.chiinField.Value = app.magnetic_parameters.chi_in_total;
 
 
             utils = Utils();
@@ -317,18 +317,18 @@ classdef AnhystereticUtils
             dimensionless_alphaMs_col = cell(app.number_components, 1);
             density_product_col = cell(app.number_components, 1);
             Hk_col = cell(app.number_components, 1);
-            initial_relative_magnetic_permeability_col = cell(app.number_components, 1);
+            chi_in_col = cell(app.number_components, 1);
 
             if ~default_values
                 for i = 1:app.number_components
                     dimensionless_alphaMs_col(i,:) = {AnhystereticUtils.format_sigfigs(app.magnetic_parameters.dimensionless_alphaMs(i))};
                     density_product_col(i,:) = {AnhystereticUtils.format_sigfigs(app.magnetic_parameters.density_product(i))};
                     Hk_col(i,:) = {AnhystereticUtils.format_sigfigs(app.magnetic_parameters.Hk(i))};
-                    initial_relative_magnetic_permeability_col(i,:) = {AnhystereticUtils.format_sigfigs(app.magnetic_parameters.initial_relative_magnetic_permeability(i))};
+                    chi_in_col(i,:) = {AnhystereticUtils.format_sigfigs(app.magnetic_parameters.chi_in(i))};
                 end
             end
 
-            t = table(parameters_col, dimensionless_alphaMs_col, density_product_col, Hk_col, initial_relative_magnetic_permeability_col);
+            t = table(parameters_col, dimensionless_alphaMs_col, density_product_col, Hk_col, chi_in_col);
             app.TableQuantities.Data = t;
         end
 

@@ -64,9 +64,9 @@ classdef app_exported < matlab.apps.AppBase
         TableQuantities                 matlab.ui.control.Table
         GridLayoutOtherQuantities       matlab.ui.container.GridLayout
         JsTLabel                        matlab.ui.control.Label
-        murinLabel                      matlab.ui.control.Label
+        chiinLabel                      matlab.ui.control.Label
         JsField                         matlab.ui.control.NumericEditField
-        murinField                      matlab.ui.control.NumericEditField
+        chiinField                      matlab.ui.control.NumericEditField
         CalculatedquantitiesLabel       matlab.ui.control.Label
         GridLayoutButtons               matlab.ui.container.GridLayout
         StopfitButton                   matlab.ui.control.Button
@@ -1288,13 +1288,13 @@ classdef app_exported < matlab.apps.AppBase
                     alpha_Ms_value = app.magnetic_parameters.dimensionless_alphaMs(i);
                     density_product_value = app.magnetic_parameters.density_product(i);
                     Hk_value = app.magnetic_parameters.Hk(i);
-                    magnetic_permeability_value = app.magnetic_parameters.initial_relative_magnetic_permeability(i);
+                    chi_in_value = app.magnetic_parameters.chi_in(i);
                     s_component = sprintf("Component: %i", i);
                     s_alpha_Ms_value = sprintf("    α%i|Ms%i|/(3a%i): \t%0.4f", i, i, i, alpha_Ms_value);
                     s_density_product_value = sprintf("    N%ikBT [J/m^3]: \t%0.4f", i, density_product_value);
                     s_Hk = sprintf("        Hk%i [A/m]: \t%0.4f", i, Hk_value);
-                    s_magnetic_permeability_value = sprintf("            μrin%i: \t%i", i, magnetic_permeability_value);
-                    fprintf(file, s_component + newline + s_alpha_Ms_value + newline + s_density_product_value + newline + s_Hk + newline + s_magnetic_permeability_value + newline);
+                    s_chi_in_value = sprintf("            χin%i: \t%i", i, chi_in_value);
+                    fprintf(file, s_component + newline + s_alpha_Ms_value + newline + s_density_product_value + newline + s_Hk + newline + s_chi_in_value + newline);
                 end
                 fprintf(file, newline);
             end
@@ -1813,7 +1813,7 @@ classdef app_exported < matlab.apps.AppBase
                 case 4
                     app.TableQuantities.Data.Hk_col{row} = sprintf('%.16g', app.magnetic_parameters.Hk(row));
                 case 5
-                    app.TableQuantities.Data.initial_relative_magnetic_permeability_col{row} = sprintf('%.16g', app.magnetic_parameters.initial_relative_magnetic_permeability(row));
+                    app.TableQuantities.Data.chi_in_col{row} = sprintf('%.16g', app.magnetic_parameters.chi_in(row));
             end
         end
 
@@ -2452,14 +2452,14 @@ classdef app_exported < matlab.apps.AppBase
             app.CalculatedquantitiesLabel.Layout.Column = 1;
             app.CalculatedquantitiesLabel.Text = 'Calculated quantities';
 
-            % Create murinField
-            app.murinField = uieditfield(app.GridLayoutOtherQuantities, 'numeric');
-            app.murinField.ValueDisplayFormat = '%.6g';
-            app.murinField.AllowEmpty = 'on';
-            app.murinField.Editable = 'off';
-            app.murinField.Layout.Row = 1;
-            app.murinField.Layout.Column = 3;
-            app.murinField.Value = [];
+            % Create chiinField
+            app.chiinField = uieditfield(app.GridLayoutOtherQuantities, 'numeric');
+            app.chiinField.ValueDisplayFormat = '%.6g';
+            app.chiinField.AllowEmpty = 'on';
+            app.chiinField.Editable = 'off';
+            app.chiinField.Layout.Row = 1;
+            app.chiinField.Layout.Column = 3;
+            app.chiinField.Value = [];
 
             % Create JsField
             app.JsField = uieditfield(app.GridLayoutOtherQuantities, 'numeric');
@@ -2470,13 +2470,13 @@ classdef app_exported < matlab.apps.AppBase
             app.JsField.Layout.Column = 5;
             app.JsField.Value = [];
 
-            % Create murinLabel
-            app.murinLabel = uilabel(app.GridLayoutOtherQuantities);
-            app.murinLabel.HorizontalAlignment = 'right';
-            app.murinLabel.FontWeight = 'bold';
-            app.murinLabel.Layout.Row = 1;
-            app.murinLabel.Layout.Column = 2;
-            app.murinLabel.Text = 'μrᵢₙ';
+            % Create chiinLabel
+            app.chiinLabel = uilabel(app.GridLayoutOtherQuantities);
+            app.chiinLabel.HorizontalAlignment = 'right';
+            app.chiinLabel.FontWeight = 'bold';
+            app.chiinLabel.Layout.Row = 1;
+            app.chiinLabel.Layout.Column = 2;
+            app.chiinLabel.Text = 'χᵢₙ';
 
             % Create JsTLabel
             app.JsTLabel = uilabel(app.GridLayoutOtherQuantities);
@@ -2488,7 +2488,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create TableQuantities
             app.TableQuantities = uitable(app.GridLayoutNumbers);
-            app.TableQuantities.ColumnName = {'Component'; 'αᵢ⏐Msᵢ⏐/(3aᵢ)'; 'NᵢkвT [J/m³]'; 'Hkᵢ [A/m]'; 'μrᵢₙ ᵢ'};
+            app.TableQuantities.ColumnName = {'Component'; 'αᵢ⏐Msᵢ⏐/(3aᵢ)'; 'NᵢkвT [J/m³]'; 'Hkᵢ [A/m]'; 'χᵢₙ ᵢ'};
             app.TableQuantities.RowName = {};
             app.TableQuantities.CellSelectionCallback = createCallbackFcn(app, @TableQuantitiesCellSelection, true);
             app.TableQuantities.Layout.Row = 8;
