@@ -533,12 +533,14 @@ classdef AnhystereticUtils
 
         function shade_fitted_parameters_table(app)
             removeStyle(app.TableFittedParameters);
-            if isempty(app.Colors) || isempty(app.component_row_types)
+            if isempty(app.Colors) || isempty(app.component_row_types) || app.number_components <= 1
                 return;
             end
             for row = 1:numel(app.component_row_types)
                 if app.component_row_types(row) == "Hx"
-                    component = row - 2*app.number_components;
+                    % Hx_i sits between components i and i+1; shade it as
+                    % component (i+1), the next/right-hand component.
+                    component = row - 2*app.number_components + 1;
                 else
                     component = ceil(row/2);
                 end
@@ -569,7 +571,7 @@ classdef AnhystereticUtils
         end
 
         function shade_component_table_rows(app, table)
-            if isempty(app.Colors)
+            if isempty(app.Colors) || app.number_components <= 1
                 return;
             end
             for i = 1:app.number_components

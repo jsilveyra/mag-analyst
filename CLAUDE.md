@@ -73,7 +73,11 @@ so treating direct patching as the default is unsafe.
 4. **Save the guide to a local file** — `tools/port-guides/<slug>.html` in the
    repo — and give her the path to open directly in a browser. **Do not**
    publish it as a cloud Artifact; she confirmed she wants these local, not
-   uploaded. See [[maganalyst-port-guide-delivery]].
+   uploaded. See [[maganalyst-port-guide-delivery]]. **Never `git add`/commit
+   port-guide files autonomously** — they are working notes for a single
+   porting session, not project history; leave them untracked (this mirrors
+   how earlier port guides in `tools/port-guides/` already sat untracked
+   before this note existed). Only commit one if she explicitly asks to.
 5. She applies the edits in App Designer's Code View herself (plus the
    Design View version-field update from step 3) and saves.
 6. Once she confirms it's saved, **regenerate `app_exported.m`** from her
