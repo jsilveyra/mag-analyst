@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MagAnalyst port guide — crash fix, live error display, N° of points, Max. repetitions</title>
+<style>
+  :root {
+    --bg: #1e1e1e; --panel: #252526; --text: #d4d4d4; --accent: #f15a29;
+    --before-bg: #3a2020; --before-border: #8b3a3a;
+    --after-bg: #20351f; --after-border: #4a8b3a;
+    --flag-bg: #4a3a10; --flag-border: #c98a1c;
+    --crash-bg: #401818; --crash-border: #c94a4a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 6rem;
+    line-height: 1.5;
+  }
+  h1 { font-size: 1.4rem; border-bottom: 3px solid var(--accent); padding-bottom: 0.5rem; }
+  .summary { background: var(--panel); border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0; }
+  .step { background: var(--panel); border-radius: 8px; padding: 1.25rem 1.5rem; margin: 1.5rem 0; border-left: 4px solid #555; }
+  .step.crash { border-left: 4px solid var(--crash-border); }
+  .blocklabel { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: #aaa; margin-top: 0.75rem; }
+  pre { border-radius: 6px; padding: 0.75rem 1rem; overflow-x: auto; margin: 0.25rem 0 0; font-size: 0.9rem; }
+  pre.before { background: var(--before-bg); border: 1px solid var(--before-border); }
+  pre.after { background: var(--after-bg); border: 1px solid var(--after-border); }
+  code { white-space: pre; font-family: "SF Mono", Consolas, "Courier New", monospace; }
+  .flag { background: var(--flag-bg); border: 1px solid var(--flag-border); border-radius: 6px; padding: 0.6rem 1rem; margin-top: 0.75rem; font-size: 0.88rem; }
+  .crash-flag { background: var(--crash-bg); border: 1px solid var(--crash-border); border-radius: 6px; padding: 0.6rem 1rem; margin-top: 0.75rem; font-size: 0.9rem; font-weight: 600; }
+  .designview { background: #1c2d3a; border: 1px solid #2d5a7a; border-radius: 6px; padding: 0.6rem 1rem; margin-top: 0.5rem; font-size: 0.88rem; }
+</style>
+</head>
+<body>
+
+<h1>Code View / Design View edits: crash fix + 4 requested features</h1>
+
+<div class="summary">
+  <p>I regenerated <code>app_exported.m</code> from your saved <code>app.mlapp</code> and verified
+  every step below in <code>matlab -batch</code> (full app construction, live import, live
+  N°-of-points reprocessing, live error-display updates on both tabs, the M residual plot's new
+  color, and Playground Major/Minor loop runs with the new Max. repetitions cap actually limiting
+  the solver) before writing this guide, so all of it is confirmed working end-to-end, not just
+  syntax-checked.</p>
+  <p><b>Step 1 is a real crash</b> — the app currently cannot launch at all in a fresh MATLAB
+  session (only worked for you because App Designer keeps last session's in-memory state). Apply
+  it first.</p>
+  <p>Also answering two questions from your message inline (not code changes):</p>
+  <ul>
+    <li><b>Deleting the two orphaned callbacks</b> (<code>InputAxisScaleDropDownValueChanged</code>,
+    <code>InputAxisScaleDropDownValueChanged2</code>): App Designer protects any function it once
+    generated as a component callback from plain text deletion in Code View, even after it's been
+    unwired — that's the "blocked" behavior you're hitting. The supported path is the <b>Code
+    Browser</b> (the function list pane on the left of Code View, not the editor pane itself):
+    right-click the function name there and choose <b>Delete</b>. If that's still greyed out,
+    it usually means some component's Callbacks tab still lists it as selected somewhere (worth a
+    scan), or App Designer needs a close/reopen to release its internal reference. If it keeps
+    fighting you, it's fine to leave them — they're inert (nothing calls them, confirmed by a full
+    project search), just unused code sitting in the file.</li>
+    <li><b>"Distorted major loop" vs "major loop with harmonics"</b>: I'd keep <i>"major loop with
+    harmonics"</i> — it's the name already used throughout the code
+    (<code>solve_ja_major_harmonics_playground.m</code>, <code>is_harmonics_mode</code>,
+    <code>MajorloopwithharmonicsPanel</code>) and it's accurate and unambiguous to a reader who
+    doesn't yet know what the panel does. "Distorted" is shorter but reads as a defect/problem
+    rather than a deliberately shaped drive field, which could read oddly to someone skimming a
+    plot dropdown.</li>
+  </ul>
+</div>
+
+<div class="step crash" id="step-1">
+  <h3>Step 1 (crash fix). Remove the dangling reference to the Harmonics panel's deleted Rel.
+  tolerance field</h3>
+  <div class="crash-flag">The app currently fails to even launch — startupFcn crashes on
+  "Unrecognized method, property, or field 'ReltoleranceEditField_4'" the moment MATLAB opens it
+  fresh, because you deleted that field from the Harmonics panel but this hand-written tooltip
+  code (not part of createComponents, so Design View's deletion didn't touch it) still references
+  it.</div>
+  <div class="blocklabel">Find this in Code View (inside startupFcn)</div>
+  <pre class="before"><code>            % MOD: note the convergence-mode repetition cap in the Rel. tolerance
+            % labels (the solver still stops after at most 100 loops even in
+            % "Until convergence" mode).
+            % Legacy: this overrides the label from Design View. app.ReltoleranceEditField_6Label.Text = 'Rel. tolerance (max 100 loops)';
+            % Legacy: this overrides the label from Design View. app.ReltoleranceEditField_5Label.Text = 'Rel. tolerance (max 100 loops/tip)';
+            conv_tip = 'In "Until convergence" mode the loop still stops after at most 100 iterations.'; % (or the Repetitions value, if larger)
+            app.ReltoleranceEditField_6.Tooltip = conv_tip;
+            app.ReltoleranceEditField_6Label.Tooltip = conv_tip;
+            app.ReltoleranceEditField_5.Tooltip = [conv_tip ' Applied per tip.'];
+            app.ReltoleranceEditField_5Label.Tooltip = [conv_tip ' Applied per tip.'];
+            app.ReltoleranceEditField_4.Tooltip = conv_tip;
+            app.ReltoleranceEditField_4Label.Tooltip = conv_tip;</code></pre>
+  <div class="blocklabel">Replace with (also updates the hint text: the cap is now the user-set Max. repetitions field, not a hardcoded 100 — see Steps 8–9)</div>
+  <pre class="after"><code>            % MOD: note the convergence-mode repetition cap in the Rel. tolerance
+            % labels (the solver still stops after Max. repetitions loops even
+            % in "Until convergence" mode).
+            conv_tip = 'In "Until convergence" mode the loop still stops once Max. repetitions is reached.';
+            app.ReltoleranceEditField_6.Tooltip = conv_tip;
+            app.ReltoleranceEditField_6Label.Tooltip = conv_tip;
+            app.ReltoleranceEditField_5.Tooltip = [conv_tip ' Applied per tip.'];
+            app.ReltoleranceEditField_5Label.Tooltip = [conv_tip ' Applied per tip.'];</code></pre>
+</div>
+
+<div class="step" id="step-2">
+  <h3>Step 2. Fix the Anhysteretic M residual plot's color (currently the only one still black)</h3>
+  <div class="blocklabel">Find this in Code View</div>
+  <pre class="before"><code>            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.M, app.modeled_curve.H, app.modeled_curve.M, residue, log_flag, "M [A/m]");
+            residue_plotter.plot()</code></pre>
+  <div class="blocklabel">Replace with (same fix already applied to the other two residual buttons last time — this one was missed)</div>
+  <pre class="after"><code>            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.M, app.modeled_curve.H, app.modeled_curve.M, residue, log_flag, "M [A/m]", 5, [0 0 0], app.Colors(1,:), app.Colors(1,:));
+            residue_plotter.plot()</code></pre>
+</div>
+
+<div class="step" id="step-3">
+  <h3>Step 3. Add a delegator for live Anhysteretic error-display updates</h3>
+  <div class="blocklabel">Find this in Code View</div>
+  <pre class="before"><code>        function plot(app)
+            AnhystereticUtils.plot(app);
+        end
+
+        function calculate_parameters(app)</code></pre>
+  <div class="blocklabel">Replace with</div>
+  <pre class="after"><code>        function plot(app)
+            AnhystereticUtils.plot(app);
+        end
+
+        function update_anhysteretic_error_display(app)
+            AnhystereticUtils.update_error_display(app);
+        end
+
+        function calculate_parameters(app)</code></pre>
+</div>
+
+<div class="step" id="step-4">
+  <h3>Step 4. Live-update the Anhysteretic Error display when its dropdown changes</h3>
+  <div class="designview">
+    <b>Design View action:</b> select <code>ErrorDropDown</code> (the "Error" dropdown next to the
+    Fit/Calculate&amp;Plot buttons, showing e.g. "Diagonal (logH, continuous)") → Callbacks tab →
+    add a <code>ValueChangedFcn</code> callback. App Designer will generate a new stub function
+    named <code>ErrorDropDownValueChanged</code> and wire it automatically.
+  </div>
+  <div class="blocklabel">Then in Code View, replace the auto-generated stub's body</div>
+  <pre class="before"><code>        function ErrorDropDownValueChanged(app, event)
+
+        end</code></pre>
+  <div class="blocklabel">With</div>
+  <pre class="after"><code>        function ErrorDropDownValueChanged(app, event)
+            app.update_anhysteretic_error_display();
+        end</code></pre>
+  <div class="flag">If App Designer generates the stub with a different empty-body spacing than
+  shown, just make sure the single line <code>app.update_anhysteretic_error_display();</code> is
+  the only statement inside.</div>
+</div>
+
+<div class="step" id="step-5">
+  <h3>Step 5. Live-update the Hysteretic Error display when its dropdown changes</h3>
+  <div class="designview">
+    <b>Design View action:</b> select <code>ErrortominimizeDropDown_2</code> (the Hysteretic tab's
+    "Error" dropdown, next to its own Error display field) → Callbacks tab → add a
+    <code>ValueChangedFcn</code> callback → generates a stub named
+    <code>ErrortominimizeDropDown_2ValueChanged</code>.
+  </div>
+  <div class="blocklabel">Then in Code View, replace the auto-generated stub's body</div>
+  <pre class="before"><code>        function ErrortominimizeDropDown_2ValueChanged(app, event)
+
+        end</code></pre>
+  <div class="blocklabel">With (reuses the existing update_hysteretic_error_display delegator — no new logic needed)</div>
+  <pre class="after"><code>        function ErrortominimizeDropDown_2ValueChanged(app, event)
+            app.update_hysteretic_error_display();
+        end</code></pre>
+</div>
+
+<div class="step" id="step-6">
+  <h3>Step 6. Input tab: live-update the processed curve from the N° of points field, remove the Apply button</h3>
+  <div class="designview">
+    <b>Design View action (a):</b> select <code>InputNumberofPointsEditField</code> → Callbacks tab
+    → set <code>ValueChangedFcn</code> to the <b>existing</b> <code>InputApplyPointsButtonPushed</code>
+    callback (reuse it from the dropdown list — do not create a new one; it already does exactly
+    what's needed: <code>app.reprocess_dataset()</code>).
+  </div>
+  <div class="designview">
+    <b>Design View action (b):</b> select the <code>InputApplyPointsButton</code> component (the
+    "Apply" button next to the N° of points field) → Delete. Its callback function
+    (<code>InputApplyPointsButtonPushed</code>) stays in Code View since the edit field now uses it
+    too — App Designer won't block this deletion since the callback remains referenced.
+  </div>
+  <div class="flag">Deleting the component via Design View automatically removes its property
+  declaration and its <code>uibutton(...)</code> creation block from Code View — nothing to paste
+  for that part. The two remaining paste-able changes are the column-width adjustment below (the
+  layout now has one fewer column) and confirming the field's wiring line, both shown for
+  reference/verification.</div>
+  <div class="blocklabel">For reference — before (3-column layout: label, field, button)</div>
+  <pre class="before"><code>            app.GridLayoutTips_3.ColumnWidth = {'0.5x', '0.5x', '0.5x'};</code></pre>
+  <div class="blocklabel">After (2-column layout: label, field) — Design View will do this automatically when you delete the button; if it leaves the old 3-column width instead, set it manually via the Inspector</div>
+  <pre class="after"><code>            app.GridLayoutTips_3.ColumnWidth = {'0.5x', '0.5x'};</code></pre>
+</div>
+
+<div class="step" id="step-7">
+  <h3>Step 7. Playground Major loop: wire the new Max. repetitions field (same principle as the Hysteretic tab's Maximum repetitions)</h3>
+  <div class="designview">
+    <b>Design View action (a):</b> select <code>MaxrepetitionsEditField</code> (Major loop panel) →
+    Inspector → tick <b>Round fractional values</b> (matches its sibling <code>RepetitionsEditField</code>
+    and the Minor loop panel's own <code>MaxrepetitionsEditField_2</code>, which already has this
+    set — a repetition count should always be an integer).
+  </div>
+  <div class="designview">
+    <b>Design View action (b):</b> same component → Callbacks tab → set <code>ValueChangedFcn</code>
+    to the <b>existing</b> <code>PlotDropDownValueChanged</code> callback (the same shared callback
+    already used by this panel's <code>RepetitionsEditField</code>, <code>ReltoleranceEditField_6</code>
+    and <code>StopcriterionDropDown</code> — reuse it, don't create a new one).
+  </div>
+  <div class="flag">The greying (enabled only in "Until convergence" mode, since it's now the real
+  cap on how long the solver runs when not converging) and the actual solver plumbing are already
+  handled in <code>PlaygroundUtils.m</code> (<code>sync_major_ui</code>,
+  <code>run_playground_major_loop</code>, <code>solve_ja_major_loop_playground.m</code>) — no
+  further app.mlapp changes needed for the logic itself, only this wiring.</div>
+</div>
+
+<div class="step" id="step-8">
+  <h3>Step 8. Playground Minor loops: wire the new Max. repetitions field</h3>
+  <div class="designview">
+    <b>Design View action:</b> select <code>MaxrepetitionsEditField_2</code> (Minor loop panel) →
+    Callbacks tab → set <code>ValueChangedFcn</code> to the <b>existing</b>
+    <code>StopcriterionDropDown_4ValueChanged</code> callback (the same one already wired to this
+    panel's Stop criterion dropdown — it greys the right fields, clears the stale cached simulation,
+    and redraws; reuse it, don't create a new one). This field already has "Round fractional
+    values" set, so Step 7a's Inspector tweak isn't needed here.
+  </div>
+</div>
+
+<div class="flag">
+  Steps 4, 5, 6a, 6b, 7a, 7b, and 8 are Design View actions (four of them create a new callback
+  stub whose body you then fill in via Code View per the step; the rest reuse an existing callback
+  or set an Inspector property — no new stub). Steps 1, 2, and 3 are plain Code View text edits.
+</div>
+
+<div class="summary">
+  <p>After saving, tell Claude — it will regenerate <code>app_exported.m</code> and re-run the same
+  <code>matlab -batch</code> verification (construction, live import/reprocess, both tabs' live
+  error display, the M residual color, and both Playground panels' Max. repetitions cap actually
+  limiting the solver) against your saved file before you launch it yourself.</p>
+</div>
+
+</body>
+</html>

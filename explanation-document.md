@@ -1,13 +1,29 @@
 ## Contents of the explanation document
 
-1. [Theory for the anhysteretic magnetization model](#theory-for-the-anhysteretic-magnetization-model)
-2. [Analysis plots](#analysis-plots)
-3. [Strategy for retrieving the model parameters](#strategy-for-retrieving-the-model-parameters)
-4. [Calculation of other physical quantities](#calculation-of-other-physical-quantities) 
-5. [Computation of the modeled anhysteretic curve](#computation-of-the-modeled-anhysteretic-curve)
-6. [Optimization technique](#optimization-technique)
-7. [Graphical user interface](#graphical-user-interface)
-8. [References](#references)
+1. [Overview](#overview)
+2. [Theory for the anhysteretic magnetization model](#theory-for-the-anhysteretic-magnetization-model)
+3. [Analysis plots](#analysis-plots)
+4. [Strategy for retrieving the model parameters](#strategy-for-retrieving-the-model-parameters)
+5. [Calculation of other physical quantities](#calculation-of-other-physical-quantities) 
+6. [Computation of the modeled anhysteretic curve](#computation-of-the-modeled-anhysteretic-curve)
+7. [Optimization technique](#optimization-technique)
+8. [Theory for the hysteretic (Jiles–Atherton) magnetization model](#theory-for-the-hysteretic-jiles-atherton-magnetization-model)
+9. [Hysteretic fitting workflow](#hysteretic-fitting-workflow)
+10. [Playground: forward hysteretic simulations](#playground-forward-hysteretic-simulations)
+11. [Graphical user interface](#graphical-user-interface)
+12. [References](#references)
+
+## Overview
+
+MagAnalyst was originally developed to retrieve the parameters of the **anhysteretic** magnetization of soft magnetic materials using the Silveyra-Conde Garrido law of mixtures [[1]](#1) (Sections 2-7 below).
+
+* The **anhysteretic model** decomposes a hysteresis-free magnetization curve into n Langevin-Weiss components, each described by a saturation magnetization M_{Si}, a molecular field constant \alpha_{i}, and a shape parameter a_{i} (equivalently, by the fitting parameters H_{cr\ i}, m_{i}(H_{cr\ i}), and H_{X_{i-1}}). This is the subject of the **Anhysteretic fitting** tab.
+
+The second release extends the toolbox with a full **hysteretic** feature built on the classical, rate-independent Jiles-Atherton (JA) model [[18]](#18) (Sections 8-10), which efficiently fits full hysteresis loops rather than only their anhysteretic backbone. The model is also implemented to forward-simulate hysteretic magnetic paths under different driving field protocols.
+
+* The **hysteretic (JA) model** describes an entire, symmetric hysteresis loop with a single set of five parameters, $M_{S}$, $a$, $\alpha$, $k$, and $c$. This is the subject of the **Hysteretic fitting** tab and of the forward-simulation **Playground** tab.
+
+Both models share the same underlying Langevin-Weiss description of the anhysteretic magnetization: the JA model is, in fact, built around the single-component ($n=1$) case of the anhysteretic equation of state, evaluated at the model's own internal effective field (see [Theory for the hysteretic (Jiles–Atherton) magnetization model](#theory-for-the-hysteretic-jiles-atherton-magnetization-model)). Fitted or user-supplied results from either tab, together with every intermediate curve, residual, and optimization-progress plot, can be exported at once from the unified **Project → Export…** dialog (see [Graphical user interface](#graphical-user-interface)).
 
 ## Theory for the anhysteretic magnetization model
 
@@ -53,7 +69,6 @@ P(m) = \frac{\mathcal{L}^{'}\left( \mathcal{L}^{- 1}(m) \right)}{m - \mathcal{L}
 $$\begin{align}
 Q(m) = \left( \frac{m}{\mathcal{L}^{'}\left( \mathcal{L}^{- 1}(m) \right)} \right)^{2}\frac{\left( - \mathcal{L}^{''}\left( \mathcal{L}^{- 1}(m) \right) \right)}{2\left( m - \mathcal{L}^{- 1}(m)\mathcal{L}^{'}\left( \mathcal{L}^{- 1}(m) \right) \right)} - 1.
 \end{align}$$
-
 
 Notice the equation for $a_{i}$ has two possible values, being the lowest one generally more common [[4]](#4).
 
@@ -235,9 +250,77 @@ However, the user has the option to optimize either of the traditional objective
 
 Currently, MagAnalyst utilizes the Matlab function `minimize`, developed by Oldenhuis [[13]](#13), to find the constrained minimum of the objective function starting at the user's initial estimates. This function uses `fminsearch` [[14]](#14) as its engine, which is a Matlab built-in function that employs the Nelder-Mead simplex method, an heuristic search method. `minimize` shares the same syntaxis of `fmincon` [[15]](#15), which offers deterministic algorithms such like the interior-point method, but it has the advantage of being freely distributed (unlike `fmincon`, which requires Matlab's Optimization Toolbox).
 
+## Theory for the hysteretic (Jiles–Atherton) magnetization model
+
+While the anhysteretic model above describes a hysteresis-free magnetization curve, real ferromagnets exhibit hysteresis: domain-wall pinning at microstructural inhomogeneities makes the magnetization at a given applied field $H$ depend on the field's history. MagAnalyst models this behavior with the classical Jiles-Atherton (JA) model [[18]](#18), a rate-independent, mean-field description of ferromagnetic hysteresis.
+
+As in the anhysteretic model, the starting point is an anhysteretic magnetization, but now evaluated at an internal **effective field** $H_{eff}$ rather than at the applied field $H$ itself,
+
+$$\begin{align}
+H_{eff} = H + \alpha M,
+\end{align}$$
+
+$$\begin{align}
+M_{anh} = M_{S}\mathcal{L}\left( \frac{H_{eff}}{a} \right),
+\end{align}$$
+
+where $M_{S}$ is the saturation magnetization, $\mathcal{L}$ is the Langevin function, $a$ plays the same role as in the anhysteretic model, and $\alpha$ is the molecular field (Weiss) constant [[2]](#2), which here couples the internal field to the material's own (hysteretic) magnetization $M$ rather than to a component magnetization. Because $M$ is hysteretic, $M_{anh}$ computed this way is also hysteretic, unlike the genuinely path-independent anhysteretic curve of the previous sections.
+
+Following Jiles and Atherton, the magnetization is split into a fraction that reversibly tracks $M_{anh}$ and an irreversible fraction subject to pinning losses, weighed by a reversibility coefficient $c \in (0,1)$. An energy-balance argument for the irreversible magnetization, after eliminating intermediate variables, yields a single first-order ODE for $M(H)$ [[18]](#18)[[19]](#19)
+
+$$\begin{align}
+\frac{dM}{dH} = \frac{num}{den},
+\end{align}$$
+
+$$\begin{align}
+num = k\delta c\frac{dM_{anh}}{dH_{eff}} + \left( M_{anh} - M \right)\delta_{M},
+\end{align}$$
+
+$$\begin{align}
+den = k\delta - \alpha\, num,
+\end{align}$$
+
+$$\begin{align}
+\delta_{M} = \frac{1}{2}\left\lbrack 1 + \operatorname{sign}\left( M_{anh} - M \right)\delta \right\rbrack,
+\end{align}$$
+
+where $\delta = \operatorname{sign}(dH) \in \{+1,-1\}$ tracks the field-sweep direction and $k>0$ is the pinning parameter setting the loop's coercivity and width. The switching term $\delta_{M}$ is a patch, introduced to prevent the unphysical negative differential susceptibilities that the unpatched equation would otherwise produce right after a field reversal [[19]](#19). The derivative $\frac{dM_{anh}}{dH_{eff}} = \frac{M_{S}}{a}\mathcal{L}^{'}\left( \frac{H_{eff}}{a} \right)$ reuses the same Langevin derivative (and its small-argument Taylor expansion) already introduced for the anhysteretic model.
+
+The five JA parameters play distinct physical roles: $M_{S}$, $a$, and $\alpha$ mostly set the loop's overall backbone/shape (and are close in value and meaning to the corresponding parameters of a single-component anhysteretic fit), while $k$ and $c$ govern the loop's width, i.e., its hysteretic character. $c$ apportions the magnetization between the anhysteretic (reversible) and the irreversible, pinning-controlled response, and $k$ scales the irreversible loss.
+
+Because the JA ODE has no closed-form solution, MagAnalyst integrates it numerically with the Matlab `ode23tb` solver [[20]](#20), an implicit Runge-Kutta pair (TR-BDF2, combining the trapezoidal rule with a second-order backward differentiation formula) well suited to the locally stiff behavior of $dM/dH$ near saturation and near field turning points [[19]](#19). Every simulated branch is integrated at a fixed sweep direction $\delta$, with default tolerances `RelTol = 1e-7` and `AbsTol = 1e-6`. Since it is $\delta$, and not the sweep rate, that determines which branch is followed, the JA model as implemented here is explicitly **rate-independent**: the magnetization at any point of the field history depends only on the sequence of field values already visited (in particular, on the field's turning points), never on how fast $H(t)$ changes. This property is exploited throughout the Playground subsystem (see below), where only the turning points of a prescribed field waveform ever need to be computed.
+
+## Hysteretic fitting workflow
+
+The **Hysteretic fitting** tab retrieves the five JA parameters ($M_{S}$, $a$, $\alpha$, $k$, $c$) that best reproduce a measured hysteresis loop. As in the anhysteretic tab, the user can hold any subset of parameters fixed and optimize only the rest; in addition, $k$ can either be fitted directly or estimated in closed form (**Constrained by Hc**) at every trial parameter set from the coercive field $H_{C}$ of the measured left branch, following the blind initialization strategy of Conde Garrido et al. [[19]](#19)
+
+$$\begin{align}
+k = \frac{M_{S}\mathcal{L}\left( - H_{C}/a \right)}{c\frac{M_{S}}{a}\mathcal{L}^{'}\left( - H_{C}/a \right) - \left( \chi_{C}^{- 1} + \alpha \right)^{- 1}},
+\end{align}$$
+
+where $\chi_{C} = dM/dH$ at the coercive point is obtained from the numerically differentiated left branch. Whenever it is used, this removes $k$ from the free-parameter search, since it no longer needs to be optimized independently of $M_{S}$, $a$, $\alpha$, and $c$.
+
+Two settings control how the modeled loop is generated and compared against the data during optimization:
+
+- **Fitting region** — **Left branch only** compares the model against only the descending branch of a single major loop, from $+ H_{TIP}$ to $- H_{TIP}$, which is sufficient whenever the loop is (or is assumed to be) point-symmetric. **Entire loop** instead compares against both branches of one full, steady-state cycle.
+- **Stop criterion** — for **Entire loop** fitting, each trial parameter set is simulated by repeatedly cycling $+ H_{TIP} \to - H_{TIP} \to + H_{TIP}$, starting either from the data tip or from the demagnetized state (an initial $0 \to H_{TIP}$ sweep is simulated and discarded). **Fixed repetitions** stops after a user-set number of cycles; **Until convergence** instead stops once the returning magnetization at $+ H_{TIP}$ changes, between consecutive cycles, by less than a relative tolerance, capped at a maximum number of cycles.
+
+The objective function reuses the same error metrics as the anhysteretic-curve fit (see [Optimization technique](#optimization-technique)): **Diagonal (H, continuous)**, the mean orthogonal (Euclidean) distance between the modeled curve and the data, evaluated via `distance2curve` [[11]](#11) on axes normalized by each curve's half-range; or the faster **Vertical** and **Horizontal** root-mean-square errors, evaluated via `interp1` [[12]](#12). Only the left branch of the loop is used for the residual computation even when fitting the entire loop, since the JA model produces point-symmetric major loops and the left branch alone therefore already determines the fit. As in the anhysteretic tab, MagAnalyst minimizes the objective with the `minimize` routine [[13]](#13) (Nelder-Mead via `fminsearch` [[14]](#14)), subject to user-editable lower/upper bounds on each fitted parameter, and displays a live plot of the error value versus iteration number while the fit runs (see [Graphical user interface](#graphical-user-interface)).
+
+## Playground: forward hysteretic simulations
+
+The **Playground** tab is a forward-simulation sandbox: given a set of JA parameters ($M_{S}$, $a$, $\alpha$, $k$, $c$), typically the output of the Hysteretic fitting tab, it simulates and plots the magnetization response to a prescribed applied-field history. It offers four simulation modes, all built from the same monotonic-branch integrator described in the previous section.
+
+- **Major loop** — a single symmetric hysteresis loop between $\pm H_{TIP}$, started from a demagnetized state, from the data tip, or from a user-defined $\left( H_{start},M_{start} \right)$, and cycled either a fixed number of times or until the returning tip magnetization converges. This reproduces the same simulated loop used internally by the Hysteretic fitting tab and is the standard way to visually check a fitted parameter set or to explore how each JA parameter shapes the loop.
+- **Minor loops (nested)** — a sequence of symmetric field excursions $\pm H_{tip\ i}$ of increasing amplitude, run from a demagnetized state and bridged from the smallest to the largest tip, each cycled to a fixed repetition count or to convergence. This simulates the family of nested minor (recoil) loops obtained by driving a sample with sub-saturation field amplitudes.
+- **Degaussing** — a decaying, alternating sequence of field reversals (by default, a geometric decay from an initial to a final amplitude over a user-set number of steps) ending in a sweep to $H=0$, reproducing the standard AC-demagnetization ("degaussing") protocol used experimentally to bring a sample to a low-remanence state.
+- **Major loop with harmonics** — a major loop driven by a distorted periodic field $H(\theta) = \sum_{j}{A_{j}\sin\left( k_{j}\theta + \varphi_{j} \right)}$ instead of a pure sinusoid ($\theta$ being the field's phase over one period). Because the JA model is rate-independent (see previous section), the simulation only needs the field's turning points within one period, found by densely sampling $H(\theta)$; harmonic content adds extra turning points, which appear as extra, generally asymmetric, minor loops nested inside the major loop. This mode is relevant, e.g., to estimate the hysteretic response under non-sinusoidal (harmonic-rich) excitation, as encountered downstream of power-electronic converters — although, being rate-independent, the JA model still cannot capture frequency-dependent (eddy-current, magnetic viscosity) losses.
+
+Every mode integrates the prescribed field history leg by leg, concatenating consecutive monotonic branches; the resulting curve, its underlying per-branch bookkeeping (e.g., which samples belong to each tip's last loop, or to each period), and the field-history metadata used to generate it can all be exported from the unified Export dialog together with the simulated figure.
+
 ## Graphical user interface
 
-We have developed the toolbox with a graphical user interface (GUI) to simplify its usage. MagAnalyst allows users to set up a new project and fit an anhysteretic curve using the Silveyra-Conde Garrido approach with just a few clicks and inputs. Additionally, users have the flexibility to save their projects at any point during the analysis, enabling them to resume it at a later time.
+We have developed the toolbox with a graphical user interface (GUI) to simplify its usage. The GUI is organized into four tabs — **Input data**, **Anhysteretic fitting**, **Hysteretic fitting**, and **Playground** — plus a **Project** menu for project management and data export. MagAnalyst allows users to set up a new project, fit an anhysteretic curve using the Silveyra-Conde Garrido approach, fit a hysteresis loop using the Jiles-Atherton model, and forward-simulate JA loops in the Playground tab, all with just a few clicks and inputs. Additionally, users have the flexibility to save their projects at any point during the analysis, enabling them to resume it at a later time.
 
 The software automatically converts the input data for analysis into $M\left\lbrack \frac{A}{m} \right\rbrack$ vs $H\left\lbrack \frac{A}{m} \right\rbrack$ for the analysis and fitting process, following the conversion formulae provided in Table I. If other field units are required for the input data, they can be made available upon request.
 
@@ -255,7 +338,12 @@ where the dependent variable $Y$ is $M$, $\frac{\partial M}{\partial H}$, or $\f
 
 Tutorial videos are available in [YouTube](https://y-t.be/qvyw), illustrating how to analyze and fit an anhysteretic magnetization curve with either one or two component magnetizations.
 
+Both the anhysteretic and the hysteretic fits display a live **optimization progress** plot — the value of the selected error metric versus iteration number, on a logarithmic vertical axis — that updates while the corresponding optimizer runs, so convergence (or the lack thereof) can be monitored in real time and the fit can be stopped early if desired.
+
+All artifacts produced by the toolbox — raw and processed input data, the modeled anhysteretic curve with its parameters and residuals, the modeled hysteresis loop with its JA parameters and residuals, every Playground-simulated curve with its metadata, the optimization-progress histories, and every figure — can be exported at once from the unified **Project → Export…** dialog, as CSV/TXT data files and PNG/PDF/SVG figures.
+
 ### **Table I. Supported input fields and conversion formulae to obtain $M\left\lbrack \frac{A}{m} \right\rbrack$ vs $H\left\lbrack \frac{A}{m} \right\rbrack$ data**
+
   **Horizontal axis field**
   | **Input field**                                    |**Conversion to $\mathbf{H}\left\lbrack \frac{\mathbf{A}}{\mathbf{m}} \right\rbrack$**| 
   | -------------------------------------------| -------------------------------------------|
@@ -282,6 +370,7 @@ Tutorial videos are available in [YouTube](https://y-t.be/qvyw), illustrating ho
 Other input fields can be made available upon request.
 
 ## References
+
 <a id="1">[1]</a> 
 J. M. Silveyra and J. M. Conde Garrido, "On the anhysteretic magnetization of soft magnetic materials," AIP Advances, vol. 12, p. 035019, 2022. https://doi.org/10.1063/9.0000328
 <br>
@@ -332,3 +421,12 @@ Matlab. interparc - Distance based interpolation along a general curve in space.
 <br>
 <a id="17">[17]</a>
 A. Rohatgi. WebPlotDigitizer. Available: https://automeris.io/WebPlotDigitizer. Access date: 19/9/2023
+<br>
+<a id="18">[18]</a>
+D. C. Jiles and D. L. Atherton, "Theory of ferromagnetic hysteresis," Journal of Magnetism and Magnetic Materials, vol. 61, no. 1-2, pp. 48-60, 1986. https://doi.org/10.1016/0304-8853(86)90066-1
+<br>
+<a id="19">[19]</a>
+J. M. Conde Garrido, J. Ugarte Valdivielso, J. I. Aizpurua, M. Barrenetxea Iñarra, and J. M. Silveyra, "Blind Efficient Method for Optimizing Jiles-Atherton Model Parameters," IEEE Transactions on Magnetics, 2025. https://doi.org/10.1109/TMAG.2025.3632479
+<br>
+<a id="20">[20]</a>
+Matlab. ode23tb - Solve stiff differential equations and DAEs — trapezoidal rule + backward differentiation formula. Available: https://www.mathworks.com/help/matlab/ref/ode23tb.html. Access date: 07/04/2026

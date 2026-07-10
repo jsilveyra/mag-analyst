@@ -80,6 +80,16 @@ classdef FileDialogUtils
             folder = string(base);
         end
 
+        function folder = default_import_folder(app)
+            base = FileDialogUtils.default_data_folder(app);
+            candidate = fullfile(base, "sampleData");
+            if isfolder(candidate)
+                folder = string(candidate);
+            else
+                folder = base;
+            end
+        end
+
         function ensure_folder(~, folder)
             if strlength(string(folder)) == 0
                 return;
