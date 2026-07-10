@@ -32,7 +32,7 @@ classdef InputUtils
             number_of_points = app.InputNumberofPointsEditField.Value;
             H_unit = app.HorizontalaxisfieldDropDown.Value;
             M_unit = app.VerticalaxisfieldDropDown.Value;
-            curve_type = app.CurveDropDown.Value;
+            curve_type = app.CurvetypeDropDown.Value;
             app.imported_curve_type = string(curve_type);
             [H, M, app.H_raw, app.M_raw] = Parser(path, H_unit, M_unit, curve_type, number_of_points).import();
 
@@ -52,7 +52,7 @@ classdef InputUtils
             parser_constants = ParserConstants();
             curve_type = string(app.imported_curve_type);
             if strlength(curve_type) == 0
-                curve_type = string(app.CurveDropDown.Value);
+                curve_type = string(app.CurvetypeDropDown.Value);
             end
             is_anhysteretic = curve_type == parser_constants.ANHYSTERETIC_CURVE_TYPE;
         end

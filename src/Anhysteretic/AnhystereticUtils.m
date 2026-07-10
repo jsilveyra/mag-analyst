@@ -598,5 +598,16 @@ classdef AnhystereticUtils
                 a = -1;
             end
         end
+
+        function calculate_plot_and_refresh_hysteretic_live(app)
+            % MOD: silent variant of app.calculate_plot_and_refresh_hysteretic for
+            % live field/table-edit triggers - skips the "no dataset imported"
+            % message so it doesn't spam the Messages panel while the Anhysteretic
+            % tab is used before any data has been imported.
+            if ~isobject(app.data_curve) || ~isprop(app.data_curve, 'H') || isempty(app.data_curve.H)
+                return;
+            end
+            app.calculate_plot_and_refresh_hysteretic();
+        end
     end
 end

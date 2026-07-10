@@ -22,7 +22,7 @@ classdef MenuUtils
             s.input_path = app.InputDatasetPath.Value;
             s.horizontal_axis = app.HorizontalaxisfieldDropDown.Value;
             s.vertical_axis = app.VerticalaxisfieldDropDown.Value;
-            s.curve_type = app.CurveDropDown.Value;
+            s.curve_type = app.CurvetypeDropDown.Value;
             s.description = app.DescriptionTextArea.Value;
             s.data_set_path = app.OutputDatasetPath.Value;
 
@@ -135,7 +135,7 @@ classdef MenuUtils
             app.InputDatasetPath.Value = s.input_path;
             app.HorizontalaxisfieldDropDown.Value = s.horizontal_axis;
             app.VerticalaxisfieldDropDown.Value = s.vertical_axis;
-            app.CurveDropDown.Value = s.curve_type;
+            app.CurvetypeDropDown.Value = s.curve_type;
             app.DescriptionTextArea.Value = s.description;
 
             app.OutputDatasetPath.Value = s.data_set_path;

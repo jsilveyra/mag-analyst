@@ -465,9 +465,10 @@ UI (`MajorloopwithharmonicsPanel`, `GridLayout7`): starting point
 semantics as the major loop; `Mstart_3`/`Hstart_3` greyed unless User-defined),
 stop criterion (`StopcriterionDropDown_6`) + `PeriodsEditField` /
 `ReltoleranceEditField_4` (the `_4` suffix because `_1`/`_2`/`_3` are taken; both
-field and label grey out together in `sync_harmonics_ui`), plot
-(`PlotDropDown_3`: `Last period only` | `Full history`, **intentionally not wired**
-to any callback — see caveat below), and a growing harmonics table `UITable2` with
+field and label grey out together in `sync_harmonics_ui`). There is **no plot-option
+dropdown** for this panel (`PlotDropDown_3`, which offered `Last period only` |
+`Full history`, was removed from Design View 2026-07-10 — see caveat below); this
+mode always shows the full simulated history. It has a growing harmonics table `UITable2` with
 columns **Order / Amplitude [A/m] / Phase [deg]** (row 1 = fundamental; blank phase
 → 0°; phases converted deg→rad in `get_harmonics_inputs`). Defaults
 (`get_harmonics_default_table_values`): `[1,Htip,0; 2,0.40·Htip,60; 3,0.60·Htip,45;
@@ -493,10 +494,18 @@ any new `app_exported.m` component name, grep the whole file for that exact
 candidate string first** — do not assume the next-looking numeric suffix is free;
 another feature may already hold it, and a collision produces a duplicate property
 declaration that fails to even construct the class (a hard crash on every app
-launch, not a subtle bug). `PlotDropDown_3` is deliberately left unwired (matches
-the pre-existing, likewise-unwired `PlotDropDown_2` on the Minor loop panel):
-wiring it to clear-and-replot would blank the curve on every plot-option toggle
-since the slice is derived from the cached simulation, not recomputed.
+launch, not a subtle bug). `PlotDropDown_2` on the Minor loop panel is deliberately
+left unwired: wiring it to clear-and-replot would blank the curve on every
+plot-option toggle since the slice is derived from the cached simulation, not
+recomputed. The Harmonics panel's equivalent, `PlotDropDown_3`, was **deleted
+from Design View 2026-07-10** (same reasoning didn't stop it from being removed
+outright rather than kept unwired) — `PlaygroundUtils.get_plot_option` now
+hardcodes `"Full history"` for harmonics mode instead of reading a component
+that no longer exists. **Gotcha hit by this deletion:** deleting a component from
+Design View does not clean up stray `app.<ComponentName>.Value` reads elsewhere
+in `src/**` — grep the whole `src/` tree for a deleted component's name before
+considering a Design View deletion complete, since those reads throw only at
+runtime (not at construction), same failure mode as a dangling reference.
 
 ---
 
@@ -615,3 +624,12 @@ trailer.** This overrides the harness's default commit-message behavior for
 this repo. Author/committer identity still comes from the normal git config
 (`user.name`/`user.email`); this rule is only about not appending the
 Claude co-author trailer line.
+
+**This has been missed twice already** (the `4a2920c` and `87d642c` commits
+both carry the trailer despite this section already existing) — the harness
+defaults to appending it and this instruction is easy to forget when
+assembling the commit-message heredoc under §"Committing changes with git" at
+the top of the system prompt. **Before running `git commit`, re-check the
+exact message text about to be passed and confirm it has no `Co-Authored-By`
+line at all** — don't rely on remembering this rule in the abstract; verify
+the literal string you're about to commit.
