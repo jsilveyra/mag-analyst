@@ -373,10 +373,7 @@ classdef app_exported < matlab.apps.AppBase
             FileDialogUtils.ensure_folder(app, folder);
         end
 
-        function write_dataset_not_found_message(app, path) % MOD
-            FileDialogUtils.write_dataset_not_found_message(app, path);
-        end
-%%
+        %%
         function adjust_window(app)
         
             scr = get(groot,'ScreenSize');
@@ -410,7 +407,8 @@ classdef app_exported < matlab.apps.AppBase
             AnhystereticUtils.fit_parameters(app);
         end
         
-        function stop = fit_stop_output_fcn(app, ~, ~, ~)
+        function stop = fit_stop_output_fcn(app, ~, optimValues, ~)
+            FitProgressUtils.append(app, optimValues);
             drawnow limitrate;
             stop = app.stop_fit_requested;
         end
@@ -1245,6 +1243,7 @@ classdef app_exported < matlab.apps.AppBase
 
         % Close request function: MagAnalystUIFigure
         function MagAnalystUIFigureCloseRequest(app, event)
+            FitProgressUtils.close(app);
             delete(app.ColorDialogApp)
             delete(app)
         end
@@ -1533,14 +1532,8 @@ classdef app_exported < matlab.apps.AppBase
 
         % Button pushed function: CalculatePlotButton_2
         function CalculatePlotButton_2Pushed(app, event)
-            path = app.InputDatasetPath.Value;
-            if isfile(path)
-                app.import_data(path);
-                app.plot_hysteretic_tab_data();
-                app.update_hysteretic_error_display();
-            else
-                app.write_dataset_not_found_message(path);
-            end
+            app.plot_hysteretic_tab_data();
+            app.update_hysteretic_error_display();
         end
 
         % Value changed function: ShowgridCheckBoxM_2
@@ -1558,13 +1551,7 @@ classdef app_exported < matlab.apps.AppBase
         function FitButton_2Pushed(app, event)
             app.write_message("Fitting started");
             drawnow;
-            path = app.InputDatasetPath.Value;
-            if isfile(path)
-                app.import_data(path);
-                app.fit_ja_parameters();
-            else
-                app.write_dataset_not_found_message(path);
-            end
+            app.fit_ja_parameters();
         end
 
         % Value changed function: kConstrainedCheckBox_2

@@ -34,6 +34,22 @@ classdef InputUtils
             M_unit = app.VerticalaxisfieldDropDown.Value;
             curve_type = app.CurvetypeDropDown.Value;
             app.imported_curve_type = string(curve_type);
+
+            % Reading + resampling a large CSV can take a few seconds; show an
+            % indeterminate progress dialog so the user waits instead of
+            % re-triggering the import. onCleanup guarantees it closes even
+            % if the parse throws.
+            progress_dlg = [];
+            try
+                progress_dlg = uiprogressdlg(app.MagAnalystUIFigure, ...
+                    'Title', 'Importing data', ...
+                    'Message', 'Reading and processing the dataset...', ...
+                    'Indeterminate', 'on', 'Cancelable', 'off');
+                drawnow;
+            catch
+            end
+            close_progress = onCleanup(@() InputUtils.close_progress_dialog(progress_dlg)); %#ok<NASGU>
+
             [H, M, app.H_raw, app.M_raw] = Parser(path, H_unit, M_unit, curve_type, number_of_points).import();
 
             app.data_curve = DataAnhystereticCurve(H, M);
@@ -46,6 +62,12 @@ classdef InputUtils
             app.maybe_refresh_ms_lower_bound_default(); % MOD: update the Hysteretic tab's Ms lower bound default from the newly imported data tip
             PlaygroundUtils.sync_major_ui(app);
             PlaygroundUtils.clear_simulation(app);
+        end
+
+        function close_progress_dialog(progress_dlg)
+            if ~isempty(progress_dlg) && isvalid(progress_dlg)
+                close(progress_dlg);
+            end
         end
 
         function is_anhysteretic = is_last_import_anhysteretic(app)
