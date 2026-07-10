@@ -386,11 +386,11 @@ classdef PlaygroundUtils
             params = struct('Ms', NaN, 'a', NaN, 'alpha', NaN, 'k', NaN, 'c', NaN);
             ok = false;
 
-            Ms = app.JsField_9.Value;
-            a = app.JsField_10.Value;
-            alpha = app.JsField_11.Value;
-            c = app.JsField_12.Value;
-            k = app.JsField_13.Value;
+            Ms = app.Ms_JA_Playground.Value;
+            a = app.a_JA_Playground.Value;
+            alpha = app.alpha_JA_Playground.Value;
+            c = app.c_JA_Playground.Value;
+            k = app.k_JA_Playground.Value;
 
             if isempty(Ms) || isempty(a) || isempty(alpha) || isempty(c) || isempty(k)
                 return;
@@ -527,27 +527,27 @@ classdef PlaygroundUtils
 
             if contains(mode, "harmonic")
                 app.MajorloopPanel.Visible = 'off';
-                app.MinorloopPanel.Visible = 'off';
+                app.MinorloopsPanel.Visible = 'off';
                 app.DegaussingPanel.Visible = 'off';
                 app.MajorloopwithharmonicsPanel.Visible = 'on';
             elseif contains(mode, "major loop")
                 app.MajorloopPanel.Visible = 'on';
-                app.MinorloopPanel.Visible = 'off';
+                app.MinorloopsPanel.Visible = 'off';
                 app.DegaussingPanel.Visible = 'off';
                 app.MajorloopwithharmonicsPanel.Visible = 'off';
             elseif contains(mode, "minor loop")
                 app.MajorloopPanel.Visible = 'off';
-                app.MinorloopPanel.Visible = 'on';
+                app.MinorloopsPanel.Visible = 'on';
                 app.DegaussingPanel.Visible = 'off';
                 app.MajorloopwithharmonicsPanel.Visible = 'off';
             elseif contains(mode, "degaussing")
                 app.MajorloopPanel.Visible = 'off';
-                app.MinorloopPanel.Visible = 'off';
+                app.MinorloopsPanel.Visible = 'off';
                 app.DegaussingPanel.Visible = 'on';
                 app.MajorloopwithharmonicsPanel.Visible = 'off';
             else
                 app.MajorloopPanel.Visible = 'on';
-                app.MinorloopPanel.Visible = 'on';
+                app.MinorloopsPanel.Visible = 'on';
                 app.DegaussingPanel.Visible = 'on';
                 app.MajorloopwithharmonicsPanel.Visible = 'on';
             end

@@ -137,11 +137,11 @@ classdef app_exported < matlab.apps.AppBase
         Mtip                            matlab.ui.control.NumericEditField
         MsUpper_JA                      matlab.ui.control.NumericEditField
         MsLower_JA                      matlab.ui.control.NumericEditField
-        JsTEditFieldLabel_8             matlab.ui.control.Label
+        MtipLabel                       matlab.ui.control.Label
         Htip                            matlab.ui.control.NumericEditField
         ResidualplotButtondMdH_2        matlab.ui.control.Button
         ShowgridCheckBoxM_2             matlab.ui.control.CheckBox
-        JsTEditFieldLabel_7             matlab.ui.control.Label
+        HtipLabel                       matlab.ui.control.Label
         ErrorDisplay_2                  matlab.ui.control.NumericEditField
         TippointdataLabel               matlab.ui.control.Label
         RetrieveseedsButton             matlab.ui.control.Button
@@ -151,14 +151,14 @@ classdef app_exported < matlab.apps.AppBase
         CalculatePlotButton_2           matlab.ui.control.Button
         FitButton_2                     matlab.ui.control.Button
         c_JA                            matlab.ui.control.NumericEditField
-        JsTEditFieldLabel_6             matlab.ui.control.Label
+        k_JALabel                       matlab.ui.control.Label
         alpha_JA                        matlab.ui.control.NumericEditField
-        JsTEditFieldLabel_5             matlab.ui.control.Label
+        c_JALabel                       matlab.ui.control.Label
         a_JA                            matlab.ui.control.NumericEditField
-        JsTEditFieldLabel_4             matlab.ui.control.Label
+        alpha_JALabel                   matlab.ui.control.Label
         Ms_JA                           matlab.ui.control.NumericEditField
-        JsTEditFieldLabel_3             matlab.ui.control.Label
-        JsTEditFieldLabel_2             matlab.ui.control.Label
+        a_JALabel                       matlab.ui.control.Label
+        Ms_JALabel                      matlab.ui.control.Label
         ModelparametersLabel            matlab.ui.control.Label
         JilesAthertonmodelrateindependentLabel  matlab.ui.control.Label
         AxesM_2                         matlab.ui.control.UIAxes
@@ -174,19 +174,19 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM_4             matlab.ui.control.CheckBox
         DrivingfieldLabel_2             matlab.ui.control.Label
         RetrieveparametersButton        matlab.ui.control.Button
-        JsField_13                      matlab.ui.control.NumericEditField
-        JsTEditFieldLabel_13            matlab.ui.control.Label
-        JsField_12                      matlab.ui.control.NumericEditField
-        JsTEditFieldLabel_12            matlab.ui.control.Label
-        JsField_11                      matlab.ui.control.NumericEditField
-        JsTEditFieldLabel_11            matlab.ui.control.Label
-        JsField_10                      matlab.ui.control.NumericEditField
-        JsTEditFieldLabel_10            matlab.ui.control.Label
-        JsField_9                       matlab.ui.control.NumericEditField
-        JsTEditFieldLabel_9             matlab.ui.control.Label
+        k_JA_Playground                 matlab.ui.control.NumericEditField
+        k_JA_PlaygroundLabel            matlab.ui.control.Label
+        c_JA_Playground                 matlab.ui.control.NumericEditField
+        c_JA_PlaygroundLabel            matlab.ui.control.Label
+        alpha_JA_Playground             matlab.ui.control.NumericEditField
+        alpha_JA_PlaygroundLabel        matlab.ui.control.Label
+        a_JA_Playground                 matlab.ui.control.NumericEditField
+        a_JA_PlaygroundLabel            matlab.ui.control.Label
+        Ms_JA_Playground                matlab.ui.control.NumericEditField
+        Ms_JA_PlaygroundLabel           matlab.ui.control.Label
         ModelparametersLabel_2          matlab.ui.control.Label
         JilesAthertonmodelrateindependentLabel_2  matlab.ui.control.Label
-        MinorloopPanel                  matlab.ui.container.Panel
+        MinorloopsPanel                 matlab.ui.container.Panel
         GridLayout6                     matlab.ui.container.GridLayout
         MaxrepetitionsEditFieldLabel_2  matlab.ui.control.Label
         MaxrepetitionsEditField_2       matlab.ui.control.NumericEditField
@@ -939,6 +939,10 @@ classdef app_exported < matlab.apps.AppBase
             AnhystereticUtils.set_colors_and_plot(app, colors);
         end
 
+        function apply_component_color_styles(app)
+            AnhystereticUtils.apply_component_color_styles(app);
+        end
+
         function a = calculate_and_plot(app)
             a = AnhystereticUtils.calculate_and_plot(app);
         end
@@ -1016,6 +1020,8 @@ classdef app_exported < matlab.apps.AppBase
                 0    0.70 0
                 1    0.50 0
             ];
+
+            app.apply_component_color_styles();   % MOD: shade fitting/model/quantities table rows to match component colors
         
             % Default output folder
             out_folder = app.default_data_folder();
@@ -1275,9 +1281,9 @@ classdef app_exported < matlab.apps.AppBase
                     alpha_value = app.magnetic_parameters.alpha(i);
                     a_value = app.magnetic_parameters.a(i);
                     s_component = sprintf("Component: %i", i);
-                    s_Ms_value = sprintf("    Ms%i [A/m]: \t%0.4f", i, Ms_value);
-                    s_alpha_value = sprintf("            α: \t%0.4e", alpha_value);
-                    s_a_value = sprintf("     a%i [A/m]: \t%0.4f", i, a_value);
+                    s_Ms_value = sprintf("    Ms%i [A/m]: \t%0.5e", i, Ms_value);
+                    s_alpha_value = sprintf("            α: \t%0.5e", alpha_value);
+                    s_a_value = sprintf("     a%i [A/m]: \t%0.6f", i, a_value);
                     fprintf(file, s_component + newline + s_Ms_value + newline + s_alpha_value + newline + s_a_value + newline);
                 end
                 fprintf(file, newline);
@@ -1292,7 +1298,7 @@ classdef app_exported < matlab.apps.AppBase
                     s_component = sprintf("Component: %i", i);
                     s_alpha_Ms_value = sprintf("    α%i|Ms%i|/(3a%i): \t%0.4f", i, i, i, alpha_Ms_value);
                     s_density_product_value = sprintf("    N%ikBT [J/m^3]: \t%0.4f", i, density_product_value);
-                    s_Hk = sprintf("        Hk%i [A/m]: \t%0.4f", i, Hk_value);
+                    s_Hk = sprintf("        Hk%i [A/m]: \t%0.4e", i, Hk_value);
                     s_chi_in_value = sprintf("            χin%i: \t%i", i, chi_in_value);
                     fprintf(file, s_component + newline + s_alpha_Ms_value + newline + s_density_product_value + newline + s_Hk + newline + s_chi_in_value + newline);
                 end
@@ -1578,22 +1584,22 @@ classdef app_exported < matlab.apps.AppBase
         function RetrieveparametersButtonPushed(app, event)
             [~, has_hysteretic_params] = app.get_playground_hysteretic_params();
             if has_hysteretic_params
-                app.JsField_9.Value = app.Ms_JA.Value;
-                app.JsField_10.Value = app.a_JA.Value;
-                app.JsField_11.Value = app.alpha_JA.Value;
-                app.JsField_12.Value = app.c_JA.Value;
-                app.JsField_13.Value = app.k_JA.Value;
+                app.Ms_JA_Playground.Value = app.Ms_JA.Value;
+                app.a_JA_Playground.Value = app.a_JA.Value;
+                app.alpha_JA_Playground.Value = app.alpha_JA.Value;
+                app.c_JA_Playground.Value = app.c_JA.Value;
+                app.k_JA_Playground.Value = app.k_JA.Value;
                 app.write_message("Jiles-Atherton parameters retrieved from Hysteretic Fitting tab.");
                 return;
             end
 
             [ms_seed, a_seed, alpha_seed, has_seeds] = app.get_first_anhysteretic_seeds();
             if has_seeds
-                app.JsField_9.Value = ms_seed;
-                app.JsField_10.Value = a_seed;
-                app.JsField_11.Value = alpha_seed;
-                app.JsField_12.Value = 0;
-                app.JsField_13.Value = 0;
+                app.Ms_JA_Playground.Value = ms_seed;
+                app.a_JA_Playground.Value = a_seed;
+                app.alpha_JA_Playground.Value = alpha_seed;
+                app.c_JA_Playground.Value = 0;
+                app.k_JA_Playground.Value = 0;
                 app.write_message("Anhysteretic parameters retrieved from Anhysteretic Fitting tab.");
                 return;
             end
@@ -1682,6 +1688,7 @@ classdef app_exported < matlab.apps.AppBase
             app.sync_playground_mode_ui();
             if PlaygroundUtils.is_minor_mode(app)
                 app.maybe_refresh_minor_loop_defaults();   % MOD: fill Htip_i defaults from data tip when switching to Minor Loops
+                PlaygroundUtils.sync_minor_ui(app);        % MOD: grey minor-loop stop-criterion fields+labels on mode switch
             elseif PlaygroundUtils.is_degaussing_mode(app)     % MOD: ADD
                 app.maybe_refresh_degaussing_defaults();       % MOD: ADD
                 app.sync_degaussing_ui();                      % MOD: ADD
@@ -2069,7 +2076,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create HTipField
             app.HTipField = uieditfield(app.GridLayoutTips, 'numeric');
-            app.HTipField.ValueDisplayFormat = '%.6g';
+            app.HTipField.ValueDisplayFormat = '%.6e';
             app.HTipField.AllowEmpty = 'on';
             app.HTipField.Editable = 'off';
             app.HTipField.Layout.Row = 1;
@@ -2086,7 +2093,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create MTipField
             app.MTipField = uieditfield(app.GridLayoutTips, 'numeric');
-            app.MTipField.ValueDisplayFormat = '%.6g';
+            app.MTipField.ValueDisplayFormat = '%.6e';
             app.MTipField.AllowEmpty = 'on';
             app.MTipField.Editable = 'off';
             app.MTipField.Layout.Row = 2;
@@ -2597,45 +2604,45 @@ classdef app_exported < matlab.apps.AppBase
             app.ModelparametersLabel.Layout.Column = [6 7];
             app.ModelparametersLabel.Text = 'Model parameters';
 
-            % Create JsTEditFieldLabel_2
-            app.JsTEditFieldLabel_2 = uilabel(app.GridLayout8);
-            app.JsTEditFieldLabel_2.Layout.Row = 3;
-            app.JsTEditFieldLabel_2.Layout.Column = 6;
-            app.JsTEditFieldLabel_2.Text = 'Ms [A/m]';
+            % Create Ms_JALabel
+            app.Ms_JALabel = uilabel(app.GridLayout8);
+            app.Ms_JALabel.Layout.Row = 3;
+            app.Ms_JALabel.Layout.Column = 6;
+            app.Ms_JALabel.Text = 'Ms [A/m]';
 
-            % Create JsTEditFieldLabel_3
-            app.JsTEditFieldLabel_3 = uilabel(app.GridLayout8);
-            app.JsTEditFieldLabel_3.Layout.Row = 4;
-            app.JsTEditFieldLabel_3.Layout.Column = 6;
-            app.JsTEditFieldLabel_3.Text = 'a [A/m]';
+            % Create a_JALabel
+            app.a_JALabel = uilabel(app.GridLayout8);
+            app.a_JALabel.Layout.Row = 4;
+            app.a_JALabel.Layout.Column = 6;
+            app.a_JALabel.Text = 'a [A/m]';
 
             % Create Ms_JA
             app.Ms_JA = uieditfield(app.GridLayout8, 'numeric');
-            app.Ms_JA.ValueDisplayFormat = '%.6g';
+            app.Ms_JA.ValueDisplayFormat = '%.5e';
             app.Ms_JA.AllowEmpty = 'on';
             app.Ms_JA.Layout.Row = 3;
             app.Ms_JA.Layout.Column = 7;
             app.Ms_JA.Value = [];
 
-            % Create JsTEditFieldLabel_4
-            app.JsTEditFieldLabel_4 = uilabel(app.GridLayout8);
-            app.JsTEditFieldLabel_4.Layout.Row = 5;
-            app.JsTEditFieldLabel_4.Layout.Column = 6;
-            app.JsTEditFieldLabel_4.Text = 'α';
+            % Create alpha_JALabel
+            app.alpha_JALabel = uilabel(app.GridLayout8);
+            app.alpha_JALabel.Layout.Row = 5;
+            app.alpha_JALabel.Layout.Column = 6;
+            app.alpha_JALabel.Text = 'α';
 
             % Create a_JA
             app.a_JA = uieditfield(app.GridLayout8, 'numeric');
-            app.a_JA.ValueDisplayFormat = '%.6g';
+            app.a_JA.ValueDisplayFormat = '%.5g';
             app.a_JA.AllowEmpty = 'on';
             app.a_JA.Layout.Row = 4;
             app.a_JA.Layout.Column = 7;
             app.a_JA.Value = [];
 
-            % Create JsTEditFieldLabel_5
-            app.JsTEditFieldLabel_5 = uilabel(app.GridLayout8);
-            app.JsTEditFieldLabel_5.Layout.Row = 6;
-            app.JsTEditFieldLabel_5.Layout.Column = 6;
-            app.JsTEditFieldLabel_5.Text = 'c';
+            % Create c_JALabel
+            app.c_JALabel = uilabel(app.GridLayout8);
+            app.c_JALabel.Layout.Row = 6;
+            app.c_JALabel.Layout.Column = 6;
+            app.c_JALabel.Text = 'c';
 
             % Create alpha_JA
             app.alpha_JA = uieditfield(app.GridLayout8, 'numeric');
@@ -2645,11 +2652,11 @@ classdef app_exported < matlab.apps.AppBase
             app.alpha_JA.Layout.Column = 7;
             app.alpha_JA.Value = [];
 
-            % Create JsTEditFieldLabel_6
-            app.JsTEditFieldLabel_6 = uilabel(app.GridLayout8);
-            app.JsTEditFieldLabel_6.Layout.Row = 7;
-            app.JsTEditFieldLabel_6.Layout.Column = 6;
-            app.JsTEditFieldLabel_6.Text = 'k [A/m]';
+            % Create k_JALabel
+            app.k_JALabel = uilabel(app.GridLayout8);
+            app.k_JALabel.Layout.Row = 7;
+            app.k_JALabel.Layout.Column = 6;
+            app.k_JALabel.Text = 'k [A/m]';
 
             % Create c_JA
             app.c_JA = uieditfield(app.GridLayout8, 'numeric');
@@ -2725,11 +2732,11 @@ classdef app_exported < matlab.apps.AppBase
             app.ErrorDisplay_2.Layout.Column = [10 11];
             app.ErrorDisplay_2.Value = [];
 
-            % Create JsTEditFieldLabel_7
-            app.JsTEditFieldLabel_7 = uilabel(app.GridLayout8);
-            app.JsTEditFieldLabel_7.Layout.Row = 10;
-            app.JsTEditFieldLabel_7.Layout.Column = 6;
-            app.JsTEditFieldLabel_7.Text = 'Htip [A/m]';
+            % Create HtipLabel
+            app.HtipLabel = uilabel(app.GridLayout8);
+            app.HtipLabel.Layout.Row = 10;
+            app.HtipLabel.Layout.Column = 6;
+            app.HtipLabel.Text = 'Htip [A/m]';
 
             % Create ShowgridCheckBoxM_2
             app.ShowgridCheckBoxM_2 = uicheckbox(app.GridLayout8);
@@ -2748,18 +2755,18 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create Htip
             app.Htip = uieditfield(app.GridLayout8, 'numeric');
-            app.Htip.ValueDisplayFormat = '%.6g';
+            app.Htip.ValueDisplayFormat = '%.5e';
             app.Htip.AllowEmpty = 'on';
             app.Htip.Editable = 'off';
             app.Htip.Layout.Row = 10;
             app.Htip.Layout.Column = 7;
             app.Htip.Value = [];
 
-            % Create JsTEditFieldLabel_8
-            app.JsTEditFieldLabel_8 = uilabel(app.GridLayout8);
-            app.JsTEditFieldLabel_8.Layout.Row = 11;
-            app.JsTEditFieldLabel_8.Layout.Column = 6;
-            app.JsTEditFieldLabel_8.Text = 'Mtip [A/m]';
+            % Create MtipLabel
+            app.MtipLabel = uilabel(app.GridLayout8);
+            app.MtipLabel.Layout.Row = 11;
+            app.MtipLabel.Layout.Column = 6;
+            app.MtipLabel.Text = 'Mtip [A/m]';
 
             % Create MsLower_JA
             app.MsLower_JA = uieditfield(app.GridLayout8, 'numeric');
@@ -2778,7 +2785,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create Mtip
             app.Mtip = uieditfield(app.GridLayout8, 'numeric');
-            app.Mtip.ValueDisplayFormat = '%.6g';
+            app.Mtip.ValueDisplayFormat = '%.5e';
             app.Mtip.AllowEmpty = 'on';
             app.Mtip.Editable = 'off';
             app.Mtip.Layout.Row = 11;
@@ -3386,15 +3393,15 @@ classdef app_exported < matlab.apps.AppBase
             app.MaxrepetitionsEditField.Layout.Column = 3;
             app.MaxrepetitionsEditField.Value = 10;
 
-            % Create MinorloopPanel
-            app.MinorloopPanel = uipanel(app.GridLayout3);
-            app.MinorloopPanel.Title = 'Minor loop';
-            app.MinorloopPanel.Layout.Row = [2 14];
-            app.MinorloopPanel.Layout.Column = [4 8];
-            app.MinorloopPanel.Scrollable = 'on';
+            % Create MinorloopsPanel
+            app.MinorloopsPanel = uipanel(app.GridLayout3);
+            app.MinorloopsPanel.Title = 'Minor loops';
+            app.MinorloopsPanel.Layout.Row = [2 14];
+            app.MinorloopsPanel.Layout.Column = [4 8];
+            app.MinorloopsPanel.Scrollable = 'on';
 
             % Create GridLayout6
-            app.GridLayout6 = uigridlayout(app.MinorloopPanel);
+            app.GridLayout6 = uigridlayout(app.MinorloopsPanel);
             app.GridLayout6.ColumnWidth = {'1.475x', '1.4x', '1x', '0.5x', '0.5x'};
             app.GridLayout6.RowHeight = {'1x', '1x', '6x', '1x', '1x', '1x', '1x', '1x', '1x'};
             app.GridLayout6.ColumnSpacing = 1.95454515729632;
@@ -3422,7 +3429,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create StopcriterionDropDown_2Label_3
             app.StopcriterionDropDown_2Label_3 = uilabel(app.GridLayout6);
             app.StopcriterionDropDown_2Label_3.Layout.Row = 1;
-            app.StopcriterionDropDown_2Label_3.Layout.Column = [1 4];
+            app.StopcriterionDropDown_2Label_3.Layout.Column = [1 2];
             app.StopcriterionDropDown_2Label_3.Text = 'Starting point: Demagnetized';
 
             % Create RepetitionsEditFieldLabel_2
@@ -3509,75 +3516,75 @@ classdef app_exported < matlab.apps.AppBase
             app.ModelparametersLabel_2.Layout.Column = [1 2];
             app.ModelparametersLabel_2.Text = 'Model parameters';
 
-            % Create JsTEditFieldLabel_9
-            app.JsTEditFieldLabel_9 = uilabel(app.GridLayout3);
-            app.JsTEditFieldLabel_9.Layout.Row = 3;
-            app.JsTEditFieldLabel_9.Layout.Column = 1;
-            app.JsTEditFieldLabel_9.Text = 'Ms [A/m]';
+            % Create Ms_JA_PlaygroundLabel
+            app.Ms_JA_PlaygroundLabel = uilabel(app.GridLayout3);
+            app.Ms_JA_PlaygroundLabel.Layout.Row = 3;
+            app.Ms_JA_PlaygroundLabel.Layout.Column = 1;
+            app.Ms_JA_PlaygroundLabel.Text = 'Ms [A/m]';
 
-            % Create JsField_9
-            app.JsField_9 = uieditfield(app.GridLayout3, 'numeric');
-            app.JsField_9.ValueDisplayFormat = '%.6g';
-            app.JsField_9.AllowEmpty = 'on';
-            app.JsField_9.Layout.Row = 3;
-            app.JsField_9.Layout.Column = 2;
-            app.JsField_9.Value = [];
+            % Create Ms_JA_Playground
+            app.Ms_JA_Playground = uieditfield(app.GridLayout3, 'numeric');
+            app.Ms_JA_Playground.ValueDisplayFormat = '%.5e';
+            app.Ms_JA_Playground.AllowEmpty = 'on';
+            app.Ms_JA_Playground.Layout.Row = 3;
+            app.Ms_JA_Playground.Layout.Column = 2;
+            app.Ms_JA_Playground.Value = [];
 
-            % Create JsTEditFieldLabel_10
-            app.JsTEditFieldLabel_10 = uilabel(app.GridLayout3);
-            app.JsTEditFieldLabel_10.Layout.Row = 4;
-            app.JsTEditFieldLabel_10.Layout.Column = 1;
-            app.JsTEditFieldLabel_10.Text = 'a [A/m]';
+            % Create a_JA_PlaygroundLabel
+            app.a_JA_PlaygroundLabel = uilabel(app.GridLayout3);
+            app.a_JA_PlaygroundLabel.Layout.Row = 4;
+            app.a_JA_PlaygroundLabel.Layout.Column = 1;
+            app.a_JA_PlaygroundLabel.Text = 'a [A/m]';
 
-            % Create JsField_10
-            app.JsField_10 = uieditfield(app.GridLayout3, 'numeric');
-            app.JsField_10.ValueDisplayFormat = '%.6g';
-            app.JsField_10.AllowEmpty = 'on';
-            app.JsField_10.Layout.Row = 4;
-            app.JsField_10.Layout.Column = 2;
-            app.JsField_10.Value = [];
+            % Create a_JA_Playground
+            app.a_JA_Playground = uieditfield(app.GridLayout3, 'numeric');
+            app.a_JA_Playground.ValueDisplayFormat = '%.6g';
+            app.a_JA_Playground.AllowEmpty = 'on';
+            app.a_JA_Playground.Layout.Row = 4;
+            app.a_JA_Playground.Layout.Column = 2;
+            app.a_JA_Playground.Value = [];
 
-            % Create JsTEditFieldLabel_11
-            app.JsTEditFieldLabel_11 = uilabel(app.GridLayout3);
-            app.JsTEditFieldLabel_11.Layout.Row = 5;
-            app.JsTEditFieldLabel_11.Layout.Column = 1;
-            app.JsTEditFieldLabel_11.Text = 'α';
+            % Create alpha_JA_PlaygroundLabel
+            app.alpha_JA_PlaygroundLabel = uilabel(app.GridLayout3);
+            app.alpha_JA_PlaygroundLabel.Layout.Row = 5;
+            app.alpha_JA_PlaygroundLabel.Layout.Column = 1;
+            app.alpha_JA_PlaygroundLabel.Text = 'α';
 
-            % Create JsField_11
-            app.JsField_11 = uieditfield(app.GridLayout3, 'numeric');
-            app.JsField_11.ValueDisplayFormat = '%.5e';
-            app.JsField_11.AllowEmpty = 'on';
-            app.JsField_11.Layout.Row = 5;
-            app.JsField_11.Layout.Column = 2;
-            app.JsField_11.Value = [];
+            % Create alpha_JA_Playground
+            app.alpha_JA_Playground = uieditfield(app.GridLayout3, 'numeric');
+            app.alpha_JA_Playground.ValueDisplayFormat = '%.5e';
+            app.alpha_JA_Playground.AllowEmpty = 'on';
+            app.alpha_JA_Playground.Layout.Row = 5;
+            app.alpha_JA_Playground.Layout.Column = 2;
+            app.alpha_JA_Playground.Value = [];
 
-            % Create JsTEditFieldLabel_12
-            app.JsTEditFieldLabel_12 = uilabel(app.GridLayout3);
-            app.JsTEditFieldLabel_12.Layout.Row = 6;
-            app.JsTEditFieldLabel_12.Layout.Column = 1;
-            app.JsTEditFieldLabel_12.Text = 'c';
+            % Create c_JA_PlaygroundLabel
+            app.c_JA_PlaygroundLabel = uilabel(app.GridLayout3);
+            app.c_JA_PlaygroundLabel.Layout.Row = 6;
+            app.c_JA_PlaygroundLabel.Layout.Column = 1;
+            app.c_JA_PlaygroundLabel.Text = 'c';
 
-            % Create JsField_12
-            app.JsField_12 = uieditfield(app.GridLayout3, 'numeric');
-            app.JsField_12.ValueDisplayFormat = '%.6g';
-            app.JsField_12.AllowEmpty = 'on';
-            app.JsField_12.Layout.Row = 6;
-            app.JsField_12.Layout.Column = 2;
-            app.JsField_12.Value = [];
+            % Create c_JA_Playground
+            app.c_JA_Playground = uieditfield(app.GridLayout3, 'numeric');
+            app.c_JA_Playground.ValueDisplayFormat = '%.6g';
+            app.c_JA_Playground.AllowEmpty = 'on';
+            app.c_JA_Playground.Layout.Row = 6;
+            app.c_JA_Playground.Layout.Column = 2;
+            app.c_JA_Playground.Value = [];
 
-            % Create JsTEditFieldLabel_13
-            app.JsTEditFieldLabel_13 = uilabel(app.GridLayout3);
-            app.JsTEditFieldLabel_13.Layout.Row = 7;
-            app.JsTEditFieldLabel_13.Layout.Column = 1;
-            app.JsTEditFieldLabel_13.Text = 'k [A/m]';
+            % Create k_JA_PlaygroundLabel
+            app.k_JA_PlaygroundLabel = uilabel(app.GridLayout3);
+            app.k_JA_PlaygroundLabel.Layout.Row = 7;
+            app.k_JA_PlaygroundLabel.Layout.Column = 1;
+            app.k_JA_PlaygroundLabel.Text = 'k [A/m]';
 
-            % Create JsField_13
-            app.JsField_13 = uieditfield(app.GridLayout3, 'numeric');
-            app.JsField_13.ValueDisplayFormat = '%.6g';
-            app.JsField_13.AllowEmpty = 'on';
-            app.JsField_13.Layout.Row = 7;
-            app.JsField_13.Layout.Column = 2;
-            app.JsField_13.Value = [];
+            % Create k_JA_Playground
+            app.k_JA_Playground = uieditfield(app.GridLayout3, 'numeric');
+            app.k_JA_Playground.ValueDisplayFormat = '%.6g';
+            app.k_JA_Playground.AllowEmpty = 'on';
+            app.k_JA_Playground.Layout.Row = 7;
+            app.k_JA_Playground.Layout.Column = 2;
+            app.k_JA_Playground.Value = [];
 
             % Create RetrieveparametersButton
             app.RetrieveparametersButton = uibutton(app.GridLayout3, 'push');
