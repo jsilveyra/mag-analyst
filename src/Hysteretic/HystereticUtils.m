@@ -656,6 +656,7 @@ classdef HystereticUtils
              error_type = string(app.ErrortominimizeDropDown_2.Value);
 
              app.stop_fit_requested = false;
+             FitProgressUtils.open(app, "Hysteretic (JA) fit progress", error_type);
              fit_timer = tic;
             try
                 model_fn = @(p) solve_ja_hysteretic_region( ...

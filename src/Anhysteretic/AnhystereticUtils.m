@@ -127,6 +127,7 @@ classdef AnhystereticUtils
             end
 
             app.stop_fit_requested = false;
+            FitProgressUtils.open(app, "Anhysteretic fit progress", app.ErrorDropDown.Value);
             app.write_message("Fitting started");
             pause(0.01);
             tic
