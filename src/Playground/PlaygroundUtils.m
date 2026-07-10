@@ -215,7 +215,10 @@ classdef PlaygroundUtils
             elseif PlaygroundUtils.is_minor_mode(app)
                 plot_option = string(app.PlotDropDown_2.Value);
             elseif PlaygroundUtils.is_harmonics_mode(app)
-                plot_option = string(app.PlotDropDown_3.Value);
+                % MOD: PlotDropDown_3 was removed from Design View (2026-07-10);
+                % harmonics mode always shows the full simulated history now,
+                % matching the dropdown's former default value.
+                plot_option = "Full history";
             else
                 plot_option = "";
             end
@@ -729,14 +732,19 @@ classdef PlaygroundUtils
             ok = true;
         end
 
-        function run_playground_minor_loop(app)
+        function run_playground_minor_loop(app, notify)
+            if nargin < 2 || isempty(notify)
+                notify = true;
+            end
             failure_message = "The magnetization path cannot be computed with the current initial condition M(Hstart) and model parameters.";
             try
                 [params, ok_params] = PlaygroundUtils.get_playground_params(app);
                 if ~ok_params
                     PlaygroundUtils.clear_simulation(app);
                     app.plot_playground();
-                    app.write_message(failure_message);
+                    if notify
+                        app.write_message(failure_message);
+                    end
                     return;
                 end
 
@@ -744,7 +752,9 @@ classdef PlaygroundUtils
                 if ~ok_inputs
                     PlaygroundUtils.clear_simulation(app);
                     app.plot_playground();
-                    app.write_message(failure_message);
+                    if notify
+                        app.write_message(failure_message);
+                    end
                     return;
                 end
                 PlaygroundUtils.sync_minor_ui(app);
@@ -766,13 +776,18 @@ classdef PlaygroundUtils
             end
         end
 
-        function run_playground_major_loop(app)
+        function run_playground_major_loop(app, notify)
+            if nargin < 2 || isempty(notify)
+                notify = true;
+            end
             failure_message = "The magnetization path cannot be computed with the current initial condition M(Hstart) and model parameters.";
             [params, ok_params] = PlaygroundUtils.get_playground_params(app);
             if ~ok_params
                 PlaygroundUtils.clear_simulation(app);
                 app.plot_playground();
-                app.write_message(failure_message);
+                if notify
+                    app.write_message(failure_message);
+                end
                 return;
             end
 
@@ -780,7 +795,9 @@ classdef PlaygroundUtils
             if ~ok_inputs
                 PlaygroundUtils.clear_simulation(app);
                 app.plot_playground();
-                app.write_message(failure_message);
+                if notify
+                    app.write_message(failure_message);
+                end
                 return;
             end
 
@@ -1095,14 +1112,19 @@ classdef PlaygroundUtils
             ok = true;
         end
 
-        function run_playground_degaussing(app)
+        function run_playground_degaussing(app, notify)
+            if nargin < 2 || isempty(notify)
+                notify = true;
+            end
             failure_message = "The magnetization path cannot be computed with the current initial condition M(Hstart) and model parameters.";
             try
                 [params, ok_params] = PlaygroundUtils.get_playground_params(app);
                 if ~ok_params
                     PlaygroundUtils.clear_simulation(app);
                     app.plot_playground();
-                    app.write_message(failure_message);
+                    if notify
+                        app.write_message(failure_message);
+                    end
                     return;
                 end
 
@@ -1110,10 +1132,12 @@ classdef PlaygroundUtils
                 if ~ok_inputs
                     PlaygroundUtils.clear_simulation(app);
                     app.plot_playground();
-                    if strlength(message) > 0
-                        app.write_message(message);
-                    else
-                        app.write_message(failure_message);
+                    if notify
+                        if strlength(message) > 0
+                            app.write_message(message);
+                        else
+                            app.write_message(failure_message);
+                        end
                     end
                     return;
                 end
@@ -1358,14 +1382,19 @@ classdef PlaygroundUtils
             end
         end
 
-        function run_playground_major_harmonics(app)
+        function run_playground_major_harmonics(app, notify)
+            if nargin < 2 || isempty(notify)
+                notify = true;
+            end
             failure_message = "The magnetization path cannot be computed with the current initial condition M(Hstart) and model parameters.";
             try
                 [params, ok_params] = PlaygroundUtils.get_playground_params(app);
                 if ~ok_params
                     PlaygroundUtils.clear_simulation(app);
                     app.plot_playground();
-                    app.write_message(failure_message);
+                    if notify
+                        app.write_message(failure_message);
+                    end
                     return;
                 end
 
@@ -1373,10 +1402,12 @@ classdef PlaygroundUtils
                 if ~ok_inputs
                     PlaygroundUtils.clear_simulation(app);
                     app.plot_playground();
-                    if strlength(message) > 0
-                        app.write_message(message);
-                    else
-                        app.write_message(failure_message);
+                    if notify
+                        if strlength(message) > 0
+                            app.write_message(message);
+                        else
+                            app.write_message(failure_message);
+                        end
                     end
                     return;
                 end
@@ -1395,6 +1426,22 @@ classdef PlaygroundUtils
                 PlaygroundUtils.clear_simulation(app);
                 app.plot_playground();
                 app.write_message(failure_message);
+            end
+        end
+
+        function run_playground_live(app)
+            % MOD: live-recompute dispatcher shared by all Playground field/table
+            % callbacks; mirrors CalculatePlotButton_3Pushed's mode dispatch but
+            % suppresses the "not ready" message (notify=false) since this fires
+            % on every completed field edit, not just an explicit button press.
+            if PlaygroundUtils.is_minor_mode(app)
+                PlaygroundUtils.run_playground_minor_loop(app, false);
+            elseif PlaygroundUtils.is_degaussing_mode(app)
+                PlaygroundUtils.run_playground_degaussing(app, false);
+            elseif PlaygroundUtils.is_harmonics_mode(app)
+                PlaygroundUtils.run_playground_major_harmonics(app, false);
+            else
+                PlaygroundUtils.run_playground_major_loop(app, false);
             end
         end
     end

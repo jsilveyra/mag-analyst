@@ -432,7 +432,7 @@ classdef HystereticUtils
 
             has_curve_data = ~isempty(app.data_curve) && ~isempty(app.data_curve.H) && ~isempty(app.data_curve.M);
             is_hysteretic_context = ~app.is_last_import_anhysteretic() || ...
-                (strlength(string(app.CurveDropDown.Value)) > 0 && string(app.CurveDropDown.Value) ~= parser_constants.ANHYSTERETIC_CURVE_TYPE);
+                (strlength(string(app.CurvetypeDropDown.Value)) > 0 && string(app.CurvetypeDropDown.Value) ~= parser_constants.ANHYSTERETIC_CURVE_TYPE);
 
             if has_seeds && is_hysteretic_context
                 ms_num = ms_seed;
