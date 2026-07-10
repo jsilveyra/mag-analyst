@@ -61,9 +61,7 @@ classdef Plotter
             % and the orange total must remain visible).
             plot(ax, obj.modeled_curve.H, obj.modeled_curve.M, "Color", obj.Colors(1,:), 'LineWidth', 1.6);
 
-            if(plot_grid)
-                grid(ax,"on");
-            end
+            obj.apply_detailed_grid(ax, plot_grid);
 
             obj.plot_Hcr(ax)
             xlabel(ax, 'H [A/m]');
@@ -90,9 +88,7 @@ classdef Plotter
             % component curves (they coincide when there is a single component).
             semilogx(ax, obj.modeled_curve.H, obj.modeled_curve.M, "Color", obj.Colors(1,:), 'LineWidth', 1.6);
 
-            if(plot_grid)
-                grid(ax,"on");
-            end
+            obj.apply_detailed_grid(ax, plot_grid);
 
             xlabel(ax, 'H [A/m]');
             ylabel(ax, 'M [A/m]');
@@ -120,9 +116,7 @@ classdef Plotter
             % component curves (they coincide when there is a single component).
             plot(ax, obj.modeled_curve.H, obj.modeled_curve.dMdH, "Color", obj.Colors(1,:), 'LineWidth', 1.6);
 
-            if(plot_grid)
-                grid(ax,"on");
-            end
+            obj.apply_detailed_grid(ax, plot_grid);
 
             xlabel(ax, 'H [A/m]');
             ylabel(ax, '∂M/∂H');
@@ -150,9 +144,7 @@ classdef Plotter
             % component curves (they coincide when there is a single component).
             semilogx(ax, obj.modeled_curve.H, obj.modeled_curve.dMdH, "Color", obj.Colors(1,:), 'LineWidth', 1.6);
 
-            if(plot_grid)
-                grid(ax,"on");
-            end
+            obj.apply_detailed_grid(ax, plot_grid);
 
             xlabel(ax, 'H [A/m]');
             ylabel(ax, '∂M/∂H');
@@ -179,9 +171,7 @@ classdef Plotter
             % component curves (they coincide when there is a single component).
             semilogx(ax, obj.modeled_curve.H, obj.modeled_curve.HdMdH, "Color", obj.Colors(1,:), 'LineWidth', 1.6);
 
-            if(plot_grid)
-                grid(ax,"on");
-            end
+            obj.apply_detailed_grid(ax, plot_grid);
 
             xlabel(ax, 'H [A/m]');
             ylabel(ax, '∂M/∂(lnH) [A/m]', "Color",[0, 0, 0]);
@@ -208,9 +198,7 @@ classdef Plotter
             % component curves (they coincide when there is a single component).
             plot(ax, obj.modeled_curve.H, obj.modeled_curve.HdMdH, "Color", obj.Colors(1,:), 'LineWidth', 1.6);
 
-            if(plot_grid)
-                grid(ax,"on");
-            end
+            obj.apply_detailed_grid(ax, plot_grid);
 
             xlabel(ax, 'H [A/m]');
             ylabel(ax, '∂M/∂(lnH) [A/m]', "Color",[0, 0, 0]);
@@ -233,13 +221,13 @@ classdef Plotter
             tip = max(Y);
             ax.YAxis.Exponent = obj.get_scientific_notation_exponent(tip);
             plot(ax, X, Y, '.', 'markersize', obj.MarkerSize, "Color", [0 0 0]);
-            grid(ax,"on");
+            obj.apply_detailed_grid(ax);
             yline(ax, 0);
             xlabel(ax, X_label);
             ylabel(ax, Y_label);
             title(ax, plot_title);
             box(ax,'on');
-            hold( ax, 'off' )     
+            hold( ax, 'off' )
         end
 
         function plot_raw_log(obj, ax, X, Y, X_label, Y_label, plot_title)
@@ -247,12 +235,32 @@ classdef Plotter
             hold( ax, 'on' );
             tip = max(Y);
             ax.YAxis.Exponent = obj.get_scientific_notation_exponent(tip);
-            grid(ax,"on");
+            obj.apply_detailed_grid(ax);
             xlabel(ax, X_label);
             ylabel(ax, Y_label);
             title(ax, plot_title);
             box(ax,'on');
-            hold( ax, 'off' )     
+            hold( ax, 'off' )
+        end
+
+        function apply_detailed_grid(~, ax, show_grid)
+            if nargin < 3
+                show_grid = true;
+            end
+            grid(ax, 'off');
+            ax.XMinorGrid = 'off';
+            ax.YMinorGrid = 'off';
+            if isprop(ax, 'XMinorTick')
+                ax.XMinorTick = 'on';
+            end
+            if isprop(ax, 'YMinorTick')
+                ax.YMinorTick = 'on';
+            end
+            if show_grid
+                grid(ax, 'on');
+                ax.XMinorGrid = 'on';
+                ax.YMinorGrid = 'on';
+            end
         end
     end
 end

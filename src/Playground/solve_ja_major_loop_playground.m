@@ -1,14 +1,19 @@
 function [Hmod, Mmod, info] = solve_ja_major_loop_playground( ...
-    Hstart, Mstart, HtipMajor, params, start_mode, stop_criterion, repetitions, rel_tol, opts)
+    Hstart, Mstart, HtipMajor, params, start_mode, stop_criterion, repetitions, rel_tol, max_repetitions, opts)
 %SOLVE_JA_MAJOR_LOOP_PLAYGROUND Simulate the Playground major loop history.
 %
 %   [Hmod, Mmod, info] = solve_ja_major_loop_playground(...)
 %
 %   The function returns the full concatenated history in the selected
 %   driving field mode together with branch metadata in info.branch_starts.
+%   max_repetitions caps the number of cycles when stop_criterion is
+%   "Until convergence" (mirrors solve_ja_hysteretic_region).
 
-    if nargin < 9 || isempty(opts)
+    if nargin < 10 || isempty(opts)
         opts = [];
+    end
+    if nargin < 9 || isempty(max_repetitions)
+        max_repetitions = 10;
     end
     if nargin < 8 || isempty(rel_tol)
         rel_tol = 1e-3;
@@ -21,6 +26,7 @@ function [Hmod, Mmod, info] = solve_ja_major_loop_playground( ...
     stop_criterion = string(stop_criterion);
     HtipMajor = double(HtipMajor);
     repetitions = max(0, round(repetitions));
+    max_repetitions = max(1, round(max_repetitions));
     rel_tol = max(rel_tol, 0);
 
     if ~(isscalar(HtipMajor) && isfinite(HtipMajor) && HtipMajor > 0)
@@ -67,12 +73,12 @@ function [Hmod, Mmod, info] = solve_ja_major_loop_playground( ...
     info.used_initial_magnetization = contains(lower(start_mode), "demagnetized");
 
     previous_cycle_end = current_M;
-    max_cycles = max(100, repetitions);
+    if stop_criterion == "Until convergence"
+        max_cycles = max_repetitions;
+    else
+        max_cycles = repetitions;
+    end
     for cycle = 1:max_cycles
-        if stop_criterion ~= "Until convergence" && cycle > repetitions
-            break;
-        end
-
         [Hleft, Mleft] = solve_ja_monotonic(HtipMajor, -HtipMajor, current_M, params, -1, opts);
         [Hright, Mright] = solve_ja_monotonic(-HtipMajor, HtipMajor, Mleft(end), params, +1, opts);
 

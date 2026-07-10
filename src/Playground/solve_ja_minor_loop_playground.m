@@ -1,5 +1,5 @@
 function [Hmod, Mmod, info] = solve_ja_minor_loop_playground( ...
-    Htips, params, stop_criterion, repetitions, rel_tol, opts)
+    Htips, params, stop_criterion, repetitions, rel_tol, max_repetitions, opts)
 %SOLVE_JA_MINOR_LOOP_PLAYGROUND Simulate minor loop history in the playground.
 %
 %   [Hmod, Mmod, info] = solve_ja_minor_loop_playground(...)
@@ -7,10 +7,15 @@ function [Hmod, Mmod, info] = solve_ja_minor_loop_playground( ...
 %   Htips is sorted ascending before the simulation starts, so the
 %   smallest tip field is simulated first (starting from the demagnetized
 %   state) and each subsequent, larger tip field is reached by bridging
-%   up from the previous positive tip.
+%   up from the previous positive tip. max_repetitions caps the number of
+%   loops per tip when stop_criterion is "Until convergence" (mirrors
+%   solve_ja_hysteretic_region).
 
-    if nargin < 6 || isempty(opts)
+    if nargin < 7 || isempty(opts)
         opts = [];
+    end
+    if nargin < 6 || isempty(max_repetitions)
+        max_repetitions = 10;
     end
     if nargin < 5 || isempty(rel_tol)
         rel_tol = 1e-3;
@@ -21,6 +26,7 @@ function [Hmod, Mmod, info] = solve_ja_minor_loop_playground( ...
 
     stop_criterion = string(stop_criterion);
     repetitions = max(0, round(repetitions));
+    max_repetitions = max(1, round(max_repetitions));
     rel_tol = max(rel_tol, 0);
     Htips = sort(double(Htips(:)), 'ascend');
 
@@ -72,12 +78,12 @@ function [Hmod, Mmod, info] = solve_ja_minor_loop_playground( ...
         end
 
         previous_cycle_end = current_positive_M;
-        max_cycles = max(100, repetitions);
+        if stop_criterion == "Until convergence"
+            max_cycles = max_repetitions;
+        else
+            max_cycles = repetitions;
+        end
         for cycle = 1:max_cycles
-            if stop_criterion ~= "Until convergence" && cycle > repetitions
-                break;
-            end
-
             last_loop_start_index = next_start_index;
             [Hleft, Mleft] = solve_ja_monotonic(Htip, -Htip, current_positive_M, params, -1, opts);
             [Hright, Mright] = solve_ja_monotonic(-Htip, Htip, Mleft(end), params, +1, opts);

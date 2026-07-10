@@ -130,9 +130,11 @@ classdef PlaygroundUtils
             if is_fixed
                 PlaygroundUtils.set_field_enable(app.RepetitionsEditField, app.RepetitionsEditFieldLabel, 'on');
                 PlaygroundUtils.set_field_enable(app.ReltoleranceEditField_6, app.ReltoleranceEditField_6Label, 'off');
+                PlaygroundUtils.set_field_enable(app.MaxrepetitionsEditField, app.MaxrepetitionsEditFieldLabel, 'off');
             else
                 PlaygroundUtils.set_field_enable(app.RepetitionsEditField, app.RepetitionsEditFieldLabel, 'off');
                 PlaygroundUtils.set_field_enable(app.ReltoleranceEditField_6, app.ReltoleranceEditField_6Label, 'on');
+                PlaygroundUtils.set_field_enable(app.MaxrepetitionsEditField, app.MaxrepetitionsEditFieldLabel, 'on');
             end
         end
 
@@ -150,9 +152,11 @@ classdef PlaygroundUtils
             if is_fixed
                 PlaygroundUtils.set_field_enable(app.RepetitionsEditField_2, app.RepetitionsEditFieldLabel_2, 'on');
                 PlaygroundUtils.set_field_enable(app.ReltoleranceEditField_5, app.ReltoleranceEditField_5Label, 'off');
+                PlaygroundUtils.set_field_enable(app.MaxrepetitionsEditField_2, app.MaxrepetitionsEditFieldLabel_2, 'off');
             else
                 PlaygroundUtils.set_field_enable(app.RepetitionsEditField_2, app.RepetitionsEditFieldLabel_2, 'off');
                 PlaygroundUtils.set_field_enable(app.ReltoleranceEditField_5, app.ReltoleranceEditField_5Label, 'on');
+                PlaygroundUtils.set_field_enable(app.MaxrepetitionsEditField_2, app.MaxrepetitionsEditFieldLabel_2, 'on');
             end
         end
 
@@ -238,58 +242,6 @@ classdef PlaygroundUtils
             end
 
             [H_plot, M_plot, has_data] = app.get_playground_data_curve();
-        end
-
-        function [Hsim, Msim, info] = calculate_simulation(app)
-            Hsim = [];
-            Msim = [];
-            info = struct('mode', "", 'status', "invalid_inputs", 'message', "");
-
-            [params, ok_params] = PlaygroundUtils.get_playground_params(app);
-            if ~ok_params
-                return;
-            end
-
-            if PlaygroundUtils.is_major_mode(app)
-                [Hstart, Mstart, Htip, ok_inputs] = PlaygroundUtils.get_major_inputs(app);
-                if ~ok_inputs
-                    return;
-                end
-
-                try
-                    [Hsim, Msim, info] = solve_ja_major_loop_playground( ...
-                        Hstart, Mstart, Htip, params, ...
-                        string(app.StartingpointDropDown.Value), ...
-                        string(app.StopcriterionDropDown.Value), ...
-                        app.RepetitionsEditField.Value, ...
-                        app.ReltoleranceEditField_6.Value, ...
-                        odeset('RelTol', 1e-7, 'AbsTol', 1e-6));
-                    info.status = "ok";
-                catch ME
-                    Hsim = [];
-                    Msim = [];
-                    info = struct('mode', "Major Loop", 'status', "solver_failed", 'message', string(ME.message));
-                end
-            elseif PlaygroundUtils.is_minor_mode(app)
-                [Htips, ok_inputs] = PlaygroundUtils.get_minor_inputs(app);
-                if ~ok_inputs
-                    return;
-                end
-
-                try
-                    [Hsim, Msim, info] = solve_ja_minor_loop_playground( ...
-                        Htips, params, ...
-                        string(app.StopcriterionDropDown_4.Value), ...
-                        app.RepetitionsEditField_2.Value, ...
-                        app.ReltoleranceEditField_5.Value, ...
-                        odeset('RelTol', 1e-7, 'AbsTol', 1e-6));
-                    info.status = "ok";
-                catch ME
-                    Hsim = [];
-                    Msim = [];
-                    info = struct('mode', "Minor Loops", 'status', "solver_failed", 'message', string(ME.message));
-                end
-            end
         end
 
         function [H_plot, M_plot, has_data] = get_simulation_curve(app)
@@ -806,6 +758,7 @@ classdef PlaygroundUtils
                     string(app.StopcriterionDropDown_4.Value), ...
                     app.RepetitionsEditField_2.Value, ...
                     app.ReltoleranceEditField_5.Value, ...
+                    app.MaxrepetitionsEditField_2.Value, ...
                     odeset('RelTol', 1e-7, 'AbsTol', 1e-6));
                 info.status = "ok";
                 PlaygroundUtils.set_simulation(app, Hsim, Msim, info);
@@ -848,6 +801,7 @@ classdef PlaygroundUtils
                     string(app.StopcriterionDropDown.Value), ...
                     app.RepetitionsEditField.Value, ...
                     app.ReltoleranceEditField_6.Value, ...
+                    app.MaxrepetitionsEditField.Value, ...
                     odeset('RelTol', 1e-7, 'AbsTol', 1e-6));
                 info.status = "ok";
                 PlaygroundUtils.set_simulation(app, Hsim, Msim, info);
@@ -1361,7 +1315,9 @@ classdef PlaygroundUtils
 
         function sync_harmonics_ui(app)
             % MOD: enable/disable and populate the harmonic-drive controls
-            % according to the selected starting-point and stop criterion.
+            % according to the selected starting point. There is no stop
+            % criterion choice for this panel: the simulation always runs a
+            % single fixed repetition (see run_playground_major_harmonics).
             if ~PlaygroundUtils.is_harmonics_mode(app)
                 return;
             end
@@ -1383,19 +1339,6 @@ classdef PlaygroundUtils
                 PlaygroundUtils.set_harmonics_start_enable(app, 'off');
             else
                 PlaygroundUtils.set_harmonics_start_enable(app, 'on');
-            end
-
-            is_fixed = string(app.StopcriterionDropDown_6.Value) == "Fixed repetitions";
-            if is_fixed
-                app.set_enable_safe(app.PeriodsEditField, 'on');
-                app.set_enable_safe(app.PeriodsEditFieldLabel, 'on');
-                app.set_enable_safe(app.ReltoleranceEditField_4, 'off');
-                app.set_enable_safe(app.ReltoleranceEditField_4Label, 'off');
-            else
-                app.set_enable_safe(app.PeriodsEditField, 'off');
-                app.set_enable_safe(app.PeriodsEditFieldLabel, 'off');
-                app.set_enable_safe(app.ReltoleranceEditField_4, 'on');
-                app.set_enable_safe(app.ReltoleranceEditField_4Label, 'on');
             end
         end
 
@@ -1464,9 +1407,7 @@ classdef PlaygroundUtils
 
                 [Hsim, Msim, info] = solve_ja_major_harmonics_playground( ...
                     Hstart, Mstart, orders, amplitudes, phases, params, ...
-                    string(app.StopcriterionDropDown_6.Value), ...
-                    app.PeriodsEditField.Value, ...
-                    app.ReltoleranceEditField_4.Value, ...
+                    "Fixed repetitions", 1, [], ...
                     odeset('RelTol', 1e-7, 'AbsTol', 1e-6));
                 info.start_mode = string(app.StartingpointDropDown_5.Value);
                 info.status = "ok";

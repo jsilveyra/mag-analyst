@@ -84,8 +84,7 @@ classdef ColorDialog < matlab.apps.AppBase
 
         % Close request function: UIFigure
         function UIFigureCloseRequest(app, event)
-            app.MainApp.SetColorsButton.Enable = 'on';
-
+            app.MainApp.SetcolorsButton.Enable = 'on';
             delete(app)
         end
     end

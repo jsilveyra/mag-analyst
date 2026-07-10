@@ -107,7 +107,7 @@ classdef HystereticUtils
             if isprop(app, 'MaximumrepetitionsEditFieldLabel')
                 app.MaximumrepetitionsEditFieldLabel.Enable = 'off';
             end
-            if isprop(app, 'MaxrepetitionsEditField_3')
+            if isprop(app, 'MaximumrepetitionsEditField')
                 app.MaximumrepetitionsEditField.Enable = 'off';
             end
 
@@ -130,7 +130,7 @@ classdef HystereticUtils
                 if isprop(app, 'MaximumrepetitionsEditFieldLabel')
                     app.MaximumrepetitionsEditFieldLabel.Enable = 'off';
                 end
-                if isprop(app, 'MaxrepetitionsEditField_3')
+                if isprop(app, 'MaximumrepetitionsEditField')
                     app.MaximumrepetitionsEditField.Enable = 'off';
                 end
                 return;
@@ -147,7 +147,7 @@ classdef HystereticUtils
                 if isprop(app, 'MaximumrepetitionsEditFieldLabel')
                     app.MaximumrepetitionsEditFieldLabel.Enable = 'off';
                 end
-                if isprop(app, 'MaxrepetitionsEditField_3')
+                if isprop(app, 'MaximumrepetitionsEditField')
                     app.MaximumrepetitionsEditField.Enable = 'off';
                 end
             else
@@ -158,7 +158,7 @@ classdef HystereticUtils
                 if isprop(app, 'MaximumrepetitionsEditFieldLabel')
                     app.MaximumrepetitionsEditFieldLabel.Enable = 'on';
                 end
-                if isprop(app, 'MaxrepetitionsEditField_3')
+                if isprop(app, 'MaximumrepetitionsEditField')
                     app.MaximumrepetitionsEditField.Enable = 'on';
                 end
             end
@@ -186,7 +186,7 @@ classdef HystereticUtils
 
                 residue_calculator = HystereticLeftBranchResidueCalculator(H_left, M_left, H_model_left, M_model_left);
                 residue = residue_calculator.get_residue();
-                residue_plotter = ResiduePlotter(H_left, M_left, H_model_left, M_model_left, residue, false, "M [A/m]", 5, [0 0 0], [1 0 0]);
+                residue_plotter = ResiduePlotter(H_left, M_left, H_model_left, M_model_left, residue, false, "M [A/m]", 5, [0 0 0], [1 0 0], [1 0 0], true);
                 residue_plotter.plot()
             else
                 [H_left, M_left] = HystereticUtils.get_hysteretic_left_branch_data(app);
@@ -287,6 +287,9 @@ classdef HystereticUtils
             plot(ax1, H_model_left, M_model_left, '-', 'LineWidth', 1.2, 'Color', left_color, 'DisplayName', 'Modeled left branch');
             plot(ax1, H_right, M_right, '.', 'MarkerSize', 5, 'Color', right_color, 'DisplayName', 'Measured right branch');
             plot(ax1, H_model_right, M_model_right, '-', 'LineWidth', 1.2, 'Color', right_color, 'DisplayName', 'Modeled right branch');
+            xline(ax1, 0, 'k-', 'LineWidth', 1.2, 'HandleVisibility', 'off');
+            yline(ax1, 0, 'k-', 'LineWidth', 1.2, 'HandleVisibility', 'off');
+            HystereticUtils.apply_residual_detailed_grid(ax1);
             xlabel(ax1, 'H (A/m)');
             ylabel(ax1, 'M [A/m]');
             legend(ax1, 'Location', 'best');
@@ -295,14 +298,27 @@ classdef HystereticUtils
             ax2 = nexttile;
             box(ax2, 'on');
             hold(ax2, 'on');
-            yline(ax2, 0, 'k-', 'LineWidth', 0.8, 'HandleVisibility', 'off');
+            xline(ax2, 0, 'k-', 'LineWidth', 1.2, 'HandleVisibility', 'off');
+            yline(ax2, 0, 'k-', 'LineWidth', 1.2, 'HandleVisibility', 'off');
+            HystereticUtils.apply_residual_detailed_grid(ax2);
             stem(ax2, H_left, residue_left, '.', 'MarkerSize', 5, 'Color', left_color, 'DisplayName', 'Left branch residual');
             stem(ax2, H_right, residue_right, '.', 'MarkerSize', 5, 'Color', right_color, 'DisplayName', 'Right branch residual');
             xlabel(ax2, 'H (A/m)');
             ylabel(ax2, 'Residual');
             set(ax2, 'yticklabels', []);
-            legend(ax2, 'Location', 'best');
             hold(ax2, 'off');
+        end
+
+        function apply_residual_detailed_grid(ax)
+            grid(ax, 'on');
+            ax.XMinorGrid = 'on';
+            ax.YMinorGrid = 'on';
+            if isprop(ax, 'XMinorTick')
+                ax.XMinorTick = 'on';
+            end
+            if isprop(ax, 'YMinorTick')
+                ax.YMinorTick = 'on';
+            end
         end
 
         function plot_hysteretic_tab_data(app)

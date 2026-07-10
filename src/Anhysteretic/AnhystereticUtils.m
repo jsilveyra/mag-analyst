@@ -27,6 +27,14 @@ classdef AnhystereticUtils
             app.magnetic_parameters = MagneticParameters(app.data_curve, app.Hcr, app.mcr, app.Hx, select_a);
 
 
+            AnhystereticUtils.update_error_display(app);
+        end
+
+        function update_error_display(app)
+            if ~isobject(app.data_curve) || ~isobject(app.modeled_curve)
+                return;
+            end
+
             error_type = string(app.ErrorDropDown.Value);
             if (error_type == "Diagonal (H, sampled)")
                 error_calculator = DiagonalErrorCalculator(app.data_curve, app.modeled_curve, false, false);
@@ -392,7 +400,7 @@ classdef AnhystereticUtils
             if app.ShowhcrCheckBoxM.Value == 1
                 hcr_values = app.Hcr;
             end
-            plotter = Plotter(app.data_curve, app.modeled_curve, hcr_values, app.Colors);
+            plotter = Plotter(app.data_curve, app.modeled_curve, hcr_values, app.Colors, 5);
             cla(app.AxesM,'reset');
             plot_components = app.PlotcomponentsCheckBoxM.Value == 1;
             show_grid = app.ShowgridCheckBoxM.Value == 1;
@@ -410,7 +418,7 @@ classdef AnhystereticUtils
             if app.ShowhcrCheckBoxdMdH.Value == 1
                 hcr_values = app.Hcr;
             end
-            plotter = Plotter(app.data_curve, app.modeled_curve, hcr_values, app.Colors);
+            plotter = Plotter(app.data_curve, app.modeled_curve, hcr_values, app.Colors, 5);
             cla(app.AxesdMdH,'reset');
             plot_components = app.PlotcomponentsCheckBoxdMdH.Value == 1;
             show_grid = app.ShowgridCheckBoxdMdH.Value == 1;
@@ -428,7 +436,7 @@ classdef AnhystereticUtils
             if app.ShowhcrCheckBoxHdMdH.Value == 1
                 hcr_values = app.Hcr;
             end
-            plotter = Plotter(app.data_curve, app.modeled_curve, hcr_values, app.Colors);
+            plotter = Plotter(app.data_curve, app.modeled_curve, hcr_values, app.Colors, 5);
             cla(app.AxesHdMdH,'reset');
             plot_components = app.PlotcomponentsCheckBoxHdMdH.Value == 1;
             show_grid = app.ShowgridCheckBoxHdMdH.Value == 1;

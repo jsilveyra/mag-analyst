@@ -58,9 +58,9 @@ classdef InputUtils
         end
 
         function reprocess_dataset(app)
-            % MOD: shared by CurveDropDownValueChanged, InputApplyPointsButtonPushed,
-            % and InputAxisScaleDropDownValueChanged2 -- previously identical logic
-            % duplicated three times in app_exported.m.
+            % MOD: shared by CurveDropDownValueChanged and InputApplyPointsButtonPushed
+            % (now wired to both the N° of points field and, historically, its
+            % Apply button) -- previously identical logic duplicated in app_exported.m.
             dataset_path = app.InputDatasetPath.Value;
             if dataset_path == ""
                 app.write_message("Select a dataset before applying point count.");

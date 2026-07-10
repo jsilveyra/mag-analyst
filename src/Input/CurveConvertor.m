@@ -1,10 +1,10 @@
 classdef CurveConvertor
 %CURVECONVERTOR  Reshape a raw imported curve into the expected form.
 %   convert_curve(X, Y, curve_type, number_points) trims an anhysteretic
-%   curve to H>=0; for a hysteresis loop it splits the loop into left/right
-%   branches at the tip, averages them into a single symmetric curve, and
-%   resamples it to number_points points evenly spaced in normalized
-%   semilog(H)-M arclength (via interparc).
+%   curve to H>=0 and resamples it to number_points points evenly spaced in
+%   normalized semilog(H)-M arclength (via interparc); for a hysteresis loop
+%   it splits the loop into left/right branches at the tip, averages them
+%   into a single symmetric curve, and resamples that the same way.
 
     properties
     end
@@ -27,6 +27,36 @@ classdef CurveConvertor
 
                 H = H(new_index:end);
                 M = M(new_index:end);
+
+                if nargin < 5 || isempty(number_points)
+                    number_points = 50;
+                end
+                N_grid = number_points;
+
+                M_tip = max(M);
+                if numel(H) < 3 || N_grid < 2 || ~isfinite(M_tip) || M_tip <= 0 || nnz(H > 0) < 2
+                    return;
+                end
+
+                [M_unique, M_unique_indexes] = unique(M);
+                H_unique = H(M_unique_indexes);
+                F = griddedInterpolant(M_unique, H_unique, 'linear', 'none');
+
+                logH_n = transpose(log(H(H>0))/max(log(H(H>0))));
+                M_n = transpose(M(H>0)/M_tip);
+                logH_M_n_interparc = interparc(N_grid, logH_n, M_n, 'linear');
+                M_query = M_tip * transpose(logH_M_n_interparc(:,2));
+                M_query(M_query==max(M_query)) = M_tip;
+                M_query = [0 M_query];
+
+                H_query = F(M_query);
+
+                if (H_query(1)<10^-6 || M_query(1)<10^-6)
+                    H_query(1) = 0;
+                end
+
+                H = H_query;
+                M = M_query;
                 return;
             end
             [~, H_min_index] = min(H); % Find H minimum (i.e., -Htip) as well as the row index of data in which it appears

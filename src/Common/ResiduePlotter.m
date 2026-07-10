@@ -18,18 +18,19 @@ classdef ResiduePlotter
         DataColor
         ModelColor
         ResidueColor
+        ShowZeroLines
     end
 
     methods (Access = public)
         function obj = ResiduePlotter(X, Y, Xhat, Yhat, Residue, Log, Label, varargin)
             numvarargs = length(varargin);
-            if numvarargs > 4
-                error('ResiduePlotter:constructor:TooManyOptionalParameters: requires at most 4 optional parameters');
+            if numvarargs > 5
+                error('ResiduePlotter:constructor:TooManyOptionalParameters: requires at most 5 optional parameters');
             end
 
-            optargs = {5, [0 0 0], [0 0 0], [0 0 0]};
+            optargs = {5, [0 0 0], [0 0 0], [0 0 0], false};
             optargs(1:numvarargs) = varargin;
-            [obj.MarkerSize, obj.DataColor, obj.ModelColor, obj.ResidueColor] = optargs{:};
+            [obj.MarkerSize, obj.DataColor, obj.ModelColor, obj.ResidueColor, obj.ShowZeroLines] = optargs{:};
           
             obj.X = X;
             obj.Y = Y;
@@ -41,6 +42,12 @@ classdef ResiduePlotter
         end
 
         function plot_stem(obj, ax)
+            hold( ax, 'on' );
+            if obj.ShowZeroLines
+                xline(ax, 0, 'k-', 'LineWidth', 1.2, 'HandleVisibility', 'off');
+                yline(ax, 0, 'k-', 'LineWidth', 1.2, 'HandleVisibility', 'off');
+                obj.apply_detailed_grid(ax);
+            end
             stem(ax, obj.X, obj.Residue, '.', 'markersize', obj.MarkerSize, "Color", obj.ResidueColor);
             xlabel(ax, 'H (A/m)');
             ylabel(ax, 'Residual');
@@ -48,17 +55,35 @@ classdef ResiduePlotter
                 set(gca,'xscal','log');
             end
             set(ax,'yticklabels',[]);
+            hold( ax, 'off' );
         end
 
         function plot_dots(obj, ax)
             hold( ax, 'on' );
             plot(ax, obj.X, obj.Y, '.', 'markersize', obj.MarkerSize, "Color", obj.DataColor);
             plot(ax, obj.Xhat, obj.Yhat, "Color", obj.ModelColor);
+            if obj.ShowZeroLines
+                xline(ax, 0, 'k-', 'LineWidth', 1.2, 'HandleVisibility', 'off');
+                yline(ax, 0, 'k-', 'LineWidth', 1.2, 'HandleVisibility', 'off');
+                obj.apply_detailed_grid(ax);
+            end
             xlabel(ax, 'H (A/m)');
             ylabel(ax, obj.Label);
             hold( ax, 'off' );
             if obj.Log
                 set(gca,'xscal','log');
+            end
+        end
+
+        function apply_detailed_grid(~, ax)
+            grid(ax, 'on');
+            ax.XMinorGrid = 'on';
+            ax.YMinorGrid = 'on';
+            if isprop(ax, 'XMinorTick')
+                ax.XMinorTick = 'on';
+            end
+            if isprop(ax, 'YMinorTick')
+                ax.YMinorTick = 'on';
             end
         end
 
