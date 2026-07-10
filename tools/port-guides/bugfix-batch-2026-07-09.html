@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MagAnalyst port guide — bug-fix batch (2026-07-09)</title>
+<style>
+  :root {
+    --bg: #1e1e1e; --panel: #252526; --text: #d4d4d4; --accent: #f15a29;
+    --before-bg: #3a2020; --before-border: #8b3a3a;
+    --after-bg: #20351f; --after-border: #4a8b3a;
+    --flag-bg: #4a3a10; --flag-border: #c98a1c;
+    --note-bg: #1c2b3a; --note-border: #2d6da3;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 6rem;
+    line-height: 1.5;
+  }
+  h1 { font-size: 1.5rem; border-bottom: 3px solid var(--accent); padding-bottom: 0.5rem; }
+  h2 { font-size: 1.2rem; margin-top: 2.5rem; color: var(--accent); }
+  h3 { font-size: 1.05rem; margin-bottom: 0.25rem; }
+  .summary { background: var(--panel); border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0; }
+  .summary ul { margin: 0.5rem 0 0; padding-left: 1.25rem; }
+  .toc { background: var(--panel); border-radius: 8px; padding: 1rem 1.25rem; }
+  .toc ol { padding-left: 1.25rem; }
+  .toc a { color: #8ab4f8; text-decoration: none; font-size: 0.92rem; }
+  .toc a:hover { text-decoration: underline; }
+  .step { background: var(--panel); border-radius: 8px; padding: 1.25rem 1.5rem; margin: 1.5rem 0; border-left: 4px solid #555; }
+  .meta { font-size: 0.85rem; color: #9a9a9a; margin-bottom: 0.5rem; }
+  .blocklabel { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: #aaa; margin-top: 0.75rem; }
+  pre { border-radius: 6px; padding: 0.75rem 1rem; overflow-x: auto; margin: 0.25rem 0 0; font-size: 0.85rem; }
+  pre.before { background: var(--before-bg); border: 1px solid var(--before-border); }
+  pre.after { background: var(--after-bg); border: 1px solid var(--after-border); }
+  code { white-space: pre; font-family: "SF Mono", Consolas, "Courier New", monospace; }
+  .flag { background: var(--flag-bg); border: 1px solid var(--flag-border); border-radius: 6px; padding: 0.6rem 0.9rem; margin: 0.5rem 0; font-weight: 600; font-size: 0.9rem; }
+  .note { background: var(--note-bg); border: 1px solid var(--note-border); border-radius: 6px; padding: 0.6rem 0.9rem; margin: 0.5rem 0; font-size: 0.88rem; }
+  .newfile { background: var(--panel); border-radius: 8px; padding: 1rem 1.25rem; }
+  .newfile code.path { background: #333; padding: 0.15rem 0.4rem; border-radius: 4px; }
+  footer { margin-top: 3rem; font-size: 0.8rem; color: #888; border-top: 1px solid #444; padding-top: 1rem; }
+  .badge { display:inline-block; background:var(--accent); color:#fff; border-radius: 4px; padding: 0.1rem 0.5rem; font-size: 0.75rem; font-weight:600; }
+</style>
+</head>
+<body>
+
+<h1>MagAnalyst — bug-fix batch port guide</h1>
+<div class="summary">
+  <p><span class="badge">2026-07-09</span> Six small fixes from this session's bug list: the Anhysteretic
+  grid checkboxes not applying at startup, the "1st plot loses its axis/frame" crash on Calculate &amp; Plot
+  with no data imported, the malformed "was not found" message (missing subject + "dataseth" typo), and
+  unifying the version string.</p>
+  <ul>
+    <li><strong>6 edits</strong> to apply in App Designer Code View, all inside <code>app.mlapp</code>.</li>
+    <li><strong>No signature changes</strong> — nothing here changes a method's parameter list.</li>
+    <li><strong>1 new file already on disk</strong>: <code>AppVersion.m</code> at the repo root (plain file,
+    nothing to do in App Designer — MATLAB just needs to find it next to <code>app.mlapp</code>).
+    <code>src/Common/FileDialogUtils.m</code> also gained one new static method
+    (<code>write_dataset_not_found_message</code>) — also a plain file, no porting needed.</li>
+    <li><strong>No Design View changes</strong> — every edit here is Code View only.</li>
+  </ul>
+</div>
+
+<h2>Before you start</h2>
+<div class="summary">
+  <ol>
+    <li>Make sure <code>app.mlapp</code> is open in App Designer (or open it now) and switch to <strong>Code View</strong>.</li>
+    <li>For each step below: find the anchor snippet, then replace exactly the BEFORE block with the AFTER block (or insert, for Step 1, which adds a brand-new method).</li>
+    <li>Steps are listed in the same order they appear in the file top-to-bottom.</li>
+    <li>When done, save in App Designer, then tell Claude — it will regenerate <code>app_exported.m</code> from your saved file and verify the app still constructs in <code>matlab -batch</code>.</li>
+  </ol>
+</div>
+
+<h2>Contents</h2>
+<div class="toc"><ol>
+<li><a href="#step-1">New method: write_dataset_not_found_message(app, path)</a></li>
+<li><a href="#step-2">calculate_plot_and_refresh_hysteretic(app) — guard against no imported data</a></li>
+<li><a href="#step-3">startupFcn — apply the Anhysteretic tab's grid checkboxes at launch</a></li>
+<li><a href="#step-4">CalculatePlotButton_2Pushed — fix the malformed "was not found" message</a></li>
+<li><a href="#step-5">FitButton_2Pushed — fix the malformed "was not found" message</a></li>
+<li><a href="#step-6">startupFcn — unify the version string</a></li>
+</ol></div>
+
+<h2>Steps</h2>
+
+<section class="step" id="step-1">
+  <h3>Step 1. New method: write_dataset_not_found_message(app, path)</h3>
+  <div class="meta">Location in current app_exported.m: right after <code>ensure_folder(app, folder)</code>, ~line 385 (App Designer Code View)</div>
+  <p>This is a new thin delegator to the shared helper in <code>FileDialogUtils.m</code>, following the same
+  pattern as <code>ensure_folder</code> right above it. Used by Steps 4 and 5.</p>
+  <div class="blocklabel">Anchor / Before</div>
+  <pre class="before"><code>        function ensure_folder(app, folder) % MOD
+            FileDialogUtils.ensure_folder(app, folder);
+        end
+%%</code></pre>
+  <div class="blocklabel">After</div>
+  <pre class="after"><code>        function ensure_folder(app, folder) % MOD
+            FileDialogUtils.ensure_folder(app, folder);
+        end
+
+        function write_dataset_not_found_message(app, path) % MOD
+            FileDialogUtils.write_dataset_not_found_message(app, path);
+        end
+%%</code></pre>
+</section>
+
+<section class="step" id="step-2">
+  <h3>Step 2. calculate_plot_and_refresh_hysteretic(app)</h3>
+  <div class="meta">Location in current app_exported.m: ~line 751 (App Designer Code View)</div>
+  <p>This is the handler behind the Anhysteretic tab's own "Calculate &amp; Plot" button. With no dataset
+  imported, <code>app.data_curve</code> is still <code>[]</code>, and <code>plot(app)</code> would crash partway
+  through drawing the first (M) axes — after <code>cla(ax,'reset')</code> had already wiped its box/frame back
+  to figure defaults, which is why only the <em>first</em> plot visibly lost its right/top frame and y-axis
+  (the crash happens before the other two axes are touched). This guard stops before any of that runs and shows
+  a clear message instead.</p>
+  <div class="blocklabel">Anchor / Before</div>
+  <pre class="before"><code>        function calculate_plot_and_refresh_hysteretic(app)
+            update_components(app)
+            calculate_parameters(app)
+            plot(app)</code></pre>
+  <div class="blocklabel">After</div>
+  <pre class="after"><code>        function calculate_plot_and_refresh_hysteretic(app)
+            if ~isobject(app.data_curve) || ~isprop(app.data_curve, 'H') || isempty(app.data_curve.H)
+                app.write_message("No dataset imported yet. Please import a dataset on the Input data tab first.");
+                return;
+            end
+            update_components(app)
+            calculate_parameters(app)
+            plot(app)</code></pre>
+</section>
+
+<section class="step" id="step-3">
+  <h3>Step 3. startupFcn — apply the Anhysteretic tab's grid checkboxes at launch</h3>
+  <div class="meta">Location in current app_exported.m: ~line 981-982, inside <code>startupFcn</code> (App Designer Code View)</div>
+  <p>The Anhysteretic tab's three "Grid" checkboxes (<code>ShowgridCheckBoxM</code>, <code>...dMdH</code>,
+  <code>...HdMdH</code>) already default to checked, but the grid was only ever actually drawn on the axes from
+  each checkbox's own <code>ValueChanged</code> callback — never at startup. That's why the grid looked off
+  until the user toggled a checkbox (or ran Calculate &amp; Plot, which redraws the axes from scratch and does
+  apply it). This mirrors the fix already in place for <code>AxesM_2</code> (Hysteretic tab) and
+  <code>AxesM_5</code> (Harmonics playground) just below it.</p>
+  <div class="blocklabel">Anchor / Before</div>
+  <pre class="before"><code>            app.sync_hysteretic_fitting_ui();
+            app.apply_detailed_grid(app.AxesM_2, app.ShowgridCheckBoxM_2.Value == 1);   % MOD: grid checkbox defaults to checked but was never applied until Calculate&amp;Plot</code></pre>
+  <div class="blocklabel">After</div>
+  <pre class="after"><code>            app.sync_hysteretic_fitting_ui();
+            app.apply_detailed_grid(app.AxesM, app.ShowgridCheckBoxM.Value == 1);   % MOD: grid checkbox defaults to checked but was never applied until Calculate&amp;Plot
+            app.apply_detailed_grid(app.AxesdMdH, app.ShowgridCheckBoxdMdH.Value == 1);   % MOD: grid checkbox defaults to checked but was never applied until Calculate&amp;Plot
+            app.apply_detailed_grid(app.AxesHdMdH, app.ShowgridCheckBoxHdMdH.Value == 1);   % MOD: grid checkbox defaults to checked but was never applied until Calculate&amp;Plot
+            app.apply_detailed_grid(app.AxesM_2, app.ShowgridCheckBoxM_2.Value == 1);   % MOD: grid checkbox defaults to checked but was never applied until Calculate&amp;Plot</code></pre>
+</section>
+
+<section class="step" id="step-4">
+  <h3>Step 4. CalculatePlotButton_2Pushed — fix the malformed "was not found" message</h3>
+  <div class="meta">Location in current app_exported.m: ~line 1520-1530, Hysteretic tab's "Calculate &amp; Plot" button (App Designer Code View)</div>
+  <p>When <code>app.InputDatasetPath.Value</code> is empty (nothing browsed yet), the old message read
+  <code>" was not found, please browse the dataseth path again"</code> — no subject before "was not found", and
+  "dataseth" is a typo for "dataset". The new shared helper (Step 1) handles both the empty-path case and the
+  typo.</p>
+  <div class="blocklabel">Anchor / Before</div>
+  <pre class="before"><code>                app.import_data(path);
+                app.plot_hysteretic_tab_data();
+                app.update_hysteretic_error_display();
+            else
+                app.write_message(path + " was not found, please browse the dataseth path again");
+            end</code></pre>
+  <div class="blocklabel">After</div>
+  <pre class="after"><code>                app.import_data(path);
+                app.plot_hysteretic_tab_data();
+                app.update_hysteretic_error_display();
+            else
+                app.write_dataset_not_found_message(path);
+            end</code></pre>
+</section>
+
+<section class="step" id="step-5">
+  <h3>Step 5. FitButton_2Pushed — fix the malformed "was not found" message</h3>
+  <div class="meta">Location in current app_exported.m: ~line 1544-1554, Hysteretic tab's "Fit" button (App Designer Code View)</div>
+  <p>Same bug, same fix, second occurrence.</p>
+  <div class="blocklabel">Anchor / Before</div>
+  <pre class="before"><code>                app.import_data(path);
+                app.fit_ja_parameters();
+            else
+                app.write_message(path + " was not found, please browse the dataseth path again");
+            end</code></pre>
+  <div class="blocklabel">After</div>
+  <pre class="after"><code>                app.import_data(path);
+                app.fit_ja_parameters();
+            else
+                app.write_dataset_not_found_message(path);
+            end</code></pre>
+</section>
+
+<section class="step" id="step-6">
+  <h3>Step 6. startupFcn — unify the version string</h3>
+  <div class="meta">Location in current app_exported.m: ~line 1014, inside <code>startupFcn</code> (App Designer Code View)</div>
+  <p>The startup message hardcoded a stale "1.0.3-beta" while the splash screen (<code>MagAnalyst.m</code>) said
+  "2.0.0" and the App Designer Sharing-details metadata said "1.0" — three different numbers for one app. All
+  three now read from a single new file, <code>AppVersion.m</code> (repo root, next to <code>app.mlapp</code>),
+  currently returning <code>"2.0"</code> (MATLAB's Sharing Details field only accepts
+  <code>MAJOR.MINOR</code>, no third component).</p>
+  <div class="flag">⚠️ Step 6b (Design View, not Code View — do this too): App Designer → Share button →
+  Sharing Details… → set <strong>Version</strong> to <code>2.0</code>. This metadata lives in the .mlapp
+  package outside Code View and isn't reachable from MATLAB source, so it can't be wired to
+  <code>AppVersion.m</code> automatically — as of this guide it is still showing the old "1.0" and needs
+  this manual update. See CLAUDE.md §9 for the policy on bumping this alongside <code>AppVersion.m</code>.</div>
+  <div class="blocklabel">Anchor / Before</div>
+  <pre class="before"><code>            app.write_message("MagAnalyst 1.0.3-beta");</code></pre>
+  <div class="blocklabel">After</div>
+  <pre class="after"><code>            app.write_message("MagAnalyst " + AppVersion());</code></pre>
+</section>
+
+<footer>Generated by Claude for the MagAnalyst repo. Every BEFORE block above was verified as an exact
+substring of the current <code>app.mlapp</code> before this guide was written.</footer>
+
+</body>
+</html>

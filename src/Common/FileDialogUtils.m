@@ -98,5 +98,14 @@ classdef FileDialogUtils
                 mkdir(folder);
             end
         end
+
+        function write_dataset_not_found_message(app, path)
+            path = string(path);
+            if strlength(path) == 0
+                app.write_message("No dataset path specified. Please browse for a dataset.");
+            else
+                app.write_message("Dataset """ + path + """ was not found, please browse for it again.");
+            end
+        end
     end
 end
