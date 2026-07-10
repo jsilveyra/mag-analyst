@@ -749,10 +749,6 @@ classdef PlaygroundUtils
                 end
                 PlaygroundUtils.sync_minor_ui(app);
 
-                app.write_message("Calculate & Plot started");
-                pause(0.01);
-                calc_timer = tic;
-
                 [Hsim, Msim, info] = solve_ja_minor_loop_playground( ...
                     Htips, params, ...
                     string(app.StopcriterionDropDown_4.Value), ...
@@ -763,8 +759,6 @@ classdef PlaygroundUtils
                 info.status = "ok";
                 PlaygroundUtils.set_simulation(app, Hsim, Msim, info);
                 app.plot_playground();
-                t = sprintf("%0.2f", toc(calc_timer));
-                app.write_message("Calculate & Plot finished after " + t + " s");
             catch
                 PlaygroundUtils.clear_simulation(app);
                 app.plot_playground();
@@ -791,9 +785,6 @@ classdef PlaygroundUtils
             end
 
             PlaygroundUtils.sync_major_ui(app);
-            app.write_message("Calculate & Plot started");
-            pause(0.01);
-            calc_timer = tic;
             try
                 [Hsim, Msim, info] = solve_ja_major_loop_playground( ...
                     Hstart, Mstart, Htip, params, ...
@@ -806,13 +797,10 @@ classdef PlaygroundUtils
                 info.status = "ok";
                 PlaygroundUtils.set_simulation(app, Hsim, Msim, info);
                 app.plot_playground();
-                t = sprintf("%0.2f", toc(calc_timer));
-                app.write_message("Calculate & Plot finished after " + t + " s");
             catch
                 PlaygroundUtils.clear_simulation(app);
                 app.plot_playground();
-                t = sprintf("%0.2f", toc(calc_timer));
-                app.write_message("Calculate & Plot failed after " + t + " s: " + failure_message);
+                app.write_message(failure_message);
             end
         end
 
@@ -1132,18 +1120,12 @@ classdef PlaygroundUtils
 
                 PlaygroundUtils.sync_degaussing_ui(app);   % keep displayed start values consistent
 
-                app.write_message("Calculate & Plot started");
-                pause(0.01);
-                calc_timer = tic;
-
                 [Hsim, Msim, info] = solve_ja_degaussing_playground( ...
                     Hstart, Mstart, amplitudes, params, ...
                     odeset('RelTol', 1e-7, 'AbsTol', 1e-6));
                 info.status = "ok";
                 PlaygroundUtils.set_simulation(app, Hsim, Msim, info);
                 app.plot_playground();
-                t = sprintf("%0.2f", toc(calc_timer));
-                app.write_message("Calculate & Plot finished after " + t + " s");
             catch
                 PlaygroundUtils.clear_simulation(app);
                 app.plot_playground();
@@ -1401,10 +1383,6 @@ classdef PlaygroundUtils
 
                 PlaygroundUtils.sync_harmonics_ui(app);   % keep displayed start values consistent
 
-                app.write_message("Calculate & Plot started");
-                pause(0.01);
-                calc_timer = tic;
-
                 [Hsim, Msim, info] = solve_ja_major_harmonics_playground( ...
                     Hstart, Mstart, orders, amplitudes, phases, params, ...
                     "Fixed repetitions", 1, [], ...
@@ -1413,8 +1391,6 @@ classdef PlaygroundUtils
                 info.status = "ok";
                 PlaygroundUtils.set_simulation(app, Hsim, Msim, info);
                 app.plot_playground();
-                t = sprintf("%0.2f", toc(calc_timer));
-                app.write_message("Calculate & Plot finished after " + t + " s");
             catch
                 PlaygroundUtils.clear_simulation(app);
                 app.plot_playground();

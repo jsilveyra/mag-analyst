@@ -519,7 +519,7 @@ classdef AnhystereticUtils
                 app.plot_input();
                 a = 0;
             else
-                app.write_message(path + " was not found, please browse the dataseth path again");
+                FileDialogUtils.write_dataset_not_found_message(app, path);
                 a = -1;
             end
         end

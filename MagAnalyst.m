@@ -14,7 +14,7 @@ function app = MagAnalyst()
 %   The progress bar is a CSS animation rendered inside a uihtml
 %   component, so it keeps moving during the (blocking) app construction.
 
-    version = "2.0.0";
+    version = AppVersion();
 
     % --- Theme: pick logo + colours from the OS light/dark setting ---
     if isDarkMode()

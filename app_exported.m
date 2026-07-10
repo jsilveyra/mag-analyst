@@ -385,6 +385,10 @@ classdef app_exported < matlab.apps.AppBase
         function ensure_folder(app, folder) % MOD
             FileDialogUtils.ensure_folder(app, folder);
         end
+
+        function write_dataset_not_found_message(app, path) % MOD
+            FileDialogUtils.write_dataset_not_found_message(app, path);
+        end
 %%
         function adjust_window(app)
         
@@ -749,6 +753,10 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         function calculate_plot_and_refresh_hysteretic(app)
+            if ~isobject(app.data_curve) || ~isprop(app.data_curve, 'H') || isempty(app.data_curve.H)
+                app.write_message("No dataset imported yet. Please import a dataset on the Input data tab first.");
+                return;
+            end
             update_components(app)
             calculate_parameters(app)
             plot(app)
@@ -979,6 +987,9 @@ classdef app_exported < matlab.apps.AppBase
             update_components(app);
             app.sync_k_fit_mode_ui();
             app.sync_hysteretic_fitting_ui();
+            app.apply_detailed_grid(app.AxesM, app.ShowgridCheckBoxM.Value == 1);   % MOD: grid checkbox defaults to checked but was never applied until Calculate&Plot
+            app.apply_detailed_grid(app.AxesdMdH, app.ShowgridCheckBoxdMdH.Value == 1);   % MOD: grid checkbox defaults to checked but was never applied until Calculate&Plot
+            app.apply_detailed_grid(app.AxesHdMdH, app.ShowgridCheckBoxHdMdH.Value == 1);   % MOD: grid checkbox defaults to checked but was never applied until Calculate&Plot
             app.apply_detailed_grid(app.AxesM_2, app.ShowgridCheckBoxM_2.Value == 1);   % MOD: grid checkbox defaults to checked but was never applied until Calculate&Plot
             PlaygroundUtils.clear_simulation(app);
             PlaygroundUtils.sync_major_ui(app);
@@ -1011,7 +1022,7 @@ classdef app_exported < matlab.apps.AppBase
             app.ensure_folder(out_folder);
             app.OutputDatasetPath.Value = char(out_folder);
         
-            app.write_message("MagAnalyst 1.0.3-beta");
+            app.write_message("MagAnalyst " + AppVersion());
         
             drawnow;
             
@@ -1525,7 +1536,7 @@ classdef app_exported < matlab.apps.AppBase
                 app.plot_hysteretic_tab_data();
                 app.update_hysteretic_error_display();
             else
-                app.write_message(path + " was not found, please browse the dataseth path again");
+                app.write_dataset_not_found_message(path);
             end
         end
 
@@ -1549,7 +1560,7 @@ classdef app_exported < matlab.apps.AppBase
                 app.import_data(path);
                 app.fit_ja_parameters();
             else
-                app.write_message(path + " was not found, please browse the dataseth path again");
+                app.write_dataset_not_found_message(path);
             end
         end
 

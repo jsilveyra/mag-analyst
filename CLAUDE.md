@@ -23,7 +23,7 @@ user simulate loops. Two parameter worlds coexist:
 - **Jiles–Atherton (JA) parameters**: `Ms`, `a`, `alpha`, `k`, `c`. Used by the
   hysteretic simulation in the Playground.
 
-Version string shown at startup: `MagAnalyst 1.0.3-beta`.
+Version string shown at startup: read from `AppVersion.m` (see §9) — currently `MagAnalyst 2.0`.
 
 ---
 
@@ -65,12 +65,18 @@ so treating direct patching as the default is unsafe.
    *signature* (e.g. `~` → `app`) with its own callout — those are the easiest
    to paste past without noticing, and without the parameter the new code
    won't compile.
-3. **Save the guide to a local file** — `tools/port-guides/<slug>.html` in the
+3. **Every port guide must include a step telling her to manually update the
+   Sharing Details Version field in Design View, naming the exact target
+   version** (`MAJOR.MINOR` — see §9) — the guide is a Design View action
+   (not reachable from Code View / `AppVersion.m`), so it never happens
+   unless the guide says so explicitly.
+4. **Save the guide to a local file** — `tools/port-guides/<slug>.html` in the
    repo — and give her the path to open directly in a browser. **Do not**
    publish it as a cloud Artifact; she confirmed she wants these local, not
    uploaded. See [[maganalyst-port-guide-delivery]].
-4. She applies the edits in App Designer's Code View herself and saves.
-5. Once she confirms it's saved, **regenerate `app_exported.m`** from her
+5. She applies the edits in App Designer's Code View herself (plus the
+   Design View version-field update from step 3) and saves.
+6. Once she confirms it's saved, **regenerate `app_exported.m`** from her
    saved file (see step 5 of the fallback procedure below — same mechanics)
    and verify by constructing the app in `matlab -batch` (see
    [[maganalyst-mlapp-appdesigner-sync]]) — `MagAnalyst.m` launches
@@ -553,3 +559,45 @@ The app also has `convert_playground_curve_units` for the Playground axes dropdo
   pattern: a full-precision numeric array is the source of truth, the table
   shows a `format_sigfigs`-style 6-sig-fig rendering, and selecting a cell
   reveals full precision for editing.
+
+---
+
+## 9. Versioning policy [deep]
+
+The version string used to live in three places that could silently drift
+apart: the `startupFcn` message in `app_exported.m` ("1.0.3-beta"), the splash
+screen in `MagAnalyst.m` ("2.0.0"), and the App Designer "Sharing details"
+Version field (still "1.0"). As of 2026-07-09 the first two are wired to a
+single source of truth, **`AppVersion.m`** (plain function at the repo root,
+next to `MagAnalyst.m` and `app.mlapp`, returning a string like `"2.0"`) —
+`MagAnalyst.m`'s splash and `app_exported.m`'s `startupFcn` both call it.
+
+**Format is `MAJOR.MINOR` only — no PATCH component.** App Designer's Sharing
+Details Version field requires this two-part format, so `AppVersion.m` must
+match it exactly (e.g. `"2.0"`, `"2.1"`, not `"2.0.0"` or `"2.0.1"`).
+
+**The Sharing-details Version field can't be wired to this file.** It's package
+metadata (`metadata/coreProperties.xml` inside the `.mlapp` zip, `<cp:version>`)
+set via App Designer's Share button → *Sharing Details…* dialog, not part of
+Code View — the same silent-overwrite-on-save risk described in §2a applies to
+it, so don't patch that XML directly by default; ask the user to update it
+by hand in the dialog whenever `AppVersion.m` changes. **Every port guide must
+include an explicit step telling the user to set the Sharing Details Version
+field to the new value in Design View** (see §2a) — don't rely on a separate
+verbal reminder, since the guide is the artifact she actually works from.
+
+**Bump `AppVersion.m` (and the Sharing Details field to match) every time a
+change is committed that a user would notice** — with only two components,
+both bug fixes and small additions bump MINOR; only breaking changes bump
+MAJOR:
+- **MINOR** (`x.Y+1`): anything user-visible that doesn't break existing
+  projects/workflows — bug fixes, UI text corrections, new Playground modes,
+  new export options, new tabs.
+- **MAJOR** (`X+1.0`): breaking changes — saved-project (`.mat`) format
+  changes that break old project files, removed features, or a large
+  architectural rework (e.g. the `src/` tab-based reorg, or bundling several
+  feature additions + bug fixes into one release, both plausible reasons the
+  2026-07-xx `1.0.3-beta → 2.0.0` jump was made).
+
+Don't bump the version for changes with no user-visible effect (comments,
+internal refactors that don't change behavior, this doc).
