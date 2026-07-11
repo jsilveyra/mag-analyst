@@ -61,7 +61,7 @@ function [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub,
         end
     end
 
-    options = optimset('MaxIter', 2000, 'MaxFunEvals', 1e4); % Increase iterations and evaluations
+    options = optimset('MaxIter', 2000, 'MaxFunEvals', 1e4, 'TolX', 1e-5, 'TolFun', 1e-5, 'Display', 'off');
     if ~isempty(output_fcn)
         options = optimset(options, 'OutputFcn', output_fcn);
     end
