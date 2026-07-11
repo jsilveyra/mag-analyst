@@ -54,6 +54,9 @@ classdef JAFitter
                 % Same optimizer settings regardless of mask.fitk, and matching
                 % the Anhysteretic fit (fit.m) -- one consistent configuration
                 % across every fit in the app, rather than per-case tuning.
+                % One tight minimize() call per Fit click -- a loose-then-tight
+                % two-stage scheme was tried and reverted 2026-07-11; see the
+                % matching comment in fit.m for why.
                 optim_opts = optimset( ...
                     'MaxIter', 2000, ...
                     'MaxFunEvals', 1e4, ...

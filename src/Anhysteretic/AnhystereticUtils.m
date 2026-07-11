@@ -128,18 +128,45 @@ classdef AnhystereticUtils
 
             app.stop_fit_requested = false;
             FitProgressUtils.open(app, "Anhysteretic fit progress", app.ErrorDropDown.Value);
+
+            % See if this is a plain repeat click (nothing edited since the
+            % last fit) to decide whether the "Fit again" tip below is due.
+            conditions.lb = fit_lb;
+            conditions.ub = fit_ub;
+            conditions.select_fit = fit_select_fit;
+            conditions.error_type = string(app.ErrorDropDown.Value);
+            seed = cat(2, app.Hcr, app.mcr, app.Hx);
+            is_rerun = FitProgressUtils.check_and_remember_conditions(app, 'anh', conditions, seed);
+
             app.write_message("Fitting started");
             pause(0.01);
             tic
             try
                 output_fcn = @(x, optimValues, state) app.fit_stop_output_fcn(x, optimValues, state);
-                [app.Hcr, app.mcr, app.Hx] = fit(app.data_curve, cat(2, app.Hcr, app.mcr, app.Hx), N, select_a, app.ErrorDropDown.Value, fit_lb, fit_ub, fit_select_fit, output_fcn);
+                [app.Hcr, app.mcr, app.Hx] = fit(app.data_curve, seed, N, select_a, app.ErrorDropDown.Value, fit_lb, fit_ub, fit_select_fit, output_fcn);
+                % Prefer the best point FitProgressUtils tracked across every
+                % evaluated point during the search over minimize()'s own
+                % returned point: guarantees a "Stop fit" mid-search (or any
+                % other reason the search's own final iterate might not be
+                % its best) never leaves worse parameters than the best the
+                % search actually found.
+                [best_x, ~, has_best] = FitProgressUtils.get_best(app);
+                if has_best
+                    n = app.number_components;
+                    app.Hcr = best_x(1:n);
+                    app.mcr = best_x(n+1:2*n);
+                    app.Hx = best_x(2*n+1:end);
+                end
+                FitProgressUtils.remember_fit_result(app, 'anh', cat(2, app.Hcr, app.mcr, app.Hx));
                 t = sprintf("%0.2f", toc);
                 if app.stop_fit_requested
                     app.write_message("Fitting stopped by user after " + t + " s");
                 else
                     app.write_message("Fitting finished after " + t + " s");
                     AnhystereticUtils.write_m_lower_bound_messages(app, select_a, fit_lb, fit_select_fit);
+                    if ~is_rerun
+                        app.write_message("Tip: click Fit again without changing anything to let the optimizer restart from this result -- it can only match or improve on it, never make it worse.");
+                    end
                 end
             catch e
                 t = sprintf("%0.2f", toc);
