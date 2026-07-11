@@ -657,6 +657,20 @@ classdef HystereticUtils
 
              app.stop_fit_requested = false;
              FitProgressUtils.open(app, "Hysteretic (JA) fit progress", error_type);
+
+             % See if this is a plain repeat click (nothing edited since the
+             % last fit) to decide whether the "Fit again" tip below is due.
+             conditions.mask = mask;
+             conditions.bounds = bounds;
+             conditions.error_type = error_type;
+             conditions.fitting_region = fitting_region;
+             conditions.start_mode = start_mode;
+             conditions.stop_criterion = stop_criterion;
+             conditions.repetitions = repetitions;
+             conditions.rel_tolerance = rel_tolerance;
+             conditions.max_repetitions = max_repetitions;
+             is_rerun = FitProgressUtils.check_and_remember_conditions(app, 'hyst', conditions, params_seed);
+
              fit_timer = tic;
             try
                 model_fn = @(p) solve_ja_hysteretic_region( ...
@@ -664,15 +678,27 @@ classdef HystereticUtils
                     repetitions, rel_tolerance, max_repetitions, opts);
 
                 output_fcn = @(x, optimValues, state) app.fit_stop_output_fcn(x, optimValues, state);
+                estimate_k_fn = @(p) HystereticUtils.estimate_k_from_coercive_point(app, Hleft, Mleft, p.Ms, p.a, p.alpha, p.c);
                 fit_result = JAFitter.fit( ...
                     params_seed, mask, bounds, HfitData, MfitData, Htip, Mtip, error_type, ...
-                    @(p) HystereticUtils.estimate_k_from_coercive_point(app, Hleft, Mleft, p.Ms, p.a, p.alpha, p.c), ...
+                    estimate_k_fn, ...
                     model_fn, ...
                     @(err_type, hL, mL, hHat, mHat) HystereticUtils.compute_ja_left_branch_error_core(app, err_type, hL, mL, hHat, mHat), ...
                     output_fcn);
 
                 if ~fit_result.ok
                     error(char(fit_result.error_message));
+                end
+
+                % Prefer the best point FitProgressUtils tracked across every
+                % evaluated point during the search over JAFitter.fit's own
+                % returned point -- see the matching comment in
+                % AnhystereticUtils.fit_parameters.
+                [best_x, best_val, has_best] = FitProgressUtils.get_best(app);
+                if has_best
+                    [~, map] = JAFitUtils.pack_params(params_seed, mask);
+                    fit_result.params_opt = JAFitUtils.unpack_params(best_x, map, params_seed, mask, estimate_k_fn);
+                    fit_result.Jopt = best_val;
                 end
 
                 params_opt = fit_result.params_opt;
@@ -685,11 +711,15 @@ classdef HystereticUtils
                 app.plot_hysteretic_tab_data();
                 app.ErrorDisplay_2.Value = fit_result.Jopt;
 
+                FitProgressUtils.remember_fit_result(app, 'hyst', params_opt);
                 t = toc(fit_timer);
                 if app.stop_fit_requested
                     app.write_message("Fitting stopped by user after " + app.format_short(t) + " s");
                 else
                     app.write_message("Fitting finished after " + app.format_short(t) + " s");
+                    if ~is_rerun
+                        app.write_message("Tip: click Fit again without changing anything to let the optimizer restart from this result -- it can only match or improve on it, never make it worse.");
+                    end
                 end
             catch ME
                 t = toc(fit_timer);

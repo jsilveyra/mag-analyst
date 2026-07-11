@@ -407,8 +407,8 @@ classdef app_exported < matlab.apps.AppBase
             AnhystereticUtils.fit_parameters(app);
         end
         
-        function stop = fit_stop_output_fcn(app, ~, optimValues, ~)
-            FitProgressUtils.append(app, optimValues);
+        function stop = fit_stop_output_fcn(app, x, optimValues, ~)
+            FitProgressUtils.append(app, x, optimValues);
             drawnow limitrate;
             stop = app.stop_fit_requested;
         end

@@ -61,6 +61,18 @@ function [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub,
         end
     end
 
+    % One tight minimize() call per Fit click. A loose-then-tight two-stage
+    % scheme was tried and reverted 2026-07-11: seeding the tight pass from
+    % a loosely-converged intermediate point has no monotonicity guarantee
+    % (unlike restarting from a pass's own FULLY tight-converged result,
+    % which can only match or improve, never worsen, since minimize() always
+    % evaluates its own starting point as part of the initial simplex) -- a
+    % tolerance sweep showed the loose relocation can land in a genuinely
+    % worse basin, sometimes well worse than not restarting at all. Pressing
+    % Fit again (unchanged) reproduces the safe, monotonic restart instead,
+    % seeded from this call's own tight result -- see
+    % AnhystereticUtils.fit_parameters, which also surfaces a one-time tip
+    % about this.
     options = optimset('MaxIter', 2000, 'MaxFunEvals', 1e4, 'TolX', 1e-5, 'TolFun', 1e-5, 'Display', 'off');
     if ~isempty(output_fcn)
         options = optimset(options, 'OutputFcn', output_fcn);
