@@ -491,12 +491,19 @@ classdef PlaygroundUtils
             hold(ax, 'on');
 
             [H_label, M_label] = PlaygroundUtils.get_playground_axis_units(app);
+            % Playground always matches the Input tab's native mode: when
+            % mass-native, its own vertical-axis dropdown is locked to the
+            % single sigma unit (see sync_playground_mass_ui), so the
+            % source unit for the cached curve/simulation (app.data_curve.M
+            % or the JA-simulated M, both mass-native in that case) must
+            % match -- never hardcode "M [A/m]" as the source here.
+            source_M_unit = DisplayUnits.get_M_label(app);
             if app.ShowgridCheckBoxM_4.Value == 1
                 [H_plot, M_plot, has_data] = PlaygroundUtils.get_playground_data_curve(app);
                 if has_data
                     [H_plot, M_plot] = PlaygroundUtils.convert_playground_curve_units(app, ...
                         H_plot, M_plot, ...
-                        "H [A/m]", "M [A/m]", ...
+                        "H [A/m]", source_M_unit, ...
                         H_label, M_label);
                     plot(ax, H_plot, M_plot, '.', 'Color', [0 0 0], 'LineWidth', 1.0, 'MarkerSize', 7, 'DisplayName', 'Measured');
                 else
@@ -508,7 +515,7 @@ classdef PlaygroundUtils
             if has_sim
                 [H_sim, M_sim] = PlaygroundUtils.convert_playground_curve_units(app, ...
                     H_sim, M_sim, ...
-                    "H [A/m]", "M [A/m]", ...
+                    "H [A/m]", source_M_unit, ...
                     H_label, M_label);
                 plot(ax, H_sim, M_sim, 'r-', 'LineWidth', 1.2, 'DisplayName', 'JA simulated');
             end
@@ -557,8 +564,48 @@ classdef PlaygroundUtils
         end
 
         function [H_unit, M_unit] = get_playground_axis_units(app)
+            % VerticalaxisfieldDropDown_2's Items are kept in sync with
+            % app.M_is_mass_based by sync_playground_mass_ui (locked to the
+            % single sigma unit when mass-native, the usual volume-family
+            % list otherwise), so its current Value is always valid here.
             H_unit = string(app.HorizontalaxisfieldDropDown_2.Value);
             M_unit = string(app.VerticalaxisfieldDropDown_2.Value);
+        end
+
+        function sync_playground_mass_ui(app)
+            % Playground never offers an independent volume/mass choice --
+            % it mirrors whatever the Input tab imported. When mass-native,
+            % the vertical-axis dropdown is locked to the single sigma
+            % unit, the JA Ms/alpha labels switch to sigma_S/rho*alpha, and
+            % every "Mstart"-type field label (major/degaussing/harmonics
+            % driving-field panels) switches to sigma_start. H-side fields
+            % (Hstart, H amplitude, Initial/Final amplitude, a, k) are
+            % never touched -- they're always the externally applied field.
+            % Only rewrite Items/Value on an actual mode transition -- an
+            % axis-unit-driven reprocess of the same file re-runs this
+            % (via import_data) without changing app.M_is_mass_based, and
+            % must not clobber a user's manually chosen volume sub-unit
+            % (e.g. kA/m) every time.
+            if app.M_is_mass_based
+                mass_unit = char(DisplayUnits.get_M_label(app));
+                if ~isequal(app.VerticalaxisfieldDropDown_2.Items, {mass_unit})
+                    app.VerticalaxisfieldDropDown_2.Items = {mass_unit};
+                    app.VerticalaxisfieldDropDown_2.Value = mass_unit;
+                end
+            else
+                volume_items = {'M [A/m]', 'M [kA/m]', 'M [MA/m]', 'M [emu/cm^3]', 'J [T]', 'B [T]', 'B [G]', 'B [kG]'};
+                if ~isequal(app.VerticalaxisfieldDropDown_2.Items, volume_items)
+                    app.VerticalaxisfieldDropDown_2.Items = volume_items;
+                    app.VerticalaxisfieldDropDown_2.Value = 'M [A/m]';
+                end
+            end
+
+            DisplayUnits.apply_ja_labels(app, app.Ms_JA_PlaygroundLabel, app.alpha_JA_PlaygroundLabel);
+
+            Mstart_label = char(DisplayUnits.get_Mstart_label(app));
+            app.MstartAmEditFieldLabel.Text = Mstart_label;
+            app.MstartAmEditField_2Label.Text = Mstart_label;
+            app.MstartAmEditField_3Label.Text = Mstart_label;
         end
 
         function values = get_minor_loop_default_values(app)
