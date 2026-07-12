@@ -186,7 +186,7 @@ classdef HystereticUtils
 
                 residue_calculator = HystereticLeftBranchResidueCalculator(H_left, M_left, H_model_left, M_model_left);
                 residue = residue_calculator.get_residue();
-                residue_plotter = ResiduePlotter(H_left, M_left, H_model_left, M_model_left, residue, false, "M [A/m]", 5, [0 0 0], [1 0 0], [1 0 0], true);
+                residue_plotter = ResiduePlotter(H_left, M_left, H_model_left, M_model_left, residue, false, DisplayUnits.get_M_label(app), 5, [0 0 0], [1 0 0], [1 0 0], true);
                 residue_plotter.plot()
             else
                 [H_left, M_left] = HystereticUtils.get_hysteretic_left_branch_data(app);
@@ -273,11 +273,12 @@ classdef HystereticUtils
             has_branches = numel(H_left) >= 2 && numel(H_right) >= 2;
         end
 
-        function plot_hysteretic_branch_residuals(~, H_left, M_left, H_right, M_right, H_model_left, M_model_left, H_model_right, M_model_right, residue_left, residue_right)
+        function plot_hysteretic_branch_residuals(app, H_left, M_left, H_right, M_right, H_model_left, M_model_left, H_model_right, M_model_right, residue_left, residue_right)
             left_color = [0 0.4470 0.7410];
             right_color = [0.8500 0.3250 0.0980];
+            M_label = DisplayUnits.get_M_label(app);
 
-            figure('Name', "Residual plot: M [A/m]", 'NumberTitle', 'off');
+            figure('Name', "Residual plot: " + M_label, 'NumberTitle', 'off');
             tiledlayout(4, 1);
 
             ax1 = nexttile([3 1]);
@@ -291,7 +292,7 @@ classdef HystereticUtils
             yline(ax1, 0, 'k-', 'LineWidth', 1.2, 'HandleVisibility', 'off');
             HystereticUtils.apply_residual_detailed_grid(ax1);
             xlabel(ax1, 'H (A/m)');
-            ylabel(ax1, 'M [A/m]');
+            ylabel(ax1, M_label);
             legend(ax1, 'Location', 'best');
             hold(ax1, 'off');
 
@@ -325,8 +326,10 @@ classdef HystereticUtils
             ax = app.AxesM_2;
             cla(ax, 'reset');
             hold(ax, 'on');
-            H_label = "H [A/m]";
-            M_label = "M [A/m]";
+            H_label = DisplayUnits.get_H_label(app);
+            M_label = DisplayUnits.get_M_label(app);
+            DisplayUnits.apply_ja_labels(app, app.Ms_JALabel, app.alpha_JALabel);
+            app.MtipLabel.Text = char(DisplayUnits.get_Mtip_label(app));
 
             has_raw_data = ~isempty(app.H_raw) && ~isempty(app.M_raw);
             if has_raw_data && app.is_last_import_anhysteretic()
@@ -335,7 +338,7 @@ classdef HystereticUtils
             elseif has_raw_data
                 [H_plot, M_plot] = HystereticUtils.build_ja_data_cycle(app);
                 plot(ax, H_plot, M_plot, '.', 'Color', [0 0 0], 'LineWidth', 1.0, 'MarkerSize', 7, 'DisplayName', 'Measured');
-                app.write_message("Hysteresis loop data in M (A/m) vs H (A/m) successfully retrieved.");
+                app.write_message("Hysteresis loop data in " + M_label + " vs " + H_label + " successfully retrieved.");
             else
                 app.write_message("Warning: No hysteresis loop data is currently available.");
             end
@@ -460,15 +463,18 @@ classdef HystereticUtils
                     end
                 end
 
+                Ms_seed_label = DisplayUnits.get_Ms_scalar_label(app);
+                alpha_seed_label = DisplayUnits.get_alpha_scalar_label(app);
+                DisplayUnits.apply_ja_labels(app, app.Ms_JALabel, app.alpha_JALabel);
                 if isfinite(k_value)
                     k_display = HystereticUtils.format_k_seed_display(app, k_value);
                     app.k_JA.Value = k_value;
                     app.c_JA.Value = c_seed;
-                    app.write_message("Jiles–Atherton seeds retrieved: Ms=" + ms_display + " [A/m], a=" + a_display + " [A/m], α=" + alpha_display + ", c=" + app.format_short(c_seed) + ", k=" + k_display + " [A/m].");
+                    app.write_message("Jiles–Atherton seeds retrieved: " + Ms_seed_label + "=" + ms_display + ", a=" + a_display + " [A/m], " + alpha_seed_label + "=" + alpha_display + ", c=" + app.format_short(c_seed) + ", k=" + k_display + " [A/m].");
                 else
                     app.k_JA.Value = [];
                     app.c_JA.Value = c_seed;
-                    app.write_message("Jiles–Atherton seeds retrieved: Ms=" + ms_display + " [A/m], a=" + a_display + " [A/m], α=" + alpha_display + ", c=" + app.format_short(c_seed) + ", k=not available.");
+                    app.write_message("Jiles–Atherton seeds retrieved: " + Ms_seed_label + "=" + ms_display + ", a=" + a_display + " [A/m], " + alpha_seed_label + "=" + alpha_display + ", c=" + app.format_short(c_seed) + ", k=not available.");
                 end
             else
                 app.Ms_JA.Value = [];

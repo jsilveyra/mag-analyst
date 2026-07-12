@@ -42,7 +42,10 @@ classdef Plotter
             end
         end
 
-        function plot_M(obj, ax, plot_components, plot_grid)
+        function plot_M(obj, ax, plot_components, plot_grid, M_label)
+            if nargin < 5 || isempty(M_label)
+                M_label = 'M [A/m]';
+            end
             hold( ax, 'on' );
             tip_data = max(obj.data_curve.M);
             tip_model = max(obj.modeled_curve.M);
@@ -65,12 +68,15 @@ classdef Plotter
 
             obj.plot_Hcr(ax)
             xlabel(ax, 'H [A/m]');
-            ylabel(ax, 'M [A/m]');
+            ylabel(ax, M_label);
             box(ax,'on');
-            hold( ax, 'off' )     
+            hold( ax, 'off' )
         end
 
-        function plot_M_log(obj, ax, plot_components, plot_grid)
+        function plot_M_log(obj, ax, plot_components, plot_grid, M_label)
+            if nargin < 5 || isempty(M_label)
+                M_label = 'M [A/m]';
+            end
             semilogx(ax, obj.data_curve.H, obj.data_curve.M, '.', 'markersize', obj.MarkerSize, "Color", [0 0 0]);
             hold( ax, 'on' )
             tip_data = max(obj.data_curve.M);
@@ -91,13 +97,16 @@ classdef Plotter
             obj.apply_detailed_grid(ax, plot_grid);
 
             xlabel(ax, 'H [A/m]');
-            ylabel(ax, 'M [A/m]');
+            ylabel(ax, M_label);
             obj.plot_Hcr(ax);
             box(ax,'on');
             hold( ax, 'off' )
         end
 
-        function plot_dMdH(obj, ax, plot_components, plot_grid)
+        function plot_dMdH(obj, ax, plot_components, plot_grid, dMdH_label)
+            if nargin < 5 || isempty(dMdH_label)
+                dMdH_label = '∂M/∂H';
+            end
             hold( ax, 'on' );
             tip_data = max(obj.data_curve.dMdH);
             tip_model = max(obj.modeled_curve.dMdH);
@@ -119,13 +128,16 @@ classdef Plotter
             obj.apply_detailed_grid(ax, plot_grid);
 
             xlabel(ax, 'H [A/m]');
-            ylabel(ax, '∂M/∂H');
+            ylabel(ax, dMdH_label);
             ax.YLim = [min(obj.data_curve.dMdH) max(obj.data_curve.dMdH)*1.1];
             box(ax,'on');
             hold( ax, 'off' )
         end
 
-        function plot_dMdH_log(obj, ax, plot_components, plot_grid)
+        function plot_dMdH_log(obj, ax, plot_components, plot_grid, dMdH_label)
+            if nargin < 5 || isempty(dMdH_label)
+                dMdH_label = '∂M/∂H';
+            end
             semilogx(ax, obj.data_curve.H, obj.data_curve.dMdH, '.', 'markersize', obj.MarkerSize, "Color", [0 0 0]);
             hold( ax, 'on' );
             tip_data = max(obj.data_curve.dMdH);
@@ -147,12 +159,15 @@ classdef Plotter
             obj.apply_detailed_grid(ax, plot_grid);
 
             xlabel(ax, 'H [A/m]');
-            ylabel(ax, '∂M/∂H');
+            ylabel(ax, dMdH_label);
             box(ax,'on');
             hold( ax, 'off' )
         end
 
-        function plot_HdMdH_log(obj, ax, plot_components, plot_grid)
+        function plot_HdMdH_log(obj, ax, plot_components, plot_grid, HdMdH_label)
+            if nargin < 5 || isempty(HdMdH_label)
+                HdMdH_label = '∂M/∂(lnH) [A/m]';
+            end
             hold( ax, 'on' );
             tip_data = max(obj.data_curve.HdMdH);
             tip_model = max(obj.modeled_curve.HdMdH);
@@ -174,12 +189,15 @@ classdef Plotter
             obj.apply_detailed_grid(ax, plot_grid);
 
             xlabel(ax, 'H [A/m]');
-            ylabel(ax, '∂M/∂(lnH) [A/m]', "Color",[0, 0, 0]);
+            ylabel(ax, HdMdH_label, "Color",[0, 0, 0]);
             box(ax,'on');
             hold( ax, 'off' );
         end
 
-        function plot_HdMdH(obj, ax, plot_components, plot_grid)
+        function plot_HdMdH(obj, ax, plot_components, plot_grid, HdMdH_label)
+            if nargin < 5 || isempty(HdMdH_label)
+                HdMdH_label = '∂M/∂(lnH) [A/m]';
+            end
             hold( ax, 'on' );
             tip_data = max(obj.data_curve.HdMdH);
             tip_model = max(obj.modeled_curve.HdMdH);
@@ -201,7 +219,7 @@ classdef Plotter
             obj.apply_detailed_grid(ax, plot_grid);
 
             xlabel(ax, 'H [A/m]');
-            ylabel(ax, '∂M/∂(lnH) [A/m]', "Color",[0, 0, 0]);
+            ylabel(ax, HdMdH_label, "Color",[0, 0, 0]);
             box(ax,'on');
             hold( ax, 'off' );
         end

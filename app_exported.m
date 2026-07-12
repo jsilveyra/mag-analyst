@@ -85,9 +85,9 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesHdMdH                       matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesM                           matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesHdMdH                       matlab.ui.control.UIAxes
         HystereticfittingTab            matlab.ui.container.Tab
         GridLayout8                     matlab.ui.container.GridLayout
         FittingconditionsLabel          matlab.ui.control.Label
@@ -341,6 +341,7 @@ classdef app_exported < matlab.apps.AppBase
         data_curve
         stop_fit_requested logical = false   % set by "Stop fit" buttons to abort a running fit
         last_import_folder string = ""   % MOD: remembers the last folder browsed for a dataset this session
+        M_is_mass_based logical = false   % MOD: true when the vertical-axis unit is sigma [emu/g=Am^2/kg]
     end
     
     methods (Access = public)
@@ -1094,6 +1095,7 @@ classdef app_exported < matlab.apps.AppBase
                 calculate_parameters(app)
                 app.plot_input();
                 app.write_message("Imported " + fullpath);
+                InputUtils.notify_new_import(app);
             catch e
                 app.write_message("Import failed: " + e.message);
             end
@@ -1109,6 +1111,7 @@ classdef app_exported < matlab.apps.AppBase
                 calculate_parameters(app)
                 app.plot_input();
                 app.write_message("Imported " + dataset_path);
+                InputUtils.notify_new_import(app);
             catch e
                 app.write_message("Import failed: " + e.message);
             end
@@ -1124,29 +1127,17 @@ classdef app_exported < matlab.apps.AppBase
 
         % Button pushed function: ResidualplotButtonM
         function ResidualplotButtonMPushed(app, event)
-            residue_calculator = MagnetizationResidueCalculator(app.data_curve, app.modeled_curve);
-            residue = residue_calculator.get_residue();
-            log_flag = app.axis_scale_has_x(string(app.AxisScaleDropDownM.Value));
-            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.M, app.modeled_curve.H, app.modeled_curve.M, residue, log_flag, "M [A/m]", 5, [0 0 0], app.Colors(1,:), app.Colors(1,:));
-            residue_plotter.plot()
+            AnhystereticUtils.residual_plot_M(app);
         end
 
         % Button pushed function: ResidualplotButtondMdH
         function ResidualplotButtondMdHPushed(app, event)
-            residue_calculator = SusceptibilityResidueCalculator(app.data_curve, app.modeled_curve);
-            residue = residue_calculator.get_residue();
-            log_flag = app.axis_scale_has_x(string(app.AxisScaleDropDowndMdH.Value));
-            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.dMdH, app.modeled_curve.H, app.modeled_curve.dMdH, residue, log_flag, "∂M/∂H", 5, [0 0 0], app.Colors(1,:), app.Colors(1,:));
-            residue_plotter.plot()
+            AnhystereticUtils.residual_plot_dMdH(app);
         end
 
         % Button pushed function: ResidualplotButtondHdMdH
         function ResidualplotButtondHdMdHPushed(app, event)
-            residue_calculator = SemilogDerivativeResidueCalculator(app.data_curve, app.modeled_curve);
-            residue = residue_calculator.get_residue();
-            log_flag = app.axis_scale_has_x(string(app.AxisScaleDropDownHdMdH.Value));
-            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.HdMdH, app.modeled_curve.H, app.modeled_curve.HdMdH, residue, log_flag, "∂M/∂(logH) [A/m]", 5, [0 0 0], app.Colors(1,:), app.Colors(1,:));
-            residue_plotter.plot()
+            AnhystereticUtils.residual_plot_HdMdH(app);
         end
 
         % Button pushed function: OutputBrowseButton
@@ -1903,7 +1894,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayout9
             app.GridLayout9 = uigridlayout(app.InputdataTab);
-            app.GridLayout9.ColumnWidth = {49, 60, '1.4x', 56, '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
+            app.GridLayout9.ColumnWidth = {40, 65, '1.4x', 56, '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
             app.GridLayout9.RowHeight = {31, 31, 31, 31, 31, '6.77x', '1x', 28};
             app.GridLayout9.ColumnSpacing = 9.91666666666667;
             app.GridLayout9.RowSpacing = 9.9;
@@ -1962,7 +1953,7 @@ classdef app_exported < matlab.apps.AppBase
             app.InputAxisScaleDropDown.ValueChangedFcn = createCallbackFcn(app, @DropDownValueChanged, true);
             app.InputAxisScaleDropDown.Tag = 'InputAxisScaleDropDown';
             app.InputAxisScaleDropDown.Layout.Row = 7;
-            app.InputAxisScaleDropDown.Layout.Column = 9;
+            app.InputAxisScaleDropDown.Layout.Column = [9 10];
             app.InputAxisScaleDropDown.Value = 'linear';
 
             % Create AxisscaleLabel
@@ -2024,7 +2015,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create VerticalaxisfieldDropDown
             app.VerticalaxisfieldDropDown = uidropdown(app.GridLayout9);
-            app.VerticalaxisfieldDropDown.Items = {'M [A/m]', 'M [kA/m]', 'M [MA/m]', 'M [emu/cm^3]', 'J [T]', 'B [T]', 'B [G]', 'B [kG]'};
+            app.VerticalaxisfieldDropDown.Items = {'M [A/m]', 'M [kA/m]', 'M [MA/m]', 'M [emu/cm^3]', 'J [T]', 'B [T]', 'B [G]', 'B [kG]', 'σ [emu/g=Am^2/kg]'};
             app.VerticalaxisfieldDropDown.ValueChangedFcn = createCallbackFcn(app, @VerticalaxisfieldDropDownValueChanged, true);
             app.VerticalaxisfieldDropDown.Layout.Row = 3;
             app.VerticalaxisfieldDropDown.Layout.Column = [3 4];
@@ -2098,14 +2089,14 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayoutAxes);
@@ -2116,14 +2107,14 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = 3;
             app.AxesdMdH.Layout.Column = 1;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = 1;
+            app.AxesM.Layout.Column = 1;
 
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
@@ -2367,7 +2358,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayoutOtherQuantities
             app.GridLayoutOtherQuantities = uigridlayout(app.GridLayoutNumbers);
-            app.GridLayoutOtherQuantities.ColumnWidth = {'1.8x', '0.4x', '1x', '0.4x', '1x'};
+            app.GridLayoutOtherQuantities.ColumnWidth = {'1x', '0.7x', '0.8x', '0.6x', '0.8x'};
             app.GridLayoutOtherQuantities.RowHeight = {'1x'};
             app.GridLayoutOtherQuantities.Padding = [0 0 0 0];
             app.GridLayoutOtherQuantities.Layout.Row = 7;
@@ -2498,7 +2489,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayout8
             app.GridLayout8 = uigridlayout(app.HystereticfittingTab);
-            app.GridLayout8.ColumnWidth = {93, 90, 96, 90, 93, 63, 108, 34, 49, 38, 52, 68, 32, 42, 68};
+            app.GridLayout8.ColumnWidth = {93, 90, 96, 90, 93, 80, 108, 34, 49, 38, 52, 68, 32, 42, 68};
             app.GridLayout8.RowHeight = {1, '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
             app.GridLayout8.ColumnSpacing = 1.46249389648438;
             app.GridLayout8.RowSpacing = 4.83749580383301;

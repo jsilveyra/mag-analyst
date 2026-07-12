@@ -16,11 +16,13 @@ classdef InputUtils
             plotter = Plotter(app.data_curve, app.modeled_curve, [], app.Colors, 5);
 
             axis_scale = string(app.InputAxisScaleDropDown.Value);
+            H_label = DisplayUnits.get_H_label(app);
+            M_label = DisplayUnits.get_M_label(app);
             if app.axis_scale_has_x(axis_scale)
-                plotter.plot_raw_log(app.AxesProcessedInputData, app.data_curve.H, app.data_curve.M, 'H [A/m]', 'M [A/m]', 'Processed input data');
+                plotter.plot_raw_log(app.AxesProcessedInputData, app.data_curve.H, app.data_curve.M, H_label, M_label, 'Processed input data');
                 plotter.plot_raw_log(app.AxesRawInputData, app.H_raw, app.M_raw, app.HorizontalaxisfieldDropDown.Value, app.VerticalaxisfieldDropDown.Value, 'Raw input data');
             else
-                plotter.plot_raw(app.AxesProcessedInputData, app.data_curve.H, app.data_curve.M, 'H [A/m]', 'M [A/m]', 'Processed input data');
+                plotter.plot_raw(app.AxesProcessedInputData, app.data_curve.H, app.data_curve.M, H_label, M_label, 'Processed input data');
                 plotter.plot_raw(app.AxesRawInputData, app.H_raw, app.M_raw, app.HorizontalaxisfieldDropDown.Value, app.VerticalaxisfieldDropDown.Value, 'Raw input data');
             end
 
@@ -34,6 +36,7 @@ classdef InputUtils
             M_unit = app.VerticalaxisfieldDropDown.Value;
             curve_type = app.CurvetypeDropDown.Value;
             app.imported_curve_type = string(curve_type);
+            app.M_is_mass_based = InputUtils.is_mass_unit(M_unit);
 
             % Reading + resampling a large CSV can take a few seconds; show an
             % indeterminate progress dialog so the user waits instead of
@@ -61,13 +64,34 @@ classdef InputUtils
             app.sync_harmonics_ui();                   % MOD: refresh harmonic start-point display from the new data
             app.maybe_refresh_ms_lower_bound_default(); % MOD: update the Hysteretic tab's Ms lower bound default from the newly imported data tip
             PlaygroundUtils.sync_major_ui(app);
+            PlaygroundUtils.sync_playground_mass_ui(app);
             PlaygroundUtils.clear_simulation(app);
+        end
+
+        function notify_new_import(app)
+            % Shown only when a NEW file is selected (InputDatasetPathValueChanged),
+            % not on every axis-unit-driven reprocess of the same file.
+            app.write_message(InputUtils.applied_field_warning_message());
         end
 
         function close_progress_dialog(progress_dlg)
             if ~isempty(progress_dlg) && isvalid(progress_dlg)
                 close(progress_dlg);
             end
+        end
+
+        function is_mass = is_mass_unit(M_unit)
+            % True when the vertical-axis unit is mass magnetization
+            % (sigma, emu/g = Am^2/kg) rather than volume magnetization.
+            is_mass = string(M_unit) == "σ [emu/g=Am^2/kg]";
+        end
+
+        function msg = applied_field_warning_message()
+            % H here is always the externally applied field, never
+            % corrected for the sample's own demagnetizing field, so Hk,
+            % susceptibilities, and the Weiss coefficients are all
+            % apparent/effective, not intrinsic material properties.
+            msg = "Note: if this dataset was measured in an open magnetic circuit, H, Hk, susceptibilities, and Weiss coefficients here are apparent/effective, not intrinsic.";
         end
 
         function is_anhysteretic = is_last_import_anhysteretic(app)

@@ -15,7 +15,22 @@ classdef AnhystereticUtils
 
             AnhystereticUtils.sync_fitted_parameter_values_from_components(app);
             AnhystereticUtils.refresh_table_value_display(app);
-            app.JsField.Value = app.magnetic_parameters.Js;
+            % Js [T] (saturation polarization) requires the true volume Ms,
+            % not computable from a mass-native fit without a known density
+            % (deferred feature, see docs/ideas/mass-density-cross-view.md).
+            % Its display slot is repurposed to show the total saturation
+            % mass magnetization sigma_S = sum(sigma_S,i) instead -- the
+            % paper's own Eq. 13 quantity, and exactly what magnetic_parameters.Ms
+            % already holds per-component when M_is_mass_based.
+            app.JsTLabel.Text = char(DisplayUnits.get_Js_slot_label(app));
+            if app.M_is_mass_based
+                app.JsField.Value = sum(app.magnetic_parameters.Ms);
+            else
+                app.JsField.Value = app.magnetic_parameters.Js;
+            end
+            app.chiinLabel.Text = char(DisplayUnits.get_chi_total_label(app));
+            app.chiinLabel.Tooltip = AnhystereticUtils.effective_field_tooltip();
+            app.chiinField.Tooltip = AnhystereticUtils.effective_field_tooltip();
             app.chiinField.Value = app.magnetic_parameters.chi_in_total;
 
 
@@ -334,6 +349,8 @@ classdef AnhystereticUtils
             t.(5) = categorical(t.(5), {'high', 'low'}, 'Ordinal', true);
 
             app.TableParameters.Data = t;
+            app.TableParameters.ColumnName = {'Component'; DisplayUnits.get_Ms_label(app); DisplayUnits.get_alpha_label(app); 'aᵢ [A/m]'; 'Select aᵢ'};
+            app.TableParameters.Tooltip = AnhystereticUtils.effective_field_tooltip();
             AnhystereticUtils.shade_parameters_table(app);
         end
 
@@ -360,7 +377,17 @@ classdef AnhystereticUtils
 
             t = table(parameters_col, dimensionless_alphaMs_col, density_product_col, Hk_col, chi_in_col);
             app.TableQuantities.Data = t;
+            app.TableQuantities.ColumnName = {'Component'; DisplayUnits.get_dimensionless_alphaMs_label(app); DisplayUnits.get_density_product_label(app); 'Hkᵢ [A/m]'; DisplayUnits.get_chi_label(app)};
+            app.TableQuantities.Tooltip = AnhystereticUtils.effective_field_tooltip();
             AnhystereticUtils.shade_quantities_table(app);
+        end
+
+        function msg = effective_field_tooltip()
+            % Shared tooltip for the effective/apparent quantities on this
+            % tab (Weiss coefficient alpha/rho*alpha and susceptibility
+            % chi_in/chi_m,init) -- see InputUtils.applied_field_warning_message
+            % for the full explanation shown in the activity log on import.
+            msg = "Effective/apparent: not corrected for the sample's demagnetizing factor N_d (H here is the externally applied field). See Silveyra et al. 2026 JMMM, Eqs. 3, 6, 11.";
         end
 
         function refresh_table_value_display(app)
@@ -440,10 +467,11 @@ classdef AnhystereticUtils
             plot_components = app.PlotcomponentsCheckBoxM.Value == 1;
             show_grid = app.ShowgridCheckBoxM.Value == 1;
             axis_scale = string(app.AxisScaleDropDownM.Value);
+            M_label = DisplayUnits.get_M_label(app);
             if app.axis_scale_has_x(axis_scale)
-                plotter.plot_M_log(app.AxesM, plot_components, show_grid);
+                plotter.plot_M_log(app.AxesM, plot_components, show_grid, M_label);
             else
-                plotter.plot_M(app.AxesM, plot_components, show_grid);
+                plotter.plot_M(app.AxesM, plot_components, show_grid, M_label);
             end
             app.apply_axis_scale(app.AxesM, axis_scale);
         end
@@ -458,10 +486,11 @@ classdef AnhystereticUtils
             plot_components = app.PlotcomponentsCheckBoxdMdH.Value == 1;
             show_grid = app.ShowgridCheckBoxdMdH.Value == 1;
             axis_scale = string(app.AxisScaleDropDowndMdH.Value);
+            dMdH_label = DisplayUnits.get_dMdH_label(app);
             if app.axis_scale_has_x(axis_scale)
-                plotter.plot_dMdH_log(app.AxesdMdH, plot_components, show_grid);
+                plotter.plot_dMdH_log(app.AxesdMdH, plot_components, show_grid, dMdH_label);
             else
-                plotter.plot_dMdH(app.AxesdMdH, plot_components, show_grid);
+                plotter.plot_dMdH(app.AxesdMdH, plot_components, show_grid, dMdH_label);
             end
             app.apply_axis_scale(app.AxesdMdH, axis_scale);
         end
@@ -476,12 +505,37 @@ classdef AnhystereticUtils
             plot_components = app.PlotcomponentsCheckBoxHdMdH.Value == 1;
             show_grid = app.ShowgridCheckBoxHdMdH.Value == 1;
             axis_scale = string(app.AxisScaleDropDownHdMdH.Value);
+            HdMdH_label = DisplayUnits.get_HdMdH_label(app);
             if app.axis_scale_has_x(axis_scale)
-                plotter.plot_HdMdH_log(app.AxesHdMdH, plot_components, show_grid);
+                plotter.plot_HdMdH_log(app.AxesHdMdH, plot_components, show_grid, HdMdH_label);
             else
-                plotter.plot_HdMdH(app.AxesHdMdH, plot_components, show_grid);
+                plotter.plot_HdMdH(app.AxesHdMdH, plot_components, show_grid, HdMdH_label);
             end
             app.apply_axis_scale(app.AxesHdMdH, axis_scale);
+        end
+
+        function residual_plot_M(app)
+            residue_calculator = MagnetizationResidueCalculator(app.data_curve, app.modeled_curve);
+            residue = residue_calculator.get_residue();
+            log_flag = app.axis_scale_has_x(string(app.AxisScaleDropDownM.Value));
+            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.M, app.modeled_curve.H, app.modeled_curve.M, residue, log_flag, DisplayUnits.get_M_label(app), 5, [0 0 0], app.Colors(1,:), app.Colors(1,:));
+            residue_plotter.plot()
+        end
+
+        function residual_plot_dMdH(app)
+            residue_calculator = SusceptibilityResidueCalculator(app.data_curve, app.modeled_curve);
+            residue = residue_calculator.get_residue();
+            log_flag = app.axis_scale_has_x(string(app.AxisScaleDropDowndMdH.Value));
+            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.dMdH, app.modeled_curve.H, app.modeled_curve.dMdH, residue, log_flag, DisplayUnits.get_dMdH_label(app), 5, [0 0 0], app.Colors(1,:), app.Colors(1,:));
+            residue_plotter.plot()
+        end
+
+        function residual_plot_HdMdH(app)
+            residue_calculator = SemilogDerivativeResidueCalculator(app.data_curve, app.modeled_curve);
+            residue = residue_calculator.get_residue();
+            log_flag = app.axis_scale_has_x(string(app.AxisScaleDropDownHdMdH.Value));
+            residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.HdMdH, app.modeled_curve.H, app.modeled_curve.HdMdH, residue, log_flag, DisplayUnits.get_HdMdH_label(app), 5, [0 0 0], app.Colors(1,:), app.Colors(1,:));
+            residue_plotter.plot()
         end
 
         function [ms_seed, a_seed, alpha_seed, has_seeds] = get_first_anhysteretic_seeds(app)
