@@ -24,6 +24,28 @@ function [Hsol, Msol] = solve_ja_monotonic( ...
         return;
     end
 
+    if params.k <= 0
+        % Zero (or non-physical negative) pinning: no hysteresis, M
+        % collapses identically onto the anhysteretic curve Manh(H+alpha*M).
+        % ja_ode is singular at k=0 -- num and den both reduce to
+        % +-alpha*(Manh-M), giving dM/dH = -1/alpha (or 0/0 exactly
+        % on-curve) instead of tracking Manh -- so solve the implicit
+        % anhysteretic equation directly at each sample point instead of
+        % integrating. Hot-start each fzero from the previous point's M
+        % (starting from Mstart) for robust, fast convergence along the
+        % monotonic sweep.
+        N = 200;
+        Hsol = linspace(Hstart, Hend, N)';
+        Msol = zeros(N, 1);
+        m_guess = Mstart;
+        for i = 1:N
+            Hi = Hsol(i);
+            m_guess = fzero(@(M) anhysteretic(Hi + params.alpha .* M, params) - M, m_guess);
+            Msol(i) = m_guess;
+        end
+        return;
+    end
+
     sol = ode23tb( ...
         @(H, M) ja_ode(H, M, params, delta), ...
         [Hstart, Hend], ...

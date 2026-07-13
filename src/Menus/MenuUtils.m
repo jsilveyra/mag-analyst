@@ -24,17 +24,6 @@ classdef MenuUtils
             s.vertical_axis = app.VerticalaxisfieldDropDown.Value;
             s.curve_type = app.CurvetypeDropDown.Value;
             s.description = app.DescriptionTextArea.Value;
-            s.data_set_path = app.OutputDatasetPath.Value;
-
-            s.experimental_anhysteretic_magnetization_file_name = app.EditFieldFileNameExperimentalMagnetizationData.Value;
-            s.magnetization_file_name = app.EditFieldFileNameModeledAnhystereticMagnetization.Value;
-            s.parameters_file_name = app.EditFieldFileNameParameters.Value;
-            s.magnetization_plots_file_name = app.EditFieldFileNamePlotMagnetization.Value;
-            s.suceptibility_plots_file_name = app.EditFieldFileNamePlotSusceptibility.Value;
-            s.magnetization_derivative_file_name = app.EditFieldFileNamePlotSemiLogMagDerivative.Value;
-            s.magnetization_residual_file_name = app.EditFieldFileNameResiduesMagnetization.Value;
-            s.susceptibility_residual_file_name = app.EditFieldFileNameResiduesSusceptibility.Value;
-            s.semi_log_derivative_file_name = app.EditFieldFileNameResiduesSemiLogMagDerivative.Value;
 
             s.input_axis_scale = app.InputAxisScaleDropDown.Value;
             s.axis_scale_m = app.AxisScaleDropDownM.Value;
@@ -43,21 +32,6 @@ classdef MenuUtils
             s.fitting_show_grid_checkbox = app.ShowgridCheckBoxHdMdH.Value;
             s.fitting_plot_components_checkbox = app.PlotcomponentsCheckBoxHdMdH.Value;
             s.fitting_show_hcr_checkbox = app.ShowhcrCheckBoxHdMdH.Value;
-
-            s.model_magnetization_checkbox = app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Value;
-            s.model_magnetization_components_checkbox = app.OutputSeparateComponentsCheckBox.Value;
-            s.fitted_parameters_checkbox = app.ExportFittedparametersCheckBox.Value;
-            s.model_parameters_checkbox = app.ExportModelparametersCheckBox.Value;
-            s.other_quantities_checkbox = app.ExportOtherquantitiesCheckBox.Value;
-            s.errors_checkbox = app.ExportErrorsCheckBox.Value;
-            s.magnetization_plots_checkbox = app.CheckBoxExportPlotMagnetization.Value;
-            s.susceptibility_plots_checkbox = app.CheckBoxExportPlotSusceptibility.Value;
-            s.magnetization_derivatives_checkbox = app.CheckBoxExportPlotSemiLogMagDerivative.Value;
-
-            s.experimental_anhysteretic_magnetization_checkbox = app.CheckBoxExperimentalMagnetization.Value;
-            s.magnetization_residual_checkbox = app.CheckBoxExportResiduesMagnetization.Value;
-            s.susceptibility_residual_checkbox = app.CheckBoxExportResiduesSusceptibility.Value;
-            s.semi_log_derivative_residual_checkbox = app.CheckBoxExportResiduesSemiLogMagDerivative.Value;
 
             s.params = struct( ...
                 'Ms', app.Ms_JA.Value, ...
@@ -71,19 +45,6 @@ classdef MenuUtils
             fprintf(file, "%s", data);
             fclose(file);
             app.write_message("Project saved at " + app.ProjectPath);
-        end
-
-        function select_output_folder(app)
-            start_folder = string(app.OutputDatasetPath.Value);
-            folder = app.safe_getdir(start_folder, ...
-                "Select output folder");
-
-            if folder == ""
-                return;
-            end
-
-            app.ensure_folder(folder);
-            app.OutputDatasetPath.Value = char(folder);
         end
 
         function open_project(app)
@@ -138,17 +99,6 @@ classdef MenuUtils
             app.CurvetypeDropDown.Value = s.curve_type;
             app.DescriptionTextArea.Value = s.description;
 
-            app.OutputDatasetPath.Value = s.data_set_path;
-            app.EditFieldFileNameExperimentalMagnetizationData.Value = s.experimental_anhysteretic_magnetization_file_name;
-            app.EditFieldFileNameModeledAnhystereticMagnetization.Value = s.magnetization_file_name;
-            app.EditFieldFileNameParameters.Value = s.parameters_file_name;
-            app.EditFieldFileNamePlotMagnetization.Value = s.magnetization_plots_file_name;
-            app.EditFieldFileNamePlotSusceptibility.Value = s.suceptibility_plots_file_name;
-            app.EditFieldFileNamePlotSemiLogMagDerivative.Value = s.magnetization_derivative_file_name;
-            app.EditFieldFileNameResiduesMagnetization.Value = s.magnetization_residual_file_name;
-            app.EditFieldFileNameResiduesSusceptibility.Value = s.susceptibility_residual_file_name;
-            app.EditFieldFileNameResiduesSemiLogMagDerivative.Value = s.semi_log_derivative_file_name;
-
             app.ShowgridCheckBoxHdMdH.Value = s.fitting_show_grid_checkbox;
             app.PlotcomponentsCheckBoxHdMdH.Value = s.fitting_plot_components_checkbox;
             if isfield(s, 'fitting_show_hcr_checkbox')
@@ -159,20 +109,6 @@ classdef MenuUtils
             app.ShowhcrCheckBoxM.Value = show_hcr_value;
             app.ShowhcrCheckBoxdMdH.Value = show_hcr_value;
             app.ShowhcrCheckBoxHdMdH.Value = show_hcr_value;
-            app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Value = s.model_magnetization_checkbox;
-            app.OutputSeparateComponentsCheckBox.Value = s.model_magnetization_components_checkbox;
-            app.ExportFittedparametersCheckBox.Value = s.fitted_parameters_checkbox;
-            app.ExportModelparametersCheckBox.Value = s.model_parameters_checkbox;
-            app.ExportOtherquantitiesCheckBox.Value = s.other_quantities_checkbox;
-            app.ExportErrorsCheckBox.Value = s.errors_checkbox;
-            app.CheckBoxExportPlotMagnetization.Value = s.magnetization_plots_checkbox;
-            app.CheckBoxExportPlotSusceptibility.Value = s.susceptibility_plots_checkbox;
-            app.CheckBoxExportPlotSemiLogMagDerivative.Value = s.magnetization_derivatives_checkbox;
-
-            app.CheckBoxExperimentalMagnetization.Value = s.experimental_anhysteretic_magnetization_checkbox;
-            app.CheckBoxExportResiduesMagnetization.Value = s.magnetization_residual_checkbox;
-            app.CheckBoxExportResiduesSusceptibility.Value = s.susceptibility_residual_checkbox;
-            app.CheckBoxExportResiduesSemiLogMagDerivative.Value = s.semi_log_derivative_residual_checkbox;
 
             if isfield(s, 'params')
                 if isfield(s.params, 'Ms'); app.Ms_JA.Value = str2double(string(s.params.Ms)); end
@@ -216,6 +152,121 @@ classdef MenuUtils
 
             app.ProjectPath = fullpath;
             app.save();
+        end
+
+        function new_project(app)
+            %NEW_PROJECT "New" menu item: resets the whole app to a
+            %   startup-like state without closing/reopening it. Destructive
+            %   (loses anything unsaved), so confirm first.
+            selection = uiconfirm(app.MagAnalystUIFigure, ...
+                "Unsaved changes will be lost. Continue?", "New Project", ...
+                "Options", {'Continue', 'Cancel'}, ...
+                "DefaultOption", 2, "CancelOption", 2, "Icon", "warning");
+            if ~strcmp(selection, 'Continue')
+                return;
+            end
+            MenuUtils.reset_app(app);
+        end
+
+        function reset_app(app)
+            %RESET_APP Clear all four tabs' data/tables/plots/caches back to
+            %   a startup-like state. The deprecated (detached) Output-data
+            %   tab and its Save/Save-as-linked fields are deliberately left
+            %   untouched -- see CLAUDE.md 2a and src/Menus/README.md.
+
+            % --- Input tab ---
+            app.H_raw = [];
+            app.M_raw = [];
+            app.data_curve = [];
+            app.imported_curve_type = "";
+            app.M_is_mass_based = false;
+            app.last_import_folder = "";
+            app.InputDatasetPath.Value = '';
+            app.DescriptionTextArea.Value = {''};
+            cla(app.AxesRawInputData, 'reset');
+            cla(app.AxesProcessedInputData, 'reset');
+
+            % --- Anhysteretic fitting tab ---
+            app.modeled_curve = [];
+            app.Hcr = [];
+            app.mcr = [];
+            app.Hx = [];
+            app.magnetic_parameters = [];
+            app.fitted_parameter_values = [];
+            app.component_row_types = [];
+            app.lb = [];
+            app.ub = [];
+            app.select_fit = [];
+            app.NofcompSpinner.Value = 1;
+            app.number_components = 1;
+            app.init_components();
+            app.init_parameters_table(true);
+            app.init_quantities_table(true);
+            cla(app.AxesM, 'reset');
+            cla(app.AxesdMdH, 'reset');
+            cla(app.AxesHdMdH, 'reset');
+            app.ErrorDisplay.Value = [];
+            app.JsField.Value = [];
+            app.chiinField.Value = [];
+
+            % --- Hysteretic fitting tab ---
+            app.Ms_JA.Value = [];
+            app.a_JA.Value = [];
+            app.alpha_JA.Value = [];
+            app.k_JA.Value = [];
+            app.c_JA.Value = 1/3;
+            app.MsLower_JA.Value = 0;
+            app.MsUpper_JA.Value = Inf;
+            app.aLower_JA.Value = 0;
+            app.aUpper_JA.Value = Inf;
+            app.alphaLower_JA.Value = -Inf;
+            app.alphaUpper_JA.Value = Inf;
+            app.cLower_JA.Value = 0;
+            app.cUpper_JA.Value = 1;
+            app.kLower_JA.Value = 0;
+            app.kUpper_JA.Value = Inf;
+            app.Htip.Value = [];
+            app.Mtip.Value = [];
+            cla(app.AxesM_2, 'reset');
+            app.ErrorDisplay_2.Value = [];
+            app.hysteretic_ms_lower_bound_user_edited = false;
+
+            % --- Playground tab ---
+            PlaygroundUtils.clear_simulation(app);
+            app.configure_minor_loop_table();
+            app.configure_degaussing_table();
+            app.configure_harmonics_table();
+            app.HcaseDropDown.Value = 'Major loop';
+            app.sync_playground_mode_ui();
+            PlaygroundUtils.sync_major_ui(app);
+            PlaygroundUtils.sync_minor_ui(app);
+            app.sync_degaussing_ui();
+            app.sync_harmonics_ui();
+            cla(app.AxesM_5, 'reset');
+            app.playground_curve_H = [];
+            app.playground_curve_M = [];
+            app.playground_curve_ready = false;
+            app.Ms_JA_Playground.Value = [];
+            app.a_JA_Playground.Value = [];
+            app.alpha_JA_Playground.Value = [];
+            app.c_JA_Playground.Value = [];
+            app.k_JA_Playground.Value = [];
+
+            % --- Cross-cutting ---
+            app.ProjectPath = "";
+            FitProgressUtils.close(app);
+            if isappdata(app.MagAnalystUIFigure, 'fit_rerun_signature_anh')
+                rmappdata(app.MagAnalystUIFigure, 'fit_rerun_signature_anh');
+            end
+            if isappdata(app.MagAnalystUIFigure, 'fit_rerun_signature_hyst')
+                rmappdata(app.MagAnalystUIFigure, 'fit_rerun_signature_hyst');
+            end
+            if ~isempty(app.ColorDialogApp) && isvalid(app.ColorDialogApp)
+                delete(app.ColorDialogApp);
+            end
+            app.ColorDialogApp = [];
+            app.MessagesTextArea.Value = {''};
+            app.write_message("New project started.");
         end
     end
 end

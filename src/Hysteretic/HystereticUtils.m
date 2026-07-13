@@ -346,7 +346,7 @@ classdef HystereticUtils
             [Hsim, Msim, has_model] = HystereticUtils.get_hysteretic_modeled_region(app);
             if has_model
                 plot(ax, Hsim, Msim, 'r-', 'LineWidth', 1.2, 'DisplayName', 'JA simulated');
-            elseif ~isempty(app.k_JA.Value) && isfinite(app.k_JA.Value) && app.k_JA.Value <= 0
+            elseif ~isempty(app.k_JA.Value) && isfinite(app.k_JA.Value) && app.k_JA.Value < 0
                 app.write_message("Warning: The magnetization path cannot be computed with the current unphysical k<0 parameter.");
             end
             xline(ax, 0, 'k-', 'LineWidth', 1.2);
@@ -382,7 +382,10 @@ classdef HystereticUtils
                 return;
             end
 
-            if Ms <= 0 || a <= 0 || k <= 0 || c < 0 || c > 1
+            % k == 0 is the physical zero-pinning limit (M collapses onto the
+            % anhysteretic curve, handled directly in solve_ja_monotonic) --
+            % only genuinely unphysical k < 0 is rejected here.
+            if Ms <= 0 || a <= 0 || k < 0 || c < 0 || c > 1
                 return;
             end
 
@@ -662,10 +665,11 @@ classdef HystereticUtils
              error_type = string(app.ErrortominimizeDropDown_2.Value);
 
              app.stop_fit_requested = false;
-             FitProgressUtils.open(app, "Hysteretic (JA) fit progress", error_type);
 
              % See if this is a plain repeat click (nothing edited since the
-             % last fit) to decide whether the "Fit again" tip below is due.
+             % last fit) to decide whether to accumulate the fit-progress
+             % history (see FitProgressUtils.open) and whether the "Fit
+             % again" tip below is due.
              conditions.mask = mask;
              conditions.bounds = bounds;
              conditions.error_type = error_type;
@@ -676,6 +680,8 @@ classdef HystereticUtils
              conditions.rel_tolerance = rel_tolerance;
              conditions.max_repetitions = max_repetitions;
              is_rerun = FitProgressUtils.check_and_remember_conditions(app, 'hyst', conditions, params_seed);
+
+             FitProgressUtils.open(app, 'hyst', "Hysteretic (JA) fit progress", error_type, is_rerun);
 
              fit_timer = tic;
             try
@@ -700,7 +706,7 @@ classdef HystereticUtils
                 % evaluated point during the search over JAFitter.fit's own
                 % returned point -- see the matching comment in
                 % AnhystereticUtils.fit_parameters.
-                [best_x, best_val, has_best] = FitProgressUtils.get_best(app);
+                [best_x, best_val, has_best] = FitProgressUtils.get_best(app, 'hyst');
                 if has_best
                     [~, map] = JAFitUtils.pack_params(params_seed, mask);
                     fit_result.params_opt = JAFitUtils.unpack_params(best_x, map, params_seed, mask, estimate_k_fn);
@@ -719,6 +725,7 @@ classdef HystereticUtils
 
                 FitProgressUtils.remember_fit_result(app, 'hyst', params_opt);
                 t = toc(fit_timer);
+                FitProgressUtils.record_elapsed_time(app, 'hyst', t);
                 if app.stop_fit_requested
                     app.write_message("Fitting stopped by user after " + app.format_short(t) + " s");
                 else
@@ -729,6 +736,7 @@ classdef HystereticUtils
                 end
             catch ME
                 t = toc(fit_timer);
+                FitProgressUtils.record_elapsed_time(app, 'hyst', t);
                 app.write_message("Fitting failed after " + app.format_short(t) + " s: " + string(ME.message));
             end
         end

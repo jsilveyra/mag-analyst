@@ -142,16 +142,19 @@ classdef AnhystereticUtils
             end
 
             app.stop_fit_requested = false;
-            FitProgressUtils.open(app, "Anhysteretic fit progress", app.ErrorDropDown.Value);
 
             % See if this is a plain repeat click (nothing edited since the
-            % last fit) to decide whether the "Fit again" tip below is due.
+            % last fit) to decide whether to accumulate the fit-progress
+            % history (see FitProgressUtils.open) and whether the "Fit
+            % again" tip below is due.
             conditions.lb = fit_lb;
             conditions.ub = fit_ub;
             conditions.select_fit = fit_select_fit;
             conditions.error_type = string(app.ErrorDropDown.Value);
             seed = cat(2, app.Hcr, app.mcr, app.Hx);
             is_rerun = FitProgressUtils.check_and_remember_conditions(app, 'anh', conditions, seed);
+
+            FitProgressUtils.open(app, 'anh', "Anhysteretic fit progress", app.ErrorDropDown.Value, is_rerun);
 
             app.write_message("Fitting started");
             pause(0.01);
@@ -165,7 +168,7 @@ classdef AnhystereticUtils
                 % other reason the search's own final iterate might not be
                 % its best) never leaves worse parameters than the best the
                 % search actually found.
-                [best_x, ~, has_best] = FitProgressUtils.get_best(app);
+                [best_x, ~, has_best] = FitProgressUtils.get_best(app, 'anh');
                 if has_best
                     n = app.number_components;
                     app.Hcr = best_x(1:n);
@@ -173,7 +176,9 @@ classdef AnhystereticUtils
                     app.Hx = best_x(2*n+1:end);
                 end
                 FitProgressUtils.remember_fit_result(app, 'anh', cat(2, app.Hcr, app.mcr, app.Hx));
-                t = sprintf("%0.2f", toc);
+                elapsed = toc;
+                FitProgressUtils.record_elapsed_time(app, 'anh', elapsed);
+                t = sprintf("%0.2f", elapsed);
                 if app.stop_fit_requested
                     app.write_message("Fitting stopped by user after " + t + " s");
                 else
@@ -577,15 +582,6 @@ classdef AnhystereticUtils
                 end
             end
             ret = string(chars);
-        end
-
-        function export_residual(app, residue, file_name)
-            t = table(transpose(app.data_curve.H), transpose(residue));
-            t.Properties.VariableNames(:) = {'H [A/m]' 'residue'};
-
-            path = fullfile(app.OutputDatasetPath.Value, file_name);
-            writetable(t,path, 'Delimiter', ';');
-            app.write_message("Data saved as " + file_name);
         end
 
         function set_colors_and_plot(app, colors)

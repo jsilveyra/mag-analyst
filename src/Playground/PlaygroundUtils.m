@@ -403,7 +403,10 @@ classdef PlaygroundUtils
                 return;
             end
 
-            if Ms <= 0 || a <= 0 || k <= 0 || c < 0 || c > 1
+            % k == 0 is the physical zero-pinning limit (M collapses onto the
+            % anhysteretic curve, handled directly in solve_ja_monotonic) --
+            % only genuinely unphysical k < 0 is rejected here.
+            if Ms <= 0 || a <= 0 || k < 0 || c < 0 || c > 1
                 return;
             end
 
