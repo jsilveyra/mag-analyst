@@ -1,10 +1,13 @@
 # Menus
 
-Reserved for standalone scripts backing the app's menu bar (Project > Open /
-Save / Save as, and future Export dialog).
+Standalone logic backing the app's Project menu.
 
-As of 2026-07-06, this logic still lives inline in `app_old_exported.m`
-(`OpenMenuSelected`, `SaveMenuSelected`, `SaveasMenuSelected`, `save`,
-`default_data_folder`, `safe_getfile`/`safe_putfile`/`safe_getdir`) — it
-hasn't been extracted into standalone files yet. See CLAUDE.md for the
-extraction plan.
+- `MenuUtils.m` — Open / Save / Save as (`OpenMenuSelected`, `SaveMenuSelected`,
+  `SaveasMenuSelected` in `app_exported.m` all delegate here) and the "New"
+  full-app reset (`new_project`/`reset_app`).
+- `ExportDialogUtils.m` — the unified "Export..." dialog (replaces the
+  deprecated Output-data tab, which is detached from the TabGroup at startup
+  rather than deleted, since `MenuUtils.save`/`open_project` still read its
+  `OutputDatasetPath` and per-item fields).
+- `ExportUtils.m` — generic, app-agnostic file-IO writers (CSV/TXT/image)
+  used by `ExportDialogUtils.m`.
