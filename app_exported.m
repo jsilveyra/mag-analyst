@@ -4,9 +4,11 @@ classdef app_exported < matlab.apps.AppBase
     properties (Access = public)
         MagAnalystUIFigure              matlab.ui.Figure
         ProjectMenu                     matlab.ui.container.Menu
+        NewMenu                         matlab.ui.container.Menu
         OpenMenu                        matlab.ui.container.Menu
         SaveMenu                        matlab.ui.container.Menu
         SaveasMenu                      matlab.ui.container.Menu
+        ExportMenu                      matlab.ui.container.Menu
         AppGridLayout                   matlab.ui.container.GridLayout
         MessagesTabPanel                matlab.ui.container.TabGroup
         ActivitylogTab                  matlab.ui.container.Tab
@@ -238,73 +240,6 @@ classdef app_exported < matlab.apps.AppBase
         StopcriterionDropDown           matlab.ui.control.DropDown
         StopcriterionDropDownLabel      matlab.ui.control.Label
         AxesM_5                         matlab.ui.control.UIAxes
-        OutputdataTab                   matlab.ui.container.Tab
-        GridLayoutMagnetizationoutputdata  matlab.ui.container.GridLayout
-        GridLayoutExperimentalMagnetizationData  matlab.ui.container.GridLayout
-        DropDownOutputExperimentalMagnetizationData  matlab.ui.control.DropDown
-        EditFieldFileNameExperimentalMagnetizationData  matlab.ui.control.EditField
-        ExperimentalanhystereticmagnetizationLabel  matlab.ui.control.Label
-        CheckBoxExperimentalMagnetization  matlab.ui.control.CheckBox
-        GridLayoutExportResiduesButton  matlab.ui.container.GridLayout
-        ExportResiduesButton            matlab.ui.control.Button
-        GridLayoutExportResiduesSemiLogMagDerivative  matlab.ui.container.GridLayout
-        DropDownResiduesSemiLogMagDerivativeExtension  matlab.ui.control.DropDown
-        EditFieldFileNameResiduesSemiLogMagDerivative  matlab.ui.control.EditField
-        CheckBoxExportResiduesSemiLogMagDerivative  matlab.ui.control.CheckBox
-        SemilogmagnetizationderivativeResiduesExportLabel  matlab.ui.control.Label
-        GridLayoutExportResiduesSusceptibility  matlab.ui.container.GridLayout
-        DropDownResiduesSusceptibilityExtension  matlab.ui.control.DropDown
-        EditFieldFileNameResiduesSusceptibility  matlab.ui.control.EditField
-        CheckBoxExportResiduesSusceptibility  matlab.ui.control.CheckBox
-        SusceptibilityResiduesExportLabel  matlab.ui.control.Label
-        ResidualplotsdataLabel          matlab.ui.control.Label
-        GridLayoutExportResiduesMagnetization  matlab.ui.container.GridLayout
-        DropDownResiduesMagnetizacionExtension  matlab.ui.control.DropDown
-        EditFieldFileNameResiduesMagnetization  matlab.ui.control.EditField
-        CheckBoxExportResiduesMagnetization  matlab.ui.control.CheckBox
-        MagnetizationExportResiduesLabel  matlab.ui.control.Label
-        GridLayoutExportPlotsButton     matlab.ui.container.GridLayout
-        ExportPlotsButton               matlab.ui.control.Button
-        GridLayoutExportPlotSemiLogMagDerivative  matlab.ui.container.GridLayout
-        DropDownPlotSemiLogMagDerivativeExtension  matlab.ui.control.DropDown
-        EditFieldFileNamePlotSemiLogMagDerivative  matlab.ui.control.EditField
-        CheckBoxExportPlotSemiLogMagDerivative  matlab.ui.control.CheckBox
-        SemilogmagnetizationderivativePlotExportLabel  matlab.ui.control.Label
-        GridLayoutExportPlotSusceptibility  matlab.ui.container.GridLayout
-        DropDownPlotSusceptibilityExtension  matlab.ui.control.DropDown
-        EditFieldFileNamePlotSusceptibility  matlab.ui.control.EditField
-        CheckBoxExportPlotSusceptibility  matlab.ui.control.CheckBox
-        SusceptibilityPlotExportLabel   matlab.ui.control.Label
-        GridLayoutExportPlotMagnetization  matlab.ui.container.GridLayout
-        DropDownPlotMagnetizacionExtension  matlab.ui.control.DropDown
-        EditFieldFileNamePlotMagnetization  matlab.ui.control.EditField
-        CheckBoxExportPlotMagnetization  matlab.ui.control.CheckBox
-        MagnetizationPlotExportLabel    matlab.ui.control.Label
-        PlotsLabel                      matlab.ui.control.Label
-        GridLayoutExportParametersButton  matlab.ui.container.GridLayout
-        ExportErrorsCheckBox            matlab.ui.control.CheckBox
-        ExportOtherquantitiesCheckBox   matlab.ui.control.CheckBox
-        ExportParametersButton          matlab.ui.control.Button
-        GridLayoutExportParametersFile  matlab.ui.container.GridLayout
-        ExportModelparametersCheckBox   matlab.ui.control.CheckBox
-        ExportFittedparametersCheckBox  matlab.ui.control.CheckBox
-        DropDownOutputParametersExtension  matlab.ui.control.DropDown
-        EditFieldFileNameParameters     matlab.ui.control.EditField
-        ParametersLabel                 matlab.ui.control.Label
-        GridLayoutExportData            matlab.ui.container.GridLayout
-        ModeledanhystereticmagnetizationcomponentsLabel  matlab.ui.control.Label
-        OutputSeparateComponentsCheckBox  matlab.ui.control.CheckBox
-        ExportdataButton                matlab.ui.control.Button
-        GridLayoutMagnetizationDataFittedAnhystereticMagnetization  matlab.ui.container.GridLayout
-        DropDownOutputModeledAnhystereticMagnetizationExtension  matlab.ui.control.DropDown
-        EditFieldFileNameModeledAnhystereticMagnetization  matlab.ui.control.EditField
-        ModeledanhystereticmagnetizationLabel  matlab.ui.control.Label
-        CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization  matlab.ui.control.CheckBox
-        MagnetizationdataLabel          matlab.ui.control.Label
-        GridLayoutOutputDatasetPath     matlab.ui.container.GridLayout
-        OutputBrowseButton              matlab.ui.control.Button
-        OutputDatasetPath               matlab.ui.control.EditField
-        OutputDatasetpathLabel          matlab.ui.control.Label
         ContextMenu                     matlab.ui.container.ContextMenu
         Menu                            matlab.ui.container.Menu
         Menu2                           matlab.ui.container.Menu
@@ -342,6 +277,8 @@ classdef app_exported < matlab.apps.AppBase
         stop_fit_requested logical = false   % set by "Stop fit" buttons to abort a running fit
         last_import_folder string = ""   % MOD: remembers the last folder browsed for a dataset this session
         M_is_mass_based logical = false   % MOD: true when the vertical-axis unit is sigma [emu/g=Am^2/kg]
+        export_dialog struct = struct()   % MOD: state of the currently-open unified Export dialog (see ExportDialogUtils)
+        export_settings struct = struct()   % MOD: persisted Export-dialog settings (folder/prefix/format/checked items)
     end
     
     methods (Access = public)
@@ -730,10 +667,6 @@ classdef app_exported < matlab.apps.AppBase
             ret = AnhystereticUtils.subscript_to_number(app, str);
         end
 
-        function export_residual(app, residue, file_name)
-            AnhystereticUtils.export_residual(app, residue, file_name);
-        end
-        
         function save(app)
             MenuUtils.save(app);
         end
@@ -1017,11 +950,6 @@ classdef app_exported < matlab.apps.AppBase
 
             app.apply_component_color_styles();   % MOD: shade fitting/model/quantities table rows to match component colors
         
-            % Default output folder
-            out_folder = app.default_data_folder();
-            app.ensure_folder(out_folder);
-            app.OutputDatasetPath.Value = char(out_folder);
-        
             app.write_message("MagAnalyst " + AppVersion());
         
             drawnow;
@@ -1045,21 +973,6 @@ classdef app_exported < matlab.apps.AppBase
         % Button pushed function: CalculatePlotButton
         function CalculatePlotButtonPushed(app, event)
             app.calculate_plot_and_refresh_hysteretic();
-        end
-
-        % Callback function
-        function logCheckBoxMValueChanged(app, event)
-            app.plot_M()
-        end
-
-        % Callback function
-        function logCheckBoxdMdHValueChanged(app, event)
-            app.plot_dMdH()
-        end
-
-        % Callback function
-        function logCheckBoxHdMdHValueChanged(app, event)
-            app.plot_HdMdH()
         end
 
         % Value changed function: NofcompSpinner
@@ -1117,14 +1030,6 @@ classdef app_exported < matlab.apps.AppBase
             end
         end
 
-        % Callback function
-        function logCheckBoxInputPlotValueChanged(app, event)
-            if app.InputDatasetPath.Value == ""
-                return
-            end
-            app.plot_input()
-        end
-
         % Button pushed function: ResidualplotButtonM
         function ResidualplotButtonMPushed(app, event)
             AnhystereticUtils.residual_plot_M(app);
@@ -1138,62 +1043,6 @@ classdef app_exported < matlab.apps.AppBase
         % Button pushed function: ResidualplotButtondHdMdH
         function ResidualplotButtondHdMdHPushed(app, event)
             AnhystereticUtils.residual_plot_HdMdH(app);
-        end
-
-        % Button pushed function: OutputBrowseButton
-        function OutputBrowseButtonPushed(app, event)
-            % MOD: Callback modified for safe file handling
-            start_folder = string(app.OutputDatasetPath.Value);
-            folder = app.safe_getdir(start_folder, ...
-                "Select output folder");
-
-            if folder == ""
-                return;
-            end
-
-            app.ensure_folder(folder);
-            app.OutputDatasetPath.Value = char(folder);
-        end
-
-        % Button pushed function: ExportdataButton
-        function ExportdataButtonPushed(app, event)
-            if (app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Value == 0 && app.CheckBoxExperimentalMagnetization.Value == 0)
-                app.write_message("No magnetization data was selected to be exported.");
-                return;
-            end
-            if (app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Value == 1)
-                if(app.OutputSeparateComponentsCheckBox.Value == 0)
-                    t = table(transpose(app.modeled_curve.H), transpose(app.modeled_curve.M), transpose(app.modeled_curve.dMdH), transpose(app.modeled_curve.HdMdH));
-                    t.Properties.VariableNames(:) = {'H [A/m]' 'M [A/m]' 'dM/dH' 'dM/dlogH [A/m]' };
-                elseif(app.OutputSeparateComponentsCheckBox.Value == 1)
-                    t = table(transpose(app.modeled_curve.H), transpose(app.modeled_curve.M), array2table(transpose(app.modeled_curve.Mi)), transpose(app.modeled_curve.dMdH), array2table(transpose(app.modeled_curve.dMidH)), transpose(app.modeled_curve.HdMdH), array2table(transpose(app.modeled_curve.HdMidH)));
-                    t = splitvars(t);
-                    variable_names = cell(4 + app.number_components*3, 1);
-                    variable_names(1) = {'H [A/m]'};
-                    variable_names(2) = {'M [A/m]'};
-                    variable_names(app.number_components + 3) = {'dM/dH'};
-                    variable_names(2*app.number_components + 4) = {'dM/dlogH [A/m]'};
-                    for i=1:app.number_components
-                        variable_names(i + 2) = cellstr(strcat('M', string(i), ' [A/m]'));
-                        variable_names(i + app.number_components + 3) = cellstr(strcat('dM', string(i), '/dH'));
-                        variable_names(i + 2*app.number_components + 4) = cellstr(strcat('dM', string(i), '/dlogH [A/m]'));
-                    end
-                    t.Properties.VariableNames = variable_names;
-                end
-                file_name = strcat(app.EditFieldFileNameModeledAnhystereticMagnetization.Value, app.DropDownOutputModeledAnhystereticMagnetizationExtension.Value);
-                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
-                writetable(t,path, 'Delimiter', ';');
-                app.write_message("Modeled data saved as " + file_name);
-            end
-            %Separate into two functions
-            if(app.CheckBoxExperimentalMagnetization.Value == 1)
-                t = table(transpose(app.data_curve.H), transpose(app.data_curve.M));
-                t.Properties.VariableNames(:) = {'H [A/m]' 'M [A/m]'};
-                file_name = strcat(app.EditFieldFileNameExperimentalMagnetizationData.Value, app.DropDownOutputExperimentalMagnetizationData.Value);
-                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
-                writetable(t,path, 'Delimiter', ';');
-                app.write_message("Experimental data saved as " + file_name);
-            end
         end
 
         % Value changed function: PlotcomponentsCheckBoxM
@@ -1239,109 +1088,9 @@ classdef app_exported < matlab.apps.AppBase
             delete(app)
         end
 
-        % Button pushed function: ExportParametersButton
-        function ExportParametersButtonPushed(app, event)
-            if(app.ExportFittedparametersCheckBox.Value == 0 && app.ExportModelparametersCheckBox.Value == 0 && app.ExportOtherquantitiesCheckBox.Value == 0 && app.ExportErrorsCheckBox.Value == 0)
-                app.write_message("No parameters were selected to be exported");
-                return;
-            end
-            file_name = strcat(app.EditFieldFileNameParameters.Value, app.DropDownOutputParametersExtension.Value);
-            path = strcat(app.OutputDatasetPath.Value, '\', file_name);
-            file = fopen(path,'w');
-            fprintf(file, "Parameters:" + newline);
-            if(app.ExportFittedparametersCheckBox.Value == 1)
-                fprintf(file, "Fitted Parameters:" + newline);
-                for i = 1:height(app.TableFittedParameters.Data)
-                    name = string(app.TableFittedParameters.Data(i, 1));
-                    name = subscript_to_number(app, name);
-                    value = app.fitted_parameter_values(i);
-                    s = sprintf("%s: \t%f", name, value);
-                    fprintf(file, s + newline);
-                end
-                fprintf(file, newline);
-            end
-            if(app.ExportModelparametersCheckBox.Value == 1)
-                fprintf(file, "Model-Retrieved Parameters:" + newline);
-                for i = 1:height(app.TableParameters.Data)
-                    Ms_value = app.magnetic_parameters.Ms(i);
-                    alpha_value = app.magnetic_parameters.alpha(i);
-                    a_value = app.magnetic_parameters.a(i);
-                    s_component = sprintf("Component: %i", i);
-                    s_Ms_value = sprintf("    Ms%i [A/m]: \t%0.5e", i, Ms_value);
-                    s_alpha_value = sprintf("            α: \t%0.5e", alpha_value);
-                    s_a_value = sprintf("     a%i [A/m]: \t%0.6f", i, a_value);
-                    fprintf(file, s_component + newline + s_Ms_value + newline + s_alpha_value + newline + s_a_value + newline);
-                end
-                fprintf(file, newline);
-            end
-            if(app.ExportOtherquantitiesCheckBox.Value == 1)
-            fprintf(file, "Calculated Quantities:" + newline);
-                for i = 1:height(app.TableQuantities.Data)
-                    alpha_Ms_value = app.magnetic_parameters.dimensionless_alphaMs(i);
-                    density_product_value = app.magnetic_parameters.density_product(i);
-                    Hk_value = app.magnetic_parameters.Hk(i);
-                    chi_in_value = app.magnetic_parameters.chi_in(i);
-                    s_component = sprintf("Component: %i", i);
-                    s_alpha_Ms_value = sprintf("    α%i|Ms%i|/(3a%i): \t%0.4f", i, i, i, alpha_Ms_value);
-                    s_density_product_value = sprintf("    N%ikBT [J/m^3]: \t%0.4f", i, density_product_value);
-                    s_Hk = sprintf("        Hk%i [A/m]: \t%0.4e", i, Hk_value);
-                    s_chi_in_value = sprintf("            χin%i: \t%i", i, chi_in_value);
-                    fprintf(file, s_component + newline + s_alpha_Ms_value + newline + s_density_product_value + newline + s_Hk + newline + s_chi_in_value + newline);
-                end
-                fprintf(file, newline);
-            end
-
-            if (app.ExportErrorsCheckBox.Value == 1)
-                diagonal_error = DiagonalErrorCalculator(app.data_curve, app.modeled_curve).get_error();
-                horizontal_error = HorizontalErrorCalculator(app.data_curve, app.modeled_curve).get_error();
-                vertical_error = VerticalErrorCalculator(app.data_curve, app.modeled_curve).get_error();
-                s_diagonal_error = sprintf("  Diagonal error: \t%10.4e", diagonal_error);
-                s_horizontal_error = sprintf("Horizontal error: \t%10.4e", horizontal_error);
-                s_vertical_error = sprintf("  Vertical error: \t%10.4e", vertical_error);
-                s = "Errors:" + newline + s_diagonal_error + newline + s_horizontal_error + newline + s_vertical_error + newline;
-                fprintf(file, s + newline);
-            end
-
-            fclose(file);
-            app.write_message("Parameter data saved as " + file_name);
-        end
-
-        % Button pushed function: ExportPlotsButton
-        function ExportPlotsButtonPushed(app, event)
-            if (app.CheckBoxExportPlotMagnetization.Value == 0 && app.CheckBoxExportPlotSusceptibility.Value == 0 && app.CheckBoxExportPlotSemiLogMagDerivative.Value == 0)
-                app.write_message("No plots were selected to be exported");
-                return;
-            end
-            app.write_message("Exporting plots");
-
-            if (app.CheckBoxExportPlotMagnetization.Value == 1)
-                file_name = strcat(app.EditFieldFileNamePlotMagnetization.Value, app.DropDownPlotMagnetizacionExtension.Value);
-                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
-                exportgraphics(app.AxesM,path,'Resolution',400);
-                message = strcat("Magnetization plots exported as ",file_name);
-                app.write_message(message);
-            end
-
-            if (app.CheckBoxExportPlotSusceptibility.Value == 1)
-                file_name = strcat(app.EditFieldFileNamePlotSusceptibility.Value, app.DropDownPlotSusceptibilityExtension.Value);
-                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
-                exportgraphics(app.AxesdMdH,path,'Resolution',400);
-                message = strcat("Susceptibility plots exported as ",file_name);
-                app.write_message(message);
-            end
-
-            if(app.CheckBoxExportPlotSemiLogMagDerivative.Value == 1)
-                file_name = strcat(app.EditFieldFileNamePlotSemiLogMagDerivative.Value, app.DropDownPlotSemiLogMagDerivativeExtension.Value);
-                path = strcat(app.OutputDatasetPath.Value, '\', file_name);
-                exportgraphics(app.AxesHdMdH,path,'Resolution',400);
-                message = strcat("Semi-Log Magnetization Derivative plots exported as ",file_name);
-                app.write_message(message);
-            end
-        end
-
         % Menu selected function: SaveasMenu
         function SaveasMenuSelected(app, event)
-            MenuUtils.select_output_folder(app);
+            MenuUtils.save_project(app);
         end
 
         % Menu selected function: OpenMenu
@@ -1349,34 +1098,9 @@ classdef app_exported < matlab.apps.AppBase
             MenuUtils.open_project(app);
         end
 
-        % Button pushed function: ExportResiduesButton
-        function ExportResiduesButtonPushed(app, event)
-            if (app.CheckBoxExportResiduesMagnetization.Value == 0 && app.CheckBoxExportResiduesSusceptibility.Value == 0 && app.CheckBoxExportResiduesSemiLogMagDerivative.Value == 0)
-                app.write_message("No residual plots were selected to be exported");
-                return;
-            end
-            if (app.CheckBoxExportResiduesMagnetization.Value == 1)
-                residue = MagnetizationResidueCalculator(app.data_curve, app.modeled_curve).get_residue();
-                file_name = strcat(app.EditFieldFileNameResiduesMagnetization.Value, app.DropDownResiduesMagnetizacionExtension.Value);
-                app.export_residual(residue, file_name);
-            end
-
-            if(app.CheckBoxExportResiduesSusceptibility.Value == 1)
-                residue = SusceptibilityResidueCalculator(app.data_curve, app.modeled_curve).get_residue();
-                file_name = strcat(app.EditFieldFileNameResiduesSusceptibility.Value, app.DropDownResiduesSusceptibilityExtension.Value);
-                app.export_residual(residue, file_name);
-            end
-
-            if(app.CheckBoxExportResiduesSemiLogMagDerivative.Value == 1)
-                residue = SemilogDerivativeResidueCalculator(app.data_curve, app.modeled_curve).get_residue();
-                file_name = strcat(app.EditFieldFileNameResiduesSemiLogMagDerivative.Value, app.DropDownResiduesSemiLogMagDerivativeExtension.Value);
-                app.export_residual(residue, file_name);
-            end
-        end
-
         % Menu selected function: SaveMenu
         function SaveMenuSelected(app, event)
-            MenuUtils.save_project(app);
+            MenuUtils.save_or_prompt(app);
         end
 
         % Value changed function: HorizontalaxisfieldDropDown
@@ -1395,11 +1119,6 @@ classdef app_exported < matlab.apps.AppBase
             app.plot_input();
             app.apply_axis_scale(app.AxesProcessedInputData, value);
             app.apply_axis_scale(app.AxesRawInputData, value);
-        end
-
-        % Callback function
-        function InputAxisScaleDropDownValueChanged(app, event)
-
         end
 
         % Value changed function: AxisScaleDropDownM
@@ -1432,11 +1151,6 @@ classdef app_exported < matlab.apps.AppBase
         % Value changed function: InputNumberofPointsEditField
         function InputApplyPointsButtonPushed(app, event)
             app.reprocess_dataset();
-        end
-
-        % Callback function
-        function InputAxisScaleDropDownValueChanged2(app, event)
-
         end
 
         % Cell edit callback: TableFittedParameters
@@ -1680,13 +1394,6 @@ classdef app_exported < matlab.apps.AppBase
             app.run_playground_live();
         end
 
-        % Callback function
-        function UITableCellEdit(app, event)
-            app.minor_loop_table_user_edited = true;   % MOD: stop auto-filling defaults once edited
-            app.expand_minor_loop_table_if_needed(event);
-            app.run_playground_live();
-        end
-
         % Value changed function: FinalamplitudeAmEditField, 
         % ...and 4 other components
         function DegaussingValueChanged(app, event)
@@ -1833,6 +1540,16 @@ classdef app_exported < matlab.apps.AppBase
         function JAParamsPlaygroundValueChanged(app, event)
             app.run_playground_live();
         end
+
+        % Menu selected function: NewMenu
+        function NewMenuSelected(app, event)
+            MenuUtils.new_project(app);
+        end
+
+        % Menu selected function: ExportMenu
+        function ExportMenuSelected(app, event)
+            ExportDialogUtils.open_dialog(app);
+        end
     end
 
     % Component initialization
@@ -1855,6 +1572,11 @@ classdef app_exported < matlab.apps.AppBase
             app.ProjectMenu = uimenu(app.MagAnalystUIFigure);
             app.ProjectMenu.Text = 'Project';
 
+            % Create NewMenu
+            app.NewMenu = uimenu(app.ProjectMenu);
+            app.NewMenu.MenuSelectedFcn = createCallbackFcn(app, @NewMenuSelected, true);
+            app.NewMenu.Text = 'New';
+
             % Create OpenMenu
             app.OpenMenu = uimenu(app.ProjectMenu);
             app.OpenMenu.MenuSelectedFcn = createCallbackFcn(app, @OpenMenuSelected, true);
@@ -1873,6 +1595,11 @@ classdef app_exported < matlab.apps.AppBase
             app.SaveasMenu.MenuSelectedFcn = createCallbackFcn(app, @SaveasMenuSelected, true);
             app.SaveasMenu.Separator = 'on';
             app.SaveasMenu.Text = 'Save as...';
+
+            % Create ExportMenu
+            app.ExportMenu = uimenu(app.ProjectMenu);
+            app.ExportMenu.MenuSelectedFcn = createCallbackFcn(app, @ExportMenuSelected, true);
+            app.ExportMenu.Text = 'Export...';
 
             % Create AppGridLayout
             app.AppGridLayout = uigridlayout(app.MagAnalystUIFigure);
@@ -2489,7 +2216,7 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayout8
             app.GridLayout8 = uigridlayout(app.HystereticfittingTab);
-            app.GridLayout8.ColumnWidth = {93, 90, 96, 90, 93, 80, 108, 34, 49, 38, 52, 68, 32, 42, 68};
+            app.GridLayout8.ColumnWidth = {'100x', '100x', '100x', '100x', '100x', '100x', '100x', '25x', '90x', '25x', '90x', '80x', '50x', '40x', '60x'};
             app.GridLayout8.RowHeight = {1, '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
             app.GridLayout8.ColumnSpacing = 1.46249389648438;
             app.GridLayout8.RowSpacing = 4.83749580383301;
@@ -3578,474 +3305,6 @@ classdef app_exported < matlab.apps.AppBase
             app.VerticalaxisfieldDropDown_2.Layout.Row = 2;
             app.VerticalaxisfieldDropDown_2.Layout.Column = [13 14];
             app.VerticalaxisfieldDropDown_2.Value = 'M [A/m]';
-
-            % Create OutputdataTab
-            app.OutputdataTab = uitab(app.TabGroup);
-            app.OutputdataTab.Title = 'Output data';
-
-            % Create GridLayoutMagnetizationoutputdata
-            app.GridLayoutMagnetizationoutputdata = uigridlayout(app.OutputdataTab);
-            app.GridLayoutMagnetizationoutputdata.ColumnWidth = {'1x'};
-            app.GridLayoutMagnetizationoutputdata.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
-            app.GridLayoutMagnetizationoutputdata.RowSpacing = 5;
-
-            % Create GridLayoutOutputDatasetPath
-            app.GridLayoutOutputDatasetPath = uigridlayout(app.GridLayoutMagnetizationoutputdata);
-            app.GridLayoutOutputDatasetPath.ColumnWidth = {'1.1x', '3x', '1x'};
-            app.GridLayoutOutputDatasetPath.RowHeight = {'1x'};
-            app.GridLayoutOutputDatasetPath.Padding = [0 0 0 0];
-            app.GridLayoutOutputDatasetPath.Layout.Row = 1;
-            app.GridLayoutOutputDatasetPath.Layout.Column = 1;
-
-            % Create OutputDatasetpathLabel
-            app.OutputDatasetpathLabel = uilabel(app.GridLayoutOutputDatasetPath);
-            app.OutputDatasetpathLabel.FontWeight = 'bold';
-            app.OutputDatasetpathLabel.Layout.Row = 1;
-            app.OutputDatasetpathLabel.Layout.Column = 1;
-            app.OutputDatasetpathLabel.Text = 'Dataset path';
-
-            % Create OutputDatasetPath
-            app.OutputDatasetPath = uieditfield(app.GridLayoutOutputDatasetPath, 'text');
-            app.OutputDatasetPath.Layout.Row = 1;
-            app.OutputDatasetPath.Layout.Column = 2;
-
-            % Create OutputBrowseButton
-            app.OutputBrowseButton = uibutton(app.GridLayoutOutputDatasetPath, 'push');
-            app.OutputBrowseButton.ButtonPushedFcn = createCallbackFcn(app, @OutputBrowseButtonPushed, true);
-            app.OutputBrowseButton.Layout.Row = 1;
-            app.OutputBrowseButton.Layout.Column = 3;
-            app.OutputBrowseButton.Text = 'Browse';
-
-            % Create MagnetizationdataLabel
-            app.MagnetizationdataLabel = uilabel(app.GridLayoutMagnetizationoutputdata);
-            app.MagnetizationdataLabel.FontWeight = 'bold';
-            app.MagnetizationdataLabel.Layout.Row = 2;
-            app.MagnetizationdataLabel.Layout.Column = 1;
-            app.MagnetizationdataLabel.Text = 'Magnetization data:';
-
-            % Create GridLayoutMagnetizationDataFittedAnhystereticMagnetization
-            app.GridLayoutMagnetizationDataFittedAnhystereticMagnetization = uigridlayout(app.GridLayoutMagnetizationoutputdata);
-            app.GridLayoutMagnetizationDataFittedAnhystereticMagnetization.ColumnWidth = {'1.5x', '0.1x', '2.4x', '1x'};
-            app.GridLayoutMagnetizationDataFittedAnhystereticMagnetization.RowHeight = {'1x'};
-            app.GridLayoutMagnetizationDataFittedAnhystereticMagnetization.Padding = [0 0 0 0];
-            app.GridLayoutMagnetizationDataFittedAnhystereticMagnetization.Layout.Row = 4;
-            app.GridLayoutMagnetizationDataFittedAnhystereticMagnetization.Layout.Column = 1;
-
-            % Create CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization
-            app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization = uicheckbox(app.GridLayoutMagnetizationDataFittedAnhystereticMagnetization);
-            app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Text = '';
-            app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Layout.Row = 1;
-            app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Layout.Column = 2;
-            app.CheckBoxOutputMagnetizationDataFittedAnhystereticMagnetization.Value = true;
-
-            % Create ModeledanhystereticmagnetizationLabel
-            app.ModeledanhystereticmagnetizationLabel = uilabel(app.GridLayoutMagnetizationDataFittedAnhystereticMagnetization);
-            app.ModeledanhystereticmagnetizationLabel.Layout.Row = 1;
-            app.ModeledanhystereticmagnetizationLabel.Layout.Column = 1;
-            app.ModeledanhystereticmagnetizationLabel.Text = 'Modeled anhysteretic magnetization';
-
-            % Create EditFieldFileNameModeledAnhystereticMagnetization
-            app.EditFieldFileNameModeledAnhystereticMagnetization = uieditfield(app.GridLayoutMagnetizationDataFittedAnhystereticMagnetization, 'text');
-            app.EditFieldFileNameModeledAnhystereticMagnetization.HorizontalAlignment = 'right';
-            app.EditFieldFileNameModeledAnhystereticMagnetization.Layout.Row = 1;
-            app.EditFieldFileNameModeledAnhystereticMagnetization.Layout.Column = 3;
-            app.EditFieldFileNameModeledAnhystereticMagnetization.Value = 'modeled_anhysteretic_magnetization';
-
-            % Create DropDownOutputModeledAnhystereticMagnetizationExtension
-            app.DropDownOutputModeledAnhystereticMagnetizationExtension = uidropdown(app.GridLayoutMagnetizationDataFittedAnhystereticMagnetization);
-            app.DropDownOutputModeledAnhystereticMagnetizationExtension.Items = {'.csv'};
-            app.DropDownOutputModeledAnhystereticMagnetizationExtension.Layout.Row = 1;
-            app.DropDownOutputModeledAnhystereticMagnetizationExtension.Layout.Column = 4;
-            app.DropDownOutputModeledAnhystereticMagnetizationExtension.Value = '.csv';
-
-            % Create GridLayoutExportData
-            app.GridLayoutExportData = uigridlayout(app.GridLayoutMagnetizationoutputdata);
-            app.GridLayoutExportData.ColumnWidth = {'1.5x', '0.1x', '2.4x', '1x'};
-            app.GridLayoutExportData.RowHeight = {'1x'};
-            app.GridLayoutExportData.Padding = [0 0 0 0];
-            app.GridLayoutExportData.Layout.Row = 5;
-            app.GridLayoutExportData.Layout.Column = 1;
-
-            % Create ExportdataButton
-            app.ExportdataButton = uibutton(app.GridLayoutExportData, 'push');
-            app.ExportdataButton.ButtonPushedFcn = createCallbackFcn(app, @ExportdataButtonPushed, true);
-            app.ExportdataButton.Layout.Row = 1;
-            app.ExportdataButton.Layout.Column = 4;
-            app.ExportdataButton.Text = 'Export data';
-
-            % Create OutputSeparateComponentsCheckBox
-            app.OutputSeparateComponentsCheckBox = uicheckbox(app.GridLayoutExportData);
-            app.OutputSeparateComponentsCheckBox.Text = '';
-            app.OutputSeparateComponentsCheckBox.Layout.Row = 1;
-            app.OutputSeparateComponentsCheckBox.Layout.Column = 2;
-            app.OutputSeparateComponentsCheckBox.Value = true;
-
-            % Create ModeledanhystereticmagnetizationcomponentsLabel
-            app.ModeledanhystereticmagnetizationcomponentsLabel = uilabel(app.GridLayoutExportData);
-            app.ModeledanhystereticmagnetizationcomponentsLabel.Layout.Row = 1;
-            app.ModeledanhystereticmagnetizationcomponentsLabel.Layout.Column = 1;
-            app.ModeledanhystereticmagnetizationcomponentsLabel.Text = 'Modeled anhysteretic magnetization components';
-
-            % Create ParametersLabel
-            app.ParametersLabel = uilabel(app.GridLayoutMagnetizationoutputdata);
-            app.ParametersLabel.FontWeight = 'bold';
-            app.ParametersLabel.Layout.Row = 6;
-            app.ParametersLabel.Layout.Column = 1;
-            app.ParametersLabel.Text = 'Parameters:';
-
-            % Create GridLayoutExportParametersFile
-            app.GridLayoutExportParametersFile = uigridlayout(app.GridLayoutMagnetizationoutputdata);
-            app.GridLayoutExportParametersFile.ColumnWidth = {'0.8x', '0.8x', '2.4x', '1x'};
-            app.GridLayoutExportParametersFile.RowHeight = {'1x'};
-            app.GridLayoutExportParametersFile.Padding = [0 0 0 0];
-            app.GridLayoutExportParametersFile.Layout.Row = 7;
-            app.GridLayoutExportParametersFile.Layout.Column = 1;
-
-            % Create EditFieldFileNameParameters
-            app.EditFieldFileNameParameters = uieditfield(app.GridLayoutExportParametersFile, 'text');
-            app.EditFieldFileNameParameters.HorizontalAlignment = 'right';
-            app.EditFieldFileNameParameters.Layout.Row = 1;
-            app.EditFieldFileNameParameters.Layout.Column = 3;
-            app.EditFieldFileNameParameters.Value = 'parameters';
-
-            % Create DropDownOutputParametersExtension
-            app.DropDownOutputParametersExtension = uidropdown(app.GridLayoutExportParametersFile);
-            app.DropDownOutputParametersExtension.Items = {'.txt'};
-            app.DropDownOutputParametersExtension.Layout.Row = 1;
-            app.DropDownOutputParametersExtension.Layout.Column = 4;
-            app.DropDownOutputParametersExtension.Value = '.txt';
-
-            % Create ExportFittedparametersCheckBox
-            app.ExportFittedparametersCheckBox = uicheckbox(app.GridLayoutExportParametersFile);
-            app.ExportFittedparametersCheckBox.Text = 'Fitted parameters';
-            app.ExportFittedparametersCheckBox.Layout.Row = 1;
-            app.ExportFittedparametersCheckBox.Layout.Column = 1;
-            app.ExportFittedparametersCheckBox.Value = true;
-
-            % Create ExportModelparametersCheckBox
-            app.ExportModelparametersCheckBox = uicheckbox(app.GridLayoutExportParametersFile);
-            app.ExportModelparametersCheckBox.Text = 'Model parameters';
-            app.ExportModelparametersCheckBox.Layout.Row = 1;
-            app.ExportModelparametersCheckBox.Layout.Column = 2;
-            app.ExportModelparametersCheckBox.Value = true;
-
-            % Create GridLayoutExportParametersButton
-            app.GridLayoutExportParametersButton = uigridlayout(app.GridLayoutMagnetizationoutputdata);
-            app.GridLayoutExportParametersButton.ColumnWidth = {'0.8x', '0.8x', '2.4x', '1x'};
-            app.GridLayoutExportParametersButton.RowHeight = {'1x'};
-            app.GridLayoutExportParametersButton.Padding = [0 0 0 0];
-            app.GridLayoutExportParametersButton.Layout.Row = 8;
-            app.GridLayoutExportParametersButton.Layout.Column = 1;
-
-            % Create ExportParametersButton
-            app.ExportParametersButton = uibutton(app.GridLayoutExportParametersButton, 'push');
-            app.ExportParametersButton.ButtonPushedFcn = createCallbackFcn(app, @ExportParametersButtonPushed, true);
-            app.ExportParametersButton.Layout.Row = 1;
-            app.ExportParametersButton.Layout.Column = 4;
-            app.ExportParametersButton.Text = 'Export data';
-
-            % Create ExportOtherquantitiesCheckBox
-            app.ExportOtherquantitiesCheckBox = uicheckbox(app.GridLayoutExportParametersButton);
-            app.ExportOtherquantitiesCheckBox.Text = 'Other quantities';
-            app.ExportOtherquantitiesCheckBox.Layout.Row = 1;
-            app.ExportOtherquantitiesCheckBox.Layout.Column = 1;
-            app.ExportOtherquantitiesCheckBox.Value = true;
-
-            % Create ExportErrorsCheckBox
-            app.ExportErrorsCheckBox = uicheckbox(app.GridLayoutExportParametersButton);
-            app.ExportErrorsCheckBox.Text = 'Errors';
-            app.ExportErrorsCheckBox.Layout.Row = 1;
-            app.ExportErrorsCheckBox.Layout.Column = 2;
-            app.ExportErrorsCheckBox.Value = true;
-
-            % Create PlotsLabel
-            app.PlotsLabel = uilabel(app.GridLayoutMagnetizationoutputdata);
-            app.PlotsLabel.FontWeight = 'bold';
-            app.PlotsLabel.Layout.Row = 9;
-            app.PlotsLabel.Layout.Column = 1;
-            app.PlotsLabel.Text = 'Plots:';
-
-            % Create GridLayoutExportPlotMagnetization
-            app.GridLayoutExportPlotMagnetization = uigridlayout(app.GridLayoutMagnetizationoutputdata);
-            app.GridLayoutExportPlotMagnetization.ColumnWidth = {'1.5x', '0.1x', '2.4x', '1x'};
-            app.GridLayoutExportPlotMagnetization.RowHeight = {'1x'};
-            app.GridLayoutExportPlotMagnetization.Padding = [0 0 0 0];
-            app.GridLayoutExportPlotMagnetization.Layout.Row = 10;
-            app.GridLayoutExportPlotMagnetization.Layout.Column = 1;
-
-            % Create MagnetizationPlotExportLabel
-            app.MagnetizationPlotExportLabel = uilabel(app.GridLayoutExportPlotMagnetization);
-            app.MagnetizationPlotExportLabel.Layout.Row = 1;
-            app.MagnetizationPlotExportLabel.Layout.Column = 1;
-            app.MagnetizationPlotExportLabel.Text = 'Magnetization';
-
-            % Create CheckBoxExportPlotMagnetization
-            app.CheckBoxExportPlotMagnetization = uicheckbox(app.GridLayoutExportPlotMagnetization);
-            app.CheckBoxExportPlotMagnetization.Text = '';
-            app.CheckBoxExportPlotMagnetization.Layout.Row = 1;
-            app.CheckBoxExportPlotMagnetization.Layout.Column = 2;
-            app.CheckBoxExportPlotMagnetization.Value = true;
-
-            % Create EditFieldFileNamePlotMagnetization
-            app.EditFieldFileNamePlotMagnetization = uieditfield(app.GridLayoutExportPlotMagnetization, 'text');
-            app.EditFieldFileNamePlotMagnetization.HorizontalAlignment = 'right';
-            app.EditFieldFileNamePlotMagnetization.Layout.Row = 1;
-            app.EditFieldFileNamePlotMagnetization.Layout.Column = 3;
-            app.EditFieldFileNamePlotMagnetization.Value = 'M';
-
-            % Create DropDownPlotMagnetizacionExtension
-            app.DropDownPlotMagnetizacionExtension = uidropdown(app.GridLayoutExportPlotMagnetization);
-            app.DropDownPlotMagnetizacionExtension.Items = {'.png'};
-            app.DropDownPlotMagnetizacionExtension.Layout.Row = 1;
-            app.DropDownPlotMagnetizacionExtension.Layout.Column = 4;
-            app.DropDownPlotMagnetizacionExtension.Value = '.png';
-
-            % Create GridLayoutExportPlotSusceptibility
-            app.GridLayoutExportPlotSusceptibility = uigridlayout(app.GridLayoutMagnetizationoutputdata);
-            app.GridLayoutExportPlotSusceptibility.ColumnWidth = {'1.5x', '0.1x', '2.4x', '1x'};
-            app.GridLayoutExportPlotSusceptibility.RowHeight = {'1x'};
-            app.GridLayoutExportPlotSusceptibility.Padding = [0 0 0 0];
-            app.GridLayoutExportPlotSusceptibility.Layout.Row = 11;
-            app.GridLayoutExportPlotSusceptibility.Layout.Column = 1;
-
-            % Create SusceptibilityPlotExportLabel
-            app.SusceptibilityPlotExportLabel = uilabel(app.GridLayoutExportPlotSusceptibility);
-            app.SusceptibilityPlotExportLabel.Layout.Row = 1;
-            app.SusceptibilityPlotExportLabel.Layout.Column = 1;
-            app.SusceptibilityPlotExportLabel.Text = 'Susceptibility';
-
-            % Create CheckBoxExportPlotSusceptibility
-            app.CheckBoxExportPlotSusceptibility = uicheckbox(app.GridLayoutExportPlotSusceptibility);
-            app.CheckBoxExportPlotSusceptibility.Text = '';
-            app.CheckBoxExportPlotSusceptibility.Layout.Row = 1;
-            app.CheckBoxExportPlotSusceptibility.Layout.Column = 2;
-            app.CheckBoxExportPlotSusceptibility.Value = true;
-
-            % Create EditFieldFileNamePlotSusceptibility
-            app.EditFieldFileNamePlotSusceptibility = uieditfield(app.GridLayoutExportPlotSusceptibility, 'text');
-            app.EditFieldFileNamePlotSusceptibility.HorizontalAlignment = 'right';
-            app.EditFieldFileNamePlotSusceptibility.Layout.Row = 1;
-            app.EditFieldFileNamePlotSusceptibility.Layout.Column = 3;
-            app.EditFieldFileNamePlotSusceptibility.Value = 'dMdH';
-
-            % Create DropDownPlotSusceptibilityExtension
-            app.DropDownPlotSusceptibilityExtension = uidropdown(app.GridLayoutExportPlotSusceptibility);
-            app.DropDownPlotSusceptibilityExtension.Items = {'.png'};
-            app.DropDownPlotSusceptibilityExtension.Layout.Row = 1;
-            app.DropDownPlotSusceptibilityExtension.Layout.Column = 4;
-            app.DropDownPlotSusceptibilityExtension.Value = '.png';
-
-            % Create GridLayoutExportPlotSemiLogMagDerivative
-            app.GridLayoutExportPlotSemiLogMagDerivative = uigridlayout(app.GridLayoutMagnetizationoutputdata);
-            app.GridLayoutExportPlotSemiLogMagDerivative.ColumnWidth = {'1.5x', '0.1x', '2.4x', '1x'};
-            app.GridLayoutExportPlotSemiLogMagDerivative.RowHeight = {'1x'};
-            app.GridLayoutExportPlotSemiLogMagDerivative.Padding = [0 0 0 0];
-            app.GridLayoutExportPlotSemiLogMagDerivative.Layout.Row = 12;
-            app.GridLayoutExportPlotSemiLogMagDerivative.Layout.Column = 1;
-
-            % Create SemilogmagnetizationderivativePlotExportLabel
-            app.SemilogmagnetizationderivativePlotExportLabel = uilabel(app.GridLayoutExportPlotSemiLogMagDerivative);
-            app.SemilogmagnetizationderivativePlotExportLabel.Layout.Row = 1;
-            app.SemilogmagnetizationderivativePlotExportLabel.Layout.Column = 1;
-            app.SemilogmagnetizationderivativePlotExportLabel.Text = 'Semi-log magnetization derivative';
-
-            % Create CheckBoxExportPlotSemiLogMagDerivative
-            app.CheckBoxExportPlotSemiLogMagDerivative = uicheckbox(app.GridLayoutExportPlotSemiLogMagDerivative);
-            app.CheckBoxExportPlotSemiLogMagDerivative.Text = '';
-            app.CheckBoxExportPlotSemiLogMagDerivative.Layout.Row = 1;
-            app.CheckBoxExportPlotSemiLogMagDerivative.Layout.Column = 2;
-            app.CheckBoxExportPlotSemiLogMagDerivative.Value = true;
-
-            % Create EditFieldFileNamePlotSemiLogMagDerivative
-            app.EditFieldFileNamePlotSemiLogMagDerivative = uieditfield(app.GridLayoutExportPlotSemiLogMagDerivative, 'text');
-            app.EditFieldFileNamePlotSemiLogMagDerivative.HorizontalAlignment = 'right';
-            app.EditFieldFileNamePlotSemiLogMagDerivative.Layout.Row = 1;
-            app.EditFieldFileNamePlotSemiLogMagDerivative.Layout.Column = 3;
-            app.EditFieldFileNamePlotSemiLogMagDerivative.Value = 'dMdlnH';
-
-            % Create DropDownPlotSemiLogMagDerivativeExtension
-            app.DropDownPlotSemiLogMagDerivativeExtension = uidropdown(app.GridLayoutExportPlotSemiLogMagDerivative);
-            app.DropDownPlotSemiLogMagDerivativeExtension.Items = {'.png'};
-            app.DropDownPlotSemiLogMagDerivativeExtension.Layout.Row = 1;
-            app.DropDownPlotSemiLogMagDerivativeExtension.Layout.Column = 4;
-            app.DropDownPlotSemiLogMagDerivativeExtension.Value = '.png';
-
-            % Create GridLayoutExportPlotsButton
-            app.GridLayoutExportPlotsButton = uigridlayout(app.GridLayoutMagnetizationoutputdata);
-            app.GridLayoutExportPlotsButton.ColumnWidth = {'0.8x', '0.8x', '2.4x', '1x'};
-            app.GridLayoutExportPlotsButton.RowHeight = {'1x'};
-            app.GridLayoutExportPlotsButton.Padding = [0 0 0 0];
-            app.GridLayoutExportPlotsButton.Layout.Row = 13;
-            app.GridLayoutExportPlotsButton.Layout.Column = 1;
-
-            % Create ExportPlotsButton
-            app.ExportPlotsButton = uibutton(app.GridLayoutExportPlotsButton, 'push');
-            app.ExportPlotsButton.ButtonPushedFcn = createCallbackFcn(app, @ExportPlotsButtonPushed, true);
-            app.ExportPlotsButton.Layout.Row = 1;
-            app.ExportPlotsButton.Layout.Column = 4;
-            app.ExportPlotsButton.Text = 'Export plots';
-
-            % Create GridLayoutExportResiduesMagnetization
-            app.GridLayoutExportResiduesMagnetization = uigridlayout(app.GridLayoutMagnetizationoutputdata);
-            app.GridLayoutExportResiduesMagnetization.ColumnWidth = {'1.5x', '0.1x', '2.4x', '1x'};
-            app.GridLayoutExportResiduesMagnetization.RowHeight = {'1x'};
-            app.GridLayoutExportResiduesMagnetization.Padding = [0 0 0 0];
-            app.GridLayoutExportResiduesMagnetization.Layout.Row = 15;
-            app.GridLayoutExportResiduesMagnetization.Layout.Column = 1;
-
-            % Create MagnetizationExportResiduesLabel
-            app.MagnetizationExportResiduesLabel = uilabel(app.GridLayoutExportResiduesMagnetization);
-            app.MagnetizationExportResiduesLabel.Layout.Row = 1;
-            app.MagnetizationExportResiduesLabel.Layout.Column = 1;
-            app.MagnetizationExportResiduesLabel.Text = 'Magnetization';
-
-            % Create CheckBoxExportResiduesMagnetization
-            app.CheckBoxExportResiduesMagnetization = uicheckbox(app.GridLayoutExportResiduesMagnetization);
-            app.CheckBoxExportResiduesMagnetization.Text = '';
-            app.CheckBoxExportResiduesMagnetization.Layout.Row = 1;
-            app.CheckBoxExportResiduesMagnetization.Layout.Column = 2;
-            app.CheckBoxExportResiduesMagnetization.Value = true;
-
-            % Create EditFieldFileNameResiduesMagnetization
-            app.EditFieldFileNameResiduesMagnetization = uieditfield(app.GridLayoutExportResiduesMagnetization, 'text');
-            app.EditFieldFileNameResiduesMagnetization.HorizontalAlignment = 'right';
-            app.EditFieldFileNameResiduesMagnetization.Layout.Row = 1;
-            app.EditFieldFileNameResiduesMagnetization.Layout.Column = 3;
-            app.EditFieldFileNameResiduesMagnetization.Value = 'residual_M';
-
-            % Create DropDownResiduesMagnetizacionExtension
-            app.DropDownResiduesMagnetizacionExtension = uidropdown(app.GridLayoutExportResiduesMagnetization);
-            app.DropDownResiduesMagnetizacionExtension.Items = {'.csv'};
-            app.DropDownResiduesMagnetizacionExtension.Layout.Row = 1;
-            app.DropDownResiduesMagnetizacionExtension.Layout.Column = 4;
-            app.DropDownResiduesMagnetizacionExtension.Value = '.csv';
-
-            % Create ResidualplotsdataLabel
-            app.ResidualplotsdataLabel = uilabel(app.GridLayoutMagnetizationoutputdata);
-            app.ResidualplotsdataLabel.FontWeight = 'bold';
-            app.ResidualplotsdataLabel.Layout.Row = 14;
-            app.ResidualplotsdataLabel.Layout.Column = 1;
-            app.ResidualplotsdataLabel.Text = 'Residual plots data:';
-
-            % Create GridLayoutExportResiduesSusceptibility
-            app.GridLayoutExportResiduesSusceptibility = uigridlayout(app.GridLayoutMagnetizationoutputdata);
-            app.GridLayoutExportResiduesSusceptibility.ColumnWidth = {'1.5x', '0.1x', '2.4x', '1x'};
-            app.GridLayoutExportResiduesSusceptibility.RowHeight = {'1x'};
-            app.GridLayoutExportResiduesSusceptibility.Padding = [0 0 0 0];
-            app.GridLayoutExportResiduesSusceptibility.Layout.Row = 16;
-            app.GridLayoutExportResiduesSusceptibility.Layout.Column = 1;
-
-            % Create SusceptibilityResiduesExportLabel
-            app.SusceptibilityResiduesExportLabel = uilabel(app.GridLayoutExportResiduesSusceptibility);
-            app.SusceptibilityResiduesExportLabel.Layout.Row = 1;
-            app.SusceptibilityResiduesExportLabel.Layout.Column = 1;
-            app.SusceptibilityResiduesExportLabel.Text = 'Susceptibility';
-
-            % Create CheckBoxExportResiduesSusceptibility
-            app.CheckBoxExportResiduesSusceptibility = uicheckbox(app.GridLayoutExportResiduesSusceptibility);
-            app.CheckBoxExportResiduesSusceptibility.Text = '';
-            app.CheckBoxExportResiduesSusceptibility.Layout.Row = 1;
-            app.CheckBoxExportResiduesSusceptibility.Layout.Column = 2;
-            app.CheckBoxExportResiduesSusceptibility.Value = true;
-
-            % Create EditFieldFileNameResiduesSusceptibility
-            app.EditFieldFileNameResiduesSusceptibility = uieditfield(app.GridLayoutExportResiduesSusceptibility, 'text');
-            app.EditFieldFileNameResiduesSusceptibility.HorizontalAlignment = 'right';
-            app.EditFieldFileNameResiduesSusceptibility.Layout.Row = 1;
-            app.EditFieldFileNameResiduesSusceptibility.Layout.Column = 3;
-            app.EditFieldFileNameResiduesSusceptibility.Value = 'residual_dMdH';
-
-            % Create DropDownResiduesSusceptibilityExtension
-            app.DropDownResiduesSusceptibilityExtension = uidropdown(app.GridLayoutExportResiduesSusceptibility);
-            app.DropDownResiduesSusceptibilityExtension.Items = {'.csv'};
-            app.DropDownResiduesSusceptibilityExtension.Layout.Row = 1;
-            app.DropDownResiduesSusceptibilityExtension.Layout.Column = 4;
-            app.DropDownResiduesSusceptibilityExtension.Value = '.csv';
-
-            % Create GridLayoutExportResiduesSemiLogMagDerivative
-            app.GridLayoutExportResiduesSemiLogMagDerivative = uigridlayout(app.GridLayoutMagnetizationoutputdata);
-            app.GridLayoutExportResiduesSemiLogMagDerivative.ColumnWidth = {'1.5x', '0.1x', '2.4x', '1x'};
-            app.GridLayoutExportResiduesSemiLogMagDerivative.RowHeight = {'1x'};
-            app.GridLayoutExportResiduesSemiLogMagDerivative.Padding = [0 0 0 0];
-            app.GridLayoutExportResiduesSemiLogMagDerivative.Layout.Row = 17;
-            app.GridLayoutExportResiduesSemiLogMagDerivative.Layout.Column = 1;
-
-            % Create SemilogmagnetizationderivativeResiduesExportLabel
-            app.SemilogmagnetizationderivativeResiduesExportLabel = uilabel(app.GridLayoutExportResiduesSemiLogMagDerivative);
-            app.SemilogmagnetizationderivativeResiduesExportLabel.Layout.Row = 1;
-            app.SemilogmagnetizationderivativeResiduesExportLabel.Layout.Column = 1;
-            app.SemilogmagnetizationderivativeResiduesExportLabel.Text = 'Semi-log magnetization derivative';
-
-            % Create CheckBoxExportResiduesSemiLogMagDerivative
-            app.CheckBoxExportResiduesSemiLogMagDerivative = uicheckbox(app.GridLayoutExportResiduesSemiLogMagDerivative);
-            app.CheckBoxExportResiduesSemiLogMagDerivative.Text = '';
-            app.CheckBoxExportResiduesSemiLogMagDerivative.Layout.Row = 1;
-            app.CheckBoxExportResiduesSemiLogMagDerivative.Layout.Column = 2;
-            app.CheckBoxExportResiduesSemiLogMagDerivative.Value = true;
-
-            % Create EditFieldFileNameResiduesSemiLogMagDerivative
-            app.EditFieldFileNameResiduesSemiLogMagDerivative = uieditfield(app.GridLayoutExportResiduesSemiLogMagDerivative, 'text');
-            app.EditFieldFileNameResiduesSemiLogMagDerivative.HorizontalAlignment = 'right';
-            app.EditFieldFileNameResiduesSemiLogMagDerivative.Layout.Row = 1;
-            app.EditFieldFileNameResiduesSemiLogMagDerivative.Layout.Column = 3;
-            app.EditFieldFileNameResiduesSemiLogMagDerivative.Value = 'residual_dMdlnH';
-
-            % Create DropDownResiduesSemiLogMagDerivativeExtension
-            app.DropDownResiduesSemiLogMagDerivativeExtension = uidropdown(app.GridLayoutExportResiduesSemiLogMagDerivative);
-            app.DropDownResiduesSemiLogMagDerivativeExtension.Items = {'.csv'};
-            app.DropDownResiduesSemiLogMagDerivativeExtension.Layout.Row = 1;
-            app.DropDownResiduesSemiLogMagDerivativeExtension.Layout.Column = 4;
-            app.DropDownResiduesSemiLogMagDerivativeExtension.Value = '.csv';
-
-            % Create GridLayoutExportResiduesButton
-            app.GridLayoutExportResiduesButton = uigridlayout(app.GridLayoutMagnetizationoutputdata);
-            app.GridLayoutExportResiduesButton.ColumnWidth = {'0.8x', '0.8x', '2.4x', '1x'};
-            app.GridLayoutExportResiduesButton.RowHeight = {'1x'};
-            app.GridLayoutExportResiduesButton.Padding = [0 0 0 0];
-            app.GridLayoutExportResiduesButton.Layout.Row = 18;
-            app.GridLayoutExportResiduesButton.Layout.Column = 1;
-
-            % Create ExportResiduesButton
-            app.ExportResiduesButton = uibutton(app.GridLayoutExportResiduesButton, 'push');
-            app.ExportResiduesButton.ButtonPushedFcn = createCallbackFcn(app, @ExportResiduesButtonPushed, true);
-            app.ExportResiduesButton.Layout.Row = 1;
-            app.ExportResiduesButton.Layout.Column = 4;
-            app.ExportResiduesButton.Text = 'Export data';
-
-            % Create GridLayoutExperimentalMagnetizationData
-            app.GridLayoutExperimentalMagnetizationData = uigridlayout(app.GridLayoutMagnetizationoutputdata);
-            app.GridLayoutExperimentalMagnetizationData.ColumnWidth = {'1.5x', '0.1x', '2.4x', '1x'};
-            app.GridLayoutExperimentalMagnetizationData.RowHeight = {'1x'};
-            app.GridLayoutExperimentalMagnetizationData.Padding = [0 0 0 0];
-            app.GridLayoutExperimentalMagnetizationData.Layout.Row = 3;
-            app.GridLayoutExperimentalMagnetizationData.Layout.Column = 1;
-
-            % Create CheckBoxExperimentalMagnetization
-            app.CheckBoxExperimentalMagnetization = uicheckbox(app.GridLayoutExperimentalMagnetizationData);
-            app.CheckBoxExperimentalMagnetization.Text = '';
-            app.CheckBoxExperimentalMagnetization.Layout.Row = 1;
-            app.CheckBoxExperimentalMagnetization.Layout.Column = 2;
-            app.CheckBoxExperimentalMagnetization.Value = true;
-
-            % Create ExperimentalanhystereticmagnetizationLabel
-            app.ExperimentalanhystereticmagnetizationLabel = uilabel(app.GridLayoutExperimentalMagnetizationData);
-            app.ExperimentalanhystereticmagnetizationLabel.Layout.Row = 1;
-            app.ExperimentalanhystereticmagnetizationLabel.Layout.Column = 1;
-            app.ExperimentalanhystereticmagnetizationLabel.Text = 'Experimental anhysteretic magnetization';
-
-            % Create EditFieldFileNameExperimentalMagnetizationData
-            app.EditFieldFileNameExperimentalMagnetizationData = uieditfield(app.GridLayoutExperimentalMagnetizationData, 'text');
-            app.EditFieldFileNameExperimentalMagnetizationData.HorizontalAlignment = 'right';
-            app.EditFieldFileNameExperimentalMagnetizationData.Layout.Row = 1;
-            app.EditFieldFileNameExperimentalMagnetizationData.Layout.Column = 3;
-            app.EditFieldFileNameExperimentalMagnetizationData.Value = 'experimental_anhysteretic_magnetization';
-
-            % Create DropDownOutputExperimentalMagnetizationData
-            app.DropDownOutputExperimentalMagnetizationData = uidropdown(app.GridLayoutExperimentalMagnetizationData);
-            app.DropDownOutputExperimentalMagnetizationData.Items = {'.csv'};
-            app.DropDownOutputExperimentalMagnetizationData.Layout.Row = 1;
-            app.DropDownOutputExperimentalMagnetizationData.Layout.Column = 4;
-            app.DropDownOutputExperimentalMagnetizationData.Value = '.csv';
 
             % Create MessagesTabPanel
             app.MessagesTabPanel = uitabgroup(app.AppGridLayout);

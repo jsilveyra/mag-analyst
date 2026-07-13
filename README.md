@@ -61,7 +61,7 @@ We recommend using [GitHub Desktop](https://desktop.github.com/), which allows u
 
 After downloading the main folder and placing it in a suitable location, MagAnalyst is ready to use.
 
-MagAnalyst is platform-agnostic and works on Windows, macOS, or Linux. The GUI loads sample projects from paths relative to the toolbox root (for example `data/sampleData/`), so you can place the MagAnalyst folder anywhere you like; if you move it after opening a sample project you may need to re-import the curve file.
+MagAnalyst is platform-agnostic and works on Windows, macOS, or Linux. The GUI loads sample projects from paths relative to the toolbox root (for example `data/sample_data/`), so you can place the MagAnalyst folder anywhere you like; if you move it after opening a sample project you may need to re-import the curve file.
 
 To start using the application with the graphical user interface, run the `MagAnalyst.m` launcher (type `MagAnalyst` in the MATLAB Command Window). It shows a loading splash while the app builds and then opens the GUI. The first launch after starting MATLAB is slower because MATLAB warms up the App Designer graphics framework; later launches in the same session are faster. Alternatively, you can still run the `app.mlapp` file directly.
 
@@ -71,7 +71,7 @@ If you prefer to run MagAnalyst using command lines (or to call it from your own
 * `demo_2_components.m` — anhysteretic fit with two components;
 * `demo_hysteretic_playground.m` — Jiles–Atherton hysteretic simulation of the four Playground modes (major loop, minor loops, degaussing, harmonics) and CSV export, all without the GUI.
 
-The demo scripts build their data paths with Matlab's `fullfile` helper (e.g., `fullfile('data','sampleData','Finemet - TA.csv')`), so they load the same files on Windows, macOS, and Linux without requiring manual path tweaks.
+The demo scripts build their data paths with Matlab's `fullfile` helper (e.g., `fullfile('data','sample_data','Finemet - TA.csv')`), so they load the same files on Windows, macOS, and Linux without requiring manual path tweaks.
 
 MagAnalyst 2.0.0 was implemented and tested with Matlab R2025b. It relies on App Designer / `uifigure` features (e.g. `exportgraphics`, `uigridlayout`); the authors cannot guarantee that the code runs on earlier versions.
 
@@ -133,7 +133,7 @@ In this [Explanation document](explanation-document.md), we provide additional d
 
 ## Examples
 
-These are the examples provided in the `data/sampleData` folder with the current release:
+These are the examples provided in the `data/sample_data` folder with the current release:
 
 * Mn-Zn ferrite: A soft ferrite (Mn<sub>0.51</sub>Zn<sub>0.44</sub>Fe<sub>2.05</sub>O<sub>4</sub>) with very low anisotropy. Similar to the curve analyzed in [JMMM article](https://doi.org/10.1016/j.jmmm.2021.168430) and in [AIP Advances article](https://doi.org/10.1063/9.0000328). The example is illustrated by a video available in YouTube, fitted with [one component magnetization](https://youtu.be/r4jyjOQ61yY) and [two component magnetizations](https://youtu.be/7WqBK7YCKWY).
 * Finemet - TA: Finemet (r) alloy (Fe<sub>73.5</sub>Si<sub>13.5</sub>B<sub>9</sub>Nb<sub>3</sub>Cu<sub>1</sub>) nanocrystallized under transverse field annealing and measured along the longitudinal direction of the ribbon. Analyzed in [JOM article](https://doi.org/10.1007/s11837-023-05704-x).

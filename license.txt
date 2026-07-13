@@ -1,7 +1,7 @@
 The MIT License (MIT)
 
-MagAnalyst 1.0
-Copyright © 2023 Matías Ignacio González, Tomás Francisco González, Josefina Silveyra, Juan Manuel Conde Garrido
+MagAnalyst 2.7
+Copyright © 2026 Matías Ignacio González, Marina Zoe Petean, Tomás Francisco González, Juan Manuel Conde Garrido, Josefina María Silveyra
 All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -11,5 +11,6 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 Includes external libraries:
-- Minimize, Copyright 2018 Rody Oldenhuis. For licensing see /minimize/license.txt
-- interparc, Copyright 2012 John D'Errico. For licensing see /src/interparc/license.txt
+- minimize, Copyright 2018 Rody Oldenhuis. For licensing see /src/lib//minimize/license.txt
+- interparc, Copyright 2012 John D'Errico. For licensing see /src/lib/interparc/license.txt
+- distance2curve, Copyright 2012 John D'Errico. For licensing see /src/lib/distance2curve/license.txt

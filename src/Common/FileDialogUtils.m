@@ -82,7 +82,7 @@ classdef FileDialogUtils
 
         function folder = default_import_folder(app)
             base = FileDialogUtils.default_data_folder(app);
-            candidate = fullfile(base, "sampleData");
+            candidate = fullfile(base, "sample_data");
             if isfolder(candidate)
                 folder = string(candidate);
             else
@@ -90,12 +90,20 @@ classdef FileDialogUtils
             end
         end
 
-        function folder = default_export_folder(app)
-            % Default target for the Export... dialog:
-            % <AppRoot>/data/results/exported_data. Returned even if it does
-            % not exist yet (the dialog creates it on export via ensure_folder).
+        function folder = default_project_folder(app)
+            % Default target for the Open/Save/Save-as project dialogs:
+            % <AppRoot>/data/projects. Returned even if it does not exist yet
+            % (mkdir'd on demand by ensure_folder before Save/Save-as offers it).
             base = FileDialogUtils.default_data_folder(app);
-            folder = string(fullfile(base, "results", "exported_data"));
+            folder = string(fullfile(base, "projects"));
+        end
+
+        function folder = default_export_folder(app)
+            % Default target for the Export... dialog: <AppRoot>/data/exported_data.
+            % Returned even if it does not exist yet (the dialog creates it on
+            % export via ensure_folder).
+            base = FileDialogUtils.default_data_folder(app);
+            folder = string(fullfile(base, "exported_data"));
         end
 
         function ensure_folder(~, folder)
