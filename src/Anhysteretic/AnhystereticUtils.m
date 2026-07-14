@@ -52,17 +52,17 @@ classdef AnhystereticUtils
 
             error_type = string(app.ErrorDropDown.Value);
             if (error_type == "Diagonal (H, sampled)")
-                error_calculator = DiagonalErrorCalculator(app.data_curve, app.modeled_curve, false, false);
+                error_calculator = DiagonalErrorCalculator(app.data_curve.H, app.data_curve.M, app.modeled_curve.H, app.modeled_curve.M, false, false);
             elseif (error_type == "Diagonal (H, continuous)")
-                error_calculator = DiagonalErrorCalculator(app.data_curve, app.modeled_curve, false, true);
+                error_calculator = DiagonalErrorCalculator(app.data_curve.H, app.data_curve.M, app.modeled_curve.H, app.modeled_curve.M, false, true);
             elseif (error_type == "Diagonal (logH, sampled)") || (error_type == "Diagonal (sampled)")
-                error_calculator = DiagonalErrorCalculator(app.data_curve, app.modeled_curve, true, false);
+                error_calculator = DiagonalErrorCalculator(app.data_curve.H, app.data_curve.M, app.modeled_curve.H, app.modeled_curve.M, true, false);
             elseif (error_type == "Diagonal (logH, continuous)") || (error_type == "Diagonal") || (error_type == "Diagonal (continuous)")
-                error_calculator = DiagonalErrorCalculator(app.data_curve, app.modeled_curve, true, true);
+                error_calculator = DiagonalErrorCalculator(app.data_curve.H, app.data_curve.M, app.modeled_curve.H, app.modeled_curve.M, true, true);
             elseif (error_type == "Vertical")
-                error_calculator = VerticalErrorCalculator(app.data_curve, app.modeled_curve);
+                error_calculator = VerticalErrorCalculator(app.data_curve.H, app.data_curve.M, app.modeled_curve.H, app.modeled_curve.M, true);
             elseif (error_type == "Horizontal")
-                error_calculator = HorizontalErrorCalculator(app.data_curve, app.modeled_curve);
+                error_calculator = HorizontalErrorCalculator(app.data_curve.H, app.data_curve.M, app.modeled_curve.H, app.modeled_curve.M, true);
             else
                 app.write_message("Unknown error type: " + error_type);
                 return;
@@ -184,9 +184,6 @@ classdef AnhystereticUtils
                 else
                     app.write_message("Fitting finished after " + t + " s");
                     AnhystereticUtils.write_m_lower_bound_messages(app, select_a, fit_lb, fit_select_fit);
-                    if ~is_rerun
-                        app.write_message("Tip: click Fit again without changing anything to let the optimizer restart from this result -- it can only match or improve on it, never make it worse.");
-                    end
                 end
             catch e
                 t = sprintf("%0.2f", toc);
@@ -345,7 +342,7 @@ classdef AnhystereticUtils
 
                 for i = 1:app.number_components
                     Ms_col(i,:) = {AnhystereticUtils.format_scientific(app.magnetic_parameters.Ms(i))};
-                    alpha_col(i,:) = {app.format_engineering(app.magnetic_parameters.alpha(i))};
+                    alpha_col(i,:) = {FormatUtils.format_engineering(app.magnetic_parameters.alpha(i))};
                     a_col(i,:) = {AnhystereticUtils.format_sigfigs(app.magnetic_parameters.a(i))};
                 end
             end
@@ -390,8 +387,7 @@ classdef AnhystereticUtils
         function msg = effective_field_tooltip()
             % Shared tooltip for the effective/apparent quantities on this
             % tab (Weiss coefficient alpha/rho*alpha and susceptibility
-            % chi_in/chi_m,init) -- see InputUtils.applied_field_warning_message
-            % for the full explanation shown in the activity log on import.
+            % chi_in/chi_m,init).
             msg = "Effective/apparent: not corrected for the sample's demagnetizing factor N_d (H here is the externally applied field). See Silveyra et al. 2026 JMMM, Eqs. 3, 6, 11.";
         end
 
@@ -473,7 +469,7 @@ classdef AnhystereticUtils
             show_grid = app.ShowgridCheckBoxM.Value == 1;
             axis_scale = string(app.AxisScaleDropDownM.Value);
             M_label = DisplayUnits.get_M_label(app);
-            if app.axis_scale_has_x(axis_scale)
+            if FormatUtils.axis_scale_has_x(axis_scale)
                 plotter.plot_M_log(app.AxesM, plot_components, show_grid, M_label);
             else
                 plotter.plot_M(app.AxesM, plot_components, show_grid, M_label);
@@ -492,7 +488,7 @@ classdef AnhystereticUtils
             show_grid = app.ShowgridCheckBoxdMdH.Value == 1;
             axis_scale = string(app.AxisScaleDropDowndMdH.Value);
             dMdH_label = DisplayUnits.get_dMdH_label(app);
-            if app.axis_scale_has_x(axis_scale)
+            if FormatUtils.axis_scale_has_x(axis_scale)
                 plotter.plot_dMdH_log(app.AxesdMdH, plot_components, show_grid, dMdH_label);
             else
                 plotter.plot_dMdH(app.AxesdMdH, plot_components, show_grid, dMdH_label);
@@ -511,7 +507,7 @@ classdef AnhystereticUtils
             show_grid = app.ShowgridCheckBoxHdMdH.Value == 1;
             axis_scale = string(app.AxisScaleDropDownHdMdH.Value);
             HdMdH_label = DisplayUnits.get_HdMdH_label(app);
-            if app.axis_scale_has_x(axis_scale)
+            if FormatUtils.axis_scale_has_x(axis_scale)
                 plotter.plot_HdMdH_log(app.AxesHdMdH, plot_components, show_grid, HdMdH_label);
             else
                 plotter.plot_HdMdH(app.AxesHdMdH, plot_components, show_grid, HdMdH_label);
@@ -522,7 +518,7 @@ classdef AnhystereticUtils
         function residual_plot_M(app)
             residue_calculator = MagnetizationResidueCalculator(app.data_curve, app.modeled_curve);
             residue = residue_calculator.get_residue();
-            log_flag = app.axis_scale_has_x(string(app.AxisScaleDropDownM.Value));
+            log_flag = FormatUtils.axis_scale_has_x(string(app.AxisScaleDropDownM.Value));
             residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.M, app.modeled_curve.H, app.modeled_curve.M, residue, log_flag, DisplayUnits.get_M_label(app), 5, [0 0 0], app.Colors(1,:), app.Colors(1,:));
             residue_plotter.plot()
         end
@@ -530,7 +526,7 @@ classdef AnhystereticUtils
         function residual_plot_dMdH(app)
             residue_calculator = SusceptibilityResidueCalculator(app.data_curve, app.modeled_curve);
             residue = residue_calculator.get_residue();
-            log_flag = app.axis_scale_has_x(string(app.AxisScaleDropDowndMdH.Value));
+            log_flag = FormatUtils.axis_scale_has_x(string(app.AxisScaleDropDowndMdH.Value));
             residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.dMdH, app.modeled_curve.H, app.modeled_curve.dMdH, residue, log_flag, DisplayUnits.get_dMdH_label(app), 5, [0 0 0], app.Colors(1,:), app.Colors(1,:));
             residue_plotter.plot()
         end
@@ -538,7 +534,7 @@ classdef AnhystereticUtils
         function residual_plot_HdMdH(app)
             residue_calculator = SemilogDerivativeResidueCalculator(app.data_curve, app.modeled_curve);
             residue = residue_calculator.get_residue();
-            log_flag = app.axis_scale_has_x(string(app.AxisScaleDropDownHdMdH.Value));
+            log_flag = FormatUtils.axis_scale_has_x(string(app.AxisScaleDropDownHdMdH.Value));
             residue_plotter = ResiduePlotter(app.data_curve.H, app.data_curve.HdMdH, app.modeled_curve.H, app.modeled_curve.HdMdH, residue, log_flag, DisplayUnits.get_HdMdH_label(app), 5, [0 0 0], app.Colors(1,:), app.Colors(1,:));
             residue_plotter.plot()
         end

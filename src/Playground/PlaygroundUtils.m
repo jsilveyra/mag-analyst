@@ -436,58 +436,6 @@ classdef PlaygroundUtils
             end
         end
 
-        function [H_left, M_left] = extract_left_branch_uniform_arc(H_in, M_in, number_points)
-            H = H_in(:)';
-            M = M_in(:)';
-            valid = isfinite(H) & isfinite(M);
-            H = H(valid);
-            M = M(valid);
-
-            if numel(H) < 2
-                H_left = H;
-                M_left = M;
-                return;
-            end
-
-            [~, H_min_index] = min(H);
-            H_sorted = [H(H_min_index:end) H(1:H_min_index)];
-            M_sorted = [M(H_min_index:end) M(1:H_min_index)];
-
-            denom_H = max(H_sorted.^2);
-            denom_M = max(M_sorted.^2);
-            if denom_H == 0
-                denom_H = 1;
-            end
-            if denom_M == 0
-                denom_M = 1;
-            end
-
-            H2M2 = sign(H_sorted).*(H_sorted).^2./denom_H + sign(M_sorted).*(M_sorted).^2./denom_M;
-            [~, max_index] = max(H2M2);
-            H_left_raw = H_sorted(max_index:end);
-            M_left_raw = M_sorted(max_index:end);
-
-            if nargin < 3 || isempty(number_points) || number_points < 2
-                number_points = numel(H_left_raw);
-            end
-
-            ds = hypot(diff(H_left_raw), diff(M_left_raw));
-            s = [0 cumsum(ds)];
-            [s_unique, idx_unique] = unique(s, 'stable');
-
-            if numel(s_unique) < 2
-                H_left = H_left_raw;
-                M_left = M_left_raw;
-                return;
-            end
-
-            H_unique = H_left_raw(idx_unique);
-            M_unique = M_left_raw(idx_unique);
-            s_query = linspace(s_unique(1), s_unique(end), round(number_points));
-            H_left = interp1(s_unique, H_unique, s_query, 'linear');
-            M_left = interp1(s_unique, M_unique, s_query, 'linear');
-        end
-
         function plot_playground(app)
             ax = app.AxesM_5;
             cla(ax, 'reset');
@@ -895,7 +843,7 @@ classdef PlaygroundUtils
 
                 % Upper (descending) branch, from the +tip corner through H=0
                 % down to the -tip corner, in base units (A/m).
-                [H_up, M_up] = app.extract_left_branch_uniform_arc(H_conv, M_conv, []);
+                [H_up, M_up] = extract_left_branch_uniform_arc(H_conv, M_conv, []);
 
                 H_up = H_up(:);
                 M_up = M_up(:);

@@ -222,31 +222,33 @@ $$\begin{align}
 By default, MagAnalyst fits the anhysteretic curve by minimizing the mean orthogonal distance error between the data and modeled curve, also known as the diagonal distance error. In **Diagonal (sampled)**, the diagonal error is evaluated at the discrete, measured data points using analytical expressions. This is done either in a linear or a normalized $(X,Y) = \left( \log H,M \right)$ plane [[4]](#4) computing
 
 $$\begin{align}
-Diagonal\ error = \frac{1}{N}\sqrt{\sum_{i = 0}^{N}{\mathrm{\Delta}o}_{i}^{2}},
-\end{align}$$
-
-$$\begin{align}
 \mathrm{\Delta}o_{i} = \mathrm{\Delta}y_{i}\cos\left( {atan}\left( \frac{\mathrm{\Delta}y_{i}}{\mathrm{\Delta}x_{i}} \right) \right),
 \end{align}$$
 
 $$\begin{align}
-\mathrm{\Delta}x_{i} = \frac{1}{X_{N}}\left| \widehat{X}\left( Y_{i} \right) - X_{i} \right|, \\
-\mathrm{\Delta}y_{i} = \frac{1}{Y_{N}}\left| Y\left( \widehat{X}\left( Y_{i} \right) \right) - Y_{i} \right|.
-\end{align}$$
-
-The unhatted values represent the data curve, while the hatted values represent the modeled curve. The $N$-th value corresponds to the curve tip, with the arrays sorted in ascending order. This objective function has been found to yield better fittings compared to conventional techniques that minimize the normalized root-mean-squared error of either $M$ at constant $H$ or $H$ at constant $M$ [[1]](#1)[[4]](#4); vertical and horizontal errors, respectively
-
-$$\begin{align}
-Vertical\ error = \frac{1}{N}\frac{1}{Y_{N}}\sqrt{\sum_{i = 0}^{N}\left( Y_{i} - \widehat{Y}\left( X_{i} \right) \right)^{2}},
+\mathrm{\Delta}x_{i} = \frac{1}{X_{N}}\left| \widehat{X}\left( Y_{i} \right) - X_{i} \right|, \quad
+\mathrm{\Delta}y_{i} = \frac{1}{Y_{N}}\left| Y\left( \widehat{X}\left( Y_{i} \right) \right) - Y_{i} \right|,
 \end{align}$$
 
 $$\begin{align}
-Horizontal\ error = \frac{1}{N}\frac{1}{X_{N}}\sqrt{\sum_{i = 0}^{N}\left( X_{i} - \widehat{X}\left( Y_{i} \right) \right)^{2}}.
+Diagonal\ error = \sqrt{\frac{1}{N}\sum_{i = 0}^{N}{\mathrm{\Delta}o}_{i}^{2}},
 \end{align}$$
 
-In constrast, **Diagonal (continuous)** computes the orthogonal distance assuming a continuous representation of both the data and modeled curves. This variant relies on the external MATLAB library `distance2curve` [[11]](#11) to numerically evaluate the minimum Euclidean distance between continuous parametric curves. While computationally more demanding, this formulation provides an idealized and geometrically exact definition of the diagonal error, which is useful for analytical comparison.
+The unhatted values represent the data curve, while the hatted values represent the modeled curve. $X_{N}$ and $Y_{N}$ are the data curve's own maximum $\left| X \right|$ and $\left| Y \right|$ values (equal to the curve-tip coordinates when the arrays are sorted in ascending order, since $H,M \geq 0$ throughout the anhysteretic domain). This objective function has been found to yield better fittings compared to conventional techniques that minimize the normalized root-mean-squared error of either $M$ at constant $H$ or $H$ at constant $M$ [[1]](#1)[[4]](#4); vertical and horizontal errors, respectively
+
+$$\begin{align}
+Vertical\ error = \frac{1}{Y_{N}}\sqrt{\frac{1}{N}\sum_{i = 0}^{N}\left( Y_{i} - \widehat{Y}\left( X_{i} \right) \right)^{2}},
+\end{align}$$
+
+$$\begin{align}
+Horizontal\ error = \frac{1}{X_{N}}\sqrt{\frac{1}{N}\sum_{i = 0}^{N}\left( X_{i} - \widehat{X}\left( Y_{i} \right) \right)^{2}}.
+\end{align}$$
+
+In constrast, **Diagonal (continuous)** computes the orthogonal distance assuming a continuous representation of both the data and modeled curves. This variant relies on the external MATLAB library `distance2curve` [[11]](#11) to numerically evaluate the minimum Euclidean distance between continuous parametric curves, again normalized per axis by $X_{N},Y_{N}$ and reduced with the same root-mean-square as above. While computationally more demanding, this formulation provides an idealized and geometrically exact definition of the diagonal error, which is useful for analytical comparison.
 
 However, the user has the option to optimize either of the traditional objective functions if desired; **Vertical** or **Horizontal** (they are faster to compute). The toolbox utilizes the Matlab built-in `interp1` function [[12]](#12) to evaluate the data and modeled curves at fields that are not present in the set of values but are needed to calculate any of the errors. For interpolation and extrapolation, the default linear method is implemented.
+
+> **Note on the error-metric convention (updated 2026-07-13).** The Diagonal/Vertical/Horizontal formulas above previously reduced the summed squared residual by dividing by $N$ *before* taking the square root, i.e. $\left( 1/N \right)\sqrt{\sum_{i}{(\cdot)}^{2}}$, exactly as published in [[1]](#1), [[4]](#4), and again in [[19]](#19). As of 2026-07-13, all four error metrics instead use a true root-mean-square, $\sqrt{\left( 1/N \right)\sum_{i}{(\cdot)}^{2}}$ (taking the mean *before* the square root), as shown above. The two conventions differ only by the constant factor $\sqrt{N}$, since $\left( 1/N \right)\sqrt{\sum{(\cdot)}^{2}} = \sqrt{\left( 1/N \right)\sum{(\cdot)}^{2}}/\sqrt{N}$; for a *fixed* $N$, a positive constant factor cannot change an optimizer's arg min, so no anhysteretic or hysteretic fit's *retrieved parameters* changed as a result of this update — only the *displayed* error magnitude did. The reason for the change is comparability: the root-mean-square convention makes the reported error a dataset-density- and dataset-scale-independent quantity, so error values are meaningfully comparable across curves fit with a different number of points, or of different physical magnitude. The original $\left( 1/N \right)\sqrt{\sum{(\cdot)}^{2}}$ convention is not comparable this way — it shrinks roughly as $1/\sqrt{N}$ purely from resampling the *same* curve more densely, independent of any actual change in fit quality, which was verified numerically before adopting the change.
 
 Currently, MagAnalyst utilizes the Matlab function `minimize`, developed by Oldenhuis [[13]](#13), to find the constrained minimum of the objective function starting at the user's initial estimates. This function uses `fminsearch` [[14]](#14) as its engine, which is a Matlab built-in function that employs the Nelder-Mead simplex method, an heuristic search method. `minimize` shares the same syntaxis of `fmincon` [[15]](#15), which offers deterministic algorithms such like the interior-point method, but it has the advantage of being freely distributed (unlike `fmincon`, which requires Matlab's Optimization Toolbox).
 
@@ -302,10 +304,12 @@ where $\chi_{C} = dM/dH$ at the coercive point is obtained from the numerically 
 
 Two settings control how the modeled loop is generated and compared against the data during optimization:
 
-- **Fitting region** — **Left branch only** compares the model against only the descending branch of a single major loop, from $+ H_{TIP}$ to $- H_{TIP}$, which is sufficient whenever the loop is (or is assumed to be) point-symmetric. **Entire loop** instead compares against both branches of one full, steady-state cycle.
+- **Fitting region** — **Entire loop** (the default, and the setting used by `demos/demo_3_hysteretic_ja_fit.m`) compares the model against a full, point-symmetric measured cycle (both branches, built by reflecting the extracted left branch), simulated to a steady state over one or more cycles from a demagnetized start. **Left branch only** instead compares against only the descending branch, from $+ H_{TIP}$ to $- H_{TIP}$, which is sufficient whenever the loop is (or is assumed to be) point-symmetric, and is the region used by Conde Garrido et al.'s blind Jiles-Atherton method [[19]](#19) (whose own model-generation procedure — a discarded $0 \to H_{TIP}$ sweep, then one $H_{TIP} \to -H_{TIP}$ pass — is more closely reproduced within MagAnalyst by choosing **Entire loop** with a demagnetized start and a single repetition than by this tab's own **Left branch only** mode, which instead starts the model directly from the data's own measured tip point).
 - **Stop criterion** — for **Entire loop** fitting, each trial parameter set is simulated by repeatedly cycling $+ H_{TIP} \to - H_{TIP} \to + H_{TIP}$, starting either from the data tip or from the demagnetized state (an initial $0 \to H_{TIP}$ sweep is simulated and discarded). **Fixed repetitions** stops after a user-set number of cycles; **Until convergence** instead stops once the returning magnetization at $+ H_{TIP}$ changes, between consecutive cycles, by less than a relative tolerance, capped at a maximum number of cycles.
 
-The objective function reuses the same error metrics as the anhysteretic-curve fit (see [Optimization technique](#optimization-technique)): **Diagonal (H, continuous)**, the mean orthogonal (Euclidean) distance between the modeled curve and the data, evaluated via `distance2curve` [[11]](#11) on axes normalized by each curve's half-range; or the faster **Vertical** and **Horizontal** root-mean-square errors, evaluated via `interp1` [[12]](#12). Only the left branch of the loop is used for the residual computation even when fitting the entire loop, since the JA model produces point-symmetric major loops and the left branch alone therefore already determines the fit. As in the anhysteretic tab, MagAnalyst minimizes the objective with the `minimize` routine [[13]](#13) (Nelder-Mead via `fminsearch` [[14]](#14)), subject to user-editable lower/upper bounds on each fitted parameter, and displays a live plot of the error value versus iteration number while the fit runs (see [Graphical user interface](#graphical-user-interface)).
+The objective function reuses the same error-metric hierarchy as the anhysteretic-curve fit (see [Optimization technique](#optimization-technique)), generalized to a linear (never logarithmic) $H$ axis, since the hysteretic branch spans both positive and negative applied fields — unlike the anhysteretic curve, which is confined to $H \geq 0$ and can therefore use a $\log H$ axis. Three options are offered: **Diagonal (H, sampled)** and **Diagonal (H, continuous)** (the analytical/discrete and the `distance2curve`-based [[11]](#11) continuous formulations of the Diagonal error, respectively — both defined in [Optimization technique](#optimization-technique)), or the faster **Vertical** and **Horizontal** errors, evaluated via `interp1` [[12]](#12). All three normalize each axis by the measured branch's own maximum $\left| H \right|$ and $\left| M \right|$ (i.e., $X_{N},Y_{N}$ as defined in [Optimization technique](#optimization-technique)); for a point-symmetric major loop, this coincides almost exactly with the branch's half-range in $H$ and in $M$, the convention used before 2026-07-13, so unifying the two tabs' formulas this way leaves the fit essentially unaffected. **Diagonal (H, sampled)** reproduces, term for term (up to the root-mean-square-vs-$\left(1/N\right)$ reduction convention discussed in [Optimization technique](#optimization-technique)), the "mean orthogonal distance" objective used by Conde Garrido et al.'s blind Jiles-Atherton parameter-estimation method [[19]](#19); **Diagonal (H, continuous)** is a newer, geometrically exact refinement not used in that work.
+
+When the fitting region is the **Entire loop**, the three single-valued-projection metrics — **Diagonal (H, sampled)**, **Vertical**, and **Horizontal** — are evaluated on only the descending (left) branch of both the measured and modeled loop, not the full closed loop. This is necessary, not merely a simplification: those metrics interpolate one curve onto the other's abscissa (they need $\widehat{X}(Y)$ or $\widehat{Y}(X)$ to be single-valued functions), which is undefined on a closed loop where each $H$ maps to two $M$ values (one per branch) and vice versa. Restricting them to the descending branch — which, for the point-symmetric JA major loop, alone determines the fit, and is exactly the branch the blind method [[19]](#19) compares — makes the projection well-defined. The **Diagonal (H, continuous)** metric needs no such restriction: `distance2curve` computes a true point-to-polyline distance that is valid on a closed loop, so it is evaluated on the full loop as-is. (In the **Left branch only** fitting region every metric already receives a single descending branch, so the two behaviours coincide.) As in the anhysteretic tab, MagAnalyst minimizes the objective with the `minimize` routine [[13]](#13) (Nelder-Mead via `fminsearch` [[14]](#14)), subject to user-editable lower/upper bounds on each fitted parameter, and displays a live plot of the error value versus iteration number while the fit runs (see [Graphical user interface](#graphical-user-interface)).
 
 ## Playground: forward hysteretic simulations
 
@@ -402,7 +406,7 @@ Matlab. fzero - Root of nonlinear function. Available: https://www.mathworks.com
 J. M. Silveyra and J. M. Conde Garrido, "On the modelling of the anhysteretic magnetization of homogeneous soft magnetic materials," Journal of Magnetism and Magnetic Materials, vol. 540, p. 168430, 2021. https://doi.org/10.1016/j.jmmm.2021.168430
 <br>
 <a id="11">[11]</a>
-Matlab. distance to curve. Available: https://www.mathworks.com/help/matlab/ref/interp1.html. Access date: 04/13/2026
+J. D'Errico. distance2curve - Distance from a point or points to a general curvilinear n-dimensional arc. Available: https://la.mathworks.com/matlabcentral/fileexchange/34869-distance2curve. Access date: 04/13/2026
 <br>
 <a id="12">[12]</a>
 Matlab. interp1 - 1-D data interpolation. Available: https://www.mathworks.com/help/matlab/ref/interp1.html. Access date: 03/11/2023

@@ -37,8 +37,8 @@ classdef app_exported < matlab.apps.AppBase
         InputBrowseButton               matlab.ui.control.Button
         InputDatasetpathLabel           matlab.ui.control.Label
         DescriptionTextArea             matlab.ui.control.TextArea
-        AxesRawInputData                matlab.ui.control.UIAxes
         AxesProcessedInputData          matlab.ui.control.UIAxes
+        AxesRawInputData                matlab.ui.control.UIAxes
         AnhystereticfittingTab          matlab.ui.container.Tab
         AnhystereticmagnetizationfittingTabGridLayout  matlab.ui.container.GridLayout
         GridLayoutNumbers               matlab.ui.container.GridLayout
@@ -50,7 +50,7 @@ classdef app_exported < matlab.apps.AppBase
         NofpointsLabel                  matlab.ui.control.Label
         NofcompSpinner                  matlab.ui.control.Spinner
         NofcompLabel                    matlab.ui.control.Label
-        ModeledcurveLabel               matlab.ui.control.Label
+        MulticomponentLangevinWeissmodelLabel  matlab.ui.control.Label
         TableQuantities                 matlab.ui.control.Table
         GridLayoutOtherQuantities       matlab.ui.container.GridLayout
         JsTLabel                        matlab.ui.control.Label
@@ -87,12 +87,11 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesM                           matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesHdMdH                       matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesM                           matlab.ui.control.UIAxes
         HystereticfittingTab            matlab.ui.container.Tab
-        GridLayout8                     matlab.ui.container.GridLayout
-        FittingconditionsLabel          matlab.ui.control.Label
+        GridLayout10                    matlab.ui.container.GridLayout
         MaximumrepetitionsEditField     matlab.ui.control.NumericEditField
         MaximumrepetitionsEditFieldLabel  matlab.ui.control.Label
         RelativetoleranceEditField      matlab.ui.control.NumericEditField
@@ -105,9 +104,9 @@ classdef app_exported < matlab.apps.AppBase
         FittingregionDropDownLabel      matlab.ui.control.Label
         StartingpointDropDown_4         matlab.ui.control.DropDown
         StartingpointDropDown_4Label    matlab.ui.control.Label
+        FittingconditionsLabel          matlab.ui.control.Label
         StopfitButton_2                 matlab.ui.control.Button
         kConstrainedCheckBox_2          matlab.ui.control.CheckBox
-        Label                           matlab.ui.control.Label
         FitkCheckBox                    matlab.ui.control.CheckBox
         CheckBox_4                      matlab.ui.control.CheckBox
         CheckBox_3                      matlab.ui.control.CheckBox
@@ -150,7 +149,7 @@ classdef app_exported < matlab.apps.AppBase
         a_JALabel                       matlab.ui.control.Label
         Ms_JALabel                      matlab.ui.control.Label
         ModelparametersLabel            matlab.ui.control.Label
-        JilesAthertonmodelrateindependentLabel  matlab.ui.control.Label
+        JilesAthertonrateindependentmodelLabel_2  matlab.ui.control.Label
         AxesM_2                         matlab.ui.control.UIAxes
         PlaygroundTab                   matlab.ui.container.Tab
         GridLayout3                     matlab.ui.container.GridLayout
@@ -175,7 +174,7 @@ classdef app_exported < matlab.apps.AppBase
         Ms_JA_Playground                matlab.ui.control.NumericEditField
         Ms_JA_PlaygroundLabel           matlab.ui.control.Label
         ModelparametersLabel_2          matlab.ui.control.Label
-        JilesAthertonmodelrateindependentLabel_2  matlab.ui.control.Label
+        JilesAthertonrateindependentmodelLabel  matlab.ui.control.Label
         MajorloopwithharmonicsPanel     matlab.ui.container.Panel
         GridLayout7                     matlab.ui.container.GridLayout
         DistortedmajorloopwithharmoniccomponentsLabel  matlab.ui.control.Label
@@ -394,54 +393,26 @@ classdef app_exported < matlab.apps.AppBase
             PlaygroundUtils.sync_playground_mode_ui(app);
         end
 
-        function apply_axis_scale(app, ax, selection)
+        function apply_axis_scale(~, ax, selection)
             selection = string(selection);
-            if app.axis_scale_has_x(selection)
+            if FormatUtils.axis_scale_has_x(selection)
                 ax.XScale = 'log';
             else
                 ax.XScale = 'linear';
             end
-            if app.axis_scale_has_y(selection)
+            if FormatUtils.axis_scale_has_y(selection)
                 ax.YScale = 'log';
             else
                 ax.YScale = 'linear';
             end
         end
 
-        function has_x = axis_scale_has_x(~, selection)
-            selection = string(selection);
-            has_x = selection == "semilog-x" || selection == "log-log";
-        end
-
-        function has_y = axis_scale_has_y(~, selection)
-            selection = string(selection);
-            has_y = selection == "semilog-y" || selection == "log-log";
-        end
-        
         function init_parameters_table(app, default_values)
             AnhystereticUtils.init_parameters_table(app, default_values);
         end
 
         function init_quantities_table(app, default_values)
             AnhystereticUtils.init_quantities_table(app, default_values);
-        end
-
-        function ret = format_short(~, v)
-            string_value = char(sprintf("%0.4f",v));
-            aux = regexp(string_value,'\.','split');
-            aux{1} = fliplr(regexprep(fliplr(aux{1}),'\d{3}(?=\d)', '$0,'));
-            ret = [aux{1},'.',aux{2}];
-        end
-
-        function ret = format_long(~, v)
-            string_value = char(sprintf("%0.10f",v));
-            aux = regexp(string_value,'\.','split');
-            aux{1} = fliplr(regexprep(fliplr(aux{1}),'\d{3}(?=\d)', '$0,'));
-            ret = [aux{1},'.',aux{2}];
-        end
-
-        function ret = format_engineering(~, v)
-            ret = char(sprintf("%0.4e",v));
         end
 
         function ret = format_k_seed_display(app, v)
@@ -472,11 +443,6 @@ classdef app_exported < matlab.apps.AppBase
             tf = AnhystereticUtils.is_m_row(app, row);
         end
 
-        function ret = format_thousands_only(~, v)
-            string_value = char(sprintf("%d",round(v)));
-            ret = fliplr(regexprep(fliplr(string_value),'\d{3}(?=\d)', '$0,'));
-        end
-
         function plot_M(app)
             AnhystereticUtils.plot_M(app);
         end
@@ -489,12 +455,8 @@ classdef app_exported < matlab.apps.AppBase
             AnhystereticUtils.plot_HdMdH(app);
         end
         
-        function results = get_time_string(~)
-            results = string(datetime(datetime, 'Format', 'yy/MM/dd HH:mm:ss'));
-        end
-        
         function write_message(app, message)
-            msg = sprintf("[%s] %s", app.get_time_string(), message);
+            msg = sprintf("[%s] %s", FormatUtils.get_time_string(), message);
             app.MessagesTextArea.Value(end+1) = cellstr(msg);
             scroll(app.MessagesTextArea, 'bottom');
         end
@@ -509,62 +471,6 @@ classdef app_exported < matlab.apps.AppBase
 
         function reprocess_dataset(app)
             InputUtils.reprocess_dataset(app);
-        end
-
-        function [H_left, M_left] = extract_left_branch_uniform_arc(~, H_in, M_in, number_points)
-            % MagAnalyst already relies on this branch implicitly:
-            % the anhysteretic curve is built from averaging left and right
-            % hysteresis branches, so robust left-branch extraction here
-            % directly improves that downstream anhysteretic construction.
-            H = H_in(:)';
-            M = M_in(:)';
-            valid = isfinite(H) & isfinite(M);
-            H = H(valid);
-            M = M(valid);
-
-            if numel(H) < 2
-                H_left = H;
-                M_left = M;
-                return;
-            end
-
-            [~, H_min_index] = min(H);
-            H_sorted = [H(H_min_index:end) H(1:H_min_index)];
-            M_sorted = [M(H_min_index:end) M(1:H_min_index)];
-
-            denom_H = max(H_sorted.^2);
-            denom_M = max(M_sorted.^2);
-            if denom_H == 0
-                denom_H = 1;
-            end
-            if denom_M == 0
-                denom_M = 1;
-            end
-
-            H2M2 = sign(H_sorted).*(H_sorted).^2./denom_H + sign(M_sorted).*(M_sorted).^2./denom_M;
-            [~, max_index] = max(H2M2);
-            H_left_raw = H_sorted(max_index:end);
-            M_left_raw = M_sorted(max_index:end);
-
-            if nargin < 4 || isempty(number_points) || number_points < 2
-                number_points = numel(H_left_raw);
-            end
-
-            ds = hypot(diff(H_left_raw), diff(M_left_raw));
-            s = [0 cumsum(ds)];
-            [s_unique, idx_unique] = unique(s, 'stable');
-
-            if numel(s_unique) < 2
-                H_left = H_left_raw;
-                M_left = M_left_raw;
-                return;
-            end
-
-            H_unique = H_left_raw(idx_unique);
-            M_unique = M_left_raw(idx_unique);
-            s_query = linspace(s_unique(1), s_unique(end), round(number_points));
-            H_left = interp1(s_unique, H_unique, s_query, 'linear');
-            M_left = interp1(s_unique, M_unique, s_query, 'linear');
         end
 
         function [H_cycle, M_cycle] = build_ja_data_cycle(app)
@@ -949,6 +855,7 @@ classdef app_exported < matlab.apps.AppBase
             ];
 
             app.apply_component_color_styles();   % MOD: shade fitting/model/quantities table rows to match component colors
+            ThemeUtils.apply_theme(app);   % MOD: runtime visual theme (see src/Theme/ThemeUtils.m)
         
             app.write_message("MagAnalyst " + AppVersion());
         
@@ -1604,7 +1511,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create AppGridLayout
             app.AppGridLayout = uigridlayout(app.MagAnalystUIFigure);
             app.AppGridLayout.ColumnWidth = {'1x'};
-            app.AppGridLayout.RowHeight = {'3x', '1x'};
+            app.AppGridLayout.RowHeight = {'3x', '0.8x'};
             app.AppGridLayout.RowSpacing = 0;
             app.AppGridLayout.Padding = [0 0 0 0];
 
@@ -1627,13 +1534,6 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayout9.RowSpacing = 9.9;
             app.GridLayout9.Padding = [9.91666666666667 9.9 9.91666666666667 9.9];
 
-            % Create AxesProcessedInputData
-            app.AxesProcessedInputData = uiaxes(app.GridLayout9);
-            title(app.AxesProcessedInputData, 'Processed input data')
-            app.AxesProcessedInputData.Box = 'on';
-            app.AxesProcessedInputData.Layout.Row = [1 6];
-            app.AxesProcessedInputData.Layout.Column = [9 12];
-
             % Create AxesRawInputData
             app.AxesRawInputData = uiaxes(app.GridLayout9);
             title(app.AxesRawInputData, 'Raw input data')
@@ -1641,6 +1541,13 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesRawInputData.Box = 'on';
             app.AxesRawInputData.Layout.Row = [1 6];
             app.AxesRawInputData.Layout.Column = [5 8];
+
+            % Create AxesProcessedInputData
+            app.AxesProcessedInputData = uiaxes(app.GridLayout9);
+            title(app.AxesProcessedInputData, 'Processed input data')
+            app.AxesProcessedInputData.Box = 'on';
+            app.AxesProcessedInputData.Layout.Row = [1 6];
+            app.AxesProcessedInputData.Layout.Column = [9 12];
 
             % Create DescriptionTextArea
             app.DescriptionTextArea = uitextarea(app.GridLayout9);
@@ -1657,6 +1564,7 @@ classdef app_exported < matlab.apps.AppBase
             % Create InputBrowseButton
             app.InputBrowseButton = uibutton(app.GridLayout9, 'push');
             app.InputBrowseButton.ButtonPushedFcn = createCallbackFcn(app, @InputBrowseButtonPushed, true);
+            app.InputBrowseButton.Tooltip = {'If the dataset was measured in an open magnetic circuit, H, Hk, susceptibilities, and Weiss coefficients here are apparent/effective, not intrinsic.'};
             app.InputBrowseButton.Layout.Row = 1;
             app.InputBrowseButton.Layout.Column = 4;
             app.InputBrowseButton.Text = 'Browse';
@@ -1810,29 +1718,11 @@ classdef app_exported < matlab.apps.AppBase
             % Create GridLayoutAxes
             app.GridLayoutAxes = uigridlayout(app.AnhystereticmagnetizationfittingTabGridLayout);
             app.GridLayoutAxes.ColumnWidth = {'1x'};
-            app.GridLayoutAxes.RowHeight = {'1x', '0.15x', '1x', '0.15x', '1x', '0.15x'};
+            app.GridLayoutAxes.RowHeight = {'1x', '0.2x', '1x', '0.2x', '1x', '0.2x'};
             app.GridLayoutAxes.RowSpacing = 3;
             app.GridLayoutAxes.Padding = [0 0 0 0];
             app.GridLayoutAxes.Layout.Row = 1;
             app.GridLayoutAxes.Layout.Column = 1;
-
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
-
-            % Create AxesdMdH
-            app.AxesdMdH = uiaxes(app.GridLayoutAxes);
-            xlabel(app.AxesdMdH, 'H [A/m]')
-            ylabel(app.AxesdMdH, '∂M/∂H')
-            zlabel(app.AxesdMdH, 'Z')
-            app.AxesdMdH.Box = 'on';
-            app.AxesdMdH.Layout.Row = 3;
-            app.AxesdMdH.Layout.Column = 1;
 
             % Create AxesM
             app.AxesM = uiaxes(app.GridLayoutAxes);
@@ -1843,10 +1733,28 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesM.Layout.Row = 1;
             app.AxesM.Layout.Column = 1;
 
+            % Create AxesdMdH
+            app.AxesdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesdMdH, 'H [A/m]')
+            ylabel(app.AxesdMdH, '∂M/∂H')
+            zlabel(app.AxesdMdH, 'Z')
+            app.AxesdMdH.Box = 'on';
+            app.AxesdMdH.Layout.Row = 3;
+            app.AxesdMdH.Layout.Column = 1;
+
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = 5;
+            app.AxesHdMdH.Layout.Column = 1;
+
             % Create GridLayoutOptionsM
             app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
             app.GridLayoutOptionsM.ColumnWidth = {'2.9x', '0.5x', '2.1x', '3x', '2x', '2x', '0.5x'};
-            app.GridLayoutOptionsM.RowHeight = {'1x'};
+            app.GridLayoutOptionsM.RowHeight = {'1.1x'};
             app.GridLayoutOptionsM.Padding = [0 0 0 0];
             app.GridLayoutOptionsM.Layout.Row = 2;
             app.GridLayoutOptionsM.Layout.Column = 1;
@@ -2140,12 +2048,12 @@ classdef app_exported < matlab.apps.AppBase
             app.TableQuantities.Layout.Row = 8;
             app.TableQuantities.Layout.Column = 1;
 
-            % Create ModeledcurveLabel
-            app.ModeledcurveLabel = uilabel(app.GridLayoutNumbers);
-            app.ModeledcurveLabel.FontWeight = 'bold';
-            app.ModeledcurveLabel.Layout.Row = 1;
-            app.ModeledcurveLabel.Layout.Column = 1;
-            app.ModeledcurveLabel.Text = 'Modeled curve';
+            % Create MulticomponentLangevinWeissmodelLabel
+            app.MulticomponentLangevinWeissmodelLabel = uilabel(app.GridLayoutNumbers);
+            app.MulticomponentLangevinWeissmodelLabel.FontWeight = 'bold';
+            app.MulticomponentLangevinWeissmodelLabel.Layout.Row = 1;
+            app.MulticomponentLangevinWeissmodelLabel.Layout.Column = 1;
+            app.MulticomponentLangevinWeissmodelLabel.Text = 'Multicomponent Langevin-Weiss model';
 
             % Create GridLayoutModeledCurve
             app.GridLayoutModeledCurve = uigridlayout(app.GridLayoutNumbers);
@@ -2214,460 +2122,454 @@ classdef app_exported < matlab.apps.AppBase
             app.HystereticfittingTab = uitab(app.TabGroup);
             app.HystereticfittingTab.Title = 'Hysteretic fitting ';
 
-            % Create GridLayout8
-            app.GridLayout8 = uigridlayout(app.HystereticfittingTab);
-            app.GridLayout8.ColumnWidth = {'100x', '100x', '100x', '100x', '100x', '100x', '100x', '25x', '90x', '25x', '90x', '80x', '50x', '40x', '60x'};
-            app.GridLayout8.RowHeight = {1, '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
-            app.GridLayout8.ColumnSpacing = 1.46249389648438;
-            app.GridLayout8.RowSpacing = 4.83749580383301;
-            app.GridLayout8.Padding = [1.46249389648438 4.83749580383301 1.46249389648438 4.83749580383301];
+            % Create GridLayout10
+            app.GridLayout10 = uigridlayout(app.HystereticfittingTab);
+            app.GridLayout10.ColumnWidth = {'1x', '1x', '1x', '1x', '2x', '1x', '0.4x', '0.4x', '1.2x', '0.4x', '1.2x', '0.4x', '1.2x', '0.4x', '0.7x', '1x'};
+            app.GridLayout10.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
+            app.GridLayout10.ColumnSpacing = 5.5529390222886;
+            app.GridLayout10.RowSpacing = 4.48888736300998;
+            app.GridLayout10.Padding = [5.5529390222886 4.48888736300998 5.5529390222886 4.48888736300998];
 
             % Create AxesM_2
-            app.AxesM_2 = uiaxes(app.GridLayout8);
+            app.AxesM_2 = uiaxes(app.GridLayout10);
             xlabel(app.AxesM_2, 'H [A/m]')
             ylabel(app.AxesM_2, 'M [A/m]')
             zlabel(app.AxesM_2, 'Z')
             app.AxesM_2.Box = 'on';
-            app.AxesM_2.Layout.Row = [2 15];
+            app.AxesM_2.Layout.Row = [2 16];
             app.AxesM_2.Layout.Column = [1 5];
 
-            % Create JilesAthertonmodelrateindependentLabel
-            app.JilesAthertonmodelrateindependentLabel = uilabel(app.GridLayout8);
-            app.JilesAthertonmodelrateindependentLabel.FontWeight = 'bold';
-            app.JilesAthertonmodelrateindependentLabel.Layout.Row = 1;
-            app.JilesAthertonmodelrateindependentLabel.Layout.Column = [1 5];
-            app.JilesAthertonmodelrateindependentLabel.Text = 'Jiles-Atherton model (rate-independent)';
+            % Create JilesAthertonrateindependentmodelLabel_2
+            app.JilesAthertonrateindependentmodelLabel_2 = uilabel(app.GridLayout10);
+            app.JilesAthertonrateindependentmodelLabel_2.FontWeight = 'bold';
+            app.JilesAthertonrateindependentmodelLabel_2.Layout.Row = 1;
+            app.JilesAthertonrateindependentmodelLabel_2.Layout.Column = [1 4];
+            app.JilesAthertonrateindependentmodelLabel_2.Text = 'Jiles-Atherton rate-independent model';
 
             % Create ModelparametersLabel
-            app.ModelparametersLabel = uilabel(app.GridLayout8);
+            app.ModelparametersLabel = uilabel(app.GridLayout10);
             app.ModelparametersLabel.FontWeight = 'bold';
-            app.ModelparametersLabel.Layout.Row = 2;
-            app.ModelparametersLabel.Layout.Column = [6 7];
+            app.ModelparametersLabel.Layout.Row = 1;
+            app.ModelparametersLabel.Layout.Column = [6 8];
             app.ModelparametersLabel.Text = 'Model parameters';
 
             % Create Ms_JALabel
-            app.Ms_JALabel = uilabel(app.GridLayout8);
-            app.Ms_JALabel.Layout.Row = 3;
-            app.Ms_JALabel.Layout.Column = 6;
+            app.Ms_JALabel = uilabel(app.GridLayout10);
+            app.Ms_JALabel.Layout.Row = 2;
+            app.Ms_JALabel.Layout.Column = [6 7];
             app.Ms_JALabel.Text = 'Ms [A/m]';
 
             % Create a_JALabel
-            app.a_JALabel = uilabel(app.GridLayout8);
-            app.a_JALabel.Layout.Row = 4;
-            app.a_JALabel.Layout.Column = 6;
+            app.a_JALabel = uilabel(app.GridLayout10);
+            app.a_JALabel.Layout.Row = 3;
+            app.a_JALabel.Layout.Column = [6 7];
             app.a_JALabel.Text = 'a [A/m]';
 
             % Create Ms_JA
-            app.Ms_JA = uieditfield(app.GridLayout8, 'numeric');
+            app.Ms_JA = uieditfield(app.GridLayout10, 'numeric');
             app.Ms_JA.ValueDisplayFormat = '%.5e';
             app.Ms_JA.AllowEmpty = 'on';
             app.Ms_JA.ValueChangedFcn = createCallbackFcn(app, @JAParamsHystereticValueChanged, true);
-            app.Ms_JA.Layout.Row = 3;
-            app.Ms_JA.Layout.Column = 7;
+            app.Ms_JA.Layout.Row = 2;
+            app.Ms_JA.Layout.Column = [8 9];
             app.Ms_JA.Value = [];
 
             % Create alpha_JALabel
-            app.alpha_JALabel = uilabel(app.GridLayout8);
-            app.alpha_JALabel.Layout.Row = 5;
-            app.alpha_JALabel.Layout.Column = 6;
+            app.alpha_JALabel = uilabel(app.GridLayout10);
+            app.alpha_JALabel.Layout.Row = 4;
+            app.alpha_JALabel.Layout.Column = [6 7];
             app.alpha_JALabel.Text = 'α';
 
             % Create a_JA
-            app.a_JA = uieditfield(app.GridLayout8, 'numeric');
+            app.a_JA = uieditfield(app.GridLayout10, 'numeric');
             app.a_JA.ValueDisplayFormat = '%.5g';
             app.a_JA.AllowEmpty = 'on';
             app.a_JA.ValueChangedFcn = createCallbackFcn(app, @JAParamsHystereticValueChanged, true);
-            app.a_JA.Layout.Row = 4;
-            app.a_JA.Layout.Column = 7;
+            app.a_JA.Layout.Row = 3;
+            app.a_JA.Layout.Column = [8 9];
             app.a_JA.Value = [];
 
             % Create c_JALabel
-            app.c_JALabel = uilabel(app.GridLayout8);
-            app.c_JALabel.Layout.Row = 6;
-            app.c_JALabel.Layout.Column = 6;
+            app.c_JALabel = uilabel(app.GridLayout10);
+            app.c_JALabel.Layout.Row = 5;
+            app.c_JALabel.Layout.Column = [6 7];
             app.c_JALabel.Text = 'c';
 
             % Create alpha_JA
-            app.alpha_JA = uieditfield(app.GridLayout8, 'numeric');
+            app.alpha_JA = uieditfield(app.GridLayout10, 'numeric');
             app.alpha_JA.ValueDisplayFormat = '%.5e';
             app.alpha_JA.AllowEmpty = 'on';
             app.alpha_JA.ValueChangedFcn = createCallbackFcn(app, @JAParamsHystereticValueChanged, true);
-            app.alpha_JA.Layout.Row = 5;
-            app.alpha_JA.Layout.Column = 7;
+            app.alpha_JA.Layout.Row = 4;
+            app.alpha_JA.Layout.Column = [8 9];
             app.alpha_JA.Value = [];
 
             % Create k_JALabel
-            app.k_JALabel = uilabel(app.GridLayout8);
-            app.k_JALabel.Layout.Row = 7;
-            app.k_JALabel.Layout.Column = 6;
+            app.k_JALabel = uilabel(app.GridLayout10);
+            app.k_JALabel.Layout.Row = 6;
+            app.k_JALabel.Layout.Column = [6 7];
             app.k_JALabel.Text = 'k [A/m]';
 
             % Create c_JA
-            app.c_JA = uieditfield(app.GridLayout8, 'numeric');
+            app.c_JA = uieditfield(app.GridLayout10, 'numeric');
             app.c_JA.ValueDisplayFormat = '%.6g';
             app.c_JA.AllowEmpty = 'on';
             app.c_JA.ValueChangedFcn = createCallbackFcn(app, @JAParamsHystereticValueChanged, true);
-            app.c_JA.Layout.Row = 6;
-            app.c_JA.Layout.Column = 7;
+            app.c_JA.Layout.Row = 5;
+            app.c_JA.Layout.Column = [8 9];
             app.c_JA.Value = [];
 
             % Create FitButton_2
-            app.FitButton_2 = uibutton(app.GridLayout8, 'push');
+            app.FitButton_2 = uibutton(app.GridLayout10, 'push');
             app.FitButton_2.ButtonPushedFcn = createCallbackFcn(app, @FitButton_2Pushed, true);
             app.FitButton_2.BackgroundColor = [0.8667 0.3294 0];
             app.FitButton_2.FontWeight = 'bold';
             app.FitButton_2.FontColor = [0.9412 0.9412 0.9412];
-            app.FitButton_2.Layout.Row = 16;
-            app.FitButton_2.Layout.Column = 14;
+            app.FitButton_2.Layout.Row = 17;
+            app.FitButton_2.Layout.Column = 15;
             app.FitButton_2.Text = 'Fit';
 
             % Create CalculatePlotButton_2
-            app.CalculatePlotButton_2 = uibutton(app.GridLayout8, 'push');
+            app.CalculatePlotButton_2 = uibutton(app.GridLayout10, 'push');
             app.CalculatePlotButton_2.ButtonPushedFcn = createCallbackFcn(app, @CalculatePlotButton_2Pushed, true);
             app.CalculatePlotButton_2.WordWrap = 'on';
-            app.CalculatePlotButton_2.Layout.Row = 16;
-            app.CalculatePlotButton_2.Layout.Column = [12 13];
+            app.CalculatePlotButton_2.Layout.Row = 17;
+            app.CalculatePlotButton_2.Layout.Column = [13 14];
             app.CalculatePlotButton_2.Text = 'Calculate & Plot';
 
             % Create k_JA
-            app.k_JA = uieditfield(app.GridLayout8, 'numeric');
+            app.k_JA = uieditfield(app.GridLayout10, 'numeric');
             app.k_JA.ValueDisplayFormat = '%.6g';
             app.k_JA.AllowEmpty = 'on';
             app.k_JA.ValueChangedFcn = createCallbackFcn(app, @JAParamsHystereticValueChanged, true);
-            app.k_JA.Layout.Row = 7;
-            app.k_JA.Layout.Column = 7;
+            app.k_JA.Layout.Row = 6;
+            app.k_JA.Layout.Column = [8 9];
             app.k_JA.Value = [];
 
             % Create ErrortominimizeDropDownLabel_2
-            app.ErrortominimizeDropDownLabel_2 = uilabel(app.GridLayout8);
+            app.ErrortominimizeDropDownLabel_2 = uilabel(app.GridLayout10);
             app.ErrortominimizeDropDownLabel_2.WordWrap = 'on';
             app.ErrortominimizeDropDownLabel_2.FontWeight = 'bold';
-            app.ErrortominimizeDropDownLabel_2.Layout.Row = 16;
+            app.ErrortominimizeDropDownLabel_2.Layout.Row = 17;
             app.ErrortominimizeDropDownLabel_2.Layout.Column = 6;
             app.ErrortominimizeDropDownLabel_2.Text = 'Error';
 
             % Create ErrortominimizeDropDown_2
-            app.ErrortominimizeDropDown_2 = uidropdown(app.GridLayout8);
-            app.ErrortominimizeDropDown_2.Items = {'Diagonal (H, continuous)', 'Vertical', 'Horizontal'};
+            app.ErrortominimizeDropDown_2 = uidropdown(app.GridLayout10);
+            app.ErrortominimizeDropDown_2.Items = {'Diagonal (H, continuous)', 'Diagonal (H, sampled)', 'Vertical', 'Horizontal'};
             app.ErrortominimizeDropDown_2.ValueChangedFcn = createCallbackFcn(app, @ErrortominimizeDropDown_2ValueChanged, true);
-            app.ErrortominimizeDropDown_2.Layout.Row = 16;
-            app.ErrortominimizeDropDown_2.Layout.Column = [7 9];
+            app.ErrortominimizeDropDown_2.Layout.Row = 17;
+            app.ErrortominimizeDropDown_2.Layout.Column = [7 10];
             app.ErrortominimizeDropDown_2.Value = 'Diagonal (H, continuous)';
 
             % Create RetrieveseedsButton
-            app.RetrieveseedsButton = uibutton(app.GridLayout8, 'push');
+            app.RetrieveseedsButton = uibutton(app.GridLayout10, 'push');
             app.RetrieveseedsButton.ButtonPushedFcn = createCallbackFcn(app, @RetrieveseedsButtonPushed, true);
-            app.RetrieveseedsButton.Layout.Row = 2;
-            app.RetrieveseedsButton.Layout.Column = [13 15];
+            app.RetrieveseedsButton.Layout.Row = 7;
+            app.RetrieveseedsButton.Layout.Column = [6 7];
             app.RetrieveseedsButton.Text = 'Retrieve seeds';
 
             % Create TippointdataLabel
-            app.TippointdataLabel = uilabel(app.GridLayout8);
+            app.TippointdataLabel = uilabel(app.GridLayout10);
             app.TippointdataLabel.FontWeight = 'bold';
             app.TippointdataLabel.Layout.Row = 9;
-            app.TippointdataLabel.Layout.Column = [6 7];
+            app.TippointdataLabel.Layout.Column = [6 9];
             app.TippointdataLabel.Text = 'Tip point (data)';
 
             % Create ErrorDisplay_2
-            app.ErrorDisplay_2 = uieditfield(app.GridLayout8, 'numeric');
+            app.ErrorDisplay_2 = uieditfield(app.GridLayout10, 'numeric');
             app.ErrorDisplay_2.ValueDisplayFormat = '%.5e';
             app.ErrorDisplay_2.AllowEmpty = 'on';
             app.ErrorDisplay_2.Editable = 'off';
             app.ErrorDisplay_2.HorizontalAlignment = 'left';
-            app.ErrorDisplay_2.Layout.Row = 16;
-            app.ErrorDisplay_2.Layout.Column = [10 11];
+            app.ErrorDisplay_2.Layout.Row = 17;
+            app.ErrorDisplay_2.Layout.Column = [11 12];
             app.ErrorDisplay_2.Value = [];
 
             % Create HtipLabel
-            app.HtipLabel = uilabel(app.GridLayout8);
+            app.HtipLabel = uilabel(app.GridLayout10);
             app.HtipLabel.Layout.Row = 10;
-            app.HtipLabel.Layout.Column = 6;
+            app.HtipLabel.Layout.Column = [6 7];
             app.HtipLabel.Text = 'Htip [A/m]';
 
             % Create ShowgridCheckBoxM_2
-            app.ShowgridCheckBoxM_2 = uicheckbox(app.GridLayout8);
+            app.ShowgridCheckBoxM_2 = uicheckbox(app.GridLayout10);
             app.ShowgridCheckBoxM_2.ValueChangedFcn = createCallbackFcn(app, @ShowgridCheckBoxM_2ValueChanged, true);
             app.ShowgridCheckBoxM_2.Text = 'Grid';
-            app.ShowgridCheckBoxM_2.Layout.Row = 16;
-            app.ShowgridCheckBoxM_2.Layout.Column = 4;
+            app.ShowgridCheckBoxM_2.Layout.Row = 17;
+            app.ShowgridCheckBoxM_2.Layout.Column = 3;
             app.ShowgridCheckBoxM_2.Value = true;
 
             % Create ResidualplotButtondMdH_2
-            app.ResidualplotButtondMdH_2 = uibutton(app.GridLayout8, 'push');
+            app.ResidualplotButtondMdH_2 = uibutton(app.GridLayout10, 'push');
             app.ResidualplotButtondMdH_2.ButtonPushedFcn = createCallbackFcn(app, @ResidualplotButtondMdH_2Pushed, true);
-            app.ResidualplotButtondMdH_2.Layout.Row = 16;
-            app.ResidualplotButtondMdH_2.Layout.Column = 2;
+            app.ResidualplotButtondMdH_2.Layout.Row = 17;
+            app.ResidualplotButtondMdH_2.Layout.Column = 1;
             app.ResidualplotButtondMdH_2.Text = 'Residuals';
 
             % Create Htip
-            app.Htip = uieditfield(app.GridLayout8, 'numeric');
+            app.Htip = uieditfield(app.GridLayout10, 'numeric');
             app.Htip.ValueDisplayFormat = '%.5e';
             app.Htip.AllowEmpty = 'on';
             app.Htip.Editable = 'off';
             app.Htip.Layout.Row = 10;
-            app.Htip.Layout.Column = 7;
+            app.Htip.Layout.Column = [8 9];
             app.Htip.Value = [];
 
             % Create MtipLabel
-            app.MtipLabel = uilabel(app.GridLayout8);
+            app.MtipLabel = uilabel(app.GridLayout10);
             app.MtipLabel.Layout.Row = 11;
-            app.MtipLabel.Layout.Column = 6;
+            app.MtipLabel.Layout.Column = [6 7];
             app.MtipLabel.Text = 'Mtip [A/m]';
 
             % Create MsLower_JA
-            app.MsLower_JA = uieditfield(app.GridLayout8, 'numeric');
+            app.MsLower_JA = uieditfield(app.GridLayout10, 'numeric');
             app.MsLower_JA.AllowEmpty = 'on';
             app.MsLower_JA.ValueChangedFcn = createCallbackFcn(app, @MsLower_JAValueChanged, true);
-            app.MsLower_JA.Layout.Row = 3;
-            app.MsLower_JA.Layout.Column = [8 9];
+            app.MsLower_JA.Layout.Row = 2;
+            app.MsLower_JA.Layout.Column = [10 11];
 
             % Create MsUpper_JA
-            app.MsUpper_JA = uieditfield(app.GridLayout8, 'numeric');
+            app.MsUpper_JA = uieditfield(app.GridLayout10, 'numeric');
             app.MsUpper_JA.ValueDisplayFormat = '%.6g';
             app.MsUpper_JA.AllowEmpty = 'on';
-            app.MsUpper_JA.Layout.Row = 3;
-            app.MsUpper_JA.Layout.Column = [10 11];
+            app.MsUpper_JA.Layout.Row = 2;
+            app.MsUpper_JA.Layout.Column = [12 13];
             app.MsUpper_JA.Value = Inf;
 
             % Create Mtip
-            app.Mtip = uieditfield(app.GridLayout8, 'numeric');
+            app.Mtip = uieditfield(app.GridLayout10, 'numeric');
             app.Mtip.ValueDisplayFormat = '%.5e';
             app.Mtip.AllowEmpty = 'on';
             app.Mtip.Editable = 'off';
             app.Mtip.Layout.Row = 11;
-            app.Mtip.Layout.Column = 7;
+            app.Mtip.Layout.Column = [8 9];
             app.Mtip.Value = [];
 
             % Create aLower_JA
-            app.aLower_JA = uieditfield(app.GridLayout8, 'numeric');
+            app.aLower_JA = uieditfield(app.GridLayout10, 'numeric');
             app.aLower_JA.ValueDisplayFormat = '%.6g';
-            app.aLower_JA.Layout.Row = 4;
-            app.aLower_JA.Layout.Column = [8 9];
+            app.aLower_JA.Layout.Row = 3;
+            app.aLower_JA.Layout.Column = [10 11];
 
             % Create aUpper_JA
-            app.aUpper_JA = uieditfield(app.GridLayout8, 'numeric');
+            app.aUpper_JA = uieditfield(app.GridLayout10, 'numeric');
             app.aUpper_JA.ValueDisplayFormat = '%.6g';
             app.aUpper_JA.AllowEmpty = 'on';
-            app.aUpper_JA.Layout.Row = 4;
-            app.aUpper_JA.Layout.Column = [10 11];
+            app.aUpper_JA.Layout.Row = 3;
+            app.aUpper_JA.Layout.Column = [12 13];
             app.aUpper_JA.Value = Inf;
 
             % Create alphaLower_JA
-            app.alphaLower_JA = uieditfield(app.GridLayout8, 'numeric');
+            app.alphaLower_JA = uieditfield(app.GridLayout10, 'numeric');
             app.alphaLower_JA.ValueDisplayFormat = '%.5e';
             app.alphaLower_JA.AllowEmpty = 'on';
-            app.alphaLower_JA.Layout.Row = 5;
-            app.alphaLower_JA.Layout.Column = [8 9];
+            app.alphaLower_JA.Layout.Row = 4;
+            app.alphaLower_JA.Layout.Column = [10 11];
             app.alphaLower_JA.Value = -Inf;
 
             % Create alphaUpper_JA
-            app.alphaUpper_JA = uieditfield(app.GridLayout8, 'numeric');
+            app.alphaUpper_JA = uieditfield(app.GridLayout10, 'numeric');
             app.alphaUpper_JA.ValueDisplayFormat = '%.5e';
             app.alphaUpper_JA.AllowEmpty = 'on';
-            app.alphaUpper_JA.Layout.Row = 5;
-            app.alphaUpper_JA.Layout.Column = [10 11];
+            app.alphaUpper_JA.Layout.Row = 4;
+            app.alphaUpper_JA.Layout.Column = [12 13];
             app.alphaUpper_JA.Value = Inf;
 
             % Create cLower_JA
-            app.cLower_JA = uieditfield(app.GridLayout8, 'numeric');
+            app.cLower_JA = uieditfield(app.GridLayout10, 'numeric');
             app.cLower_JA.ValueDisplayFormat = '%.6g';
             app.cLower_JA.AllowEmpty = 'on';
-            app.cLower_JA.Layout.Row = 6;
-            app.cLower_JA.Layout.Column = [8 9];
+            app.cLower_JA.Layout.Row = 5;
+            app.cLower_JA.Layout.Column = [10 11];
 
             % Create cUpper_JA
-            app.cUpper_JA = uieditfield(app.GridLayout8, 'numeric');
+            app.cUpper_JA = uieditfield(app.GridLayout10, 'numeric');
             app.cUpper_JA.ValueDisplayFormat = '%.6g';
             app.cUpper_JA.AllowEmpty = 'on';
-            app.cUpper_JA.Layout.Row = 6;
-            app.cUpper_JA.Layout.Column = [10 11];
+            app.cUpper_JA.Layout.Row = 5;
+            app.cUpper_JA.Layout.Column = [12 13];
             app.cUpper_JA.Value = 1;
 
             % Create LowerboundLabel
-            app.LowerboundLabel = uilabel(app.GridLayout8);
+            app.LowerboundLabel = uilabel(app.GridLayout10);
             app.LowerboundLabel.FontWeight = 'bold';
-            app.LowerboundLabel.Layout.Row = 2;
-            app.LowerboundLabel.Layout.Column = [8 9];
+            app.LowerboundLabel.Layout.Row = 1;
+            app.LowerboundLabel.Layout.Column = [10 11];
             app.LowerboundLabel.Text = 'Lower bound';
 
             % Create kLower_JA
-            app.kLower_JA = uieditfield(app.GridLayout8, 'numeric');
+            app.kLower_JA = uieditfield(app.GridLayout10, 'numeric');
             app.kLower_JA.ValueDisplayFormat = '%.6g';
             app.kLower_JA.AllowEmpty = 'on';
-            app.kLower_JA.Layout.Row = 7;
-            app.kLower_JA.Layout.Column = [8 9];
+            app.kLower_JA.Layout.Row = 6;
+            app.kLower_JA.Layout.Column = [10 11];
 
             % Create UpperboundLabel
-            app.UpperboundLabel = uilabel(app.GridLayout8);
+            app.UpperboundLabel = uilabel(app.GridLayout10);
             app.UpperboundLabel.FontWeight = 'bold';
-            app.UpperboundLabel.Layout.Row = 2;
-            app.UpperboundLabel.Layout.Column = [10 11];
+            app.UpperboundLabel.Layout.Row = 1;
+            app.UpperboundLabel.Layout.Column = [12 14];
             app.UpperboundLabel.Text = 'Upper bound';
 
             % Create kUpper_JA
-            app.kUpper_JA = uieditfield(app.GridLayout8, 'numeric');
+            app.kUpper_JA = uieditfield(app.GridLayout10, 'numeric');
             app.kUpper_JA.ValueDisplayFormat = '%.6g';
             app.kUpper_JA.AllowEmpty = 'on';
-            app.kUpper_JA.Layout.Row = 7;
-            app.kUpper_JA.Layout.Column = [10 11];
+            app.kUpper_JA.Layout.Row = 6;
+            app.kUpper_JA.Layout.Column = [12 13];
             app.kUpper_JA.Value = Inf;
 
             % Create FitLabel
-            app.FitLabel = uilabel(app.GridLayout8);
+            app.FitLabel = uilabel(app.GridLayout10);
             app.FitLabel.FontWeight = 'bold';
-            app.FitLabel.Layout.Row = 2;
-            app.FitLabel.Layout.Column = 12;
+            app.FitLabel.Layout.Row = 1;
+            app.FitLabel.Layout.Column = 14;
             app.FitLabel.Text = 'Fit';
 
             % Create CheckBox
-            app.CheckBox = uicheckbox(app.GridLayout8);
+            app.CheckBox = uicheckbox(app.GridLayout10);
             app.CheckBox.Text = '';
-            app.CheckBox.Layout.Row = 3;
-            app.CheckBox.Layout.Column = 12;
+            app.CheckBox.Layout.Row = 2;
+            app.CheckBox.Layout.Column = 14;
             app.CheckBox.Value = true;
 
             % Create CheckBox_2
-            app.CheckBox_2 = uicheckbox(app.GridLayout8);
+            app.CheckBox_2 = uicheckbox(app.GridLayout10);
             app.CheckBox_2.Text = '';
-            app.CheckBox_2.Layout.Row = 4;
-            app.CheckBox_2.Layout.Column = 12;
+            app.CheckBox_2.Layout.Row = 3;
+            app.CheckBox_2.Layout.Column = 14;
             app.CheckBox_2.Value = true;
 
             % Create CheckBox_3
-            app.CheckBox_3 = uicheckbox(app.GridLayout8);
+            app.CheckBox_3 = uicheckbox(app.GridLayout10);
             app.CheckBox_3.Text = '';
-            app.CheckBox_3.Layout.Row = 5;
-            app.CheckBox_3.Layout.Column = 12;
+            app.CheckBox_3.Layout.Row = 4;
+            app.CheckBox_3.Layout.Column = 14;
             app.CheckBox_3.Value = true;
 
             % Create CheckBox_4
-            app.CheckBox_4 = uicheckbox(app.GridLayout8);
+            app.CheckBox_4 = uicheckbox(app.GridLayout10);
             app.CheckBox_4.Text = '';
-            app.CheckBox_4.Layout.Row = 6;
-            app.CheckBox_4.Layout.Column = 12;
+            app.CheckBox_4.Layout.Row = 5;
+            app.CheckBox_4.Layout.Column = 14;
             app.CheckBox_4.Value = true;
 
             % Create FitkCheckBox
-            app.FitkCheckBox = uicheckbox(app.GridLayout8);
+            app.FitkCheckBox = uicheckbox(app.GridLayout10);
             app.FitkCheckBox.Text = '';
-            app.FitkCheckBox.Layout.Row = 7;
-            app.FitkCheckBox.Layout.Column = 12;
+            app.FitkCheckBox.Layout.Row = 6;
+            app.FitkCheckBox.Layout.Column = 14;
             app.FitkCheckBox.Value = true;
 
-            % Create Label
-            app.Label = uilabel(app.GridLayout8);
-            app.Label.Layout.Row = 2;
-            app.Label.Layout.Column = 15;
-            app.Label.Text = '';
-
             % Create kConstrainedCheckBox_2
-            app.kConstrainedCheckBox_2 = uicheckbox(app.GridLayout8);
+            app.kConstrainedCheckBox_2 = uicheckbox(app.GridLayout10);
             app.kConstrainedCheckBox_2.ValueChangedFcn = createCallbackFcn(app, @kConstrainedCheckBox_2ValueChanged, true);
             app.kConstrainedCheckBox_2.Text = 'Constrained by Hc';
-            app.kConstrainedCheckBox_2.Layout.Row = 7;
-            app.kConstrainedCheckBox_2.Layout.Column = [13 15];
+            app.kConstrainedCheckBox_2.Layout.Row = 6;
+            app.kConstrainedCheckBox_2.Layout.Column = [15 16];
             app.kConstrainedCheckBox_2.Value = true;
 
             % Create StopfitButton_2
-            app.StopfitButton_2 = uibutton(app.GridLayout8, 'push');
+            app.StopfitButton_2 = uibutton(app.GridLayout10, 'push');
             app.StopfitButton_2.ButtonPushedFcn = createCallbackFcn(app, @StopfitButton_2Pushed, true);
-            app.StopfitButton_2.Layout.Row = 16;
-            app.StopfitButton_2.Layout.Column = 15;
+            app.StopfitButton_2.Layout.Row = 17;
+            app.StopfitButton_2.Layout.Column = 16;
             app.StopfitButton_2.Text = 'Stop fit';
 
+            % Create FittingconditionsLabel
+            app.FittingconditionsLabel = uilabel(app.GridLayout10);
+            app.FittingconditionsLabel.FontWeight = 'bold';
+            app.FittingconditionsLabel.Layout.Row = 9;
+            app.FittingconditionsLabel.Layout.Column = [12 16];
+            app.FittingconditionsLabel.Text = 'Fitting conditions';
+
             % Create StartingpointDropDown_4Label
-            app.StartingpointDropDown_4Label = uilabel(app.GridLayout8);
+            app.StartingpointDropDown_4Label = uilabel(app.GridLayout10);
             app.StartingpointDropDown_4Label.Layout.Row = 10;
-            app.StartingpointDropDown_4Label.Layout.Column = [10 11];
+            app.StartingpointDropDown_4Label.Layout.Column = [12 14];
             app.StartingpointDropDown_4Label.Text = 'Starting point';
 
             % Create StartingpointDropDown_4
-            app.StartingpointDropDown_4 = uidropdown(app.GridLayout8);
+            app.StartingpointDropDown_4 = uidropdown(app.GridLayout10);
             app.StartingpointDropDown_4.Items = {'Demagnetized', 'Tip point'};
             app.StartingpointDropDown_4.ValueChangedFcn = createCallbackFcn(app, @StartingpointDropDown_4ValueChanged, true);
             app.StartingpointDropDown_4.Layout.Row = 10;
-            app.StartingpointDropDown_4.Layout.Column = [12 14];
+            app.StartingpointDropDown_4.Layout.Column = [14 16];
             app.StartingpointDropDown_4.Value = 'Demagnetized';
 
             % Create FittingregionDropDownLabel
-            app.FittingregionDropDownLabel = uilabel(app.GridLayout8);
+            app.FittingregionDropDownLabel = uilabel(app.GridLayout10);
             app.FittingregionDropDownLabel.Layout.Row = 11;
-            app.FittingregionDropDownLabel.Layout.Column = [10 11];
+            app.FittingregionDropDownLabel.Layout.Column = [12 14];
             app.FittingregionDropDownLabel.Text = 'Fitting region';
 
             % Create FittingregionDropDown
-            app.FittingregionDropDown = uidropdown(app.GridLayout8);
+            app.FittingregionDropDown = uidropdown(app.GridLayout10);
             app.FittingregionDropDown.Items = {'Left branch only', 'Entire loop'};
             app.FittingregionDropDown.ValueChangedFcn = createCallbackFcn(app, @FittingregionDropDownValueChanged, true);
             app.FittingregionDropDown.Layout.Row = 11;
-            app.FittingregionDropDown.Layout.Column = [12 14];
+            app.FittingregionDropDown.Layout.Column = [14 16];
             app.FittingregionDropDown.Value = 'Entire loop';
 
             % Create StopcriterionDropDown_5Label
-            app.StopcriterionDropDown_5Label = uilabel(app.GridLayout8);
+            app.StopcriterionDropDown_5Label = uilabel(app.GridLayout10);
             app.StopcriterionDropDown_5Label.Layout.Row = 12;
-            app.StopcriterionDropDown_5Label.Layout.Column = [10 11];
+            app.StopcriterionDropDown_5Label.Layout.Column = [12 14];
             app.StopcriterionDropDown_5Label.Text = 'Stop criterion';
 
             % Create StopcriterionDropDown_5
-            app.StopcriterionDropDown_5 = uidropdown(app.GridLayout8);
+            app.StopcriterionDropDown_5 = uidropdown(app.GridLayout10);
             app.StopcriterionDropDown_5.Items = {'Fixed repetitions', 'Until convergence'};
             app.StopcriterionDropDown_5.ValueChangedFcn = createCallbackFcn(app, @StopcriterionDropDown_5ValueChanged, true);
             app.StopcriterionDropDown_5.Layout.Row = 12;
-            app.StopcriterionDropDown_5.Layout.Column = [12 14];
+            app.StopcriterionDropDown_5.Layout.Column = [14 16];
             app.StopcriterionDropDown_5.Value = 'Fixed repetitions';
 
             % Create RepetitionsEditField_3Label
-            app.RepetitionsEditField_3Label = uilabel(app.GridLayout8);
+            app.RepetitionsEditField_3Label = uilabel(app.GridLayout10);
             app.RepetitionsEditField_3Label.Layout.Row = 13;
-            app.RepetitionsEditField_3Label.Layout.Column = [11 12];
+            app.RepetitionsEditField_3Label.Layout.Column = [13 15];
             app.RepetitionsEditField_3Label.Text = 'Repetitions';
 
             % Create RepetitionsEditField_3
-            app.RepetitionsEditField_3 = uieditfield(app.GridLayout8, 'numeric');
+            app.RepetitionsEditField_3 = uieditfield(app.GridLayout10, 'numeric');
             app.RepetitionsEditField_3.Limits = [0 Inf];
             app.RepetitionsEditField_3.RoundFractionalValues = 'on';
             app.RepetitionsEditField_3.ValueChangedFcn = createCallbackFcn(app, @RepetitionsEditField_3ValueChanged, true);
             app.RepetitionsEditField_3.Layout.Row = 13;
-            app.RepetitionsEditField_3.Layout.Column = [13 14];
+            app.RepetitionsEditField_3.Layout.Column = [15 16];
             app.RepetitionsEditField_3.Value = 1;
 
             % Create RelativetoleranceEditFieldLabel
-            app.RelativetoleranceEditFieldLabel = uilabel(app.GridLayout8);
+            app.RelativetoleranceEditFieldLabel = uilabel(app.GridLayout10);
             app.RelativetoleranceEditFieldLabel.Layout.Row = 14;
-            app.RelativetoleranceEditFieldLabel.Layout.Column = [11 12];
+            app.RelativetoleranceEditFieldLabel.Layout.Column = [13 15];
             app.RelativetoleranceEditFieldLabel.Text = 'Relative tolerance';
 
             % Create RelativetoleranceEditField
-            app.RelativetoleranceEditField = uieditfield(app.GridLayout8, 'numeric');
+            app.RelativetoleranceEditField = uieditfield(app.GridLayout10, 'numeric');
             app.RelativetoleranceEditField.Limits = [0 Inf];
             app.RelativetoleranceEditField.ValueDisplayFormat = '%.3e';
             app.RelativetoleranceEditField.ValueChangedFcn = createCallbackFcn(app, @RelativetoleranceEditFieldValueChanged, true);
             app.RelativetoleranceEditField.Layout.Row = 14;
-            app.RelativetoleranceEditField.Layout.Column = [13 14];
+            app.RelativetoleranceEditField.Layout.Column = [15 16];
             app.RelativetoleranceEditField.Value = 0.001;
 
             % Create MaximumrepetitionsEditFieldLabel
-            app.MaximumrepetitionsEditFieldLabel = uilabel(app.GridLayout8);
+            app.MaximumrepetitionsEditFieldLabel = uilabel(app.GridLayout10);
             app.MaximumrepetitionsEditFieldLabel.Layout.Row = 15;
-            app.MaximumrepetitionsEditFieldLabel.Layout.Column = [11 12];
+            app.MaximumrepetitionsEditFieldLabel.Layout.Column = [13 15];
             app.MaximumrepetitionsEditFieldLabel.Text = 'Maximum repetitions';
 
             % Create MaximumrepetitionsEditField
-            app.MaximumrepetitionsEditField = uieditfield(app.GridLayout8, 'numeric');
+            app.MaximumrepetitionsEditField = uieditfield(app.GridLayout10, 'numeric');
             app.MaximumrepetitionsEditField.Limits = [0 Inf];
             app.MaximumrepetitionsEditField.RoundFractionalValues = 'on';
             app.MaximumrepetitionsEditField.ValueChangedFcn = createCallbackFcn(app, @MaximumrepetitionsEditFieldValueChanged, true);
             app.MaximumrepetitionsEditField.Layout.Row = 15;
-            app.MaximumrepetitionsEditField.Layout.Column = [13 14];
+            app.MaximumrepetitionsEditField.Layout.Column = [15 16];
             app.MaximumrepetitionsEditField.Value = 10;
-
-            % Create FittingconditionsLabel
-            app.FittingconditionsLabel = uilabel(app.GridLayout8);
-            app.FittingconditionsLabel.FontWeight = 'bold';
-            app.FittingconditionsLabel.Layout.Row = 9;
-            app.FittingconditionsLabel.Layout.Column = [10 14];
-            app.FittingconditionsLabel.Text = 'Fitting conditions';
 
             % Create PlaygroundTab
             app.PlaygroundTab = uitab(app.TabGroup);
@@ -2675,8 +2577,8 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayout3
             app.GridLayout3 = uigridlayout(app.PlaygroundTab);
-            app.GridLayout3.ColumnWidth = {'1x', '1.3x', '0.5x', '1x', '1x', '1x', '1x', '1x', '0.5x', '1x', '1x', '1x', '1x', '1x'};
-            app.GridLayout3.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1.5x'};
+            app.GridLayout3.ColumnWidth = {'1.25x', '1.3x', '0.25x', '1x', '1x', '1x', '1x', '1x', '0.5x', '1x', '1x', '1x', '1x', '1x'};
+            app.GridLayout3.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '0.5x'};
             app.GridLayout3.ColumnSpacing = 4.37498664855957;
             app.GridLayout3.RowSpacing = 2.24000155131022;
             app.GridLayout3.Padding = [4.37498664855957 2.24000155131022 4.37498664855957 2.24000155131022];
@@ -3142,12 +3044,12 @@ classdef app_exported < matlab.apps.AppBase
             app.DistortedmajorloopwithharmoniccomponentsLabel.Layout.Column = [1 3];
             app.DistortedmajorloopwithharmoniccomponentsLabel.Text = 'Distorted major loop with harmonic components';
 
-            % Create JilesAthertonmodelrateindependentLabel_2
-            app.JilesAthertonmodelrateindependentLabel_2 = uilabel(app.GridLayout3);
-            app.JilesAthertonmodelrateindependentLabel_2.FontWeight = 'bold';
-            app.JilesAthertonmodelrateindependentLabel_2.Layout.Row = 1;
-            app.JilesAthertonmodelrateindependentLabel_2.Layout.Column = [1 4];
-            app.JilesAthertonmodelrateindependentLabel_2.Text = 'Jiles-Atherton model (rate-independent)';
+            % Create JilesAthertonrateindependentmodelLabel
+            app.JilesAthertonrateindependentmodelLabel = uilabel(app.GridLayout3);
+            app.JilesAthertonrateindependentmodelLabel.FontWeight = 'bold';
+            app.JilesAthertonrateindependentmodelLabel.Layout.Row = 1;
+            app.JilesAthertonrateindependentmodelLabel.Layout.Column = [1 4];
+            app.JilesAthertonrateindependentmodelLabel.Text = 'Jiles-Atherton rate-independent model';
 
             % Create ModelparametersLabel_2
             app.ModelparametersLabel_2 = uilabel(app.GridLayout3);

@@ -29,9 +29,9 @@
     
     ## Authors
     
+    - Matías Ignacio González
     - Marina Zoe Petean
     - Tomás Francisco González
-    - Matías Ignacio González
       
       
     - Juan Manuel Conde Garrido
@@ -45,27 +45,31 @@ University of Buenos Aires – CONICET, Buenos Aires, Argentina.
 
 The accurate description of magnetization is crucial for designing devices with soft magnetic cores. MagAnalyst is an easy-to-use MATLAB toolbox that models the magnetization of soft magnetic materials.
 
-It implements a physically based approach, proposed by Silveyra and Conde Garrido, to describe the ideal **anhysteretic** curve. The equation of state is simple yet accurate for various material scenarios. The toolbox first plots a set of curves to help the user determine the number of component magnetizations to model and the seeds for the fitting process. It then retrieves the model parameters without the need for programming or optimization skills. As a result, even noisy data from challenging scenarios can be accurately described by a single analytic function, with continuous and differentiable magnetization and susceptibility.
+The toolbox implements, in an easy-to-use graphical user interfaces, strategies designed by the senior contributors of the project, Conde Garrido and Silveyra, to fit accurately, fastly, and without any prior-knowledge on the model parameters search-space nor background on optimization methods:
+ - the **anhysteretic magnetization** with a rule of mixtures of Langevin-Weiss components,
+ - the **hysteretic magnetization** with the classical rate-independent Jiles-Atherton model.
 
-**New in version 2.0.** In addition to anhysteretic modeling, MagAnalyst now covers the **hysteretic** behavior of soft magnetic materials through the rate-independent **Jiles–Atherton (JA) model**. The anhysteretic fitting already delivers seeds for the JA parameters Ms, a, and α. The strategy proposed by Conde Garrido et al. yields good seeds for the JA parameters k and c. All five parameters can then be quickly optimized to accurately described a measured symmetric hysteresis loop. Moreover, an interactive **Playground** allows to forward-simulate major loops, nested minor loops, AC degaussing, and loops driven by distorted (harmonic) fields.
+Moreover, an interactive **Playground** allows to forward-simulate major loops, nested minor loops, AC degaussing, and loops driven by distorted (harmonic) fields with the classical rate-independent Jiles-Atherton model. Setting either k=0 or c=1 retrives the single-component Langevin-Weiss model.
 
-A unified **Export** dialog lets you save every result — measured/processed data, anhysteretic and hysteretic fits, playground simulations, optimization-progress curves, and figures — as CSV, TXT, and image files. All of these features are also available programmatically, without the GUI, to embed them into custom scripts (see the demo scripts).
+These features are also available programmatically, without the GUI, to embed them into custom scripts (see the demo scripts).
 
-The toolbox is shared as open-source with the aim of allowing researchers to taylor it for their specific needs, such as variants of the classic JA model (temperature dependence, rate-dependence, etc.)
+A unified **Export** dialog enables exporting result — measured/processed data, anhysteretic and hysteretic fits, playground simulations, optimization-progress curves, and figures — as CSV, TXT, and image files, while a **Save** features saves the full project for persistance. 
+
+The toolbox is shared as open-source with the aim of allowing researchers to taylor it for their specific needs, such as variants of the classic JA model (temperature dependence, rate-dependence, etc.) or exploring other optimization methods.
 
 ## Setup and usage instructions
 
-You need to create a copy on a local directory on your machine to use MagAnalyst. Obtain a copy by downloading and unzipping the latest [release](https://github.com/jsilveyra/mag-analyst/releases) or clone MagAnalyst instead e.g. using: git clone https://github.com/jsilveyra/mag-analyst. You can place the MagAnalyst folder anywhere on your machine.
+Obtain a copy by downloading and unzipping the latest [release](https://github.com/jsilveyra/mag-analyst/releases) or clone MagAnalyst instead e.g. using: git clone https://github.com/jsilveyra/mag-analyst.
 
 We recommend using [GitHub Desktop](https://desktop.github.com/), which allows users to easily synchronize with the latest version of MagAnalyst.
 
-After downloading the main folder and placing it in a suitable location, MagAnalyst is ready to use.
+After downloading the main folder and placing it in a suitable location of your local machine, MagAnalyst is ready to use.
 
 MagAnalyst is platform-agnostic and works on Windows, macOS, or Linux. The GUI loads sample projects from paths relative to the toolbox root (for example `data/sample_data/`), so you can place the MagAnalyst folder anywhere you like; if you move it after opening a sample project you may need to re-import the curve file.
 
-To start using the application with the graphical user interface, run the `MagAnalyst.m` launcher (type `MagAnalyst` in the MATLAB Command Window). It shows a loading splash while the app builds and then opens the GUI. The first launch after starting MATLAB is slower because MATLAB warms up the App Designer graphics framework; later launches in the same session are faster. Alternatively, you can still run the `app.mlapp` file directly.
+To start using the application with the graphical user interface, run the `MagAnalyst.m` launcher (type `MagAnalyst` in the MATLAB Command Window). It shows a loading splash while the app builds and then opens the GUI. The first launch after starting MATLAB is slower because MATLAB warms up the App Designer graphics framework; later launches in the same session are faster. Alternatively, you can still run the `app.mlapp` or `app_exported.m` files directly.
 
-If you prefer to run MagAnalyst using command lines (or to call it from your own scripts), follow the demo scripts in `mag-analyst/src/`:
+If you prefer to run MagAnalyst using command lines (or to call it from your own scripts), follow the demo scripts in `mag-analyst/demos/`:
 
 * `demo.m` — anhysteretic fit with a single component;
 * `demo_2_components.m` — anhysteretic fit with two components;
@@ -73,7 +77,7 @@ If you prefer to run MagAnalyst using command lines (or to call it from your own
 
 The demo scripts build their data paths with Matlab's `fullfile` helper (e.g., `fullfile('data','sample_data','Finemet - TA.csv')`), so they load the same files on Windows, macOS, and Linux without requiring manual path tweaks.
 
-MagAnalyst 2.0.0 was implemented and tested with Matlab R2025b. It relies on App Designer / `uifigure` features (e.g. `exportgraphics`, `uigridlayout`); the authors cannot guarantee that the code runs on earlier versions.
+MagAnalyst 2.8 was implemented and tested with Matlab R2025b. It relies on App Designer / `uifigure` features (e.g. `exportgraphics`, `uigridlayout`); the authors cannot guarantee that the code runs on earlier versions.
 
 ## Overview of the GUI
 

@@ -14,26 +14,39 @@ classdef HystereticUtils
         end
 
         function [H_cycle, M_cycle] = build_ja_data_cycle(app)
-            H_unit = app.HorizontalaxisfieldDropDown.Value;
-            M_unit = app.VerticalaxisfieldDropDown.Value;
-            [H_conv, M_conv] = UnitConvertor().convert_H_M(app.H_raw, H_unit, app.M_raw, M_unit);
+            [H_cycle, M_cycle] = HystereticUtils.build_ja_data_cycle_core( ...
+                app.H_raw, app.M_raw, ...
+                app.HorizontalaxisfieldDropDown.Value, ...
+                app.VerticalaxisfieldDropDown.Value, ...
+                app.InputNumberofPointsEditField.Value);
+        end
 
-            n_left = max(2, round(app.InputNumberofPointsEditField.Value));
-            [H_left, M_left] = app.extract_left_branch_uniform_arc(H_conv, M_conv, n_left);
+        function [H_left, M_left] = get_hysteretic_left_branch_data(app)
+            [~, ~, H_left, M_left] = HystereticUtils.build_ja_data_cycle_core( ...
+                app.H_raw, app.M_raw, ...
+                app.HorizontalaxisfieldDropDown.Value, ...
+                app.VerticalaxisfieldDropDown.Value, ...
+                app.InputNumberofPointsEditField.Value);
+        end
+
+        function [H_cycle, M_cycle, H_left, M_left] = build_ja_data_cycle_core(H_raw, M_raw, H_unit, M_unit, number_of_points)
+            % Pure (app-independent) core shared by build_ja_data_cycle and
+            % get_hysteretic_left_branch_data, and callable directly from
+            % command-line scripts/demos (which have no live app to read the
+            % Input tab's unit dropdowns / number-of-points field from):
+            % convert the raw imported columns to base units (A/m), extract a
+            % uniformly arc-length-sampled descending (left) branch, then
+            % reflect it into a full, point-symmetric cycle. Keeping this one
+            % copy means the demo's data cycle is byte-for-byte the app's.
+            [H_conv, M_conv] = UnitConvertor().convert_H_M(H_raw, H_unit, M_raw, M_unit);
+
+            n_left = max(2, round(number_of_points));
+            [H_left, M_left] = extract_left_branch_uniform_arc(H_conv, M_conv, n_left);
             H_right = -H_left;
             M_right = -M_left;
 
             H_cycle = [H_left H_right(2:end)];
             M_cycle = [M_left M_right(2:end)];
-        end
-
-        function [H_left, M_left] = get_hysteretic_left_branch_data(app)
-            H_unit = app.HorizontalaxisfieldDropDown.Value;
-            M_unit = app.VerticalaxisfieldDropDown.Value;
-            [H_conv, M_conv] = UnitConvertor().convert_H_M(app.H_raw, H_unit, app.M_raw, M_unit);
-
-            n_left = max(2, round(app.InputNumberofPointsEditField.Value));
-            [H_left, M_left] = app.extract_left_branch_uniform_arc(H_conv, M_conv, n_left);
         end
 
         function [H_model_left, M_model_left, has_model] = get_hysteretic_left_branch_model(app)
@@ -458,7 +471,7 @@ classdef HystereticUtils
                     try
                         [H_cycle, M_cycle] = HystereticUtils.build_ja_data_cycle(app);
                         n_left = max(2, round(app.InputNumberofPointsEditField.Value));
-                        [H_left, M_left] = app.extract_left_branch_uniform_arc(H_cycle, M_cycle, n_left);
+                        [H_left, M_left] = extract_left_branch_uniform_arc(H_cycle, M_cycle, n_left);
                         k_value = HystereticUtils.estimate_k_from_coercive_point(app, H_left, M_left, ms_num, a_num, alpha_num, c_seed);
                     catch ME
                         k_value = NaN;
@@ -473,11 +486,11 @@ classdef HystereticUtils
                     k_display = HystereticUtils.format_k_seed_display(app, k_value);
                     app.k_JA.Value = k_value;
                     app.c_JA.Value = c_seed;
-                    app.write_message("Jiles–Atherton seeds retrieved: " + Ms_seed_label + "=" + ms_display + ", a=" + a_display + " [A/m], " + alpha_seed_label + "=" + alpha_display + ", c=" + app.format_short(c_seed) + ", k=" + k_display + " [A/m].");
+                    app.write_message("Jiles–Atherton seeds retrieved: " + Ms_seed_label + "=" + ms_display + ", a=" + a_display + " [A/m], " + alpha_seed_label + "=" + alpha_display + ", c=" + FormatUtils.format_short(c_seed) + ", k=" + k_display + " [A/m].");
                 else
                     app.k_JA.Value = [];
                     app.c_JA.Value = c_seed;
-                    app.write_message("Jiles–Atherton seeds retrieved: " + Ms_seed_label + "=" + ms_display + ", a=" + a_display + " [A/m], " + alpha_seed_label + "=" + alpha_display + ", c=" + app.format_short(c_seed) + ", k=not available.");
+                    app.write_message("Jiles–Atherton seeds retrieved: " + Ms_seed_label + "=" + ms_display + ", a=" + a_display + " [A/m], " + alpha_seed_label + "=" + alpha_display + ", c=" + FormatUtils.format_short(c_seed) + ", k=not available.");
                 end
             else
                 app.Ms_JA.Value = [];
@@ -492,52 +505,54 @@ classdef HystereticUtils
         end
 
         function [J, ok] = compute_ja_left_branch_error_core(~, error_type, Hleft, Mleft, Hhat, Mhat)
+            % Delegates to the same ErrorCalculator hierarchy the
+            % Anhysteretic fit uses (src/Common), with use_log_h=false since
+            % the hysteretic branch spans negative H and a log transform
+            % does not apply. See src/Common/ErrorCalculator.m for why.
+            %
+            % When the fitting region is the entire loop, Hleft/Mleft (data)
+            % and Hhat/Mhat (model) are full, closed loops. The three
+            % single-valued-projection metrics -- sampled Diagonal, Vertical,
+            % Horizontal -- interpolate one curve onto the other's abscissa
+            % (interp1 of M(H) or H(M)); those projections are undefined on a
+            % closed loop (two H per M, two M per H) and silently return
+            % garbage. So for those three we first reduce both curves to their
+            % descending (left) branch via descending_branch(), which is
+            % single-valued and -- for the point-symmetric JA major loop --
+            % fully determines the fit (this is also the branch the blind
+            % method of Conde Garrido et al., IEEE TMAG 2025, compares).
+            % The continuous Diagonal metric uses distance2curve, which is
+            % loop-safe, so it is left on the full loop unchanged. (For the
+            % "Left branch only" fitting region every input is already a
+            % single descending branch, so descending_branch() is a no-op.)
             BIG = 1e6;
             J = BIG;
             ok = false;
             try
-                Hleft = Hleft(:);
-                Mleft = Mleft(:);
-                Hhat = Hhat(:);
-                Mhat = Mhat(:);
+                switch error_type
+                    case "Diagonal (H, continuous)"
+                        calculator = DiagonalErrorCalculator(Hleft, Mleft, Hhat, Mhat, false, true);
+                    case "Diagonal (H, sampled)"
+                        [Hd, Md] = HystereticUtils.descending_branch(Hleft, Mleft);
+                        [Hhd, Mhd] = HystereticUtils.descending_branch(Hhat, Mhat);
+                        calculator = DiagonalErrorCalculator(Hd, Md, Hhd, Mhd, false, false);
+                    case "Vertical"
+                        [Hd, Md] = HystereticUtils.descending_branch(Hleft, Mleft);
+                        [Hhd, Mhd] = HystereticUtils.descending_branch(Hhat, Mhat);
+                        calculator = VerticalErrorCalculator(Hd, Md, Hhd, Mhd, false);
+                    case "Horizontal"
+                        [Hd, Md] = HystereticUtils.descending_branch(Hleft, Mleft);
+                        [Hhd, Mhd] = HystereticUtils.descending_branch(Hhat, Mhat);
+                        calculator = HorizontalErrorCalculator(Hd, Md, Hhd, Mhd, false);
+                    otherwise
+                        return;
+                end
 
-                valid_data = isfinite(Hleft) & isfinite(Mleft);
-                valid_model = isfinite(Hhat) & isfinite(Mhat);
-                Hleft = Hleft(valid_data);
-                Mleft = Mleft(valid_data);
-                Hhat = Hhat(valid_model);
-                Mhat = Mhat(valid_model);
-                if numel(Hleft) < 2 || numel(Hhat) < 2
+                if numel(calculator.X) < 2 || numel(calculator.Xhat) < 2
                     return;
                 end
 
-                if error_type == "Diagonal (H, continuous)"
-                    Sx = (max(Hleft) - min(Hleft)) / 2; % Legacy (needs a Matlab extra Toolbox) Sx = range(Hleft) / 2;
-                    Sy = (max(Mleft) - min(Mleft)) / 2; % Legacy (needs a Matlab extra Toolbox) Sy = range(Mleft) / 2;
-                    if Sx <= 0 || ~isfinite(Sx), Sx = 1; end
-                    if Sy <= 0 || ~isfinite(Sy), Sy = 1; end
-                    curv = [Hhat / Sx, Mhat / Sy];
-                    data = [Hleft / Sx, Mleft / Sy];
-                    [~, d] = distance2curve(curv, data, 'linear');
-                    J = sqrt(mean(d.^2));
-                elseif error_type == "Vertical"
-                    [Hhat_s, idx_H] = sort(Hhat, 'ascend');
-                    Mhat_s = Mhat(idx_H);
-                    [Hhat_u, idx_Hu] = unique(Hhat_s, 'stable');
-                    Mhat_u = Mhat_s(idx_Hu);
-                    Minterp = interp1(Hhat_u, Mhat_u, Hleft, 'linear', 'extrap');
-                    J = sqrt(mean((Mleft - Minterp).^2));
-                elseif error_type == "Horizontal"
-                    [Mhat_s, idx_M] = sort(Mhat, 'ascend');
-                    Hhat_s = Hhat(idx_M);
-                    [Mhat_u, idx_Mu] = unique(Mhat_s, 'stable');
-                    Hhat_u = Hhat_s(idx_Mu);
-                    Hinterp = interp1(Mhat_u, Hhat_u, Mleft, 'linear', 'extrap');
-                    J = sqrt(mean((Hleft - Hinterp).^2));
-                else
-                    return;
-                end
-
+                J = calculator.get_error();
                 if ~isfinite(J)
                     J = BIG;
                     return;
@@ -547,6 +562,32 @@ classdef HystereticUtils
                 J = BIG;
                 ok = false;
             end
+        end
+
+        function [Hd, Md] = descending_branch(H, M)
+            % Descending (upper/left) branch of a loop or branch: the portion
+            % from the starting corner (+Htip) down to the minimum-H point.
+            % For an already-single descending branch (min-H at the end, as in
+            % "Left branch only" mode) this returns the whole curve unchanged;
+            % for a full closed loop it returns just the first, descending half.
+            H = H(:);
+            M = M(:);
+            valid = isfinite(H) & isfinite(M);
+            H = H(valid);
+            M = M(valid);
+            if numel(H) < 2
+                Hd = H;
+                Md = M;
+                return;
+            end
+            [~, imin] = min(H);
+            if imin < 2
+                % min-H at the very start (degenerate); no descending
+                % sub-branch to isolate, so use the whole curve.
+                imin = numel(H);
+            end
+            Hd = H(1:imin);
+            Md = M(1:imin);
         end
 
         function [v, ok] = read_numeric_field(~, field_handle)
@@ -617,7 +658,7 @@ classdef HystereticUtils
 
             [H_conv, M_conv] = deal(H_cycle, M_cycle);
             n_left = max(2, round(app.InputNumberofPointsEditField.Value));
-            [Hleft, Mleft] = app.extract_left_branch_uniform_arc(H_conv, M_conv, n_left);
+            [Hleft, Mleft] = extract_left_branch_uniform_arc(H_conv, M_conv, n_left);
             fitting_region = string(app.FittingregionDropDown.Value);
             start_mode = string(app.StartingpointDropDown_4.Value);
             stop_criterion = string(app.StopcriterionDropDown_5.Value);
@@ -727,17 +768,14 @@ classdef HystereticUtils
                 t = toc(fit_timer);
                 FitProgressUtils.record_elapsed_time(app, 'hyst', t);
                 if app.stop_fit_requested
-                    app.write_message("Fitting stopped by user after " + app.format_short(t) + " s");
+                    app.write_message("Fitting stopped by user after " + FormatUtils.format_short(t) + " s");
                 else
-                    app.write_message("Fitting finished after " + app.format_short(t) + " s");
-                    if ~is_rerun
-                        app.write_message("Tip: click Fit again without changing anything to let the optimizer restart from this result -- it can only match or improve on it, never make it worse.");
-                    end
+                    app.write_message("Fitting finished after " + FormatUtils.format_short(t) + " s");
                 end
             catch ME
                 t = toc(fit_timer);
                 FitProgressUtils.record_elapsed_time(app, 'hyst', t);
-                app.write_message("Fitting failed after " + app.format_short(t) + " s: " + string(ME.message));
+                app.write_message("Fitting failed after " + FormatUtils.format_short(t) + " s: " + string(ME.message));
             end
         end
 

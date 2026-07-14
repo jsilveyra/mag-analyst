@@ -106,6 +106,21 @@ classdef ExportDialogUtils
             fig.CloseRequestFcn = @(s,e) ExportDialogUtils.close_dialog(app);
             d.Fig = fig;
 
+            % Mirror the main window's palette (app_exported.m's
+            % theme_palette) so this standalone dialog reads as part of the
+            % same app rather than a bare default uifigure. Kept as local
+            % literals rather than calling app.theme_palette() because that
+            % method is a private app-class method, not reachable from this
+            % external classdef.
+            accent = [0.945 0.353 0.161]; % #F15A29 brand orange
+            ink    = [0.149 0.153 0.173];
+            canvas = [0.957 0.949 0.937];
+            fig.Color = canvas;
+            try
+                set(findall(fig, '-property', 'FontName'), 'FontName', 'Segoe UI');
+            catch
+            end
+
             outer = uigridlayout(fig, [6 1]);
             outer.RowHeight = {'fit', 'fit', '1x', 'fit', 'fit', 'fit'};
             outer.ColumnWidth = {'1x'};
@@ -140,7 +155,8 @@ classdef ExportDialogUtils
                 key = spec{i, 2};
                 label = spec{i, 3};
                 if strcmp(kind, 'header')
-                    lbl = uilabel(listGrid, 'Text', key, 'FontWeight', 'bold');
+                    lbl = uilabel(listGrid, 'Text', key, 'FontWeight', 'bold', ...
+                        'FontColor', ink, 'FontSize', 13);
                     lbl.Layout.Row = i;
                     lbl.Layout.Column = 1;
                 else
@@ -178,6 +194,9 @@ classdef ExportDialogUtils
             allBtn.ButtonPushedFcn = @(s,e) ExportDialogUtils.do_export(app, 'all');
             selBtn = uibutton(btnPanel, 'Text', 'Export selected');
             selBtn.ButtonPushedFcn = @(s,e) ExportDialogUtils.do_export(app, 'selected');
+            selBtn.BackgroundColor = accent;
+            selBtn.FontColor = [1 1 1];
+            selBtn.FontWeight = 'bold';
             closeBtn = uibutton(btnPanel, 'Text', 'Close');
             closeBtn.ButtonPushedFcn = @(s,e) ExportDialogUtils.close_dialog(app);
 
@@ -530,12 +549,12 @@ classdef ExportDialogUtils
             dc = app.data_curve;
             mc = app.modeled_curve;
             err_specs = { ...
-                'Diagonal (H, sampled)',       DiagonalErrorCalculator(dc, mc, false, false); ...
-                'Diagonal (H, continuous)',    DiagonalErrorCalculator(dc, mc, false, true); ...
-                'Diagonal (logH, sampled)',    DiagonalErrorCalculator(dc, mc, true,  false); ...
-                'Diagonal (logH, continuous)', DiagonalErrorCalculator(dc, mc, true,  true); ...
-                'Vertical',                    VerticalErrorCalculator(dc, mc); ...
-                'Horizontal',                  HorizontalErrorCalculator(dc, mc)};
+                'Diagonal (H, sampled)',       DiagonalErrorCalculator(dc.H, dc.M, mc.H, mc.M, false, false); ...
+                'Diagonal (H, continuous)',    DiagonalErrorCalculator(dc.H, dc.M, mc.H, mc.M, false, true); ...
+                'Diagonal (logH, sampled)',    DiagonalErrorCalculator(dc.H, dc.M, mc.H, mc.M, true,  false); ...
+                'Diagonal (logH, continuous)', DiagonalErrorCalculator(dc.H, dc.M, mc.H, mc.M, true,  true); ...
+                'Vertical',                    VerticalErrorCalculator(dc.H, dc.M, mc.H, mc.M, true); ...
+                'Horizontal',                  HorizontalErrorCalculator(dc.H, dc.M, mc.H, mc.M, true)};
             lines = lines + nl + nl + "Errors";
             lines = lines + nl + "------";
             for k = 1:size(err_specs, 1)

@@ -50,6 +50,7 @@ classdef ColorDialog < matlab.apps.AppBase
                 color_samples(i).Visible = true;
                 color_samples(i).BackgroundColor = app.Colors(i,:);
             end
+            ThemeUtils.apply_theme_to_dialog(app);   % MOD: runtime visual theme (see src/Theme/ThemeUtils.m)
         end
 
         % Button pushed function: TotalButton

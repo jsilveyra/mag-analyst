@@ -18,7 +18,7 @@ classdef InputUtils
             axis_scale = string(app.InputAxisScaleDropDown.Value);
             H_label = DisplayUnits.get_H_label(app);
             M_label = DisplayUnits.get_M_label(app);
-            if app.axis_scale_has_x(axis_scale)
+            if FormatUtils.axis_scale_has_x(axis_scale)
                 plotter.plot_raw_log(app.AxesProcessedInputData, app.data_curve.H, app.data_curve.M, H_label, M_label, 'Processed input data');
                 plotter.plot_raw_log(app.AxesRawInputData, app.H_raw, app.M_raw, app.HorizontalaxisfieldDropDown.Value, app.VerticalaxisfieldDropDown.Value, 'Raw input data');
             else
@@ -68,12 +68,6 @@ classdef InputUtils
             PlaygroundUtils.clear_simulation(app);
         end
 
-        function notify_new_import(app)
-            % Shown only when a NEW file is selected (InputDatasetPathValueChanged),
-            % not on every axis-unit-driven reprocess of the same file.
-            app.write_message(InputUtils.applied_field_warning_message());
-        end
-
         function close_progress_dialog(progress_dlg)
             if ~isempty(progress_dlg) && isvalid(progress_dlg)
                 close(progress_dlg);
@@ -84,14 +78,6 @@ classdef InputUtils
             % True when the vertical-axis unit is mass magnetization
             % (sigma, emu/g = Am^2/kg) rather than volume magnetization.
             is_mass = string(M_unit) == "σ [emu/g=Am^2/kg]";
-        end
-
-        function msg = applied_field_warning_message()
-            % H here is always the externally applied field, never
-            % corrected for the sample's own demagnetizing field, so Hk,
-            % susceptibilities, and the Weiss coefficients are all
-            % apparent/effective, not intrinsic material properties.
-            msg = "Note: if this dataset was measured in an open magnetic circuit, H, Hk, susceptibilities, and Weiss coefficients here are apparent/effective, not intrinsic.";
         end
 
         function is_anhysteretic = is_last_import_anhysteretic(app)
