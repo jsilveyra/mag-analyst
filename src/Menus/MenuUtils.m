@@ -405,7 +405,7 @@ classdef MenuUtils
             %RESET_APP Clear all four tabs' data/tables/plots/caches back to
             %   a startup-like state. The deprecated (detached) Output-data
             %   tab and its Save/Save-as-linked fields are deliberately left
-            %   untouched -- see CLAUDE.md 2a and src/Menus/README.md.
+            %   untouched -- see src/Menus/README.md.
 
             % --- Input tab ---
             app.H_raw = [];
