@@ -1,6 +1,6 @@
 The MIT License (MIT)
 
-MagAnalyst 2.10
+MagAnalyst 2.13
 Copyright © 2026 Matías Ignacio González, Marina Zoe Petean, Tomás Francisco González, Juan Manuel Conde Garrido, Josefina María Silveyra
 All rights reserved.
 

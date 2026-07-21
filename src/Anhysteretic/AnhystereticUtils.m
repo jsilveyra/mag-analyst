@@ -1,8 +1,8 @@
 classdef AnhystereticUtils
 %ANHYSTERETICUTILS Static helpers for the Anhysteretic-fitting tab.
-%   Extracted 2026-07-06 from app_old_exported.m, mirroring the PlaygroundUtils
-%   pattern: static methods taking `app` as the first argument, called from
-%   thin delegator methods on the app class.
+%   Static methods taking `app` as the first argument, called from thin
+%   delegator methods on the app class (same pattern as the other tab
+%   *Utils classes).
 
     methods (Static)
         function plot(app)
@@ -38,11 +38,17 @@ classdef AnhystereticUtils
 
             [HTip, ~] = utils.find_tip(app.data_curve.H, app.data_curve.M);
 
-            select_a = app.TableParameters.Data{1:app.number_components,5};
-            app.magnetic_parameters = MagneticParameters(app.data_curve, app.Hcr, app.mcr, app.Hx, select_a);
+            % Keep the directly-fit physical parameters in physical-fit mode;
+            % only recompute magnetic_parameters from the distribution
+            % parameters otherwise (see calculate_parameters for the rationale).
+            if ~AnhystereticUtils.use_physical_parameters(app)
+                select_a = app.TableParameters.Data{1:app.number_components,5};
+                app.magnetic_parameters = MagneticParameters(app.data_curve, app.Hcr, app.mcr, app.Hx, select_a);
+            end
 
 
             AnhystereticUtils.update_error_display(app);
+            AnhystereticUtils.sync_reduce_dof_ui(app);
         end
 
         function update_error_display(app)
@@ -51,19 +57,9 @@ classdef AnhystereticUtils
             end
 
             error_type = string(app.ErrorDropDown.Value);
-            if (error_type == "Diagonal (H, sampled)")
-                error_calculator = DiagonalErrorCalculator(app.data_curve.H, app.data_curve.M, app.modeled_curve.H, app.modeled_curve.M, false, false);
-            elseif (error_type == "Diagonal (H, continuous)")
-                error_calculator = DiagonalErrorCalculator(app.data_curve.H, app.data_curve.M, app.modeled_curve.H, app.modeled_curve.M, false, true);
-            elseif (error_type == "Diagonal (logH, sampled)") || (error_type == "Diagonal (sampled)")
-                error_calculator = DiagonalErrorCalculator(app.data_curve.H, app.data_curve.M, app.modeled_curve.H, app.modeled_curve.M, true, false);
-            elseif (error_type == "Diagonal (logH, continuous)") || (error_type == "Diagonal") || (error_type == "Diagonal (continuous)")
-                error_calculator = DiagonalErrorCalculator(app.data_curve.H, app.data_curve.M, app.modeled_curve.H, app.modeled_curve.M, true, true);
-            elseif (error_type == "Vertical")
-                error_calculator = VerticalErrorCalculator(app.data_curve.H, app.data_curve.M, app.modeled_curve.H, app.modeled_curve.M, true);
-            elseif (error_type == "Horizontal")
-                error_calculator = HorizontalErrorCalculator(app.data_curve.H, app.data_curve.M, app.modeled_curve.H, app.modeled_curve.M, true);
-            else
+            try
+                error_calculator = make_error_calculator(error_type, app.data_curve.H, app.data_curve.M, app.modeled_curve.H, app.modeled_curve.M);
+            catch
                 app.write_message("Unknown error type: " + error_type);
                 return;
             end
@@ -106,8 +102,14 @@ classdef AnhystereticUtils
                 HTip = max(Hpos);
             end
 
-            select_a = app.TableParameters.Data{1:app.number_components,5};
-            app.magnetic_parameters = MagneticParameters(app.data_curve, app.Hcr, app.mcr, app.Hx, select_a);
+            % In physical-fit ("reduce dof" unchecked) mode, app.magnetic_parameters
+            % holds the directly-fit Ms/alpha/a and must NOT be rebuilt from the
+            % now-stale distribution parameters (Hcr/mcr/Hx). Only rebuild it in
+            % the default distribution mode.
+            if ~AnhystereticUtils.use_physical_parameters(app)
+                select_a = app.TableParameters.Data{1:app.number_components,5};
+                app.magnetic_parameters = MagneticParameters(app.data_curve, app.Hcr, app.mcr, app.Hx, select_a);
+            end
 
             point_space = string(app.PointSpaceDropDown.Value);
             if (point_space == "log") || (point_space == "Logarithmically spaced")
@@ -120,7 +122,44 @@ classdef AnhystereticUtils
             app.modeled_curve = ModeledAnhystereticCurve(Hhat, app.magnetic_parameters);
         end
 
+        function tf = use_physical_parameters(app)
+            % True when the tab is currently in "reduce dof" unchecked
+            % (physical-fit) mode AND app.magnetic_parameters holds a valid,
+            % correctly-sized directly-fit result. If the flag is set but the
+            % stored object no longer matches number_components (e.g. the
+            % component count changed under us), the flag is cleared and false
+            % is returned, reverting cleanly to distribution mode.
+            tf = false;
+            if ~isprop(app, 'physical_fit_active') || ~logical(app.physical_fit_active)
+                return;
+            end
+            mp = app.magnetic_parameters;
+            if isobject(mp) && ~isempty(mp.Ms) && numel(mp.Ms) == app.number_components
+                tf = true;
+            else
+                app.physical_fit_active = false;
+            end
+        end
+
+        function reduce_dof = reduce_dof_enabled(app)
+            % Defensive default: fit with reduced degrees of freedom when the
+            % checkbox component is not available.
+            reduce_dof = true;
+            if isprop(app, 'ReduceDofCheckBox') && ~isempty(app.ReduceDofCheckBox)
+                reduce_dof = logical(app.ReduceDofCheckBox.Value);
+            end
+        end
+
         function fit_parameters(app)
+            if AnhystereticUtils.reduce_dof_enabled(app)
+                AnhystereticUtils.fit_parameters_reduced(app);
+            else
+                AnhystereticUtils.fit_parameters_physical(app);
+            end
+            MenuUtils.mark_project_dirty(app);
+        end
+
+        function fit_parameters_reduced(app)
             N = app.NofpointsEditField.Value;
             AnhystereticUtils.calculate_parameters(app);
             select_a = app.TableParameters.Data{1:app.number_components,5};
@@ -151,12 +190,13 @@ classdef AnhystereticUtils
             conditions.ub = fit_ub;
             conditions.select_fit = fit_select_fit;
             conditions.error_type = string(app.ErrorDropDown.Value);
+            conditions.mode = "reduced";
             seed = cat(2, app.Hcr, app.mcr, app.Hx);
             is_rerun = FitProgressUtils.check_and_remember_conditions(app, 'anh', conditions, seed);
 
             FitProgressUtils.open(app, 'anh', "Anhysteretic fit progress", app.ErrorDropDown.Value, is_rerun);
 
-            app.write_message("Fitting started");
+            app.write_message("Fitting started (mathematical parameters)");
             pause(0.01);
             tic
             try
@@ -182,13 +222,151 @@ classdef AnhystereticUtils
                 if app.stop_fit_requested
                     app.write_message("Fitting stopped by user after " + t + " s");
                 else
+                    if isprop(app, 'physical_fit_active')
+                        app.physical_fit_active = false;
+                    end
                     app.write_message("Fitting finished after " + t + " s");
                     AnhystereticUtils.write_m_lower_bound_messages(app, select_a, fit_lb, fit_select_fit);
+                    if isprop(app, 'ReduceDofCheckBox') && ~isempty(app.ReduceDofCheckBox)
+                        app.write_message("Tip: uncheck 'reduce dof' and fit again to further refine the physical parameters.");
+                    end
                 end
             catch e
                 t = sprintf("%0.2f", toc);
                 app.write_message("Fitting failed after " + t + " s: " + e.message);
             end
+        end
+
+        function fit_parameters_physical(app)
+            % "reduce dof" UNCHECKED: refine the physical parameters
+            % (Ms, alpha, a) directly, seeded from their current values (the
+            % result of a prior distribution-mode fit). Ms/alpha/a are left
+            % unbounded (an individual component's Ms can be negative), so the
+            % seed stays feasible and the error can only improve.
+            N = app.NofpointsEditField.Value;
+            n = app.number_components;
+
+            mp = app.magnetic_parameters;
+            if ~isobject(mp) || isempty(mp.Ms) || numel(mp.Ms) ~= n
+                app.write_message("Run a fit with 'reduce dof' checked first to seed the physical parameters.");
+                return;
+            end
+
+            % Seed straight from the current physical parameters -- do NOT call
+            % calculate_parameters here, which (in distribution mode) would
+            % rebuild magnetic_parameters from the stale Hcr/mcr/Hx and destroy
+            % the seed.
+            seed = [mp.Ms(:).', mp.alpha(:).', mp.a(:).'];
+
+            BIG = 1e12;                       % wide finite stand-in for unbounded
+            fit_lb = -BIG * ones(3*n, 1);
+            fit_ub =  BIG * ones(3*n, 1);
+            fit_select_fit = num2cell(true(3*n, 1));
+
+            app.stop_fit_requested = false;
+
+            conditions.lb = fit_lb;
+            conditions.ub = fit_ub;
+            conditions.select_fit = fit_select_fit;
+            conditions.error_type = string(app.ErrorDropDown.Value);
+            conditions.mode = "physical";
+            is_rerun = FitProgressUtils.check_and_remember_conditions(app, 'anh', conditions, seed);
+
+            FitProgressUtils.open(app, 'anh', "Anhysteretic fit progress", app.ErrorDropDown.Value, is_rerun);
+
+            app.write_message("Fitting started (physical parameters)");
+            pause(0.01);
+            tic
+            try
+                output_fcn = @(x, optimValues, state) app.fit_stop_output_fcn(x, optimValues, state);
+                [Ms, alpha, a] = fit_physical(app.data_curve, seed, N, app.ErrorDropDown.Value, fit_lb, fit_ub, fit_select_fit, output_fcn);
+                % Prefer the best point tracked across the search (same
+                % guarantee as the distribution path, incl. after a Stop fit).
+                [best_x, ~, has_best] = FitProgressUtils.get_best(app, 'anh');
+                if has_best
+                    Ms = best_x(1:n);
+                    alpha = best_x(n+1:2*n);
+                    a = best_x(2*n+1:end);
+                end
+                physical.Ms = Ms;
+                physical.alpha = alpha;
+                physical.a = a;
+                app.magnetic_parameters = MagneticParameters(app.data_curve, [], [], [], [], physical);
+                if isprop(app, 'physical_fit_active')
+                    app.physical_fit_active = true;
+                end
+                FitProgressUtils.remember_fit_result(app, 'anh', [Ms(:).', alpha(:).', a(:).']);
+                elapsed = toc;
+                FitProgressUtils.record_elapsed_time(app, 'anh', elapsed);
+                t = sprintf("%0.2f", elapsed);
+                if app.stop_fit_requested
+                    app.write_message("Fitting stopped by user after " + t + " s");
+                else
+                    app.write_message("Fitting finished after " + t + " s");
+                end
+            catch e
+                t = sprintf("%0.2f", toc);
+                app.write_message("Fitting failed after " + t + " s: " + e.message);
+            end
+        end
+
+        function sync_reduce_dof_ui(app)
+            % Gray/disable the controls that don't apply in physical-fit mode:
+            % the whole Mathematical-parameters (Hcr/mcr/Hx) fit table, and the
+            % "Select aᵢ" column of the Physical-parameters table (the a-root
+            % choice is only used by the distribution->a conversion). No-op
+            % before the checkbox exists (pre-port).
+            if ~isprop(app, 'ReduceDofCheckBox') || isempty(app.ReduceDofCheckBox)
+                return;
+            end
+            reduce_dof = logical(app.ReduceDofCheckBox.Value);
+
+            if reduce_dof
+                app.TableFittedParameters.Enable = 'on';
+            else
+                app.TableFittedParameters.Enable = 'off';
+            end
+
+            editable = app.TableParameters.ColumnEditable;
+            if numel(editable) >= 5
+                editable(5) = reduce_dof;
+                app.TableParameters.ColumnEditable = editable;
+            end
+            % Reset the physical table's styles, then gray the frozen column.
+            % NOTE: matlab.ui.control.Table (the App Designer / uifigure
+            % table, as opposed to the legacy Java uitable) does not support
+            % styling the column HEADER: addStyle's targets are only
+            % "table"/"row"/"column"/"cell" (all data cells), and ColumnName
+            % does not render HTML markup (confirmed -- an earlier attempt at
+            % graying the header text via '<html><font color=...>' just
+            % displayed the literal tags). So only the data cells in the
+            % "Select aᵢ" column are grayed; the header text itself always
+            % stays plain.
+            AnhystereticUtils.shade_parameters_table(app);
+            if ~reduce_dof
+                addStyle(app.TableParameters, ...
+                    uistyle('BackgroundColor', [0.90 0.90 0.90], 'FontColor', [0.55 0.55 0.55]), ...
+                    'column', 5);
+            end
+        end
+
+        function on_reduce_dof_changed(app)
+            % "reduce dof" was just toggled. Unchecking only grays/ungrays
+            % controls (fit_parameters_physical is seeded from the CURRENT
+            % magnetic_parameters, whatever mode produced them). Re-checking,
+            % however, must revert to distribution mode: otherwise
+            % use_physical_parameters(app) keeps reporting true (it reads
+            % physical_fit_active, not the checkbox) and every downstream
+            % calculate_parameters/plot call keeps silently reusing the stale
+            % physical-fit result instead of recomputing magnetic_parameters
+            % (and the dependent tables/error metric) from the mathematical
+            % parameters (Hcr/mcr/Hx), even though the checkbox now says
+            % otherwise.
+            if AnhystereticUtils.reduce_dof_enabled(app) && isprop(app, 'physical_fit_active')
+                app.physical_fit_active = false;
+            end
+            AnhystereticUtils.sync_reduce_dof_ui(app);
+            AnhystereticUtils.calculate_plot_and_refresh_hysteretic_live(app);
         end
 
         function write_m_lower_bound_messages(app, select_a, fit_lb, fit_select_fit)
@@ -540,7 +718,7 @@ classdef AnhystereticUtils
         end
 
         function [ms_seed, a_seed, alpha_seed, has_seeds] = get_first_anhysteretic_seeds(app)
-            % MOD: reads the full-precision source (app.magnetic_parameters) directly,
+            % reads the full-precision source (app.magnetic_parameters) directly,
             % not the TableParameters display text -- that text is a 6-sig-fig rendering,
             % and parsing it back was silently truncating the seeds handed to the
             % Hysteretic and Playground tabs.
@@ -582,6 +760,7 @@ classdef AnhystereticUtils
 
         function set_colors_and_plot(app, colors)
             app.Colors = colors;
+            MenuUtils.mark_project_dirty(app);
             AnhystereticUtils.apply_component_color_styles(app);
             if ~isobject(app.data_curve) || ~isprop(app.data_curve, 'H') || isempty(app.data_curve.H)
                 app.write_message("Colors updated. Import data before recalculating.");
@@ -674,7 +853,7 @@ classdef AnhystereticUtils
         end
 
         function calculate_plot_and_refresh_hysteretic_live(app)
-            % MOD: silent variant of app.calculate_plot_and_refresh_hysteretic for
+            % silent variant of app.calculate_plot_and_refresh_hysteretic for
             % live field/table-edit triggers - skips the "no dataset imported"
             % message so it doesn't spam the Messages panel while the Anhysteretic
             % tab is used before any data has been imported.

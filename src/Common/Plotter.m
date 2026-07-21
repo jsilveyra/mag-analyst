@@ -59,7 +59,7 @@ classdef Plotter
                 end
             end
 
-            % MOD: total modeled curve drawn last so it stays on top of the
+            % total modeled curve drawn last so it stays on top of the
             % component curves (they coincide when there is a single component,
             % and the orange total must remain visible).
             plot(ax, obj.modeled_curve.H, obj.modeled_curve.M, "Color", obj.Colors(1,:), 'LineWidth', 1.6);
@@ -90,7 +90,7 @@ classdef Plotter
                 end
             end
 
-            % MOD: total modeled curve drawn last so it stays on top of the
+            % total modeled curve drawn last so it stays on top of the
             % component curves (they coincide when there is a single component).
             semilogx(ax, obj.modeled_curve.H, obj.modeled_curve.M, "Color", obj.Colors(1,:), 'LineWidth', 1.6);
 
@@ -121,7 +121,7 @@ classdef Plotter
                 end
             end
 
-            % MOD: total modeled curve drawn last so it stays on top of the
+            % total modeled curve drawn last so it stays on top of the
             % component curves (they coincide when there is a single component).
             plot(ax, obj.modeled_curve.H, obj.modeled_curve.dMdH, "Color", obj.Colors(1,:), 'LineWidth', 1.6);
 
@@ -152,7 +152,7 @@ classdef Plotter
                 end
             end
 
-            % MOD: total modeled curve drawn last so it stays on top of the
+            % total modeled curve drawn last so it stays on top of the
             % component curves (they coincide when there is a single component).
             semilogx(ax, obj.modeled_curve.H, obj.modeled_curve.dMdH, "Color", obj.Colors(1,:), 'LineWidth', 1.6);
 
@@ -182,7 +182,7 @@ classdef Plotter
                 end
             end
 
-            % MOD: total modeled curve drawn last so it stays on top of the
+            % total modeled curve drawn last so it stays on top of the
             % component curves (they coincide when there is a single component).
             semilogx(ax, obj.modeled_curve.H, obj.modeled_curve.HdMdH, "Color", obj.Colors(1,:), 'LineWidth', 1.6);
 
@@ -212,7 +212,7 @@ classdef Plotter
                 end
             end
 
-            % MOD: total modeled curve drawn last so it stays on top of the
+            % total modeled curve drawn last so it stays on top of the
             % component curves (they coincide when there is a single component).
             plot(ax, obj.modeled_curve.H, obj.modeled_curve.HdMdH, "Color", obj.Colors(1,:), 'LineWidth', 1.6);
 

@@ -49,13 +49,28 @@ classdef JAFitter
                 end
             end
 
+            % Per-parameter O(1) scaling for minimize(), matching
+            % Anhysteretic/fit_physical.m: Ms (~1e5), a (~1e1), alpha
+            % (~1e-4), c (~1e-1), k (~1e2) span wildly different magnitudes,
+            % so a single TolX/TolFun/initial step size cannot serve all of
+            % them at once in raw physical units. scale/obj_fun_scaled are
+            % only meaningful once x0 is known to be non-empty (see below);
+            % nested functions must be declared at the function's top level
+            % (not inside try/if), so this one is declared here but only
+            % invoked from within the try block.
+            scale = max(abs(x0), eps);
+
+            function J = obj_fun_scaled(y)
+                J = obj_fun(y .* scale);
+            end
+
             try
                 result.Jseed = obj_fun(x0);
                 % Same optimizer settings regardless of mask.fitk, and matching
                 % the Anhysteretic fit (fit.m) -- one consistent configuration
                 % across every fit in the app, rather than per-case tuning.
                 % One tight minimize() call per Fit click -- a loose-then-tight
-                % two-stage scheme was tried and reverted 2026-07-11; see the
+                % two-stage scheme was tried and rejected; see the
                 % matching comment in fit.m for why.
                 optim_opts = optimset( ...
                     'MaxIter', 2000, ...
@@ -71,7 +86,37 @@ classdef JAFitter
                     xopt = x0;
                     Jopt = result.Jseed;
                 else
-                    [xopt, Jopt] = minimize(@obj_fun, x0, [], [], [], [], lb, ub, [], optim_opts);
+                    y0 = x0 ./ scale;
+
+                    yb1 = lb ./ scale;
+                    yb2 = ub ./ scale;
+                    ylb = min(yb1, yb2);
+                    yub = max(yb1, yb2);
+
+                    % Cap the SCALED bound range (see
+                    % minimize-and-parameter-scaling.md): minimize() maps a
+                    % two-sided-bounded variable through
+                    % asin(2*(y0-ylb)/(yub-ylb) - 1), which loses the seed
+                    % to floating-point cancellation once yub-ylb is many
+                    % orders of magnitude wider than the O(1) scaled seed
+                    % (e.g. an unbounded field defaulting to +/-Inf, or a
+                    % user-entered bound far wider than the parameter's own
+                    % scale). A cap of 1e6 is still effectively unconstrained
+                    % for any physically meaningful Ms/a/alpha/c/k value,
+                    % while keeping the transform well-conditioned.
+                    BOUND_CAP = 1e6;
+                    ylb = max(ylb, -BOUND_CAP);
+                    yub = min(yub, BOUND_CAP);
+
+                    [yopt, Jopt] = minimize(@obj_fun_scaled, y0, [], [], [], [], ylb, yub, [], optim_opts);
+                    xopt = yopt .* scale;
+
+                    % Seed guard: never return a point worse than the seed
+                    % (matches fit_physical.m).
+                    if Jopt > result.Jseed
+                        xopt = x0;
+                        Jopt = result.Jseed;
+                    end
                 end
 
                 result.params_opt = JAFitUtils.unpack_params(xopt, map, params_seed, mask, estimate_k_fn);

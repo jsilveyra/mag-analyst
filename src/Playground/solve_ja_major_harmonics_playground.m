@@ -187,7 +187,7 @@ end
 function pv = local_period_vertices(orders, amplitudes, phases, N)
 %LOCALPERIODVERTICES Field values at the local extrema of the periodic drive.
 %   Returns the extrema in the order they are encountered as theta increases
-%   from 0, using a dense grid over one period with cyclic neighbour tests so
+%   from 0, using a dense grid over one period with cyclic neighbor tests so
 %   extrema sitting on the 0/2*pi boundary are captured.
     theta = linspace(0, 2*pi, N + 1);
     theta = theta(1:end - 1);          % N points over [0, 2*pi)

@@ -1,1 +1,12 @@
 *.asv
+
+# Local-only, not shared via git (see conversation 2026-07-20)
+/CLAUDE.md
+/.agents/
+/.claude/
+/to_organize/
+/.venv/
+
+# Entire tools/ folder held back for now (e.g. plot_digitizer) -- will be
+# committed separately once its associated paper is accepted
+/tools/

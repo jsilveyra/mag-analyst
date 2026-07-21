@@ -26,12 +26,30 @@ classdef MagneticParameters
     end
 
     methods (Access = public)
-        function obj = MagneticParameters(data_curve, Hcr, mcr, Hx, select_a)
+        function obj = MagneticParameters(data_curve, Hcr, mcr, Hx, select_a, physical)
+            % Two construction modes:
+            %  - Distribution mode (default): derive the physical quantities
+            %    a/alphaMs/Ms/alpha from the fitted distribution parameters
+            %    (Hcr, mcr, Hx, select_a), pinning Ms via the tip/Hx
+            %    constraint points.
+            %  - Physical mode: pass a `physical` struct with fields .Ms .alpha
+            %    .a (each a 1-by-n vector) to set the physical quantities
+            %    directly, bypassing the distribution->physical conversion.
+            %    Used by the "reduce dof" unchecked fit, which optimizes the
+            %    physical parameters themselves. data_curve/Hcr/mcr/Hx may be []
+            %    in this mode. alphaMs = alpha .* Ms.
             obj.VACUUM_PERMEABILITY = 4 * pi * (10^-7);
-            obj.a = obj.get_a(Hcr, mcr, select_a);
-            obj.alphaMs = obj.get_alphaMs(Hcr, mcr);
-            obj.Ms = obj.get_Ms(data_curve, Hcr, mcr, Hx);
-            obj.alpha = obj.get_alpha();
+            if nargin >= 6 && ~isempty(physical)
+                obj.a = physical.a(:).';
+                obj.Ms = physical.Ms(:).';
+                obj.alpha = physical.alpha(:).';
+                obj.alphaMs = obj.alpha .* obj.Ms;
+            else
+                obj.a = obj.get_a(Hcr, mcr, select_a);
+                obj.alphaMs = obj.get_alphaMs(Hcr, mcr);
+                obj.Ms = obj.get_Ms(data_curve, Hcr, mcr, Hx);
+                obj.alpha = obj.get_alpha();
+            end
             obj.dimensionless_alphaMs = obj.get_dimensionless_alphaMs();
             obj.chi_in = obj.get_chi_in();
             obj.Hk = obj.get_Hk();

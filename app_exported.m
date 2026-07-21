@@ -37,51 +37,44 @@ classdef app_exported < matlab.apps.AppBase
         InputBrowseButton               matlab.ui.control.Button
         InputDatasetpathLabel           matlab.ui.control.Label
         DescriptionTextArea             matlab.ui.control.TextArea
-        AxesProcessedInputData          matlab.ui.control.UIAxes
         AxesRawInputData                matlab.ui.control.UIAxes
+        AxesProcessedInputData          matlab.ui.control.UIAxes
         AnhystereticfittingTab          matlab.ui.container.Tab
-        AnhystereticmagnetizationfittingTabGridLayout  matlab.ui.container.GridLayout
-        GridLayoutNumbers               matlab.ui.container.GridLayout
-        FittingparametersLabel          matlab.ui.control.Label
-        GridLayoutModeledCurve          matlab.ui.container.GridLayout
-        SetcolorsButton                 matlab.ui.control.Button
-        PointSpaceDropDown              matlab.ui.control.DropDown
+        GridLayout11                    matlab.ui.container.GridLayout
         NofpointsEditField              matlab.ui.control.NumericEditField
         NofpointsLabel                  matlab.ui.control.Label
         NofcompSpinner                  matlab.ui.control.Spinner
         NofcompLabel                    matlab.ui.control.Label
-        MulticomponentLangevinWeissmodelLabel  matlab.ui.control.Label
-        TableQuantities                 matlab.ui.control.Table
-        GridLayoutOtherQuantities       matlab.ui.container.GridLayout
         JsTLabel                        matlab.ui.control.Label
-        chiinLabel                      matlab.ui.control.Label
         JsField                         matlab.ui.control.NumericEditField
-        chiinField                      matlab.ui.control.NumericEditField
-        CalculatedquantitiesLabel       matlab.ui.control.Label
-        GridLayoutButtons               matlab.ui.container.GridLayout
-        StopfitButton                   matlab.ui.control.Button
-        ErrorDisplay                    matlab.ui.control.NumericEditField
         ErrorDropDown                   matlab.ui.control.DropDown
         ErrorDropDownLabel              matlab.ui.control.Label
+        ReduceDofCheckBox               matlab.ui.control.CheckBox
+        MathematicalparametersLabel     matlab.ui.control.Label
+        MulticomponentLangevinWeissmodelLabel  matlab.ui.control.Label
+        TableQuantities                 matlab.ui.control.Table
+        TableParameters                 matlab.ui.control.Table
+        PhysicalparametersLabel         matlab.ui.control.Label
+        TableFittedParameters           matlab.ui.control.Table
+        SetcolorsButton                 matlab.ui.control.Button
+        PointSpaceDropDown              matlab.ui.control.DropDown
+        chiinLabel                      matlab.ui.control.Label
+        chiinField                      matlab.ui.control.NumericEditField
+        CalculatedquantitiesLabel       matlab.ui.control.Label
+        StopfitButton                   matlab.ui.control.Button
+        ErrorDisplay                    matlab.ui.control.NumericEditField
         CalculatePlotButton             matlab.ui.control.Button
         FitButton                       matlab.ui.control.Button
-        TableParameters                 matlab.ui.control.Table
-        ModelparametersLabel_3          matlab.ui.control.Label
-        TableFittedParameters           matlab.ui.control.Table
-        GridLayoutAxes                  matlab.ui.container.GridLayout
-        GridLayoutOptionsHdMdH          matlab.ui.container.GridLayout
         ShowhcrCheckBoxHdMdH            matlab.ui.control.CheckBox
         AxisScaleDropDownHdMdH          matlab.ui.control.DropDown
         ShowgridCheckBoxHdMdH           matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxHdMdH     matlab.ui.control.CheckBox
         ResidualplotButtondHdMdH        matlab.ui.control.Button
-        GridLayoutOptionsdMdH           matlab.ui.container.GridLayout
         ShowhcrCheckBoxdMdH             matlab.ui.control.CheckBox
         AxisScaleDropDowndMdH           matlab.ui.control.DropDown
         ShowgridCheckBoxdMdH            matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxdMdH      matlab.ui.control.CheckBox
         ResidualplotButtondMdH          matlab.ui.control.Button
-        GridLayoutOptionsM              matlab.ui.container.GridLayout
         ShowhcrCheckBoxM                matlab.ui.control.CheckBox
         AxisScaleDropDownM              matlab.ui.control.DropDown
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
@@ -246,7 +239,7 @@ classdef app_exported < matlab.apps.AppBase
 
     
     properties (Access = public)
-        AppRoot string                % MOD: root folder of the app
+        AppRoot string                % root folder of the app
         H_raw
         M_raw
         imported_curve_type string = ""
@@ -259,10 +252,10 @@ classdef app_exported < matlab.apps.AppBase
         playground_curve_H
         playground_curve_M
         playground_curve_ready logical = false
-        minor_loop_table_user_edited logical = false   % MOD: true once the user manually edits the Htip_i table
-        degaussing_user_edited logical = false          % MOD: true once the user edits any Degaussing amplitude field/table
-        harmonics_user_edited logical = false           % MOD: true once the user edits any harmonic drive field/table
-        hysteretic_ms_lower_bound_user_edited logical = false   % MOD: true once the user edits the Ms lower bound; stops auto-filling it from Mtip
+        minor_loop_table_user_edited logical = false   % true once the user manually edits the Htip_i table
+        degaussing_user_edited logical = false          % true once the user edits any Degaussing amplitude field/table
+        harmonics_user_edited logical = false           % true once the user edits any harmonic drive field/table
+        hysteretic_ms_lower_bound_user_edited logical = false   % true once the user edits the Ms lower bound; stops auto-filling it from Mtip
         number_components
         lb
         ub
@@ -270,43 +263,45 @@ classdef app_exported < matlab.apps.AppBase
         Colors
         ColorDialogApp
         ProjectPath
+        ProjectDirty logical = false   % true when the open project has unsaved changes (see MenuUtils.mark_project_dirty)
         fitted_parameter_values
         component_row_types
         data_curve
         stop_fit_requested logical = false   % set by "Stop fit" buttons to abort a running fit
-        last_import_folder string = ""   % MOD: remembers the last folder browsed for a dataset this session
-        M_is_mass_based logical = false   % MOD: true when the vertical-axis unit is sigma [emu/g=Am^2/kg]
-        export_dialog struct = struct()   % MOD: state of the currently-open unified Export dialog (see ExportDialogUtils)
-        export_settings struct = struct()   % MOD: persisted Export-dialog settings (folder/prefix/format/checked items)
+        physical_fit_active logical = false   % true when the last Anhysteretic fit was a "reduce dof" unchecked physical fit (Ms/alpha/a fit directly); keeps magnetic_parameters from being rebuilt from stale Hcr/mcr/Hx
+        last_import_folder string = ""   % remembers the last folder browsed for a dataset this session
+        M_is_mass_based logical = false   % true when the vertical-axis unit is sigma [emu/g=Am^2/kg]
+        export_dialog struct = struct()   % state of the currently-open unified Export dialog (see ExportDialogUtils)
+        export_settings struct = struct()   % persisted Export-dialog settings (folder/prefix/format/checked items)
     end
     
     methods (Access = public)
         %% =====================================================
         %  Safe file & folder helpers (cancel-safe, portable)
         %  =====================================================
-        %  MOD: New helpers to centralize file dialogs and paths
+        %  Helpers to centralize file dialogs and paths
 
-        function fullpath = safe_getfile(app, filter, startpath, dialog_title) % MOD
+        function fullpath = safe_getfile(app, filter, startpath, dialog_title)
             fullpath = FileDialogUtils.safe_getfile(app, filter, startpath, dialog_title);
         end
 
-        function fullpath = safe_putfile(app, filter, startpath, dialog_title, default_name) % MOD
+        function fullpath = safe_putfile(app, filter, startpath, dialog_title, default_name)
             fullpath = FileDialogUtils.safe_putfile(app, filter, startpath, dialog_title, default_name);
         end
 
-        function folder = safe_getdir(app, startpath, dialog_title) % MOD
+        function folder = safe_getdir(app, startpath, dialog_title)
             folder = FileDialogUtils.safe_getdir(app, startpath, dialog_title);
         end
 
-        function folder = default_data_folder(app) % MOD
+        function folder = default_data_folder(app)
             folder = FileDialogUtils.default_data_folder(app);
         end
 
-        function folder = default_import_folder(app) % MOD
+        function folder = default_import_folder(app)
             folder = FileDialogUtils.default_import_folder(app);
         end
 
-        function ensure_folder(app, folder) % MOD
+        function ensure_folder(app, folder)
             FileDialogUtils.ensure_folder(app, folder);
         end
 
@@ -663,7 +658,7 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         % =====================================================
-        %  Degaussing (Playground) — MOD: new subsystem
+        %  Degaussing (Playground)
         % =====================================================
 
         function [Mr, ok] = get_data_remanence(app)
@@ -726,7 +721,7 @@ classdef app_exported < matlab.apps.AppBase
         end
         
         % =====================================================
-        %  Major loop with harmonics (Playground) — MOD: new subsystem
+        %  Major loop with harmonics (Playground)
         % =====================================================
 
         function [orders, amplitudes, phases, ok] = get_harmonics_table_inputs(app)
@@ -787,7 +782,7 @@ classdef app_exported < matlab.apps.AppBase
 
         % Code that executes after component creation
         function startupFcn(app)
-            % MOD (refactored). Startup function
+            % Startup function
 
             % Determine application root
             app.AppRoot = string(fileparts(mfilename('fullpath')));
@@ -797,10 +792,10 @@ classdef app_exported < matlab.apps.AppBase
             if isfolder(src_folder)
                 addpath(genpath(char(src_folder)));
             end
-
-            % import_src(); %Legacy: genpath makes this line redundant
-            
+          
             app.ProjectPath = "";
+            MenuUtils.setup_dirty_tracking(app);   % window-title dirty tracking
+            MenuUtils.update_window_title(app);    % window-title dirty tracking
             app.number_components = app.NofcompSpinner.Value;
         
             app.init_components();
@@ -824,21 +819,20 @@ classdef app_exported < matlab.apps.AppBase
             update_components(app);
             app.sync_k_fit_mode_ui();
             app.sync_hysteretic_fitting_ui();
-            app.apply_detailed_grid(app.AxesM, app.ShowgridCheckBoxM.Value == 1);   % MOD: grid checkbox defaults to checked but was never applied until Calculate&Plot
-            app.apply_detailed_grid(app.AxesdMdH, app.ShowgridCheckBoxdMdH.Value == 1);   % MOD: grid checkbox defaults to checked but was never applied until Calculate&Plot
-            app.apply_detailed_grid(app.AxesHdMdH, app.ShowgridCheckBoxHdMdH.Value == 1);   % MOD: grid checkbox defaults to checked but was never applied until Calculate&Plot
-            app.apply_detailed_grid(app.AxesM_2, app.ShowgridCheckBoxM_2.Value == 1);   % MOD: grid checkbox defaults to checked but was never applied until Calculate&Plot
+            app.apply_detailed_grid(app.AxesM, app.ShowgridCheckBoxM.Value == 1);   % grid checkbox defaults to checked but was never applied until Calculate&Plot
+            app.apply_detailed_grid(app.AxesdMdH, app.ShowgridCheckBoxdMdH.Value == 1);   % grid checkbox defaults to checked but was never applied until Calculate&Plot
+            app.apply_detailed_grid(app.AxesHdMdH, app.ShowgridCheckBoxHdMdH.Value == 1);   % grid checkbox defaults to checked but was never applied until Calculate&Plot
+            app.apply_detailed_grid(app.AxesM_2, app.ShowgridCheckBoxM_2.Value == 1);   % grid checkbox defaults to checked but was never applied until Calculate&Plot
             PlaygroundUtils.clear_simulation(app);
             PlaygroundUtils.sync_major_ui(app);
-            PlaygroundUtils.sync_minor_ui(app);   % MOD: grey minor-loop stop-criterion fields+labels
+            PlaygroundUtils.sync_minor_ui(app);   % gray minor-loop stop-criterion fields+labels
             app.sync_playground_mode_ui();
-            app.sync_degaussing_ui();   % MOD: ADD this line
-            app.apply_detailed_grid(app.AxesM_5, app.ShowgridCheckBoxM_5.Value == 1);   % MOD: grid checkbox defaults to checked but was never applied until Calculate&Plot
+            app.sync_degaussing_ui();
+            app.apply_detailed_grid(app.AxesM_5, app.ShowgridCheckBoxM_5.Value == 1);   % grid checkbox defaults to checked but was never applied until Calculate&Plot
             app.sync_harmonics_ui();
 
-            % MOD: note the convergence-mode repetition cap in the Rel. tolerance
-            % labels (the solver still stops after Max. repetitions loops even
-            % in "Until convergence" mode).
+            % note the convergence-mode repetition cap in the Rel. tolerance labels
+            % (the solver still stops after Max. repetitions loops even in "Until convergence" mode).
             conv_tip = 'In "Until convergence" mode the loop still stops once Max. repetitions is reached.';
             app.ReltoleranceEditField_6.Tooltip = conv_tip;
             app.ReltoleranceEditField_6Label.Tooltip = conv_tip;
@@ -854,8 +848,8 @@ classdef app_exported < matlab.apps.AppBase
                 1    0.50 0
             ];
 
-            app.apply_component_color_styles();   % MOD: shade fitting/model/quantities table rows to match component colors
-            ThemeUtils.apply_theme(app);   % MOD: runtime visual theme (see src/Theme/ThemeUtils.m)
+            app.apply_component_color_styles();   % shade fitting/model/quantities table rows to match component colors
+            ThemeUtils.apply_theme(app);   % runtime visual theme (see src/Theme/ThemeUtils.m)
         
             app.write_message("MagAnalyst " + AppVersion());
         
@@ -892,7 +886,6 @@ classdef app_exported < matlab.apps.AppBase
 
         % Button pushed function: InputBrowseButton
         function InputBrowseButtonPushed(app, event)
-            % MOD: Callback modified for safe file handling
             if strlength(app.last_import_folder) > 0 && isfolder(app.last_import_folder)
                 start_folder = app.last_import_folder;
             else
@@ -915,7 +908,7 @@ classdef app_exported < matlab.apps.AppBase
                 calculate_parameters(app)
                 app.plot_input();
                 app.write_message("Imported " + fullpath);
-                InputUtils.notify_new_import(app);
+                MenuUtils.mark_project_dirty(app);   % window-title dirty tracking
             catch e
                 app.write_message("Import failed: " + e.message);
             end
@@ -931,7 +924,7 @@ classdef app_exported < matlab.apps.AppBase
                 calculate_parameters(app)
                 app.plot_input();
                 app.write_message("Imported " + dataset_path);
-                InputUtils.notify_new_import(app);
+                MenuUtils.mark_project_dirty(app);   % window-title dirty tracking
             catch e
                 app.write_message("Import failed: " + e.message);
             end
@@ -1186,6 +1179,7 @@ classdef app_exported < matlab.apps.AppBase
                 app.c_JA_Playground.Value = app.c_JA.Value;
                 app.k_JA_Playground.Value = app.k_JA.Value;
                 app.write_message("Jiles-Atherton parameters retrieved from Hysteretic Fitting tab.");
+                MenuUtils.mark_project_dirty(app);   % window-title dirty tracking
                 return;
             end
 
@@ -1197,6 +1191,7 @@ classdef app_exported < matlab.apps.AppBase
                 app.c_JA_Playground.Value = 0;
                 app.k_JA_Playground.Value = 0;
                 app.write_message("Anhysteretic parameters retrieved from Anhysteretic Fitting tab.");
+                MenuUtils.mark_project_dirty(app);   % window-title dirty tracking
                 return;
             end
 
@@ -1288,14 +1283,14 @@ classdef app_exported < matlab.apps.AppBase
         function HcaseDropDownValueChanged(app, event)
             app.sync_playground_mode_ui();
             if PlaygroundUtils.is_minor_mode(app)
-                app.maybe_refresh_minor_loop_defaults();   % MOD: fill Htip_i defaults from data tip when switching to Minor Loops
-                PlaygroundUtils.sync_minor_ui(app);        % MOD: grey minor-loop stop-criterion fields+labels on mode switch
-            elseif PlaygroundUtils.is_degaussing_mode(app)     % MOD: ADD
-                app.maybe_refresh_degaussing_defaults();       % MOD: ADD
-                app.sync_degaussing_ui();                      % MOD: ADD
-            elseif PlaygroundUtils.is_harmonics_mode(app)      % MOD: ADD
-                app.maybe_refresh_harmonics_defaults();        % MOD: ADD
-                app.sync_harmonics_ui();                       % MOD: ADD
+                app.maybe_refresh_minor_loop_defaults();   % fill Htip_i defaults from data tip when switching to Minor Loops
+                PlaygroundUtils.sync_minor_ui(app);        % gray minor-loop stop-criterion fields+labels on mode switch
+            elseif PlaygroundUtils.is_degaussing_mode(app)
+                app.maybe_refresh_degaussing_defaults();
+                app.sync_degaussing_ui();
+            elseif PlaygroundUtils.is_harmonics_mode(app)
+                app.maybe_refresh_harmonics_defaults();
+                app.sync_harmonics_ui();
             end
             PlaygroundUtils.sync_major_ui(app);
             app.run_playground_live();
@@ -1304,7 +1299,7 @@ classdef app_exported < matlab.apps.AppBase
         % Value changed function: FinalamplitudeAmEditField, 
         % ...and 4 other components
         function DegaussingValueChanged(app, event)
-            app.degaussing_user_edited = true;   % MOD: stop auto-filling defaults once edited
+            app.degaussing_user_edited = true;   % stop auto-filling defaults once edited
             app.run_playground_live();
         end
 
@@ -1317,7 +1312,7 @@ classdef app_exported < matlab.apps.AppBase
 
         % Cell edit callback: UITable_3
         function DegaussingTableCellEdit(app, event)
-            app.degaussing_user_edited = true;   % MOD: stop auto-filling defaults once edited
+            app.degaussing_user_edited = true;   % stop auto-filling defaults once edited
             app.expand_degaussing_table_if_needed(event);
             app.run_playground_live();
         end
@@ -1337,7 +1332,7 @@ classdef app_exported < matlab.apps.AppBase
         % Value changed function: HstartAmEditField_3, 
         % ...and 2 other components
         function HarmonicsValueChanged(app, event)
-            % MOD: shared value-changed callback for the harmonic-drive controls
+            % shared value-changed callback for the harmonic-drive controls
             % (everything except the harmonics table). Re-syncs enable states,
             % invalidates the cached simulation and redraws.
             app.sync_harmonics_ui();
@@ -1346,7 +1341,7 @@ classdef app_exported < matlab.apps.AppBase
 
         % Cell edit callback: UITable2
         function HarmonicsTableCellEdit(app, event)
-            app.harmonics_user_edited = true;   % MOD: stop auto-filling defaults once edited
+            app.harmonics_user_edited = true;   % stop auto-filling defaults once edited
             app.expand_harmonics_table_if_needed(event);
             app.run_playground_live();
         end
@@ -1354,7 +1349,7 @@ classdef app_exported < matlab.apps.AppBase
         % Value changed function: MaxrepetitionsEditField_2, 
         % ...and 1 other component
         function StopcriterionDropDown_4ValueChanged(app, event)
-            % MOD: grey the minor-loop Repetitions / Rel. tolerance fields (and
+            % gray the minor-loop Repetitions / Rel. tolerance fields (and
             % labels) to match the chosen stop criterion, then invalidate the
             % cached simulation and redraw.
             PlaygroundUtils.sync_minor_ui(app);
@@ -1363,7 +1358,7 @@ classdef app_exported < matlab.apps.AppBase
 
         % Value changed function: MsLower_JA
         function MsLower_JAValueChanged(app, event)
-            app.hysteretic_ms_lower_bound_user_edited = true;   % MOD: stop auto-filling the Ms lower bound from Mtip once edited
+            app.hysteretic_ms_lower_bound_user_edited = true;   % stop auto-filling the Ms lower bound from Mtip once edited
         end
 
         % Cell selection callback: TableParameters
@@ -1422,7 +1417,7 @@ classdef app_exported < matlab.apps.AppBase
 
         % Cell edit callback: TableParameters
         function TableParametersCellEdit(app, event)
-            % MOD: live-recompute when the "select a" root checkbox is toggled
+            % live-recompute when the "select a" root checkbox is toggled
             app.calculate_plot_and_refresh_hysteretic_live();
         end
 
@@ -1456,6 +1451,11 @@ classdef app_exported < matlab.apps.AppBase
         % Menu selected function: ExportMenu
         function ExportMenuSelected(app, event)
             ExportDialogUtils.open_dialog(app);
+        end
+
+        % Value changed function: ReduceDofCheckBox
+        function ReduceDofCheckBoxValueChanged(app, event)
+            AnhystereticUtils.on_reduce_dof_changed(app);
         end
     end
 
@@ -1534,6 +1534,13 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayout9.RowSpacing = 9.9;
             app.GridLayout9.Padding = [9.91666666666667 9.9 9.91666666666667 9.9];
 
+            % Create AxesProcessedInputData
+            app.AxesProcessedInputData = uiaxes(app.GridLayout9);
+            title(app.AxesProcessedInputData, 'Processed input data')
+            app.AxesProcessedInputData.Box = 'on';
+            app.AxesProcessedInputData.Layout.Row = [1 6];
+            app.AxesProcessedInputData.Layout.Column = [9 12];
+
             % Create AxesRawInputData
             app.AxesRawInputData = uiaxes(app.GridLayout9);
             title(app.AxesRawInputData, 'Raw input data')
@@ -1541,13 +1548,6 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesRawInputData.Box = 'on';
             app.AxesRawInputData.Layout.Row = [1 6];
             app.AxesRawInputData.Layout.Column = [5 8];
-
-            % Create AxesProcessedInputData
-            app.AxesProcessedInputData = uiaxes(app.GridLayout9);
-            title(app.AxesProcessedInputData, 'Processed input data')
-            app.AxesProcessedInputData.Box = 'on';
-            app.AxesProcessedInputData.Layout.Row = [1 6];
-            app.AxesProcessedInputData.Layout.Column = [9 12];
 
             % Create DescriptionTextArea
             app.DescriptionTextArea = uitextarea(app.GridLayout9);
@@ -1710,413 +1710,357 @@ classdef app_exported < matlab.apps.AppBase
             app.AnhystereticfittingTab.AutoResizeChildren = 'off';
             app.AnhystereticfittingTab.Title = 'Anhysteretic fitting';
 
-            % Create AnhystereticmagnetizationfittingTabGridLayout
-            app.AnhystereticmagnetizationfittingTabGridLayout = uigridlayout(app.AnhystereticfittingTab);
-            app.AnhystereticmagnetizationfittingTabGridLayout.ColumnWidth = {'0.8x', '1x'};
-            app.AnhystereticmagnetizationfittingTabGridLayout.RowHeight = {'1x'};
-
-            % Create GridLayoutAxes
-            app.GridLayoutAxes = uigridlayout(app.AnhystereticmagnetizationfittingTabGridLayout);
-            app.GridLayoutAxes.ColumnWidth = {'1x'};
-            app.GridLayoutAxes.RowHeight = {'1x', '0.2x', '1x', '0.2x', '1x', '0.2x'};
-            app.GridLayoutAxes.RowSpacing = 3;
-            app.GridLayoutAxes.Padding = [0 0 0 0];
-            app.GridLayoutAxes.Layout.Row = 1;
-            app.GridLayoutAxes.Layout.Column = 1;
+            % Create GridLayout11
+            app.GridLayout11 = uigridlayout(app.AnhystereticfittingTab);
+            app.GridLayout11.ColumnWidth = {'1.5x', '1x', '1x', '1x', '1x', '2.5x', '0.75x', '1.25x', '1x', '1x', '1x', '1x', '1x', '1x', '0.75x', '1.25x'};
+            app.GridLayout11.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
+            app.GridLayout11.ColumnSpacing = 4.29411764705882;
+            app.GridLayout11.RowSpacing = 4.85714285714286;
+            app.GridLayout11.Padding = [4.29411764705882 4.85714285714286 4.29411764705882 4.85714285714286];
 
             % Create AxesM
-            app.AxesM = uiaxes(app.GridLayoutAxes);
+            app.AxesM = uiaxes(app.GridLayout11);
             xlabel(app.AxesM, 'H [A/m]')
             ylabel(app.AxesM, 'M [A/m]')
             zlabel(app.AxesM, 'Z')
             app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = 1;
-            app.AxesM.Layout.Column = 1;
+            app.AxesM.Layout.Row = [1 5];
+            app.AxesM.Layout.Column = [1 6];
 
             % Create AxesdMdH
-            app.AxesdMdH = uiaxes(app.GridLayoutAxes);
+            app.AxesdMdH = uiaxes(app.GridLayout11);
             xlabel(app.AxesdMdH, 'H [A/m]')
             ylabel(app.AxesdMdH, '∂M/∂H')
             zlabel(app.AxesdMdH, 'Z')
             app.AxesdMdH.Box = 'on';
-            app.AxesdMdH.Layout.Row = 3;
-            app.AxesdMdH.Layout.Column = 1;
+            app.AxesdMdH.Layout.Row = [7 11];
+            app.AxesdMdH.Layout.Column = [1 6];
 
             % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayoutAxes);
+            app.AxesHdMdH = uiaxes(app.GridLayout11);
             xlabel(app.AxesHdMdH, 'H [A/m]')
             ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
             zlabel(app.AxesHdMdH, 'Z')
             app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = 5;
-            app.AxesHdMdH.Layout.Column = 1;
-
-            % Create GridLayoutOptionsM
-            app.GridLayoutOptionsM = uigridlayout(app.GridLayoutAxes);
-            app.GridLayoutOptionsM.ColumnWidth = {'2.9x', '0.5x', '2.1x', '3x', '2x', '2x', '0.5x'};
-            app.GridLayoutOptionsM.RowHeight = {'1.1x'};
-            app.GridLayoutOptionsM.Padding = [0 0 0 0];
-            app.GridLayoutOptionsM.Layout.Row = 2;
-            app.GridLayoutOptionsM.Layout.Column = 1;
+            app.AxesHdMdH.Layout.Row = [13 17];
+            app.AxesHdMdH.Layout.Column = [1 6];
 
             % Create ResidualplotButtonM
-            app.ResidualplotButtonM = uibutton(app.GridLayoutOptionsM, 'push');
+            app.ResidualplotButtonM = uibutton(app.GridLayout11, 'push');
             app.ResidualplotButtonM.ButtonPushedFcn = createCallbackFcn(app, @ResidualplotButtonMPushed, true);
-            app.ResidualplotButtonM.Layout.Row = 1;
+            app.ResidualplotButtonM.Layout.Row = 6;
             app.ResidualplotButtonM.Layout.Column = 1;
             app.ResidualplotButtonM.Text = 'Residuals';
 
             % Create PlotcomponentsCheckBoxM
-            app.PlotcomponentsCheckBoxM = uicheckbox(app.GridLayoutOptionsM);
+            app.PlotcomponentsCheckBoxM = uicheckbox(app.GridLayout11);
             app.PlotcomponentsCheckBoxM.ValueChangedFcn = createCallbackFcn(app, @PlotcomponentsCheckBoxMValueChanged, true);
             app.PlotcomponentsCheckBoxM.Text = 'Components';
-            app.PlotcomponentsCheckBoxM.Layout.Row = 1;
-            app.PlotcomponentsCheckBoxM.Layout.Column = 4;
+            app.PlotcomponentsCheckBoxM.Layout.Row = 6;
+            app.PlotcomponentsCheckBoxM.Layout.Column = [3 4];
             app.PlotcomponentsCheckBoxM.Value = true;
 
             % Create ShowgridCheckBoxM
-            app.ShowgridCheckBoxM = uicheckbox(app.GridLayoutOptionsM);
+            app.ShowgridCheckBoxM = uicheckbox(app.GridLayout11);
             app.ShowgridCheckBoxM.ValueChangedFcn = createCallbackFcn(app, @ShowgridCheckBoxMValueChanged, true);
             app.ShowgridCheckBoxM.Text = 'Grid';
-            app.ShowgridCheckBoxM.Layout.Row = 1;
-            app.ShowgridCheckBoxM.Layout.Column = 3;
+            app.ShowgridCheckBoxM.Layout.Row = 6;
+            app.ShowgridCheckBoxM.Layout.Column = 2;
             app.ShowgridCheckBoxM.Value = true;
 
             % Create AxisScaleDropDownM
-            app.AxisScaleDropDownM = uidropdown(app.GridLayoutOptionsM);
+            app.AxisScaleDropDownM = uidropdown(app.GridLayout11);
             app.AxisScaleDropDownM.Items = {'linear', 'semilog-x', 'semilog-y', 'log-log'};
             app.AxisScaleDropDownM.ValueChangedFcn = createCallbackFcn(app, @AxisScaleDropDownMValueChanged, true);
             app.AxisScaleDropDownM.Tag = 'InputAxisScaleDropDown';
-            app.AxisScaleDropDownM.Layout.Row = 1;
-            app.AxisScaleDropDownM.Layout.Column = [6 7];
+            app.AxisScaleDropDownM.Layout.Row = 6;
+            app.AxisScaleDropDownM.Layout.Column = 6;
             app.AxisScaleDropDownM.Value = 'semilog-x';
 
             % Create ShowhcrCheckBoxM
-            app.ShowhcrCheckBoxM = uicheckbox(app.GridLayoutOptionsM);
+            app.ShowhcrCheckBoxM = uicheckbox(app.GridLayout11);
             app.ShowhcrCheckBoxM.ValueChangedFcn = createCallbackFcn(app, @ShowhcrCheckBoxMValueChanged, true);
             app.ShowhcrCheckBoxM.Text = 'Hcr,i';
-            app.ShowhcrCheckBoxM.Layout.Row = 1;
+            app.ShowhcrCheckBoxM.Layout.Row = 6;
             app.ShowhcrCheckBoxM.Layout.Column = 5;
             app.ShowhcrCheckBoxM.Value = true;
 
-            % Create GridLayoutOptionsdMdH
-            app.GridLayoutOptionsdMdH = uigridlayout(app.GridLayoutAxes);
-            app.GridLayoutOptionsdMdH.ColumnWidth = {'2.9x', '0.5x', '2.1x', '3x', '2x', '2x', '0.5x'};
-            app.GridLayoutOptionsdMdH.RowHeight = {'1x'};
-            app.GridLayoutOptionsdMdH.Padding = [0 0 0 0];
-            app.GridLayoutOptionsdMdH.Layout.Row = 4;
-            app.GridLayoutOptionsdMdH.Layout.Column = 1;
-
             % Create ResidualplotButtondMdH
-            app.ResidualplotButtondMdH = uibutton(app.GridLayoutOptionsdMdH, 'push');
+            app.ResidualplotButtondMdH = uibutton(app.GridLayout11, 'push');
             app.ResidualplotButtondMdH.ButtonPushedFcn = createCallbackFcn(app, @ResidualplotButtondMdHPushed, true);
-            app.ResidualplotButtondMdH.Layout.Row = 1;
+            app.ResidualplotButtondMdH.Layout.Row = 12;
             app.ResidualplotButtondMdH.Layout.Column = 1;
             app.ResidualplotButtondMdH.Text = 'Residuals';
 
             % Create PlotcomponentsCheckBoxdMdH
-            app.PlotcomponentsCheckBoxdMdH = uicheckbox(app.GridLayoutOptionsdMdH);
+            app.PlotcomponentsCheckBoxdMdH = uicheckbox(app.GridLayout11);
             app.PlotcomponentsCheckBoxdMdH.ValueChangedFcn = createCallbackFcn(app, @PlotcomponentsCheckBoxdMdHValueChanged, true);
             app.PlotcomponentsCheckBoxdMdH.Text = 'Components';
-            app.PlotcomponentsCheckBoxdMdH.Layout.Row = 1;
-            app.PlotcomponentsCheckBoxdMdH.Layout.Column = 4;
+            app.PlotcomponentsCheckBoxdMdH.Layout.Row = 12;
+            app.PlotcomponentsCheckBoxdMdH.Layout.Column = [3 4];
             app.PlotcomponentsCheckBoxdMdH.Value = true;
 
             % Create ShowgridCheckBoxdMdH
-            app.ShowgridCheckBoxdMdH = uicheckbox(app.GridLayoutOptionsdMdH);
+            app.ShowgridCheckBoxdMdH = uicheckbox(app.GridLayout11);
             app.ShowgridCheckBoxdMdH.ValueChangedFcn = createCallbackFcn(app, @ShowgridCheckBoxdMdHValueChanged, true);
             app.ShowgridCheckBoxdMdH.Text = 'Grid';
-            app.ShowgridCheckBoxdMdH.Layout.Row = 1;
-            app.ShowgridCheckBoxdMdH.Layout.Column = 3;
+            app.ShowgridCheckBoxdMdH.Layout.Row = 12;
+            app.ShowgridCheckBoxdMdH.Layout.Column = 2;
             app.ShowgridCheckBoxdMdH.Value = true;
 
             % Create AxisScaleDropDowndMdH
-            app.AxisScaleDropDowndMdH = uidropdown(app.GridLayoutOptionsdMdH);
+            app.AxisScaleDropDowndMdH = uidropdown(app.GridLayout11);
             app.AxisScaleDropDowndMdH.Items = {'linear', 'semilog-x', 'semilog-y', 'log-log'};
             app.AxisScaleDropDowndMdH.ValueChangedFcn = createCallbackFcn(app, @AxisScaleDropDowndMdHValueChanged, true);
             app.AxisScaleDropDowndMdH.Tag = 'InputAxisScaleDropDown';
-            app.AxisScaleDropDowndMdH.Layout.Row = 1;
-            app.AxisScaleDropDowndMdH.Layout.Column = [6 7];
+            app.AxisScaleDropDowndMdH.Layout.Row = 12;
+            app.AxisScaleDropDowndMdH.Layout.Column = 6;
             app.AxisScaleDropDowndMdH.Value = 'semilog-x';
 
             % Create ShowhcrCheckBoxdMdH
-            app.ShowhcrCheckBoxdMdH = uicheckbox(app.GridLayoutOptionsdMdH);
+            app.ShowhcrCheckBoxdMdH = uicheckbox(app.GridLayout11);
             app.ShowhcrCheckBoxdMdH.ValueChangedFcn = createCallbackFcn(app, @ShowhcrCheckBoxdMdHValueChanged, true);
             app.ShowhcrCheckBoxdMdH.Text = 'Hcr,i';
-            app.ShowhcrCheckBoxdMdH.Layout.Row = 1;
+            app.ShowhcrCheckBoxdMdH.Layout.Row = 12;
             app.ShowhcrCheckBoxdMdH.Layout.Column = 5;
             app.ShowhcrCheckBoxdMdH.Value = true;
 
-            % Create GridLayoutOptionsHdMdH
-            app.GridLayoutOptionsHdMdH = uigridlayout(app.GridLayoutAxes);
-            app.GridLayoutOptionsHdMdH.ColumnWidth = {'2.9x', '0.5x', '2.1x', '3x', '2x', '2x', '0.5x'};
-            app.GridLayoutOptionsHdMdH.RowHeight = {'1x'};
-            app.GridLayoutOptionsHdMdH.Padding = [0 0 0 0];
-            app.GridLayoutOptionsHdMdH.Layout.Row = 6;
-            app.GridLayoutOptionsHdMdH.Layout.Column = 1;
-
             % Create ResidualplotButtondHdMdH
-            app.ResidualplotButtondHdMdH = uibutton(app.GridLayoutOptionsHdMdH, 'push');
+            app.ResidualplotButtondHdMdH = uibutton(app.GridLayout11, 'push');
             app.ResidualplotButtondHdMdH.ButtonPushedFcn = createCallbackFcn(app, @ResidualplotButtondHdMdHPushed, true);
-            app.ResidualplotButtondHdMdH.Layout.Row = 1;
+            app.ResidualplotButtondHdMdH.Layout.Row = 18;
             app.ResidualplotButtondHdMdH.Layout.Column = 1;
             app.ResidualplotButtondHdMdH.Text = 'Residuals';
 
             % Create PlotcomponentsCheckBoxHdMdH
-            app.PlotcomponentsCheckBoxHdMdH = uicheckbox(app.GridLayoutOptionsHdMdH);
+            app.PlotcomponentsCheckBoxHdMdH = uicheckbox(app.GridLayout11);
             app.PlotcomponentsCheckBoxHdMdH.ValueChangedFcn = createCallbackFcn(app, @PlotcomponentsCheckBoxHdMdHValueChanged, true);
             app.PlotcomponentsCheckBoxHdMdH.Text = 'Components';
-            app.PlotcomponentsCheckBoxHdMdH.Layout.Row = 1;
-            app.PlotcomponentsCheckBoxHdMdH.Layout.Column = 4;
+            app.PlotcomponentsCheckBoxHdMdH.Layout.Row = 18;
+            app.PlotcomponentsCheckBoxHdMdH.Layout.Column = [3 4];
             app.PlotcomponentsCheckBoxHdMdH.Value = true;
 
             % Create ShowgridCheckBoxHdMdH
-            app.ShowgridCheckBoxHdMdH = uicheckbox(app.GridLayoutOptionsHdMdH);
+            app.ShowgridCheckBoxHdMdH = uicheckbox(app.GridLayout11);
             app.ShowgridCheckBoxHdMdH.ValueChangedFcn = createCallbackFcn(app, @ShowgridCheckBoxHdMdHValueChanged, true);
             app.ShowgridCheckBoxHdMdH.Text = 'Grid';
-            app.ShowgridCheckBoxHdMdH.Layout.Row = 1;
-            app.ShowgridCheckBoxHdMdH.Layout.Column = 3;
+            app.ShowgridCheckBoxHdMdH.Layout.Row = 18;
+            app.ShowgridCheckBoxHdMdH.Layout.Column = 2;
             app.ShowgridCheckBoxHdMdH.Value = true;
 
             % Create AxisScaleDropDownHdMdH
-            app.AxisScaleDropDownHdMdH = uidropdown(app.GridLayoutOptionsHdMdH);
+            app.AxisScaleDropDownHdMdH = uidropdown(app.GridLayout11);
             app.AxisScaleDropDownHdMdH.Items = {'linear', 'semilog-x', 'semilog-y', 'log-log'};
             app.AxisScaleDropDownHdMdH.ValueChangedFcn = createCallbackFcn(app, @AxisScaleDropDownHdMdHValueChanged, true);
             app.AxisScaleDropDownHdMdH.Tag = 'InputAxisScaleDropDown';
-            app.AxisScaleDropDownHdMdH.Layout.Row = 1;
-            app.AxisScaleDropDownHdMdH.Layout.Column = [6 7];
+            app.AxisScaleDropDownHdMdH.Layout.Row = 18;
+            app.AxisScaleDropDownHdMdH.Layout.Column = 6;
             app.AxisScaleDropDownHdMdH.Value = 'semilog-x';
 
             % Create ShowhcrCheckBoxHdMdH
-            app.ShowhcrCheckBoxHdMdH = uicheckbox(app.GridLayoutOptionsHdMdH);
+            app.ShowhcrCheckBoxHdMdH = uicheckbox(app.GridLayout11);
             app.ShowhcrCheckBoxHdMdH.ValueChangedFcn = createCallbackFcn(app, @ShowhcrCheckBoxHdMdHValueChanged, true);
             app.ShowhcrCheckBoxHdMdH.Text = 'Hcr,i';
-            app.ShowhcrCheckBoxHdMdH.Layout.Row = 1;
+            app.ShowhcrCheckBoxHdMdH.Layout.Row = 18;
             app.ShowhcrCheckBoxHdMdH.Layout.Column = 5;
             app.ShowhcrCheckBoxHdMdH.Value = true;
 
-            % Create GridLayoutNumbers
-            app.GridLayoutNumbers = uigridlayout(app.AnhystereticmagnetizationfittingTabGridLayout);
-            app.GridLayoutNumbers.ColumnWidth = {'1x'};
-            app.GridLayoutNumbers.RowHeight = {'0.2x', '0.3x', '0.2x', '1.7x', '0.2x', '1x', '0.2x', '1x', '0.3x'};
-            app.GridLayoutNumbers.RowSpacing = 5;
-            app.GridLayoutNumbers.Padding = [10 0 10 0];
-            app.GridLayoutNumbers.Layout.Row = 1;
-            app.GridLayoutNumbers.Layout.Column = 2;
-            app.GridLayoutNumbers.Scrollable = 'on';
+            % Create FitButton
+            app.FitButton = uibutton(app.GridLayout11, 'push');
+            app.FitButton.ButtonPushedFcn = createCallbackFcn(app, @FitButtonPushed, true);
+            app.FitButton.BackgroundColor = [0.8667 0.3294 0];
+            app.FitButton.FontWeight = 'bold';
+            app.FitButton.FontColor = [0.9412 0.9412 0.9412];
+            app.FitButton.Layout.Row = 18;
+            app.FitButton.Layout.Column = 15;
+            app.FitButton.Text = 'Fit';
+
+            % Create CalculatePlotButton
+            app.CalculatePlotButton = uibutton(app.GridLayout11, 'push');
+            app.CalculatePlotButton.ButtonPushedFcn = createCallbackFcn(app, @CalculatePlotButtonPushed, true);
+            app.CalculatePlotButton.WordWrap = 'on';
+            app.CalculatePlotButton.Layout.Row = 18;
+            app.CalculatePlotButton.Layout.Column = [13 14];
+            app.CalculatePlotButton.Text = 'Calculate & Plot';
+
+            % Create ErrorDisplay
+            app.ErrorDisplay = uieditfield(app.GridLayout11, 'numeric');
+            app.ErrorDisplay.ValueDisplayFormat = '%.5e';
+            app.ErrorDisplay.AllowEmpty = 'on';
+            app.ErrorDisplay.Editable = 'off';
+            app.ErrorDisplay.HorizontalAlignment = 'left';
+            app.ErrorDisplay.Layout.Row = 18;
+            app.ErrorDisplay.Layout.Column = [11 12];
+            app.ErrorDisplay.Value = [];
+
+            % Create StopfitButton
+            app.StopfitButton = uibutton(app.GridLayout11, 'push');
+            app.StopfitButton.ButtonPushedFcn = createCallbackFcn(app, @StopFitButtonPushed, true);
+            app.StopfitButton.Layout.Row = 18;
+            app.StopfitButton.Layout.Column = 16;
+            app.StopfitButton.Text = 'Stop fit';
+
+            % Create CalculatedquantitiesLabel
+            app.CalculatedquantitiesLabel = uilabel(app.GridLayout11);
+            app.CalculatedquantitiesLabel.FontWeight = 'bold';
+            app.CalculatedquantitiesLabel.Layout.Row = 13;
+            app.CalculatedquantitiesLabel.Layout.Column = [7 9];
+            app.CalculatedquantitiesLabel.Text = 'Calculated quantities';
+
+            % Create chiinField
+            app.chiinField = uieditfield(app.GridLayout11, 'numeric');
+            app.chiinField.ValueDisplayFormat = '%.6g';
+            app.chiinField.AllowEmpty = 'on';
+            app.chiinField.Editable = 'off';
+            app.chiinField.Layout.Row = 13;
+            app.chiinField.Layout.Column = [12 13];
+            app.chiinField.Value = [];
+
+            % Create chiinLabel
+            app.chiinLabel = uilabel(app.GridLayout11);
+            app.chiinLabel.HorizontalAlignment = 'right';
+            app.chiinLabel.FontWeight = 'bold';
+            app.chiinLabel.Layout.Row = 13;
+            app.chiinLabel.Layout.Column = 11;
+            app.chiinLabel.Text = 'χᵢₙ';
+
+            % Create PointSpaceDropDown
+            app.PointSpaceDropDown = uidropdown(app.GridLayout11);
+            app.PointSpaceDropDown.Items = {'Logarithmically spaced', 'Lineraly spaced'};
+            app.PointSpaceDropDown.ItemsData = {'log', 'linear'};
+            app.PointSpaceDropDown.ValueChangedFcn = createCallbackFcn(app, @PointSpaceDropDownValueChanged, true);
+            app.PointSpaceDropDown.Layout.Row = 2;
+            app.PointSpaceDropDown.Layout.Column = [13 15];
+            app.PointSpaceDropDown.Value = 'log';
+
+            % Create SetcolorsButton
+            app.SetcolorsButton = uibutton(app.GridLayout11, 'push');
+            app.SetcolorsButton.ButtonPushedFcn = createCallbackFcn(app, @SetcolorsButtonPushed, true);
+            app.SetcolorsButton.Layout.Row = 2;
+            app.SetcolorsButton.Layout.Column = 16;
+            app.SetcolorsButton.Text = 'Set colors';
 
             % Create TableFittedParameters
-            app.TableFittedParameters = uitable(app.GridLayoutNumbers);
+            app.TableFittedParameters = uitable(app.GridLayout11);
             app.TableFittedParameters.ColumnName = {'Parameter'; 'Value'; 'Lower bound'; 'Upper bound'; 'Fit'};
             app.TableFittedParameters.RowName = {};
             app.TableFittedParameters.ColumnEditable = [false true true true true];
             app.TableFittedParameters.CellEditCallback = createCallbackFcn(app, @TableFittedParametersCellEdit, true);
             app.TableFittedParameters.CellSelectionCallback = createCallbackFcn(app, @TableFittedParametersCellSelection, true);
-            app.TableFittedParameters.Layout.Row = 4;
-            app.TableFittedParameters.Layout.Column = 1;
+            app.TableFittedParameters.Layout.Row = [4 7];
+            app.TableFittedParameters.Layout.Column = [7 16];
 
-            % Create ModelparametersLabel_3
-            app.ModelparametersLabel_3 = uilabel(app.GridLayoutNumbers);
-            app.ModelparametersLabel_3.FontWeight = 'bold';
-            app.ModelparametersLabel_3.Layout.Row = 5;
-            app.ModelparametersLabel_3.Layout.Column = 1;
-            app.ModelparametersLabel_3.Text = 'Model parameters';
+            % Create PhysicalparametersLabel
+            app.PhysicalparametersLabel = uilabel(app.GridLayout11);
+            app.PhysicalparametersLabel.FontWeight = 'bold';
+            app.PhysicalparametersLabel.Layout.Row = 8;
+            app.PhysicalparametersLabel.Layout.Column = [7 16];
+            app.PhysicalparametersLabel.Text = 'Physical parameters';
 
             % Create TableParameters
-            app.TableParameters = uitable(app.GridLayoutNumbers);
+            app.TableParameters = uitable(app.GridLayout11);
             app.TableParameters.ColumnName = {'Component'; 'Msᵢ [A/m]'; 'αᵢ'; 'aᵢ [A/m]'; 'Select aᵢ'};
             app.TableParameters.RowName = {};
             app.TableParameters.ColumnEditable = [false false false false true];
             app.TableParameters.CellEditCallback = createCallbackFcn(app, @TableParametersCellEdit, true);
             app.TableParameters.CellSelectionCallback = createCallbackFcn(app, @TableParametersCellSelection, true);
-            app.TableParameters.Layout.Row = 6;
-            app.TableParameters.Layout.Column = 1;
-
-            % Create GridLayoutButtons
-            app.GridLayoutButtons = uigridlayout(app.GridLayoutNumbers);
-            app.GridLayoutButtons.ColumnWidth = {'0.3x', '1.4x', '0.8x', '0.9x', '0.4x', '0.4x'};
-            app.GridLayoutButtons.RowHeight = {'0.7x'};
-            app.GridLayoutButtons.Padding = [0 0 0 0];
-            app.GridLayoutButtons.Layout.Row = 9;
-            app.GridLayoutButtons.Layout.Column = 1;
-
-            % Create FitButton
-            app.FitButton = uibutton(app.GridLayoutButtons, 'push');
-            app.FitButton.ButtonPushedFcn = createCallbackFcn(app, @FitButtonPushed, true);
-            app.FitButton.BackgroundColor = [0.8667 0.3294 0];
-            app.FitButton.FontWeight = 'bold';
-            app.FitButton.FontColor = [0.9412 0.9412 0.9412];
-            app.FitButton.Layout.Row = 1;
-            app.FitButton.Layout.Column = 5;
-            app.FitButton.Text = 'Fit';
-
-            % Create CalculatePlotButton
-            app.CalculatePlotButton = uibutton(app.GridLayoutButtons, 'push');
-            app.CalculatePlotButton.ButtonPushedFcn = createCallbackFcn(app, @CalculatePlotButtonPushed, true);
-            app.CalculatePlotButton.WordWrap = 'on';
-            app.CalculatePlotButton.Layout.Row = 1;
-            app.CalculatePlotButton.Layout.Column = 4;
-            app.CalculatePlotButton.Text = 'Calculate & Plot';
-
-            % Create ErrorDropDownLabel
-            app.ErrorDropDownLabel = uilabel(app.GridLayoutButtons);
-            app.ErrorDropDownLabel.WordWrap = 'on';
-            app.ErrorDropDownLabel.FontWeight = 'bold';
-            app.ErrorDropDownLabel.Layout.Row = 1;
-            app.ErrorDropDownLabel.Layout.Column = 1;
-            app.ErrorDropDownLabel.Text = 'Error';
-
-            % Create ErrorDropDown
-            app.ErrorDropDown = uidropdown(app.GridLayoutButtons);
-            app.ErrorDropDown.Items = {'Diagonal (H, sampled)', 'Diagonal (H, continuous)', 'Diagonal (logH, sampled)', 'Diagonal (logH, continuous)', 'Vertical', 'Horizontal'};
-            app.ErrorDropDown.ValueChangedFcn = createCallbackFcn(app, @ErrorDropDownValueChanged, true);
-            app.ErrorDropDown.Layout.Row = 1;
-            app.ErrorDropDown.Layout.Column = 2;
-            app.ErrorDropDown.Value = 'Diagonal (logH, continuous)';
-
-            % Create ErrorDisplay
-            app.ErrorDisplay = uieditfield(app.GridLayoutButtons, 'numeric');
-            app.ErrorDisplay.ValueDisplayFormat = '%.5e';
-            app.ErrorDisplay.AllowEmpty = 'on';
-            app.ErrorDisplay.Editable = 'off';
-            app.ErrorDisplay.HorizontalAlignment = 'left';
-            app.ErrorDisplay.Layout.Row = 1;
-            app.ErrorDisplay.Layout.Column = 3;
-            app.ErrorDisplay.Value = [];
-
-            % Create StopfitButton
-            app.StopfitButton = uibutton(app.GridLayoutButtons, 'push');
-            app.StopfitButton.ButtonPushedFcn = createCallbackFcn(app, @StopFitButtonPushed, true);
-            app.StopfitButton.Layout.Row = 1;
-            app.StopfitButton.Layout.Column = 6;
-            app.StopfitButton.Text = 'Stop fit';
-
-            % Create GridLayoutOtherQuantities
-            app.GridLayoutOtherQuantities = uigridlayout(app.GridLayoutNumbers);
-            app.GridLayoutOtherQuantities.ColumnWidth = {'1x', '0.7x', '0.8x', '0.6x', '0.8x'};
-            app.GridLayoutOtherQuantities.RowHeight = {'1x'};
-            app.GridLayoutOtherQuantities.Padding = [0 0 0 0];
-            app.GridLayoutOtherQuantities.Layout.Row = 7;
-            app.GridLayoutOtherQuantities.Layout.Column = 1;
-
-            % Create CalculatedquantitiesLabel
-            app.CalculatedquantitiesLabel = uilabel(app.GridLayoutOtherQuantities);
-            app.CalculatedquantitiesLabel.FontWeight = 'bold';
-            app.CalculatedquantitiesLabel.Layout.Row = 1;
-            app.CalculatedquantitiesLabel.Layout.Column = 1;
-            app.CalculatedquantitiesLabel.Text = 'Calculated quantities';
-
-            % Create chiinField
-            app.chiinField = uieditfield(app.GridLayoutOtherQuantities, 'numeric');
-            app.chiinField.ValueDisplayFormat = '%.6g';
-            app.chiinField.AllowEmpty = 'on';
-            app.chiinField.Editable = 'off';
-            app.chiinField.Layout.Row = 1;
-            app.chiinField.Layout.Column = 3;
-            app.chiinField.Value = [];
-
-            % Create JsField
-            app.JsField = uieditfield(app.GridLayoutOtherQuantities, 'numeric');
-            app.JsField.ValueDisplayFormat = '%.6g';
-            app.JsField.AllowEmpty = 'on';
-            app.JsField.Editable = 'off';
-            app.JsField.Layout.Row = 1;
-            app.JsField.Layout.Column = 5;
-            app.JsField.Value = [];
-
-            % Create chiinLabel
-            app.chiinLabel = uilabel(app.GridLayoutOtherQuantities);
-            app.chiinLabel.HorizontalAlignment = 'right';
-            app.chiinLabel.FontWeight = 'bold';
-            app.chiinLabel.Layout.Row = 1;
-            app.chiinLabel.Layout.Column = 2;
-            app.chiinLabel.Text = 'χᵢₙ';
-
-            % Create JsTLabel
-            app.JsTLabel = uilabel(app.GridLayoutOtherQuantities);
-            app.JsTLabel.HorizontalAlignment = 'right';
-            app.JsTLabel.FontWeight = 'bold';
-            app.JsTLabel.Layout.Row = 1;
-            app.JsTLabel.Layout.Column = 4;
-            app.JsTLabel.Text = 'Js [T]';
+            app.TableParameters.Layout.Row = [9 12];
+            app.TableParameters.Layout.Column = [7 16];
 
             % Create TableQuantities
-            app.TableQuantities = uitable(app.GridLayoutNumbers);
+            app.TableQuantities = uitable(app.GridLayout11);
             app.TableQuantities.ColumnName = {'Component'; 'αᵢ⏐Msᵢ⏐/(3aᵢ)'; 'NᵢkвT [J/m³]'; 'Hkᵢ [A/m]'; 'χᵢₙ ᵢ'};
             app.TableQuantities.RowName = {};
             app.TableQuantities.CellSelectionCallback = createCallbackFcn(app, @TableQuantitiesCellSelection, true);
-            app.TableQuantities.Layout.Row = 8;
-            app.TableQuantities.Layout.Column = 1;
+            app.TableQuantities.Layout.Row = [14 17];
+            app.TableQuantities.Layout.Column = [7 16];
 
             % Create MulticomponentLangevinWeissmodelLabel
-            app.MulticomponentLangevinWeissmodelLabel = uilabel(app.GridLayoutNumbers);
+            app.MulticomponentLangevinWeissmodelLabel = uilabel(app.GridLayout11);
             app.MulticomponentLangevinWeissmodelLabel.FontWeight = 'bold';
             app.MulticomponentLangevinWeissmodelLabel.Layout.Row = 1;
-            app.MulticomponentLangevinWeissmodelLabel.Layout.Column = 1;
+            app.MulticomponentLangevinWeissmodelLabel.Layout.Column = [7 16];
             app.MulticomponentLangevinWeissmodelLabel.Text = 'Multicomponent Langevin-Weiss model';
 
-            % Create GridLayoutModeledCurve
-            app.GridLayoutModeledCurve = uigridlayout(app.GridLayoutNumbers);
-            app.GridLayoutModeledCurve.ColumnWidth = {'0.5x', '0.4x', '0.5x', '0.3x', '1.2x', '0.45x'};
-            app.GridLayoutModeledCurve.RowHeight = {'1x'};
-            app.GridLayoutModeledCurve.ColumnSpacing = 3;
-            app.GridLayoutModeledCurve.Padding = [0 0 0 0];
-            app.GridLayoutModeledCurve.Layout.Row = 2;
-            app.GridLayoutModeledCurve.Layout.Column = 1;
+            % Create MathematicalparametersLabel
+            app.MathematicalparametersLabel = uilabel(app.GridLayout11);
+            app.MathematicalparametersLabel.FontWeight = 'bold';
+            app.MathematicalparametersLabel.Layout.Row = 3;
+            app.MathematicalparametersLabel.Layout.Column = [7 16];
+            app.MathematicalparametersLabel.Text = 'Mathematical parameters';
+
+            % Create ReduceDofCheckBox
+            app.ReduceDofCheckBox = uicheckbox(app.GridLayout11);
+            app.ReduceDofCheckBox.ValueChangedFcn = createCallbackFcn(app, @ReduceDofCheckBoxValueChanged, true);
+            app.ReduceDofCheckBox.Tooltip = {'Use constraint points at Htip and Hx_(i+1) to reduce the number of degrees of freedom of the optimization problem.'};
+            app.ReduceDofCheckBox.Text = 'reduce dof';
+            app.ReduceDofCheckBox.Layout.Row = 8;
+            app.ReduceDofCheckBox.Layout.Column = [15 16];
+            app.ReduceDofCheckBox.Value = true;
+
+            % Create ErrorDropDownLabel
+            app.ErrorDropDownLabel = uilabel(app.GridLayout11);
+            app.ErrorDropDownLabel.WordWrap = 'on';
+            app.ErrorDropDownLabel.FontWeight = 'bold';
+            app.ErrorDropDownLabel.Layout.Row = 18;
+            app.ErrorDropDownLabel.Layout.Column = 7;
+            app.ErrorDropDownLabel.Text = 'Error';
+
+            % Create ErrorDropDown
+            app.ErrorDropDown = uidropdown(app.GridLayout11);
+            app.ErrorDropDown.Items = {'Diagonal (H, sampled)', 'Diagonal (H, continuous)', 'Diagonal (logH, sampled)', 'Diagonal (logH, continuous)', 'Vertical', 'Horizontal'};
+            app.ErrorDropDown.ValueChangedFcn = createCallbackFcn(app, @ErrorDropDownValueChanged, true);
+            app.ErrorDropDown.Layout.Row = 18;
+            app.ErrorDropDown.Layout.Column = [8 10];
+            app.ErrorDropDown.Value = 'Diagonal (logH, continuous)';
+
+            % Create JsField
+            app.JsField = uieditfield(app.GridLayout11, 'numeric');
+            app.JsField.ValueDisplayFormat = '%.6g';
+            app.JsField.AllowEmpty = 'on';
+            app.JsField.Editable = 'off';
+            app.JsField.Layout.Row = 13;
+            app.JsField.Layout.Column = [15 16];
+            app.JsField.Value = [];
+
+            % Create JsTLabel
+            app.JsTLabel = uilabel(app.GridLayout11);
+            app.JsTLabel.HorizontalAlignment = 'right';
+            app.JsTLabel.FontWeight = 'bold';
+            app.JsTLabel.Layout.Row = 13;
+            app.JsTLabel.Layout.Column = 14;
+            app.JsTLabel.Text = 'Js [T]';
 
             % Create NofcompLabel
-            app.NofcompLabel = uilabel(app.GridLayoutModeledCurve);
-            app.NofcompLabel.Layout.Row = 1;
-            app.NofcompLabel.Layout.Column = 1;
+            app.NofcompLabel = uilabel(app.GridLayout11);
+            app.NofcompLabel.Layout.Row = 2;
+            app.NofcompLabel.Layout.Column = [7 8];
             app.NofcompLabel.Text = 'N° of comp.';
 
             % Create NofcompSpinner
-            app.NofcompSpinner = uispinner(app.GridLayoutModeledCurve);
+            app.NofcompSpinner = uispinner(app.GridLayout11);
             app.NofcompSpinner.Limits = [1 4];
             app.NofcompSpinner.ValueChangedFcn = createCallbackFcn(app, @NofcompSpinnerValueChanged, true);
-            app.NofcompSpinner.Layout.Row = 1;
-            app.NofcompSpinner.Layout.Column = 2;
+            app.NofcompSpinner.Layout.Row = 2;
+            app.NofcompSpinner.Layout.Column = 9;
             app.NofcompSpinner.Value = 1;
 
             % Create NofpointsLabel
-            app.NofpointsLabel = uilabel(app.GridLayoutModeledCurve);
+            app.NofpointsLabel = uilabel(app.GridLayout11);
             app.NofpointsLabel.Tooltip = {'N° of points of modeled anhysteretic curve'};
-            app.NofpointsLabel.Layout.Row = 1;
-            app.NofpointsLabel.Layout.Column = 3;
+            app.NofpointsLabel.Layout.Row = 2;
+            app.NofpointsLabel.Layout.Column = [10 11];
             app.NofpointsLabel.Text = 'N° of points';
 
             % Create NofpointsEditField
-            app.NofpointsEditField = uieditfield(app.GridLayoutModeledCurve, 'numeric');
+            app.NofpointsEditField = uieditfield(app.GridLayout11, 'numeric');
             app.NofpointsEditField.Limits = [0 Inf];
             app.NofpointsEditField.ValueDisplayFormat = '%.0f';
             app.NofpointsEditField.ValueChangedFcn = createCallbackFcn(app, @NofpointsEditFieldValueChanged, true);
             app.NofpointsEditField.Tooltip = {'N° of points of modeled anhysteretic curve'};
-            app.NofpointsEditField.Layout.Row = 1;
-            app.NofpointsEditField.Layout.Column = 4;
+            app.NofpointsEditField.Layout.Row = 2;
+            app.NofpointsEditField.Layout.Column = 12;
             app.NofpointsEditField.Value = 100;
-
-            % Create PointSpaceDropDown
-            app.PointSpaceDropDown = uidropdown(app.GridLayoutModeledCurve);
-            app.PointSpaceDropDown.Items = {'Logarithmically spaced', 'Lineraly spaced'};
-            app.PointSpaceDropDown.ItemsData = {'log', 'linear'};
-            app.PointSpaceDropDown.ValueChangedFcn = createCallbackFcn(app, @PointSpaceDropDownValueChanged, true);
-            app.PointSpaceDropDown.Layout.Row = 1;
-            app.PointSpaceDropDown.Layout.Column = 5;
-            app.PointSpaceDropDown.Value = 'log';
-
-            % Create SetcolorsButton
-            app.SetcolorsButton = uibutton(app.GridLayoutModeledCurve, 'push');
-            app.SetcolorsButton.ButtonPushedFcn = createCallbackFcn(app, @SetcolorsButtonPushed, true);
-            app.SetcolorsButton.Layout.Row = 1;
-            app.SetcolorsButton.Layout.Column = 6;
-            app.SetcolorsButton.Text = 'Set colors';
-
-            % Create FittingparametersLabel
-            app.FittingparametersLabel = uilabel(app.GridLayoutNumbers);
-            app.FittingparametersLabel.FontWeight = 'bold';
-            app.FittingparametersLabel.Layout.Row = 3;
-            app.FittingparametersLabel.Layout.Column = 1;
-            app.FittingparametersLabel.Text = 'Fitting parameters';
 
             % Create HystereticfittingTab
             app.HystereticfittingTab = uitab(app.TabGroup);

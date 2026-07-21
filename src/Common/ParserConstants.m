@@ -2,8 +2,9 @@ classdef ParserConstants
 %PARSERCONSTANTS  Supported curve types and H/M field-unit labels.
 %   Enumerates the two curve_type strings (anhysteretic curve / hysteresis
 %   loop) and the H-field (A/m, kA/m, Oe, kOe, Bext in T/G/kG) and M-field
-%   (A/m, kA/m, MA/m, emu/cm^3, J/B in T/G/kG) unit labels used by the
-%   Input-data tab dropdowns and consumed by Parser/UnitConvertor.
+%   (A/m, kA/m, MA/m, emu/cm^3, sigma in emu/g = Am^2/kg, J/B in T/G/kG)
+%   unit labels used by the Input-data tab dropdowns and consumed by
+%   Parser/UnitConvertor.
 
     properties
         ANHYSTERETIC_CURVE_TYPE
@@ -23,6 +24,7 @@ classdef ParserConstants
         M_KILO_AMPERE_PER_METER
         M_MEGA_AMPERE_PER_METER
         M_ELECTROMAGNETIC_UNIT_PER_CUBE_CENTIMETER
+        SIGMA_ELECTROMAGNETIC_UNIT_PER_GRAM
         J_TESLA
         B_TESLA
         B_GAUSS
@@ -46,6 +48,7 @@ classdef ParserConstants
             obj.M_KILO_AMPERE_PER_METER = "M [kA/m]";
             obj.M_MEGA_AMPERE_PER_METER = "M [MA/m]";
             obj.M_ELECTROMAGNETIC_UNIT_PER_CUBE_CENTIMETER = "M [emu/cm^3]";
+            obj.SIGMA_ELECTROMAGNETIC_UNIT_PER_GRAM = string([char(963) ' [emu/g=Am^2/kg]']);
             obj.J_TESLA = "J [T]";
             obj.B_TESLA = "B [T]";
             obj.B_GAUSS = "B [G]";

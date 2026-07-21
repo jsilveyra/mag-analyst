@@ -1,6 +1,6 @@
 classdef MenuUtils
 %MENUUTILS Static helpers for project Open/Save/Save-As.
-%   Extracted from app_exported.m, mirroring the AnhystereticUtils/
+%   Mirrors the AnhystereticUtils/
 %   HystereticUtils/PlaygroundUtils pattern: static methods taking `app` as
 %   the first argument, called from thin delegator methods on the app class.
 %   This logic is inherently cross-tab (a project file touches nearly every
@@ -146,6 +146,19 @@ classdef MenuUtils
             s.number_components = app.number_components;
             s.select_a = app.TableParameters.Data.(5);
 
+            % --- "reduce dof" state: the checkbox, plus the directly-fit
+            % physical parameters when the last fit was a physical (unchecked)
+            % refinement (Hcr/mcr/Hx are then stale and can't reproduce them). ---
+            if isprop(app, 'ReduceDofCheckBox') && ~isempty(app.ReduceDofCheckBox)
+                s.reduce_dof = logical(app.ReduceDofCheckBox.Value);
+            end
+            s.physical_fit_active = isprop(app, 'physical_fit_active') && logical(app.physical_fit_active);
+            if s.physical_fit_active && isobject(app.magnetic_parameters) && ~isempty(app.magnetic_parameters.Ms)
+                s.physical_Ms = app.magnetic_parameters.Ms(:);
+                s.physical_alpha = app.magnetic_parameters.alpha(:);
+                s.physical_a = app.magnetic_parameters.a(:);
+            end
+
             % --- Anhysteretic fitted-parameter table (full precision; see
             % refresh_table_value_display -- the table's own columns 3/4 are
             % only a sigfig-rounded *display* of app.lb/app.ub) ---
@@ -198,6 +211,8 @@ classdef MenuUtils
             data = jsonencode(s, PrettyPrint=true);
             fprintf(file, "%s", data);
             fclose(file);
+            app.ProjectDirty = false;
+            MenuUtils.update_window_title(app);
             app.write_message("Project saved at " + app.ProjectPath);
         end
 
@@ -345,6 +360,27 @@ classdef MenuUtils
                 app.export_settings = s.export_settings;
             end
 
+            % --- "reduce dof" physical-fit state: restore the checkbox and,
+            % if the saved project ended in physical mode, rebuild
+            % magnetic_parameters directly from the stored Ms/alpha/a BEFORE the
+            % plot below (so it isn't overwritten from the stale Hcr/mcr/Hx). ---
+            if isprop(app, 'ReduceDofCheckBox') && ~isempty(app.ReduceDofCheckBox) && isfield(s, 'reduce_dof')
+                app.ReduceDofCheckBox.Value = logical(s.reduce_dof);
+            end
+            if isprop(app, 'physical_fit_active')
+                app.physical_fit_active = false;
+                if isfield(s, 'physical_fit_active') && logical(s.physical_fit_active) ...
+                        && isfield(s, 'physical_Ms') && isfield(s, 'physical_alpha') && isfield(s, 'physical_a')
+                    physical.Ms = s.physical_Ms(:).';
+                    physical.alpha = s.physical_alpha(:).';
+                    physical.a = s.physical_a(:).';
+                    if numel(physical.Ms) == app.number_components
+                        app.magnetic_parameters = MagneticParameters(app.data_curve, [], [], [], [], physical);
+                        app.physical_fit_active = true;
+                    end
+                end
+            end
+
             % --- Re-sync Playground UI to match the restored mode/fields ---
             app.sync_playground_mode_ui();
             PlaygroundUtils.sync_major_ui(app);
@@ -358,6 +394,8 @@ classdef MenuUtils
             end
             app.calculate_plot_and_refresh_hysteretic();
 
+            app.ProjectDirty = false;
+            MenuUtils.update_window_title(app);
             [~, name, ext] = fileparts(app.ProjectPath);
             app.write_message(name + ext + " was opened successfully");
         end
@@ -425,6 +463,12 @@ classdef MenuUtils
             app.mcr = [];
             app.Hx = [];
             app.magnetic_parameters = [];
+            if isprop(app, 'physical_fit_active')
+                app.physical_fit_active = false;
+            end
+            if isprop(app, 'ReduceDofCheckBox') && ~isempty(app.ReduceDofCheckBox)
+                app.ReduceDofCheckBox.Value = true;
+            end
             app.fitted_parameter_values = [];
             app.component_row_types = [];
             app.lb = [];
@@ -435,6 +479,7 @@ classdef MenuUtils
             app.init_components();
             app.init_parameters_table(true);
             app.init_quantities_table(true);
+            AnhystereticUtils.sync_reduce_dof_ui(app);
             cla(app.AxesM, 'reset');
             cla(app.AxesdMdH, 'reset');
             cla(app.AxesHdMdH, 'reset');
@@ -487,6 +532,8 @@ classdef MenuUtils
 
             % --- Cross-cutting ---
             app.ProjectPath = "";
+            app.ProjectDirty = false;
+            MenuUtils.update_window_title(app);
             FitProgressUtils.close(app);
             if isappdata(app.MagAnalystUIFigure, 'fit_rerun_signature_anh')
                 rmappdata(app.MagAnalystUIFigure, 'fit_rerun_signature_anh');
@@ -500,6 +547,67 @@ classdef MenuUtils
             app.ColorDialogApp = [];
             app.MessagesTextArea.Value = {''};
             app.write_message("New project started.");
+        end
+
+        function mark_project_dirty(app)
+            %MARK_PROJECT_DIRTY Flag the open project as having unsaved
+            %   changes and refresh the window title to show it (see
+            %   update_window_title). Called from every place that writes
+            %   state save() would persist -- component listeners wired by
+            %   setup_dirty_tracking() cover user-driven edits; fit/import/
+            %   retrieve-parameters/color call sites mark it explicitly
+            %   since those write component Values programmatically, which
+            %   does not fire the components' own change events.
+            app.ProjectDirty = true;
+            MenuUtils.update_window_title(app);
+        end
+
+        function update_window_title(app)
+            %UPDATE_WINDOW_TITLE Keep the main window title in sync with
+            %   the loaded project and its dirty state:
+            %   "MagAnalyst - <project name> [*]", MATLAB-style, with
+            %   "Untitled" before anything has been opened/saved.
+            if strlength(string(app.ProjectPath)) > 0
+                [~, name, ext] = fileparts(app.ProjectPath);
+                project_name = string(name) + string(ext);
+            else
+                project_name = "Untitled";
+            end
+            if app.ProjectDirty
+                suffix = " *";
+            else
+                suffix = "";
+            end
+            app.MagAnalystUIFigure.Name = char("MagAnalyst - " + project_name + suffix);
+        end
+
+        function setup_dirty_tracking(app)
+            %SETUP_DIRTY_TRACKING Wire a change listener to every control
+            %   whose value save() persists, so any user edit marks the
+            %   project dirty. Uses addlistener rather than each
+            %   component's ValueChangedFcn/CellEditCallback so it runs
+            %   alongside the component's existing wiring instead of
+            %   replacing it. Called once from startupFcn.
+            value_components = MenuUtils.simple_field_specs();
+            value_components = value_components(:,2)';
+            extra_value_components = { ...
+                'NofcompSpinner', ...
+                'Ms_JA', 'a_JA', 'alpha_JA', 'c_JA', 'k_JA', ...
+                'MsLower_JA', 'MsUpper_JA', 'aLower_JA', 'aUpper_JA', ...
+                'alphaLower_JA', 'alphaUpper_JA', 'kLower_JA', 'kUpper_JA', ...
+                'cLower_JA', 'cUpper_JA', ...
+                'Ms_JA_Playground', 'a_JA_Playground', 'alpha_JA_Playground', ...
+                'c_JA_Playground', 'k_JA_Playground', ...
+                };
+            for name = [value_components, extra_value_components]
+                addlistener(app.(name{1}), 'ValueChanged', @(~,~) MenuUtils.mark_project_dirty(app));
+            end
+
+            table_components = {'TableParameters', 'TableFittedParameters', ...
+                'UITable', 'UITable_3', 'UITable2'};
+            for name = table_components
+                addlistener(app.(name{1}), 'CellEdit', @(~,~) MenuUtils.mark_project_dirty(app));
+            end
         end
     end
 end

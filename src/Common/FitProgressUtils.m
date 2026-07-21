@@ -3,7 +3,7 @@ classdef FitProgressUtils
 %   and Hysteretic fits. State (figure/axes/line handles, plus the running
 %   best point/value) is cached as appdata on the main UIFigure -- same
 %   pattern as PlaygroundUtils' simulation cache -- so no new
-%   app_exported.m properties are needed.
+%   properties are needed on the app class.
 %
 %   Plots the best value found so far (a monotonically non-increasing
 %   curve), not the raw value at whatever point the optimizer's OutputFcn
@@ -259,8 +259,8 @@ classdef FitProgressUtils
             % Used to show the "Fit again for a possible improvement" tip
             % (see AnhystereticUtils.fit_parameters /
             % HystereticUtils.fit_ja_parameters) only the first time for a
-            % given fit setup, not on every repeat click -- and (as of
-            % 2026-07-11) to decide whether ExportDialogUtils' fit-progress
+            % given fit setup, not on every repeat click -- and to decide
+            % whether ExportDialogUtils' fit-progress
             % history should accumulate across repeated launches instead of
             % resetting (see the `accumulate` argument of open()).
             % is_rerun is true only if BOTH the fit conditions (bounds/mask/

@@ -1,8 +1,8 @@
 classdef HystereticUtils
 %HYSTERETICUTILS Static helpers for the Hysteretic-fitting tab.
-%   Extracted 2026-07-06 from app_exported.m, mirroring the AnhystereticUtils/
-%   PlaygroundUtils pattern: static methods taking `app` as the first argument,
-%   called from thin delegator methods on the app class.
+%   Static methods taking `app` as the first argument, called from thin
+%   delegator methods on the app class (same pattern as the other tab
+%   *Utils classes).
 
     methods (Static)
         function ret = format_k_seed_display(~, v)
@@ -501,6 +501,7 @@ classdef HystereticUtils
                 app.write_message("Warning: No anhysteretic magnetization modelling has been performed.");
                 app.write_message("Jiles–Atherton seeds for Ms, a, α, and k were not initialized; the coupling parameter c was set to 1/3.");
             end
+            MenuUtils.mark_project_dirty(app);
             drawnow;
         end
 
@@ -760,6 +761,7 @@ classdef HystereticUtils
                 app.alpha_JA.Value = params_opt.alpha;
                 app.c_JA.Value = params_opt.c;
                 app.k_JA.Value = params_opt.k;
+                MenuUtils.mark_project_dirty(app);
 
                 app.plot_hysteretic_tab_data();
                 app.ErrorDisplay_2.Value = fit_result.Jopt;

@@ -1,4 +1,17 @@
 function [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub, select_fit, output_fcn)
+%FIT  Anhysteretic fit over the distribution (fitting) parameters.
+%   [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub,
+%       select_fit, output_fcn) fits a DataAnhystereticCurve with an
+%   n-component Langevin-Weiss model, optimizing the 3*n-1 fitting
+%   parameters [Hcr(1..n), m(Hcr)(1..n), Hx(1..n-1)] within the bounds
+%   lb/ub. Parameters whose select_fit entry is false are held (nearly)
+%   fixed at their seed value. The modeled curve is evaluated on an
+%   N-point logarithmic H grid up to the data tip, and the objective is
+%   the error metric named by error_type (see make_error_calculator).
+%   select_a picks the low or high root of the a(Hcr, m(Hcr)) equation.
+%   output_fcn, if given, is forwarded to the optimizer (live progress).
+%
+%   See also fit_physical, retrieve_anhysteretic_seeds, MagneticParameters.
     if nargin < 9
         output_fcn = [];
     end
@@ -34,21 +47,7 @@ function [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub,
         magnetic_parameters = MagneticParameters(data_curve, Hcr_fit, mcr_fit, Hx_fit, select_a);
         
         modeled_curve = ModeledAnhystereticCurve(Hhat, magnetic_parameters);
-        if (error_type == "Diagonal (H, sampled)")
-            error_calculator = DiagonalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M, false, false);
-        elseif (error_type == "Diagonal (H, continuous)")
-            error_calculator = DiagonalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M, false, true);
-        elseif (error_type == "Diagonal (logH, sampled)") || (error_type == "Diagonal (sampled)")
-            error_calculator = DiagonalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M, true, false);
-        elseif (error_type == "Diagonal (logH, continuous)") || (error_type == "Diagonal") || (error_type == "Diagonal (continuous)")
-            error_calculator = DiagonalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M, true, true);
-        elseif (error_type == "Vertical")
-            error_calculator = VerticalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M, true);
-        elseif (error_type == "Horizontal")
-            error_calculator = HorizontalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M, true);
-        else
-            error('Unknown error type: %s', error_type);
-        end
+        error_calculator = make_error_calculator(error_type, data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M);
 
         ret = error_calculator.get_error();
     end
@@ -62,7 +61,7 @@ function [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub,
     end
 
     % One tight minimize() call per Fit click. A loose-then-tight two-stage
-    % scheme was tried and reverted 2026-07-11: seeding the tight pass from
+    % scheme was tried and rejected: seeding the tight pass from
     % a loosely-converged intermediate point has no monotonicity guarantee
     % (unlike restarting from a pass's own FULLY tight-converged result,
     % which can only match or improve, never worsen, since minimize() always

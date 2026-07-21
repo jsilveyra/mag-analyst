@@ -10,25 +10,25 @@ classdef ThemeUtils
         function t = theme_palette()
             % -------------------------------------------------------------
             % THEME KNOBS - this method is the single place to retune the
-            % app's look. Every colour and font that apply_theme uses is
+            % app's look. Every color and font that apply_theme uses is
             % read from the struct below; no other method needs editing.
-            % Colours are RGB triplets in [0 1].
+            % Colors are RGB triplets in [0 1].
             % -------------------------------------------------------------
             t.font          = 'Segoe UI';          % UI font family
             t.monoFont      = 'Consolas';          % Messages console font
             t.accent        = [0.945 0.353 0.161]; % #F15A29 brand orange: primary buttons (and modeled curves)
             t.ink           = [0.149 0.153 0.173]; % near-black for labels and panel titles
-            t.mutedInk      = [0.502 0.502 0.502]; % grey for de-emphasized hint text (e.g. "(optional)")
-            t.titleColor    = [0.149 0.153 0.173]; % section-title colour (dark grey; set = t.accent to tint them orange)
+            t.mutedInk      = [0.502 0.502 0.502]; % gray for de-emphasized hint text (e.g. "(optional)")
+            t.titleColor    = [0.149 0.153 0.173]; % section-title color (dark gray; set = t.accent to tint them orange)
             t.canvas        = [0.957 0.949 0.937]; % warm off-white window/tab background
             t.card          = [1.0 1.0 1.0];       % white background of panels ("cards")
             t.cardBorder    = [0.855 0.839 0.816]; % hairline border around panels
-            t.axisInk       = [0.35 0.35 0.38];    % axes tick/label colour
-            t.gridColor     = [0.55 0.55 0.58];    % plot grid colour
+            t.axisInk       = [0.35 0.35 0.38];    % axes tick/label color
+            t.gridColor     = [0.55 0.55 0.58];    % plot grid color
             t.gridAlpha     = 0.15;                % plot grid opacity (0..1)
             t.plotLineWidth = 1.4;                 % width of curves drawn in plots
             t.titleSize     = 13;                  % font size of section titles
-            % NOTE: the modeled/simulated curve colour and the anhysteretic
+            % NOTE: the modeled/simulated curve color and the anhysteretic
             % component-curve palette are the rows of app.Colors, set in
             % startupFcn (row 1 = modeled total, rows 2+ = components). Edit
             % them there. The default row 1 already matches t.accent.
@@ -66,9 +66,9 @@ classdef ThemeUtils
                 end
             end
 
-            % Section titles: same dark grey as body text but bold and a
+            % Section titles: same dark gray as body text but bold and a
             % touch larger, so the hierarchy reads through weight/size
-            % rather than colour.
+            % rather than color.
             sectionTitles = {
                 'InputDatasetpathLabel', ...
                 'FittingparametersLabel', ...
@@ -87,7 +87,7 @@ classdef ThemeUtils
             end
 
             % De-emphasized hint labels (e.g. "(optional)" next to Notes):
-            % restored to grey after the blanket ink pass above, matching
+            % restored to gray after the blanket ink pass above, matching
             % their original mlapp styling rather than the general body
             % text color.
             mutedLabels = { 'optionalLabel' };
@@ -189,7 +189,7 @@ classdef ThemeUtils
             catch
             end
 
-            % Softer tick/grid colours and slightly heavier curves. Set on
+            % Softer tick/grid colors and slightly heavier curves. Set on
             % existing axes AND as figure-level defaults, because
             % cla(ax,'reset') / semilogx rebuild axes properties from those
             % defaults - per-axes styling alone would be wiped by the first

@@ -1,6 +1,6 @@
 classdef FileDialogUtils
 %FILEDIALOGUTILS Static helpers for cancel-safe, portable file/folder dialogs.
-%   Extracted from app_exported.m; shared by the Input tab's browse button,
+%   Shared by the Input tab's browse button,
 %   the Output tab's browse button, and the Menus (Open/Save/Save As).
 
     methods (Static)

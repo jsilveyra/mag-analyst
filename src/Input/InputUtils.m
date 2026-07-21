@@ -1,8 +1,8 @@
 classdef InputUtils
 %INPUTUTILS Static helpers for the Input-data tab.
-%   Extracted from app_exported.m, mirroring the AnhystereticUtils/
-%   HystereticUtils/PlaygroundUtils pattern: static methods taking `app` as
-%   the first argument, called from thin delegator methods on the app class.
+%   Static methods taking `app` as the first argument, called from thin
+%   delegator methods on the app class (same pattern as the other tab
+%   *Utils classes).
 
     methods (Static)
         function plot_input(app)
@@ -56,13 +56,19 @@ classdef InputUtils
             [H, M, app.H_raw, app.M_raw] = Parser(path, H_unit, M_unit, curve_type, number_of_points).import();
 
             app.data_curve = DataAnhystereticCurve(H, M);
+            % New data invalidates any prior physical-fit ("reduce dof"
+            % unchecked) result; revert to distribution mode so the next
+            % replot rebuilds magnetic_parameters from the fitted parameters.
+            if isprop(app, 'physical_fit_active')
+                app.physical_fit_active = false;
+            end
             app.refresh_playground_data_curve();
-            app.maybe_refresh_minor_loop_defaults();   % MOD: update Htip_i defaults from the newly imported data tip
-            app.maybe_refresh_degaussing_defaults();   % MOD: update Degaussing amplitude defaults from the newly imported data tip
-            app.sync_degaussing_ui();                  % MOD: refresh Degaussing start-point display from the new data
-            app.maybe_refresh_harmonics_defaults();    % MOD: update harmonic amplitude defaults from the newly imported data tip
-            app.sync_harmonics_ui();                   % MOD: refresh harmonic start-point display from the new data
-            app.maybe_refresh_ms_lower_bound_default(); % MOD: update the Hysteretic tab's Ms lower bound default from the newly imported data tip
+            app.maybe_refresh_minor_loop_defaults();   % update Htip_i defaults from the newly imported data tip
+            app.maybe_refresh_degaussing_defaults();   % update Degaussing amplitude defaults from the newly imported data tip
+            app.sync_degaussing_ui();                  % refresh Degaussing start-point display from the new data
+            app.maybe_refresh_harmonics_defaults();    % update harmonic amplitude defaults from the newly imported data tip
+            app.sync_harmonics_ui();                   % refresh harmonic start-point display from the new data
+            app.maybe_refresh_ms_lower_bound_default(); % update the Hysteretic tab's Ms lower bound default from the newly imported data tip
             PlaygroundUtils.sync_major_ui(app);
             PlaygroundUtils.sync_playground_mass_ui(app);
             PlaygroundUtils.clear_simulation(app);
@@ -90,7 +96,7 @@ classdef InputUtils
         end
 
         function reprocess_dataset(app)
-            % MOD: shared by CurveDropDownValueChanged and InputApplyPointsButtonPushed
+            % shared by CurveDropDownValueChanged and InputApplyPointsButtonPushed
             % (now wired to both the N° of points field and, historically, its
             % Apply button) -- previously identical logic duplicated in app_exported.m.
             dataset_path = app.InputDatasetPath.Value;

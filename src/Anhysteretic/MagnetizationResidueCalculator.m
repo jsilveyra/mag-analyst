@@ -5,7 +5,6 @@ classdef MagnetizationResidueCalculator < ResidueCalculator
 %   class's get_residue().
     methods (Access = public)
         function obj = MagnetizationResidueCalculator(data_curve, modeled_curve)
-            % clc
             obj.X = log(data_curve.H(data_curve.H>0));
             obj.X = [0 obj.X];
             obj.Y = data_curve.M(data_curve.H>0);

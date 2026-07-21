@@ -73,7 +73,7 @@ classdef PlaygroundUtils
         function set_enable(component, state)
             % Guarded enable/disable: only touches the Enable property when
             % the component actually has one (older-release uilabel safety),
-            % mirroring the app's set_enable_safe so labels can be greyed too.
+            % mirroring the app's set_enable_safe so labels can be grayed too.
             if ~isempty(component) && isvalid(component) && isprop(component, 'Enable')
                 component.Enable = state;
             end
@@ -81,7 +81,7 @@ classdef PlaygroundUtils
 
         function set_field_enable(field, label, state)
             % Enable/disable a field together with its label so the whole
-            % row greys out as a unit.
+            % row grays out as a unit.
             PlaygroundUtils.set_enable(field, state);
             PlaygroundUtils.set_enable(label, state);
         end
@@ -139,9 +139,9 @@ classdef PlaygroundUtils
         end
 
         function sync_minor_ui(app)
-            % Grey out the minor-loop Repetitions / Rel. tolerance fields (and
+            % Gray out the minor-loop Repetitions / Rel. tolerance fields (and
             % their labels) according to the stop criterion, mirroring the
-            % major-loop behaviour. Only the stop-criterion group is
+            % major-loop behavior. Only the stop-criterion group is
             % conditional here — the minor loop always starts demagnetized and
             % is driven by the Htip_i table.
             if ~PlaygroundUtils.is_minor_mode(app)
@@ -215,9 +215,8 @@ classdef PlaygroundUtils
             elseif PlaygroundUtils.is_minor_mode(app)
                 plot_option = string(app.PlotDropDown_2.Value);
             elseif PlaygroundUtils.is_harmonics_mode(app)
-                % MOD: PlotDropDown_3 was removed from Design View (2026-07-10);
-                % harmonics mode always shows the full simulated history now,
-                % matching the dropdown's former default value.
+                % The harmonics panel has no plot-option dropdown: this mode
+                % always shows the full simulated history.
                 plot_option = "Full history";
             else
                 plot_option = "";
@@ -560,7 +559,7 @@ classdef PlaygroundUtils
         end
 
         function values = get_minor_loop_default_values(app)
-            % MOD: default Htip_i are derived from the measured-curve tip
+            % default Htip_i are derived from the measured-curve tip
             % (Htip, Htip*2/3, Htip*1/3) when data is available; otherwise
             % fall back to a plain 1/2/3 placeholder. Display order is
             % cosmetic: the solver sorts the tips ascending and simulates
@@ -582,13 +581,13 @@ classdef PlaygroundUtils
             app.UITable.ColumnEditable = [true];
             app.UITable.ColumnFormat = {'short g'};
             app.UITable.Data = PlaygroundUtils.get_minor_loop_default_values(app);
-            app.minor_loop_table_user_edited = false;   % MOD: table now holds untouched defaults
+            app.minor_loop_table_user_edited = false;   % table now holds untouched defaults
             % NOTE: CellEditCallback wiring stays on the app class -- createCallbackFcn is a
             % protected method of matlab.apps.AppBase and cannot be called from this class.
         end
 
         function maybe_refresh_minor_loop_defaults(app)
-            % MOD: re-fill the Htip_i table with data-tip-based defaults, but
+            % re-fill the Htip_i table with data-tip-based defaults, but
             % only while the user has not manually edited it (so we never
             % clobber user-entered tip fields).
             if ~isprop(app, 'UITable') || isempty(app.UITable) || ~isvalid(app.UITable)
@@ -824,7 +823,7 @@ classdef PlaygroundUtils
         % =====================================================
 
         function [Mr, ok] = get_data_remanence(app)
-            % MOD: retrieve the remanence M(H=0)=Mr from the measured
+            % retrieve the remanence M(H=0)=Mr from the measured
             % hysteresis loop. The upper (descending) branch is extracted from
             % the raw data (converted to A/m) and M is interpolated at H = 0
             % with interp1. Only available when a hysteretic dataset has been
@@ -866,7 +865,7 @@ classdef PlaygroundUtils
         end
 
         function [amps, ok] = get_degaussing_amplitudes_auto(app)
-            % MOD: build the automatic decaying degaussing envelope from the
+            % build the automatic decaying degaussing envelope from the
             % user's N-of-steps, initial and final amplitude settings. A
             % geometric (exponential) decay is used when both amplitudes are
             % positive, which matches the physical AC-demagnetization envelope;
@@ -896,7 +895,7 @@ classdef PlaygroundUtils
         end
 
         function [amps, ok] = get_degaussing_table_inputs(app)
-            % MOD: read the user-defined Htip_i amplitude table (UITable_3) and
+            % read the user-defined Htip_i amplitude table (UITable_3) and
             % return the reversal amplitudes sorted in descending order (largest
             % swing first) so they form a decaying degaussing envelope.
             amps = [];
@@ -936,7 +935,7 @@ classdef PlaygroundUtils
         end
 
         function values = get_degaussing_default_table_values(app)
-            % MOD: default Htip_i amplitudes derived from the measured-curve tip
+            % default Htip_i amplitudes derived from the measured-curve tip
             % (Htip, Htip*2/3, Htip*1/3) when data is available; otherwise a
             % plain placeholder. Display order is cosmetic — the solver sorts
             % the amplitudes descending.
@@ -949,7 +948,7 @@ classdef PlaygroundUtils
         end
 
         function configure_degaussing_table(app)
-            % MOD: initialise the Degaussing user-defined amplitude table.
+            % initialize the Degaussing user-defined amplitude table.
             if ~isprop(app, 'UITable_3') || isempty(app.UITable_3) || ~isvalid(app.UITable_3)
                 return;
             end
@@ -964,10 +963,10 @@ classdef PlaygroundUtils
         end
 
         function maybe_refresh_degaussing_defaults(app)
-            % MOD: re-fill the Degaussing amplitude settings (N of steps,
+            % re-fill the Degaussing amplitude settings (N of steps,
             % initial = Htip, final = 0.02*Htip) and the amplitude table with
             % data-tip-based defaults, but only while the user has not manually
-            % edited them (mirrors the minor-loop default behaviour).
+            % edited them (mirrors the minor-loop default behavior).
             if app.degaussing_user_edited
                 return;
             end
@@ -985,7 +984,7 @@ classdef PlaygroundUtils
         end
 
         function sync_degaussing_ui(app)
-            % MOD: enable/disable and populate the Degaussing controls according
+            % enable/disable and populate the Degaussing controls according
             % to the selected starting-point and H-amplitude options.
             if ~PlaygroundUtils.is_degaussing_mode(app)
                 return;
@@ -1048,8 +1047,8 @@ classdef PlaygroundUtils
         end
 
         function set_enable_safe(~, component, state)
-            % MOD: set the Enable property only when the component actually has
-            % one (uilabel gained Enable only in recent releases), so greying
+            % set the Enable property only when the component actually has
+            % one (uilabel gained Enable only in recent releases), so graying
             % out never errors on older MATLAB.
             if ~isempty(component) && isvalid(component) && isprop(component, 'Enable')
                 component.Enable = state;
@@ -1057,7 +1056,7 @@ classdef PlaygroundUtils
         end
 
         function [Hstart, Mstart, amplitudes, ok, message] = get_degaussing_inputs(app)
-            % MOD: gather the degaussing starting point and amplitude schedule
+            % gather the degaussing starting point and amplitude schedule
             % from the UI. Returns ok=false plus a user-facing warning message
             % when a required data-derived quantity is unavailable.
             Hstart = NaN;
@@ -1156,9 +1155,9 @@ classdef PlaygroundUtils
         end
 
         function expand_degaussing_table_if_needed(app, event)
-            % MOD: auto-grow the Degaussing amplitude table by one empty row when
+            % auto-grow the Degaussing amplitude table by one empty row when
             % the last row receives a valid positive value (mirrors the minor
-            % loop table's growing behaviour).
+            % loop table's growing behavior).
             if nargin < 2 || isempty(event) || ~isprop(app, 'UITable_3') || isempty(app.UITable_3) || ~isvalid(app.UITable_3)
                 return;
             end
@@ -1188,7 +1187,7 @@ classdef PlaygroundUtils
         % =====================================================
 
         function [orders, amplitudes, phases, ok] = get_harmonics_table_inputs(app)
-            % MOD: read the harmonic drive table (UITable2). Columns are
+            % read the harmonic drive table (UITable2). Columns are
             % [Order k, Amplitude [A/m], Phase [deg]]. Rows with a non-integer
             % or missing order, or a missing amplitude, are dropped; a blank
             % phase is treated as 0 deg. Returns phases in DEGREES.
@@ -1231,7 +1230,7 @@ classdef PlaygroundUtils
         end
 
         function [Hstart, Mstart, orders, amplitudes, phases, ok, message] = get_harmonics_inputs(app)
-            % MOD: gather the harmonic-drive starting point and the Fourier
+            % gather the harmonic-drive starting point and the Fourier
             % components from the UI. Returns ok=false plus a user-facing
             % warning when a required data-derived quantity is unavailable or
             % the harmonics table is empty. phases are returned in RADIANS.
@@ -1291,7 +1290,7 @@ classdef PlaygroundUtils
         end
 
         function configure_harmonics_table(app)
-            % MOD: initialise the harmonic drive table.
+            % initialize the harmonic drive table.
             if ~isprop(app, 'UITable2') || isempty(app.UITable2) || ~isvalid(app.UITable2)
                 return;
             end
@@ -1305,9 +1304,9 @@ classdef PlaygroundUtils
         end
 
         function maybe_refresh_harmonics_defaults(app)
-            % MOD: re-fill the harmonic drive table with data-tip-based
+            % re-fill the harmonic drive table with data-tip-based
             % defaults, but only while the user has not manually edited it
-            % (mirrors the minor-loop / degaussing default behaviour).
+            % (mirrors the minor-loop / degaussing default behavior).
             if app.harmonics_user_edited
                 return;
             end
@@ -1318,7 +1317,7 @@ classdef PlaygroundUtils
         end
 
         function sync_harmonics_ui(app)
-            % MOD: enable/disable and populate the harmonic-drive controls
+            % enable/disable and populate the harmonic-drive controls
             % according to the selected starting point. There is no stop
             % criterion choice for this panel: the simulation always runs a
             % single fixed repetition (see run_playground_major_harmonics).
@@ -1354,7 +1353,7 @@ classdef PlaygroundUtils
         end
 
         function expand_harmonics_table_if_needed(app, event)
-            % MOD: auto-grow the harmonics table by one empty row when the last
+            % auto-grow the harmonics table by one empty row when the last
             % row receives a valid (order, amplitude) pair (mirrors the minor
             % loop / degaussing growing tables).
             if nargin < 2 || isempty(event) || ~isprop(app, 'UITable2') || isempty(app.UITable2) || ~isvalid(app.UITable2)
@@ -1428,7 +1427,7 @@ classdef PlaygroundUtils
         end
 
         function run_playground_live(app)
-            % MOD: live-recompute dispatcher shared by all Playground field/table
+            % live-recompute dispatcher shared by all Playground field/table
             % callbacks; mirrors CalculatePlotButton_3Pushed's mode dispatch but
             % suppresses the "not ready" message (notify=false) since this fires
             % on every completed field edit, not just an explicit button press.

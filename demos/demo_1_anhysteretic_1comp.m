@@ -3,17 +3,19 @@
 %
 %  Pipeline (mirrors the "Anhysteretic fitting" tab, without the GUI):
 %     import measured M(H)  ->  auto-retrieve fit seeds  ->  fit the
-%     distribution parameters (Hcr, m(Hcr))  ->  derive the physical
-%     magnetic parameters (Ms, a, alpha, ...)  ->  build the modeled curve
+%     fitting parameters (Hcr, m(Hcr))  ->  derive the physical
+%     magnetic parameters (Ms, a, alpha)  ->  build the modeled curve
 %     ->  report fit errors  ->  plot.
 %
-%  The anhysteretic (distribution) model describes each magnetic "component"
-%  by two dimensionless-ish numbers:
-%     Hcr    - the critical field of the component            [A/m]
-%     m(Hcr) - the reduced magnetization at Hcr (in [0,1])    [-]
+%  The anhysteretic model describes each magnetic "component"
+%  by two fitting parameters:
+%     Hcr    - the critical field of the component (field at which dM/d(lnH) is maximum)           [A/m]
+%     m(Hcr) - the reduced magnetization (m=M/Ms) at Hcr    [-]
+%  The modeled curve is fixed at the data's measured tip (Htip, Mtip).
 %  A model with n components is fitted with 3*n-1 parameters:
-%     [Hcr_1..n , m_1..n , Hx_1..(n-1)]
-%  where Hx_i are the inter-component cross-over fields (none for n = 1).
+%     [Hcr_1..n , m_1..n , Hx_2..(n+1)]
+%  where Hx_i are the additional fixed points of the modeled curve and are conveniently placed at the 
+%  inter-component cross-over fields. The GUI automatically seeds the Hx_(i+1) at [Hcr_(i) + Hcr_(i+1)]/2.
 %
 %  Run from anywhere:  >> demo_1_anhysteretic_1comp
 %
@@ -36,28 +38,29 @@ addpath(genpath(fullfile(project_root, 'src')));
 %
 %  Supported unit / curve-type labels live in ParserConstants (use the
 %  constants, not raw strings, so a typo fails loudly):
-%     H (x-axis) : H_AMPERE_PER_METER | H_KILO_AMPERE_PER_METER |
+%     x-axis     : H_AMPERE_PER_METER | H_KILO_AMPERE_PER_METER |
 %                  H_OERSTED | H_KILO_OERSTED |
 %                  BEXT_TESLA | BEXT_GAUSS | BEXT_KILO_GAUSS
-%     M (y-axis) : M_AMPERE_PER_METER | M_KILO_AMPERE_PER_METER |
+%     y-axis     : M_AMPERE_PER_METER | M_KILO_AMPERE_PER_METER |
 %                  M_MEGA_AMPERE_PER_METER |
 %                  M_ELECTROMAGNETIC_UNIT_PER_CUBE_CENTIMETER |
+%                  SIGMA_ELECTROMAGNETIC_UNIT_PER_GRAM |
 %                  J_TESLA | B_TESLA | B_GAUSS | B_KILO_GAUSS
 %     curve_type : ANHYSTERETIC_CURVE_TYPE | HYSTERESIS_LOOP_TYPE
 %
 %  Here the sample file stores an MnZn-ferrite major loop as "H [A/m]" vs
 %  "B [T]"; picking HYSTERESIS_LOOP_TYPE tells the parser to fold the loop
-%  into an anhysteretic (single-valued) M(H) curve for the fit.
+%  into an anhysteretic (single-valued) M(H) [or sigma(H)] curve for the fit.
 pc = ParserConstants();
 data_file = fullfile(project_root, 'data', 'sample_data', '2022_AIP', 'MnZn_ferrite.csv');
 
-number_points = 200;                % samples in the resampled anhysteretic curve
+number_points = 50;                % samples in the resampled anhysteretic curve
 parser = Parser(data_file, ...
                 pc.H_AMPERE_PER_METER, ...
                 pc.B_TESLA, ...
                 pc.HYSTERESIS_LOOP_TYPE, ...
                 number_points);
-[H, M, H_raw, M_raw] = parser.import();   %#ok<ASGLU>  (raw columns kept for reference)
+[H, M, H_raw, M_raw] = parser.import();   % (raw columns kept for reference)
 
 % DataAnhystereticCurve wraps the measured (H, M) and precomputes dM/dH and
 % H*dM/dH, the "halo" used for seeding and for the diagnostic plots.
@@ -91,10 +94,11 @@ upper_bound = [Inf, 1];
 select_fit = {true, true};
 
 % error_type: the objective minimized during the fit. Options:
-%   "Diagonal (H, continuous)"  (used here; robust, distance-to-curve)
-%   "Diagonal (H, sampled)" | "Diagonal (logH, sampled)" |
-%   "Diagonal (logH, continuous)" | "Vertical" | "Horizontal"
-error_type = "Diagonal (H, continuous)";
+%   "Diagonal (H, sampled)" | "Diagonal (H, continuous)" |
+%   "Diagonal (logH, sampled)" | "Diagonal (logH, continuous)" |
+%   "Vertical" | "Horizontal"
+% The GUI's Anhysteretic tab defaults to "Diagonal (logH, continuous)".
+error_type = "Diagonal (logH, continuous)";
 
 % N: number of log-spaced field samples the fitter evaluates the model on.
 N = 100;
@@ -120,22 +124,25 @@ fprintf('   alpha = %.6g\n',       magnetic_parameters.alpha);
 fprintf('   Hk    = %.6g A/m\n',   magnetic_parameters.Hk);
 fprintf('   chi_in (total) = %.6g\n', magnetic_parameters.chi_in_total);
 
-%% --- 6) Build the modeled curve on a log field grid ---------------------
+%% --- 6) Build the modeled curve on a GUI-style log field grid -----------
 [HTip, ~] = Utils().find_tip(data_curve.H, data_curve.M);
 Hpos = data_curve.H(data_curve.H > 0);
-Hhat = logspace(log10(min(Hpos)), log10(HTip), 200);
+Hhat = [0, logspace(log10(min(Hpos)), log10(HTip), N-1)];
 modeled_curve = ModeledAnhystereticCurve(Hhat, magnetic_parameters);
 
 %% --- 7) Report the fit errors -------------------------------------------
 % Each error calculator scores the modeled curve against the data with a
 % different metric (all normalized RMS, dimensionless -- see
-% src/Common/ErrorCalculator.m); lower is better. Shared with the
-% Hysteretic (JA) fit's error core (demo_3), with use_log_h=true here since
-% the anhysteretic curve is single-valued over H >= 0.
-fprintf('\nFit errors:\n');
-fprintf('   Diagonal   = %.6g\n', DiagonalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M).get_error());
-fprintf('   Vertical   = %.6g\n', VerticalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M).get_error());
-fprintf('   Horizontal = %.6g\n', HorizontalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M).get_error());
+% src/Common/ErrorCalculator.m); lower is better. These are the same six
+% choices exposed by the GUI's Anhysteretic Error dropdown.
+fprintf('\nFit errors (GUI options, evaluated on the displayed modeled curve):\n');
+fprintf('   Selected objective: %s\n', error_type);
+fprintf('   Diagonal (H, sampled)       = %.6g\n', DiagonalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M, false, false).get_error());
+fprintf('   Diagonal (H, continuous)    = %.6g\n', DiagonalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M, false, true).get_error());
+fprintf('   Diagonal (logH, sampled)    = %.6g\n', DiagonalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M, true, false).get_error());
+fprintf('   Diagonal (logH, continuous) = %.6g\n', DiagonalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M, true, true).get_error());
+fprintf('   Vertical                    = %.6g\n', VerticalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M, true).get_error());
+fprintf('   Horizontal                  = %.6g\n', HorizontalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M, true).get_error());
 
 %% --- 8) Plots ------------------------------------------------------------
 % Colors: row 1 = total modeled curve, rows 2..n+1 = per-component curves.

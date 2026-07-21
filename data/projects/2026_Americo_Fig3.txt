@@ -1,0 +1,170 @@
+{
+  "input_path": "C:\\Users\\Josefina\\fi.uba.ar\\JuanyJose - Documentos\\Github\\mag-analyst\\data\\sample_data\\2026\\2026_Americo_Fig3.csv",
+  "horizontal_axis": "H [A/m]",
+  "vertical_axis": "B [T]",
+  "curve_type": "Hysteresis loop",
+  "input_axis_scale": "linear",
+  "input_number_of_points": 50,
+  "description": [
+    ""
+  ],
+  "point_space": "log",
+  "number_points": 100,
+  "error_type": "Diagonal (logH, continuous)",
+  "anh_show_grid_m": true,
+  "anh_show_grid_dmdh": true,
+  "anh_show_grid_hdmdh": true,
+  "anh_plot_components_m": true,
+  "anh_plot_components_dmdh": true,
+  "anh_plot_components_hdmdh": true,
+  "anh_show_hcr_m": true,
+  "anh_show_hcr_dmdh": true,
+  "anh_show_hcr_hdmdh": true,
+  "axis_scale_m": "semilog-x",
+  "axis_scale_dMdH": "semilog-x",
+  "axis_scale_hdMdH": "semilog-x",
+  "hysteretic_max_repetitions": 2,
+  "hysteretic_rel_tolerance": 0.001,
+  "hysteretic_repetitions": 1,
+  "hysteretic_stop_criterion": "Until convergence",
+  "hysteretic_fitting_region": "Entire loop",
+  "hysteretic_starting_point": "Demagnetized",
+  "hysteretic_error_type": "Diagonal (H, continuous)",
+  "hysteretic_show_grid": true,
+  "hysteretic_fit_ms": true,
+  "hysteretic_fit_a": true,
+  "hysteretic_fit_alpha": true,
+  "hysteretic_fit_c": true,
+  "hysteretic_fit_k": false,
+  "hysteretic_k_constrained": true,
+  "play_horizontal_axis": "H [A/m]",
+  "play_vertical_axis": "M [A/m]",
+  "play_show_grid": true,
+  "play_show_data_curve": true,
+  "play_mode": "Major loop",
+  "play_major_starting_point": "Demagnetized",
+  "play_major_hstart": 0,
+  "play_major_mstart": 0,
+  "play_major_hamplitude": 43.5209,
+  "play_major_stop_criterion": "Until convergence",
+  "play_major_repetitions": 1,
+  "play_major_rel_tolerance": 0.001,
+  "play_major_max_repetitions": 2,
+  "play_major_plot_option": "Full history",
+  "play_minor_stop_criterion": "Fixed repetitions",
+  "play_minor_repetitions": 1,
+  "play_minor_rel_tolerance": 0.001,
+  "play_minor_max_repetitions": 10,
+  "play_minor_plot_option": "Last loops only",
+  "play_degauss_starting_point": "Remanence (data)",
+  "play_degauss_hstart": 0,
+  "play_degauss_mstart": 0,
+  "play_degauss_amplitude_mode": "Automatic",
+  "play_degauss_n_steps": 10,
+  "play_degauss_initial_amplitude": 43.5209,
+  "play_degauss_final_amplitude": 0.87041799999999991,
+  "play_harm_starting_point": "Tip point (data)",
+  "play_harm_hstart": 0,
+  "play_harm_mstart": 0,
+  "number_components": 1,
+  "select_a": "low",
+  "fitted_parameters_value": [
+    13.30459525388356,
+    0.44960000000187178
+  ],
+  "anh_lb": [
+    "0",
+    "0.4496"
+  ],
+  "anh_ub": [
+    "Inf",
+    "1"
+  ],
+  "fitted_parameters_fit_flags": [
+    true,
+    true
+  ],
+  "params": {
+    "Ms": 1.6977893618310117E+6,
+    "a": 316.78343370083655,
+    "alpha": 0.00053866332598369066,
+    "c": 0.62503688477849872,
+    "k": 82.275572577773275
+  },
+  "hysteretic_bounds": {
+    "Ms_lower": "319264.26677697687",
+    "Ms_upper": "Inf",
+    "a_lower": "0",
+    "a_upper": "Inf",
+    "alpha_lower": "-Inf",
+    "alpha_upper": "Inf",
+    "k_lower": "0",
+    "k_upper": "Inf",
+    "c_lower": "0",
+    "c_upper": "1"
+  },
+  "play_params": {
+    "Ms": 1.6977893618310117E+6,
+    "a": 316.78343370083655,
+    "alpha": 0.00053866332598369066,
+    "c": 0.62503688477849872,
+    "k": 82.275572577773275
+  },
+  "play_minor_tips": [
+    43.5209,
+    29.01393333333333,
+    14.506966666666665,
+    null
+  ],
+  "play_degauss_amplitudes": [
+    43.5209,
+    29.01393333333333,
+    14.506966666666665,
+    null
+  ],
+  "play_harm_table": [
+    [
+      1,
+      43.5209,
+      0
+    ],
+    [
+      5,
+      21.76045,
+      60
+    ],
+    [
+      null,
+      null,
+      null
+    ]
+  ],
+  "colors": [
+    [
+      0.58,
+      0,
+      0.7
+    ],
+    [
+      0.7,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0.7
+    ],
+    [
+      0,
+      0.7,
+      0
+    ],
+    [
+      1,
+      0.5,
+      0
+    ]
+  ],
+  "export_settings": {}
+}

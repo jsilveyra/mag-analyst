@@ -2,12 +2,10 @@ classdef ExportUtils
 %EXPORTUTILS Low-level, app-agnostic export writers for MagAnalyst.
 %
 %   Static helpers that centralize the actual file-IO used by the unified
-%   Export dialog (see app_exported.m: open_export_dialog / do_export). They
-%   take plain arrays / tables / axes handles only — no access to private app
-%   state — so they live in a standalone src/ file and never need to be
-%   hand-ported into App Designer.
+%   Export dialog (see ExportDialogUtils). They take plain arrays / tables /
+%   axes handles only — no access to private app state.
 %
-%   Conventions kept identical to the legacy Output-data-tab callbacks:
+%   Conventions:
 %     - CSV curves are written with a ';' delimiter via writetable.
 %     - Plot images are rasterised with exportgraphics at 400 dpi (png) or
 %       written as vector graphics (pdf/svg).

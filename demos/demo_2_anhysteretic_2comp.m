@@ -4,8 +4,8 @@
 %  Same pipeline as demo_1, but the distribution model now has two
 %  components, so the fit has 3*n-1 = 5 parameters:
 %     [Hcr_1, Hcr_2 , m_1, m_2 , Hx_1]
-%  Hx_1 is the cross-over field between components 1 and 2. Each component
-%  gets its own root choice via select_a.
+%  Hx_1 is the cross-over field between components 1 and 2 (at this field the modeled curve is constrained to the data value).
+%  Each component gets its own root choice via select_a.
 %
 %  Multi-component fits are useful when the H*dM/dH "halo" of the measured
 %  curve shows more than one peak (e.g. two magnetic phases / grain
@@ -25,11 +25,13 @@ project_root = fileparts(demo_dir);
 addpath(genpath(fullfile(project_root, 'src')));
 
 %% --- 1) Import the measured data ----------------------------------------
-% See demo_1 for the full list of supported unit / curve-type constants.
+% See demo_1 for the full x-axis, y-axis and curve-type constant list,
+% including the mass-magnetization y-axis option:
+%     pc.SIGMA_ELECTROMAGNETIC_UNIT_PER_GRAM
 pc = ParserConstants();
 data_file = fullfile(project_root, 'data', 'sample_data', '2022_AIP', 'MnZn_ferrite.csv');
 
-number_points = 200;
+number_points = 50;                % InputNumberofPointsEditField default
 parser = Parser(data_file, ...
                 pc.H_AMPERE_PER_METER, ...
                 pc.B_TESLA, ...
@@ -60,7 +62,10 @@ upper_bound = [Inf, Inf, 1,      1,      1e6];
 select_fit = {true, true, true, true, true};
 
 % Objective to minimize (see demo_1 for the full option list).
-error_type = "Diagonal (H, continuous)";
+% The GUI's Anhysteretic tab defaults to "Diagonal (logH, continuous)".
+% For quicker exploratory runs, "Diagonal (logH, sampled)" uses the same
+% log-H geometry with the faster sampled-distance approximation.
+error_type = "Diagonal (logH, continuous)";
 
 % Model-evaluation grid size.
 N = 100;
@@ -85,17 +90,21 @@ for i = 1:number_components
 end
 fprintf('   Total chi_in = %.6g\n', magnetic_parameters.chi_in_total);
 
-%% --- 6) Build the modeled curve -----------------------------------------
+%% --- 6) Build the modeled curve on a GUI-style log field grid -----------
 [HTip, ~] = Utils().find_tip(data_curve.H, data_curve.M);
 Hpos = data_curve.H(data_curve.H > 0);
-Hhat = logspace(log10(min(Hpos)), log10(HTip), 200);
+Hhat = [0, logspace(log10(min(Hpos)), log10(HTip), N-1)];
 modeled_curve = ModeledAnhystereticCurve(Hhat, magnetic_parameters);
 
 %% --- 7) Report the fit errors -------------------------------------------
-fprintf('\nFit errors:\n');
-fprintf('   Diagonal   = %.6g\n', DiagonalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M).get_error());
-fprintf('   Vertical   = %.6g\n', VerticalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M).get_error());
-fprintf('   Horizontal = %.6g\n', HorizontalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M).get_error());
+fprintf('\nFit errors (GUI options, evaluated on the displayed modeled curve):\n');
+fprintf('   Selected objective: %s\n', error_type);
+fprintf('   Diagonal (H, sampled)       = %.6g\n', DiagonalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M, false, false).get_error());
+fprintf('   Diagonal (H, continuous)    = %.6g\n', DiagonalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M, false, true).get_error());
+fprintf('   Diagonal (logH, sampled)    = %.6g\n', DiagonalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M, true, false).get_error());
+fprintf('   Diagonal (logH, continuous) = %.6g\n', DiagonalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M, true, true).get_error());
+fprintf('   Vertical                    = %.6g\n', VerticalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M, true).get_error());
+fprintf('   Horizontal                  = %.6g\n', HorizontalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M, true).get_error());
 
 %% --- 8) Plots ------------------------------------------------------------
 % Colors: row 1 = total, rows 2..3 = the two components.

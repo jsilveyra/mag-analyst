@@ -40,7 +40,8 @@ pc = ParserConstants();
 data_file = fullfile(project_root, 'data', 'sample_data', '2022_AIP', 'MnZn_ferrite.csv');
 
 % Units of the source file (used both for the anhysteretic import and for
-% re-converting the raw loop below).
+% re-converting the raw loop below). For mass magnetization data, use
+% pc.SIGMA_ELECTROMAGNETIC_UNIT_PER_GRAM for the y-axis unit.
 H_unit = pc.H_AMPERE_PER_METER;
 M_unit = pc.B_TESLA;
 
@@ -53,8 +54,9 @@ data_curve = DataAnhystereticCurve(H, M);
 [Hcr_seed, mcr_seed, Hx_seed] = retrieve_anhysteretic_seeds(data_curve, 1);
 seed_anh    = [Hcr_seed, mcr_seed, Hx_seed];
 select_a    = "low";
+anh_error_type = "Diagonal (logH, continuous)";  % Anhysteretic tab default
 [Hcr, mcr, Hx] = fit(data_curve, seed_anh, 100, select_a, ...
-                     "Diagonal (H, continuous)", [0 0.4496], [Inf 1], {true true});
+                     anh_error_type, [0 0.4496], [Inf 1], {true true});
 mp = MagneticParameters(data_curve, Hcr, mcr, Hx, select_a);
 
 Ms_seed    = mp.Ms;        % [A/m]
