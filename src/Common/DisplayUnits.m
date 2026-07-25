@@ -153,6 +153,51 @@ classdef DisplayUnits
             end
         end
 
+        function eq = get_lw_model_eq(app)
+            % Anhysteretic tab's Langevin-Weiss model formulation (LWModel_eq).
+            if app.M_is_mass_based
+                eq = '$\sigma(H) = \sum_{i}^{n} \sigma_i(H) = \sum_{i}^{n} \sigma_{S,i} \mathcal{L}\left[(H + \rho\alpha_i \sigma_i) / a_i\right]$';
+            else
+                eq = '$M(H) = \sum_{i}^{n} M_i(H) = \sum_{i}^{n} M_{S,i} \mathcal{L}\left[(H + \alpha_i M_i) / a_i\right]$';
+            end
+        end
+
+        function eq = get_ja_anh_eq(app)
+            % Classical J-A model formulation, line 1 (JAmodel_eq1 / _2).
+            if app.M_is_mass_based
+                eq = '$\quad \sigma_{anh} = \sigma_S \mathcal{L}\left[(H + \rho\alpha \sigma) / a\right]$';
+            else
+                eq = '$\quad M_{anh} = M_S \mathcal{L}\left[(H + \alpha M) / a\right]$';
+            end
+        end
+
+        function eq = get_ja_m_eq(app)
+            % Classical J-A model formulation, line 2 (JAmodel_eq2 / _2).
+            if app.M_is_mass_based
+                eq = '$\quad \sigma = c \sigma_{anh} + (1 - c) \sigma_{irr}$';
+            else
+                eq = '$\quad M = c M_{anh} + (1 - c) M_{irr}$';
+            end
+        end
+
+        function eq = get_ja_irr_eq(app)
+            % Classical J-A model formulation, line 3 (JAmodel_eq3 / _2).
+            if app.M_is_mass_based
+                eq = '$\quad \sigma_{irr} = \sigma_{anh} - \delta k \, d \sigma_{irr} / d H_{eff}$';
+            else
+                eq = '$\quad M_{irr} = M_{anh} - \delta k \, d M_{irr} / d H_{eff}$';
+            end
+        end
+
+        function apply_ja_model_eqs(app, eq1_ctrl, eq2_ctrl, eq3_ctrl)
+            % Shared by the Hysteretic (JAmodel_eq1/2/3) and Playground
+            % (JAmodel_eq1_2/2_2/3_2) tabs' "Classical J-A model formulation"
+            % LaTeX labels.
+            eq1_ctrl.Text = DisplayUnits.get_ja_anh_eq(app);
+            eq2_ctrl.Text = DisplayUnits.get_ja_m_eq(app);
+            eq3_ctrl.Text = DisplayUnits.get_ja_irr_eq(app);
+        end
+
         function apply_ja_labels(app, Ms_label_ctrl, alpha_label_ctrl)
             % Shared by the Hysteretic and Playground tabs' JA parameter
             % panels: Ms_label_ctrl/alpha_label_ctrl are the uilabel

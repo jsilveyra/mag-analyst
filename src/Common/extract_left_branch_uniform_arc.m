@@ -4,8 +4,12 @@ function [H_left, M_left] = extract_left_branch_uniform_arc(H_in, M_in, number_p
 %   takes a measured hysteresis loop (H_in, M_in), locates its tip corner
 %   (the point maximizing a normalized H^2 + M^2 score), and returns the
 %   branch running from that tip down to the opposite corner, resampled to
-%   `number_points` samples uniformly spaced in arc length. Pass an empty or
-%   <2 number_points to keep the branch's native sampling.
+%   `number_points` samples uniformly spaced in arc length, computed in
+%   H/M axes each normalized by their own tip value (max(|H|), max(|M|)
+%   over the branch) so the two axes contribute comparably regardless of
+%   their physical scale (e.g. H in A/m next to M converted from a B-type
+%   unit, which can differ by orders of magnitude). Pass an empty or <2
+%   number_points to keep the branch's native sampling.
 %
 %   Shared by the Hysteretic-fitting tab (build_ja_data_cycle,
 %   get_hysteretic_left_branch_data, retrieve_ja_seeds, fit_ja_parameters)
@@ -47,7 +51,9 @@ function [H_left, M_left] = extract_left_branch_uniform_arc(H_in, M_in, number_p
         number_points = numel(H_left_raw);
     end
 
-    ds = hypot(diff(H_left_raw), diff(M_left_raw));
+    H_tip_scale = sqrt(denom_H);
+    M_tip_scale = sqrt(denom_M);
+    ds = hypot(diff(H_left_raw) / H_tip_scale, diff(M_left_raw) / M_tip_scale);
     s = [0 cumsum(ds)];
     [s_unique, idx_unique] = unique(s, 'stable');
 

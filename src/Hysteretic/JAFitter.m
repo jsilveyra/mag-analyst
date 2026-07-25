@@ -1,13 +1,15 @@
 classdef JAFitter
 %JAFITTER  Static Jiles-Atherton parameter fitter.
 %   JAFitter.fit(params_seed, mask, bounds, Hleft, Mleft, Htip, Mtip,
-%   error_type, estimate_k_fn, model_fn, error_core_fn, output_fcn) packs the free
-%   JA parameters (per mask) into a vector, minimizes an error function that
-%   simulates the hysteretic left branch (via model_fn/solve_ja_monotonic) and
-%   compares it to the measured Hleft/Mleft using error_core_fn, and returns a
-%   result struct with params_opt, Jseed, Jopt, ok, error_message.
+%   error_type, estimate_k_fn, model_fn, error_core_fn, output_fcn, solver)
+%   packs the free JA parameters (per mask) into a vector, minimizes an error
+%   function that simulates the hysteretic left branch (via
+%   model_fn/solve_ja_monotonic) and compares it to the measured Hleft/Mleft
+%   using error_core_fn, and returns a result struct with params_opt, Jseed,
+%   Jopt, ok, error_message. solver selects the optimizer ("prima" [default]
+%   or "nelder_mead"; see SolverUtils.minimize_bounded).
     methods (Static)
-        function result = fit(params_seed, mask, bounds, Hleft, Mleft, Htip, Mtip, error_type, estimate_k_fn, model_fn, error_core_fn, output_fcn)
+        function result = fit(params_seed, mask, bounds, Hleft, Mleft, Htip, Mtip, error_type, estimate_k_fn, model_fn, error_core_fn, output_fcn, solver)
             BIG = 1e6;
             opts = odeset('RelTol', 1e-7, 'AbsTol', 1e-6);
 
@@ -16,6 +18,9 @@ classdef JAFitter
             end
             if nargin < 12
                 output_fcn = [];
+            end
+            if nargin < 13
+                solver = "prima";
             end
 
             result = struct( ...
@@ -69,18 +74,9 @@ classdef JAFitter
                 % Same optimizer settings regardless of mask.fitk, and matching
                 % the Anhysteretic fit (fit.m) -- one consistent configuration
                 % across every fit in the app, rather than per-case tuning.
-                % One tight minimize() call per Fit click -- a loose-then-tight
+                % One tight solver call per Fit click -- a loose-then-tight
                 % two-stage scheme was tried and rejected; see the
                 % matching comment in fit.m for why.
-                optim_opts = optimset( ...
-                    'MaxIter', 2000, ...
-                    'MaxFunEvals', 1e4, ...
-                    'TolX', 1e-5, ...
-                    'TolFun', 1e-5, ...
-                    'Display', 'off');
-                if ~isempty(output_fcn)
-                    optim_opts = optimset(optim_opts, 'OutputFcn', output_fcn);
-                end
 
                 if isempty(x0)
                     xopt = x0;
@@ -108,7 +104,22 @@ classdef JAFitter
                     ylb = max(ylb, -BOUND_CAP);
                     yub = min(yub, BOUND_CAP);
 
-                    [yopt, Jopt] = minimize(@obj_fun_scaled, y0, [], [], [], [], ylb, yub, [], optim_opts);
+                    scaled_output_fcn = [];
+                    if ~isempty(output_fcn)
+                        % Hand the tracker unscaled (physical) points -- the
+                        % caller's output_fcn (app.fit_stop_output_fcn) feeds
+                        % FitProgressUtils, whose tracked "best point" is
+                        % later unpacked as if it were physical params
+                        % (see HystereticUtils.m). Without this wrapper the
+                        % tracker instead sees x0/scale-normalized O(1)
+                        % values (e.g. c could read >1), which are wrong by
+                        % orders of magnitude and can fail downstream
+                        % physical-sanity checks -- silently dropping the
+                        % modeled curve with no error message. Matches the
+                        % same wrapper in fit_physical.m.
+                        scaled_output_fcn = @(y, optimValues, state) output_fcn(y .* scale, optimValues, state);
+                    end
+                    [yopt, Jopt] = SolverUtils.minimize_bounded(@obj_fun_scaled, y0, ylb, yub, scaled_output_fcn, solver);
                     xopt = yopt .* scale;
 
                     % Seed guard: never return a point worse than the seed

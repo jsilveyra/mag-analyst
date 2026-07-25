@@ -1,6 +1,6 @@
 The MIT License (MIT)
 
-MagAnalyst 2.13
+MagAnalyst 2.17
 Copyright © 2026 Matías Ignacio González, Marina Zoe Petean, Tomás Francisco González, Juan Manuel Conde Garrido, Josefina María Silveyra
 All rights reserved.
 
@@ -14,3 +14,10 @@ Includes external libraries:
 - minimize, Copyright 2018 Rody Oldenhuis. For licensing see /src/lib//minimize/license.txt
 - interparc, Copyright 2012 John D'Errico. For licensing see /src/lib/interparc/license.txt
 - distance2curve, Copyright 2012 John D'Errico. For licensing see /src/lib/distance2curve/license.txt
+
+Includes a library developed for this project that reuses third-party BSD-3
+code:
+- bobyqa_prima (bound-constrained derivative-free optimizer), Copyright 2026
+  Josefina María Silveyra, incorporating BSD-3-licensed code from the PRIMA
+  project (Copyright Zaikun Zhang and PRIMA contributors,
+  github.com/libprima/prima). For licensing see /src/lib/bobyqa_prima/license.txt

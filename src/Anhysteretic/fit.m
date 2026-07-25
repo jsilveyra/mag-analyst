@@ -1,7 +1,7 @@
-function [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub, select_fit, output_fcn)
+function [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub, select_fit, output_fcn, solver)
 %FIT  Anhysteretic fit over the distribution (fitting) parameters.
 %   [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub,
-%       select_fit, output_fcn) fits a DataAnhystereticCurve with an
+%       select_fit, output_fcn, solver) fits a DataAnhystereticCurve with an
 %   n-component Langevin-Weiss model, optimizing the 3*n-1 fitting
 %   parameters [Hcr(1..n), m(Hcr)(1..n), Hx(1..n-1)] within the bounds
 %   lb/ub. Parameters whose select_fit entry is false are held (nearly)
@@ -10,10 +10,15 @@ function [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub,
 %   the error metric named by error_type (see make_error_calculator).
 %   select_a picks the low or high root of the a(Hcr, m(Hcr)) equation.
 %   output_fcn, if given, is forwarded to the optimizer (live progress).
+%   solver selects the optimizer ("prima" [default] or "nelder_mead"; see
+%   SolverUtils.minimize_bounded).
 %
 %   See also fit_physical, retrieve_anhysteretic_seeds, MagneticParameters.
     if nargin < 9
         output_fcn = [];
+    end
+    if nargin < 10
+        solver = "prima";
     end
     [HTip, ~] = Utils().find_tip(data_curve.H, data_curve.M);
     Hhat = logspace(log10(data_curve.H(2)),log10(HTip),N);
@@ -60,23 +65,19 @@ function [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub,
         end
     end
 
-    % One tight minimize() call per Fit click. A loose-then-tight two-stage
+    % One tight solver call per Fit click. A loose-then-tight two-stage
     % scheme was tried and rejected: seeding the tight pass from
     % a loosely-converged intermediate point has no monotonicity guarantee
     % (unlike restarting from a pass's own FULLY tight-converged result,
-    % which can only match or improve, never worsen, since minimize() always
-    % evaluates its own starting point as part of the initial simplex) -- a
+    % which can only match or improve, never worsen, since both solvers
+    % always evaluate their own starting point first) -- a
     % tolerance sweep showed the loose relocation can land in a genuinely
     % worse basin, sometimes well worse than not restarting at all. Pressing
     % Fit again (unchanged) reproduces the safe, monotonic restart instead,
     % seeded from this call's own tight result -- see
     % AnhystereticUtils.fit_parameters, which also surfaces a one-time tip
     % about this.
-    options = optimset('MaxIter', 2000, 'MaxFunEvals', 1e4, 'TolX', 1e-5, 'TolFun', 1e-5, 'Display', 'off');
-    if ~isempty(output_fcn)
-        options = optimset(options, 'OutputFcn', output_fcn);
-    end
-    params = minimize(@fit_parameters, seed, [],[], [],[], lb , ub, [], options);
+    params = SolverUtils.minimize_bounded(@fit_parameters, seed, lb, ub, output_fcn, solver);
 
     Hcr = params(1:number_components);
     mcr = params(number_components+1:2*number_components);

@@ -11,7 +11,7 @@
 4. [Overview of the GUI](#overview-of-the-gui)
 5. [Description of the files and directory structure](#description-of-the-files-and-directory-structure)
 6. [External libraries](#external-libraries)
-7. [Explanation document](#explanation-document)
+7. [User's Guide](#users-guide)
 8. [Sample data](#sample-data)
 9. [Cite as](#cite-as)
 10. [Contact us](#contact-us)
@@ -59,7 +59,7 @@ To start the graphical user interface, run the `MagAnalyst.m` launcher (type `Ma
 
 If you prefer to use MagAnalyst from the command line (or to call it from your own scripts), follow the demo scripts in `demos/`, one per workflow:
 
-- `demo_1_anhysteretic_1comp.m` — anhysteretic fit with a single component (automatic seed retrieval, fit, physical parameters, plots);
+- `demo_1_anhysteretic_1comp.m` — anhysteretic fit with a single component (automatic seed retrieval, fit, physical parameters, plots; also shows how to pick a `solver`, see below);
 - `demo_2_anhysteretic_2comp.m` — anhysteretic fit with two components;
 - `demo_3_hysteretic_ja_fit.m` — Jiles-Atherton hysteretic fit, seeded from a single-component anhysteretic fit;
 - `demo_4_playground_major_loop.m` — forward simulation of a major hysteresis loop;
@@ -76,8 +76,8 @@ MagAnalyst 2.13 was implemented and tested with MATLAB R2025b. It relies on App 
 The application is organized into tabs:
 
 1. **Input data** — import a measured dataset (anhysteretic curve or symmetric hysteresis loop), choose the fields and units of both axes (including mass magnetization, σ in emu/g = Am²/kg), and preview the raw and processed curves.
-2. **Anhysteretic fitting** — fit the physically based multicomponent model (per-component `Hcr`, `m(Hcr)`, `Hx`) and retrieve the magnetic parameters (`Ms`, `a`, `α`) plus derived physical quantities; view the magnetization, susceptibility, and semilog-derivative plots with residuals. A live optimization-progress plot (error vs. iteration) is shown during fits, which can be run until convergence or stopped at any time.
-3. **Hysteretic fitting** — fit the Jiles-Atherton parameters (`Ms`, `a`, `α`, `k`, `c`) to a measured hysteresis loop (left branch or entire loop), with the same live progress plot and stop control.
+2. **Anhysteretic fitting** — fit the physically based multicomponent model (per-component `Hcr`, `m(Hcr)`, `Hx`) and retrieve the magnetic parameters (`Ms`, `a`, `α`) plus derived physical quantities; view the magnetization, susceptibility, and semilog-derivative plots with residuals. A live optimization-progress plot (error vs. iteration) is shown during fits, which can be run until convergence or stopped at any time. A **Solver** dropdown selects the optimization algorithm — PRIMA-BOBYQA, tuned npt (default) or Nelder-Mead — see [User's Guide § Optimization technique](users-guide.md#optimization-technique).
+3. **Hysteretic fitting** — fit the Jiles-Atherton parameters (`Ms`, `a`, `α`, `k`, `c`) to a measured hysteresis loop (left branch or entire loop), with the same live progress plot, stop control, and Solver dropdown.
 4. **Playground** — forward-simulate the Jiles-Atherton model: **major loop**, **minor loops**, **degaussing**, and **major loop with harmonics** (a distorted driving field).
 
 Results are saved through a single Export action in the Project menu (*Project → Export…*), which opens a dialog listing every exportable artifact — measured/processed data, anhysteretic fit (parameters, curve, residuals, errors), hysteretic fit (parameters, loop, residuals), Playground simulations (curve, metadata), optimization-progress data, and figures — as CSV, TXT, or image (PNG/PDF/SVG) files. Whole sessions can be saved and reopened via *Project → Save / Open*.
@@ -90,7 +90,7 @@ Results are saved through a single Export action in the Project menu (*Project �
 ├── app.mlapp             # Main App Designer GUI (edit here)
 ├── app_exported.m        # Exported app code (run by the launcher; kept in sync with app.mlapp)
 ├── README.md
-├── explanation-document.md  # Methodology and model documentation (theory + implementation)
+├── users-guide.md         # User's Guide: methodology and model documentation (theory + implementation)
 ├── license.txt
 ├── articles/             # Reference papers behind the implemented methods
 ├── assets/               # Logos and UI images
@@ -105,7 +105,7 @@ Results are saved through a single Export action in the Project menu (*Project �
     ├── Menus/            # Project menu: Open/Save, New, unified Export dialog
     ├── Common/           # Code shared by two or more tabs (Langevin, JA ODE, error metrics, plotting, units)
     ├── Theme/            # Runtime visual theme (single palette tweak point)
-    └── lib/              # External libraries (minimize, interparc, distance2curve)
+    └── lib/              # External libraries (minimize, bobyqa_prima, interparc, distance2curve)
 ```
 
 The `src/` tree is organized by GUI tab: each tab has its own folder with a `<Tab>Utils.m` static class holding that tab's logic, and everything used by two or more tabs lives in `src/Common/`.
@@ -114,13 +114,14 @@ The `src/` tree is organized by GUI tab: each tab has its own folder with a `<Ta
 
 MagAnalyst currently uses the following third-party libraries (bundled under `src/lib/`):
 
-- [minimize](https://www.mathworks.com/matlabcentral/fileexchange/24298-minimize) to find the constrained minimum of the objective function starting at the user's initial estimates.
+- [minimize](https://www.mathworks.com/matlabcentral/fileexchange/24298-minimize) (Nelder-Mead via `fminsearch`) to find the constrained minimum of the objective function starting at the user's initial estimates — one of the two solvers offered by the fitting tabs' Solver dropdown.
+- `bobyqa_prima` — the other Solver dropdown option, and the default: a bound-constrained implementation of Powell's BOBYQA algorithm [Powell, 2009], reusing PRIMA's [Zhang et al.](https://github.com/libprima/prima) pure-MATLAB incremental model-update machinery. Written for MagAnalyst; see `src/lib/bobyqa_prima/README.md` for full documentation, licensing, and the empirical rule of thumb behind its automatic `npt` (interpolation-point count) choice, and [User's Guide § Optimization technique](users-guide.md#optimization-technique) for the citations and benchmark summary.
 - [interparc](https://www.mathworks.com/matlabcentral/fileexchange/34874-interparc) to calculate a set of equally spaced points from an original curve with unevenly spaced points.
 - [distance2curve](https://www.mathworks.com/matlabcentral/fileexchange/34869-distance2curve) to compute the minimum Euclidean distance from data points to the modeled curve for the continuous diagonal error metrics.
 
-## Explanation document
+## User's Guide
 
-The [Explanation document](explanation-document.md) provides the background of MagAnalyst: first a high-level overview of the models and workflows, then the full low-level documentation — theory, parameter-retrieval strategy, error metrics, optimization technique, the Jiles-Atherton fitting and simulation algorithms, and the supported unit conversions — with references.
+The [User's Guide](users-guide.md) provides the background of MagAnalyst: first a high-level overview of the models and workflows, then the full low-level documentation — theory, parameter-retrieval strategy (including the automatic seed-estimation algorithm), error metrics, optimization technique, the Jiles-Atherton fitting and simulation algorithms, and the supported unit conversions — with references.
 
 ## Sample data
 

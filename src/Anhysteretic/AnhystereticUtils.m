@@ -22,6 +22,7 @@ classdef AnhystereticUtils
             % mass magnetization sigma_S = sum(sigma_S,i) instead -- the
             % paper's own Eq. 13 quantity, and exactly what magnetic_parameters.Ms
             % already holds per-component when M_is_mass_based.
+            app.LWModel_eq.Text = DisplayUnits.get_lw_model_eq(app);
             app.JsTLabel.Text = char(DisplayUnits.get_Js_slot_label(app));
             if app.M_is_mass_based
                 app.JsField.Value = sum(app.magnetic_parameters.Ms);
@@ -29,8 +30,6 @@ classdef AnhystereticUtils
                 app.JsField.Value = app.magnetic_parameters.Js;
             end
             app.chiinLabel.Text = char(DisplayUnits.get_chi_total_label(app));
-            app.chiinLabel.Tooltip = AnhystereticUtils.effective_field_tooltip();
-            app.chiinField.Tooltip = AnhystereticUtils.effective_field_tooltip();
             app.chiinField.Value = app.magnetic_parameters.chi_in_total;
 
 
@@ -151,6 +150,10 @@ classdef AnhystereticUtils
         end
 
         function fit_parameters(app)
+            if ~isobject(app.data_curve) || ~isprop(app.data_curve, 'H') || isempty(app.data_curve.H)
+                app.write_message("No dataset imported yet. Please import a dataset on the Input data tab first.");
+                return;
+            end
             if AnhystereticUtils.reduce_dof_enabled(app)
                 AnhystereticUtils.fit_parameters_reduced(app);
             else
@@ -201,7 +204,8 @@ classdef AnhystereticUtils
             tic
             try
                 output_fcn = @(x, optimValues, state) app.fit_stop_output_fcn(x, optimValues, state);
-                [app.Hcr, app.mcr, app.Hx] = fit(app.data_curve, seed, N, select_a, app.ErrorDropDown.Value, fit_lb, fit_ub, fit_select_fit, output_fcn);
+                solver = SolverUtils.solver_code_from_dropdown(app.SolverDropDown.Value);
+                [app.Hcr, app.mcr, app.Hx] = fit(app.data_curve, seed, N, select_a, app.ErrorDropDown.Value, fit_lb, fit_ub, fit_select_fit, output_fcn, solver);
                 % Prefer the best point FitProgressUtils tracked across every
                 % evaluated point during the search over minimize()'s own
                 % returned point: guarantees a "Stop fit" mid-search (or any
@@ -279,7 +283,8 @@ classdef AnhystereticUtils
             tic
             try
                 output_fcn = @(x, optimValues, state) app.fit_stop_output_fcn(x, optimValues, state);
-                [Ms, alpha, a] = fit_physical(app.data_curve, seed, N, app.ErrorDropDown.Value, fit_lb, fit_ub, fit_select_fit, output_fcn);
+                solver = SolverUtils.solver_code_from_dropdown(app.SolverDropDown.Value);
+                [Ms, alpha, a] = fit_physical(app.data_curve, seed, N, app.ErrorDropDown.Value, fit_lb, fit_ub, fit_select_fit, output_fcn, solver);
                 % Prefer the best point tracked across the search (same
                 % guarantee as the distribution path, incl. after a Stop fit).
                 [best_x, ~, has_best] = FitProgressUtils.get_best(app, 'anh');
@@ -430,6 +435,33 @@ classdef AnhystereticUtils
             end
         end
 
+        function recompute_hx_after_hcr_edit(app, row)
+            % Hx_i is the crossover seed between components i and i+1
+            % (0.5*(Hcr_i + Hcr_(i+1))). When the user manually edits an
+            % Hcr_i cell, the adjacent Hx defaults are stale until a refit;
+            % recompute them immediately so the table stays consistent.
+            % No-op for edits to any other row type (m, or Hx itself).
+            if isempty(app.component_row_types) || row < 1 || row > numel(app.component_row_types)
+                return;
+            end
+            if app.component_row_types(row) ~= "Hcr"
+                return;
+            end
+            n = app.number_components;
+            if n < 2 || numel(app.Hcr) < n
+                return;
+            end
+            for i = 1:(n - 1)
+                hx_row = 2*n + i;
+                new_hx = 0.5 * (app.Hcr(i) + app.Hcr(i + 1));
+                app.Hx(i) = new_hx;
+                if hx_row <= numel(app.fitted_parameter_values)
+                    app.fitted_parameter_values(hx_row) = new_hx;
+                end
+            end
+            AnhystereticUtils.refresh_table_value_display(app);
+        end
+
         function init_components(app)
             row_count = 3*app.number_components - 1;
             seed_Hcr = 0.01 * (1:app.number_components);
@@ -443,6 +475,26 @@ classdef AnhystereticUtils
             catch
                 has_seed_curve = false;
             end
+
+            % For 2+ components, retrieve_anhysteretic_seeds runs a joint
+            % nonlinear fit of the halo templates against the measured
+            % curve (needed to separate overlapping components -- see the
+            % User's Guide) and can take several seconds; show an
+            % indeterminate progress dialog so the user waits instead of
+            % thinking the app stalled. onCleanup guarantees it closes even
+            % if the fit throws.
+            progress_dlg = [];
+            if has_seed_curve && app.number_components > 1
+                try
+                    progress_dlg = uiprogressdlg(app.MagAnalystUIFigure, ...
+                        'Title', 'Estimating seeds', ...
+                        'Message', 'Fitting component seeds to the measured curve...', ...
+                        'Indeterminate', 'on', 'Cancelable', 'off');
+                    drawnow;
+                catch
+                end
+            end
+            close_progress = onCleanup(@() AnhystereticUtils.close_progress_dialog(progress_dlg)); %#ok<NASGU>
 
             if has_seed_curve
                 try
@@ -499,6 +551,62 @@ classdef AnhystereticUtils
             AnhystereticUtils.init_quantities_table(app, true);
         end
 
+        function close_progress_dialog(progress_dlg)
+            if ~isempty(progress_dlg) && isvalid(progress_dlg)
+                close(progress_dlg);
+            end
+        end
+
+        function apply_axis_scale_quiet(app, ax, axis_scale)
+            %APPLY_AXIS_SCALE_QUIET  Set an axes' scale without the console
+            %   "Negative data ignored" warning that MATLAB prints whenever a
+            %   log axis is applied to already-plotted non-positive data (the
+            %   Silveyra-Conde Garrido model allows a negative Msi, whose
+            %   component curve is then entirely negative -- see
+            %   notify_negative_log_values, which surfaces this to the user
+            %   in the Messages log instead of the command window).
+            warning_state = warning('off', 'MATLAB:Axes:NegativeDataInLogAxis');
+            cleanup_warning = onCleanup(@() warning(warning_state)); %#ok<NASGU>
+            app.apply_axis_scale(ax, axis_scale);
+        end
+
+        function notify_negative_log_values(app, axis_scale, quantity_label, total_values, plot_components, component_values)
+            %NOTIFY_NEGATIVE_LOG_VALUES  Warn in the Messages log (not the
+            %   command window) when a semilog-y/log-log plot will silently
+            %   hide a curve because of non-positive values -- most notably a
+            %   component with a negative Msi, whose curve is then negative
+            %   everywhere and invisible on a log axis. Only checks the
+            %   curves that are actually drawn (components only when the
+            %   "plot components" checkbox is on) and only fires once in a
+            %   row for the same note, so it does not spam the log on every
+            %   replot while the same fit is displayed.
+            if ~FormatUtils.axis_scale_has_y(axis_scale)
+                return;
+            end
+
+            negative_components = [];
+            if plot_components && ~isempty(component_values)
+                negative_components = find(all(component_values <= 0, 2))';
+            end
+
+            if isempty(negative_components) && all(total_values > 0)
+                return;
+            end
+
+            if isempty(negative_components)
+                message = "Note: the " + quantity_label + " curve has non-positive values and is partly hidden on this log-scale plot.";
+            else
+                message = "Note: " + quantity_label + " component(s) " + strjoin(string(negative_components), ", ") + ...
+                    " have a non-positive value everywhere (e.g. a negative Ms) and are hidden on this log-scale plot.";
+            end
+
+            existing = app.MessagesTextArea.Value;
+            if ~isempty(existing) && endsWith(string(existing{end}), message)
+                return;
+            end
+            app.write_message(message);
+        end
+
         function init_parameters_table(app, default_values)
             parameters_col = cell(app.number_components, 1);
             for i = 1:app.number_components
@@ -530,7 +638,6 @@ classdef AnhystereticUtils
 
             app.TableParameters.Data = t;
             app.TableParameters.ColumnName = {'Component'; DisplayUnits.get_Ms_label(app); DisplayUnits.get_alpha_label(app); 'aᵢ [A/m]'; 'Select aᵢ'};
-            app.TableParameters.Tooltip = AnhystereticUtils.effective_field_tooltip();
             AnhystereticUtils.shade_parameters_table(app);
         end
 
@@ -558,15 +665,7 @@ classdef AnhystereticUtils
             t = table(parameters_col, dimensionless_alphaMs_col, density_product_col, Hk_col, chi_in_col);
             app.TableQuantities.Data = t;
             app.TableQuantities.ColumnName = {'Component'; DisplayUnits.get_dimensionless_alphaMs_label(app); DisplayUnits.get_density_product_label(app); 'Hkᵢ [A/m]'; DisplayUnits.get_chi_label(app)};
-            app.TableQuantities.Tooltip = AnhystereticUtils.effective_field_tooltip();
             AnhystereticUtils.shade_quantities_table(app);
-        end
-
-        function msg = effective_field_tooltip()
-            % Shared tooltip for the effective/apparent quantities on this
-            % tab (Weiss coefficient alpha/rho*alpha and susceptibility
-            % chi_in/chi_m,init).
-            msg = "Effective/apparent: not corrected for the sample's demagnetizing factor N_d (H here is the externally applied field). See Silveyra et al. 2026 JMMM, Eqs. 3, 6, 11.";
         end
 
         function refresh_table_value_display(app)
@@ -652,7 +751,8 @@ classdef AnhystereticUtils
             else
                 plotter.plot_M(app.AxesM, plot_components, show_grid, M_label);
             end
-            app.apply_axis_scale(app.AxesM, axis_scale);
+            AnhystereticUtils.notify_negative_log_values(app, axis_scale, "M", app.modeled_curve.M, plot_components, app.modeled_curve.Mi);
+            AnhystereticUtils.apply_axis_scale_quiet(app, app.AxesM, axis_scale);
         end
 
         function plot_dMdH(app)
@@ -671,7 +771,8 @@ classdef AnhystereticUtils
             else
                 plotter.plot_dMdH(app.AxesdMdH, plot_components, show_grid, dMdH_label);
             end
-            app.apply_axis_scale(app.AxesdMdH, axis_scale);
+            AnhystereticUtils.notify_negative_log_values(app, axis_scale, "dM/dH", app.modeled_curve.dMdH, plot_components, app.modeled_curve.dMidH);
+            AnhystereticUtils.apply_axis_scale_quiet(app, app.AxesdMdH, axis_scale);
         end
 
         function plot_HdMdH(app)
@@ -690,10 +791,15 @@ classdef AnhystereticUtils
             else
                 plotter.plot_HdMdH(app.AxesHdMdH, plot_components, show_grid, HdMdH_label);
             end
-            app.apply_axis_scale(app.AxesHdMdH, axis_scale);
+            AnhystereticUtils.notify_negative_log_values(app, axis_scale, "H·dM/dlnH", app.modeled_curve.HdMdH, plot_components, app.modeled_curve.HdMidH);
+            AnhystereticUtils.apply_axis_scale_quiet(app, app.AxesHdMdH, axis_scale);
         end
 
         function residual_plot_M(app)
+            if ~isobject(app.data_curve) || ~isprop(app.data_curve, 'H') || isempty(app.data_curve.H)
+                app.write_message("No dataset imported yet. Please import a dataset on the Input data tab first.");
+                return;
+            end
             residue_calculator = MagnetizationResidueCalculator(app.data_curve, app.modeled_curve);
             residue = residue_calculator.get_residue();
             log_flag = FormatUtils.axis_scale_has_x(string(app.AxisScaleDropDownM.Value));
@@ -702,6 +808,10 @@ classdef AnhystereticUtils
         end
 
         function residual_plot_dMdH(app)
+            if ~isobject(app.data_curve) || ~isprop(app.data_curve, 'H') || isempty(app.data_curve.H)
+                app.write_message("No dataset imported yet. Please import a dataset on the Input data tab first.");
+                return;
+            end
             residue_calculator = SusceptibilityResidueCalculator(app.data_curve, app.modeled_curve);
             residue = residue_calculator.get_residue();
             log_flag = FormatUtils.axis_scale_has_x(string(app.AxisScaleDropDowndMdH.Value));
@@ -710,6 +820,10 @@ classdef AnhystereticUtils
         end
 
         function residual_plot_HdMdH(app)
+            if ~isobject(app.data_curve) || ~isprop(app.data_curve, 'H') || isempty(app.data_curve.H)
+                app.write_message("No dataset imported yet. Please import a dataset on the Input data tab first.");
+                return;
+            end
             residue_calculator = SemilogDerivativeResidueCalculator(app.data_curve, app.modeled_curve);
             residue = residue_calculator.get_residue();
             log_flag = FormatUtils.axis_scale_has_x(string(app.AxisScaleDropDownHdMdH.Value));

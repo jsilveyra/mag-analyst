@@ -160,11 +160,12 @@ classdef PlaygroundUtils
             end
         end
 
-        function [Hstart, Mstart, Htip, ok] = get_major_inputs(app)
+        function [Hstart, Mstart, Htip, ok, message] = get_major_inputs(app)
             Hstart = NaN;
             Mstart = NaN;
             Htip = app.HamplitudeAmEditField.Value;
             ok = false;
+            message = "";
 
             start_mode = lower(string(app.StartingpointDropDown.Value));
             if contains(start_mode, "demagnetized")
@@ -173,14 +174,24 @@ classdef PlaygroundUtils
             elseif contains(start_mode, "tip point")
                 [Hstart, Mstart, ok] = PlaygroundUtils.get_data_tip(app);
                 if ~ok
+                    message = "Warning: The data tip point (Htip, Mtip) is unavailable; import a dataset or choose another starting point.";
                     return;
                 end
             else
                 Hstart = app.HstartAmEditField.Value;
                 Mstart = app.MstartAmEditField.Value;
+                if ~isfinite(Hstart) || ~isfinite(Mstart)
+                    message = "Warning: User-defined Hstart and Mstart must be finite numbers.";
+                    return;
+                end
             end
 
-            ok = isfinite(Hstart) && isfinite(Mstart) && isfinite(Htip) && Htip > 0;
+            if ~isfinite(Htip) || Htip <= 0
+                message = "Warning: Please set a positive H amplitude.";
+                return;
+            end
+
+            ok = true;
         end
 
         function [Htips, ok] = get_minor_inputs(app)
@@ -384,6 +395,10 @@ classdef PlaygroundUtils
             [params, ok] = PlaygroundUtils.get_playground_params(app);
         end
 
+        function message = get_params_failure_message()
+            message = "Warning: please enter valid Jiles-Atherton parameters (Ms, a, k > 0; alpha finite; 0 <= c <= 1).";
+        end
+
         function [params, ok] = get_playground_params(app)
             params = struct('Ms', NaN, 'a', NaN, 'alpha', NaN, 'k', NaN, 'c', NaN);
             ok = false;
@@ -457,7 +472,7 @@ classdef PlaygroundUtils
                         H_label, M_label);
                     plot(ax, H_plot, M_plot, '.', 'Color', [0 0 0], 'LineWidth', 1.0, 'MarkerSize', 7, 'DisplayName', 'Measured');
                 else
-                    app.write_message("Warning: No input curve is available to plot in Playground.");
+                    app.write_message("Warning: no dataset imported yet. Please import a dataset on the Input data tab first.");
                 end
             end
 
@@ -551,6 +566,7 @@ classdef PlaygroundUtils
             end
 
             DisplayUnits.apply_ja_labels(app, app.Ms_JA_PlaygroundLabel, app.alpha_JA_PlaygroundLabel);
+            DisplayUnits.apply_ja_model_eqs(app, app.JAmodel_eq1_2, app.JAmodel_eq2_2, app.JAmodel_eq3_2);
 
             Mstart_label = char(DisplayUnits.get_Mstart_label(app));
             app.MstartAmEditFieldLabel.Text = Mstart_label;
@@ -740,7 +756,7 @@ classdef PlaygroundUtils
                     PlaygroundUtils.clear_simulation(app);
                     app.plot_playground();
                     if notify
-                        app.write_message(failure_message);
+                        app.write_message(PlaygroundUtils.get_params_failure_message());
                     end
                     return;
                 end
@@ -750,7 +766,7 @@ classdef PlaygroundUtils
                     PlaygroundUtils.clear_simulation(app);
                     app.plot_playground();
                     if notify
-                        app.write_message(failure_message);
+                        app.write_message("Warning: The Htip_i table must contain at least one positive value.");
                     end
                     return;
                 end
@@ -783,17 +799,21 @@ classdef PlaygroundUtils
                 PlaygroundUtils.clear_simulation(app);
                 app.plot_playground();
                 if notify
-                    app.write_message(failure_message);
+                    app.write_message(PlaygroundUtils.get_params_failure_message());
                 end
                 return;
             end
 
-            [Hstart, Mstart, Htip, ok_inputs] = PlaygroundUtils.get_major_inputs(app);
+            [Hstart, Mstart, Htip, ok_inputs, message] = PlaygroundUtils.get_major_inputs(app);
             if ~ok_inputs
                 PlaygroundUtils.clear_simulation(app);
                 app.plot_playground();
                 if notify
-                    app.write_message(failure_message);
+                    if strlength(message) > 0
+                        app.write_message(message);
+                    else
+                        app.write_message(failure_message);
+                    end
                 end
                 return;
             end
@@ -1120,7 +1140,7 @@ classdef PlaygroundUtils
                     PlaygroundUtils.clear_simulation(app);
                     app.plot_playground();
                     if notify
-                        app.write_message(failure_message);
+                        app.write_message(PlaygroundUtils.get_params_failure_message());
                     end
                     return;
                 end
@@ -1390,7 +1410,7 @@ classdef PlaygroundUtils
                     PlaygroundUtils.clear_simulation(app);
                     app.plot_playground();
                     if notify
-                        app.write_message(failure_message);
+                        app.write_message(PlaygroundUtils.get_params_failure_message());
                     end
                     return;
                 end

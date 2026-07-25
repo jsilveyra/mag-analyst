@@ -180,7 +180,7 @@ classdef HystereticUtils
         function plot_hysteretic_residuals(app)
             has_raw_data = ~isempty(app.H_raw) && ~isempty(app.M_raw);
             if ~has_raw_data
-                app.write_message("Warning: No hysteresis loop data is currently available.");
+                app.write_message("No dataset imported yet. Please import a dataset on the Input data tab first.");
                 return;
             end
             if app.is_last_import_anhysteretic()
@@ -342,6 +342,7 @@ classdef HystereticUtils
             H_label = DisplayUnits.get_H_label(app);
             M_label = DisplayUnits.get_M_label(app);
             DisplayUnits.apply_ja_labels(app, app.Ms_JALabel, app.alpha_JALabel);
+            DisplayUnits.apply_ja_model_eqs(app, app.JAmodel_eq1, app.JAmodel_eq2, app.JAmodel_eq3);
             app.MtipLabel.Text = char(DisplayUnits.get_Mtip_label(app));
 
             has_raw_data = ~isempty(app.H_raw) && ~isempty(app.M_raw);
@@ -353,7 +354,7 @@ classdef HystereticUtils
                 plot(ax, H_plot, M_plot, '.', 'Color', [0 0 0], 'LineWidth', 1.0, 'MarkerSize', 7, 'DisplayName', 'Measured');
                 app.write_message("Hysteresis loop data in " + M_label + " vs " + H_label + " successfully retrieved.");
             else
-                app.write_message("Warning: No hysteresis loop data is currently available.");
+                app.write_message("No dataset imported yet. Please import a dataset on the Input data tab first.");
             end
 
             [Hsim, Msim, has_model] = HystereticUtils.get_hysteretic_modeled_region(app);
@@ -612,6 +613,12 @@ classdef HystereticUtils
         end
 
         function fit_ja_parameters(app)
+            has_raw_data = ~isempty(app.H_raw) && ~isempty(app.M_raw);
+            if ~has_raw_data
+                app.write_message("No dataset imported yet. Please import a dataset on the Input data tab first.");
+                return;
+            end
+
             mask = struct( ...
                 'fit_Ms', logical(app.CheckBox.Value), ...
                 'fita', logical(app.CheckBox_2.Value), ...
@@ -733,12 +740,14 @@ classdef HystereticUtils
 
                 output_fcn = @(x, optimValues, state) app.fit_stop_output_fcn(x, optimValues, state);
                 estimate_k_fn = @(p) HystereticUtils.estimate_k_from_coercive_point(app, Hleft, Mleft, p.Ms, p.a, p.alpha, p.c);
+                solver = SolverUtils.solver_code_from_dropdown(app.SolverDropDown_2.Value);
                 fit_result = JAFitter.fit( ...
                     params_seed, mask, bounds, HfitData, MfitData, Htip, Mtip, error_type, ...
                     estimate_k_fn, ...
                     model_fn, ...
                     @(err_type, hL, mL, hHat, mHat) HystereticUtils.compute_ja_left_branch_error_core(app, err_type, hL, mL, hHat, mHat), ...
-                    output_fcn);
+                    output_fcn, ...
+                    solver);
 
                 if ~fit_result.ok
                     error(char(fit_result.error_message));

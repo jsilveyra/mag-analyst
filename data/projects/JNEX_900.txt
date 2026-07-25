@@ -1,0 +1,199 @@
+{
+  "input_path": "C:\\Users\\Josefina\\fi.uba.ar\\JuanyJose - Documentos\\Github\\mag-analyst\\data\\sample_data\\2022_AIP\\JNEX_900.csv",
+  "horizontal_axis": "H [A/m]",
+  "vertical_axis": "J [T]",
+  "curve_type": "Anhysteretic curve",
+  "input_axis_scale": "semilog-x",
+  "input_number_of_points": 50,
+  "description": [
+    ""
+  ],
+  "point_space": "log",
+  "number_points": 100,
+  "error_type": "Diagonal (logH, continuous)",
+  "anh_show_grid_m": true,
+  "anh_show_grid_dmdh": true,
+  "anh_show_grid_hdmdh": true,
+  "anh_plot_components_m": true,
+  "anh_plot_components_dmdh": true,
+  "anh_plot_components_hdmdh": true,
+  "anh_show_hcr_m": true,
+  "anh_show_hcr_dmdh": true,
+  "anh_show_hcr_hdmdh": true,
+  "axis_scale_m": "semilog-x",
+  "axis_scale_dMdH": "log-log",
+  "axis_scale_hdMdH": "log-log",
+  "hysteretic_max_repetitions": 10,
+  "hysteretic_rel_tolerance": 0.001,
+  "hysteretic_repetitions": 1,
+  "hysteretic_stop_criterion": "Fixed repetitions",
+  "hysteretic_fitting_region": "Entire loop",
+  "hysteretic_starting_point": "Demagnetized",
+  "hysteretic_error_type": "Diagonal (H, continuous)",
+  "hysteretic_show_grid": true,
+  "hysteretic_fit_ms": true,
+  "hysteretic_fit_a": true,
+  "hysteretic_fit_alpha": true,
+  "hysteretic_fit_c": true,
+  "hysteretic_fit_k": false,
+  "hysteretic_k_constrained": true,
+  "play_horizontal_axis": "H [A/m]",
+  "play_vertical_axis": "M [A/m]",
+  "play_show_grid": true,
+  "play_show_data_curve": false,
+  "play_mode": "Major loop",
+  "play_major_starting_point": "Demagnetized",
+  "play_major_hstart": 0,
+  "play_major_mstart": 0,
+  "play_major_hamplitude": 1.32352E+6,
+  "play_major_stop_criterion": "Fixed repetitions",
+  "play_major_repetitions": 1,
+  "play_major_rel_tolerance": 0.001,
+  "play_major_max_repetitions": 10,
+  "play_major_plot_option": "Last loop only",
+  "play_minor_stop_criterion": "Fixed repetitions",
+  "play_minor_repetitions": 1,
+  "play_minor_rel_tolerance": 0.001,
+  "play_minor_max_repetitions": 10,
+  "play_minor_plot_option": "Last loops only",
+  "play_degauss_starting_point": "Remanence (data)",
+  "play_degauss_hstart": 0,
+  "play_degauss_mstart": 0,
+  "play_degauss_amplitude_mode": "Automatic",
+  "play_degauss_n_steps": 10,
+  "play_degauss_initial_amplitude": 1.32352E+6,
+  "play_degauss_final_amplitude": 26470.4,
+  "play_harm_starting_point": "Tip point (data)",
+  "play_harm_hstart": 0,
+  "play_harm_mstart": 0,
+  "number_components": 2,
+  "select_a": [
+    "low",
+    "low"
+  ],
+  "reduce_dof": false,
+  "physical_fit_active": true,
+  "physical_Ms": [
+    7.9028107673377832E+11,
+    4.0283405401432355E+11
+  ],
+  "physical_alpha": [
+    3.4346671606099049E-11,
+    1.6853125719374923E-8
+  ],
+  "physical_a": [
+    13.489553863149558,
+    5938.5770999116139
+  ],
+  "fitted_parameters_value": [
+    8.9769699460164034,
+    0.4567360705327338,
+    7034.861040146111,
+    0.49126425031387111,
+    718417.262485611
+  ],
+  "anh_lb": [
+    "0",
+    "0.4496",
+    "0",
+    "0.4496",
+    "0"
+  ],
+  "anh_ub": [
+    "Inf",
+    "1",
+    "Inf",
+    "1",
+    "1000000"
+  ],
+  "fitted_parameters_fit_flags": [
+    true,
+    true,
+    true,
+    true,
+    true
+  ],
+  "params": {
+    "Ms": [],
+    "a": [],
+    "alpha": [],
+    "c": [],
+    "k": []
+  },
+  "hysteretic_bounds": {
+    "Ms_lower": "1190183214162.6572",
+    "Ms_upper": "Inf",
+    "a_lower": "0",
+    "a_upper": "Inf",
+    "alpha_lower": "-Inf",
+    "alpha_upper": "Inf",
+    "k_lower": "0",
+    "k_upper": "Inf",
+    "c_lower": "0",
+    "c_upper": "1"
+  },
+  "play_params": {
+    "Ms": [],
+    "a": [],
+    "alpha": [],
+    "c": [],
+    "k": []
+  },
+  "play_minor_tips": [
+    1.32352E+6,
+    882346.66666666663,
+    441173.33333333331,
+    null
+  ],
+  "play_degauss_amplitudes": [
+    1.32352E+6,
+    882346.66666666663,
+    441173.33333333331,
+    null
+  ],
+  "play_harm_table": [
+    [
+      1,
+      1.32352E+6,
+      0
+    ],
+    [
+      5,
+      661760,
+      60
+    ],
+    [
+      null,
+      null,
+      null
+    ]
+  ],
+  "colors": [
+    [
+      0.58,
+      0,
+      0.7
+    ],
+    [
+      0.7,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0.7
+    ],
+    [
+      0,
+      0.7,
+      0
+    ],
+    [
+      1,
+      0.5,
+      0
+    ]
+  ],
+  "export_settings": {}
+}

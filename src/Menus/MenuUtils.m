@@ -217,6 +217,12 @@ classdef MenuUtils
         end
 
         function open_project(app)
+            if app.fitting_in_progress
+                uialert(app.MagAnalystUIFigure, ...
+                    "A fit is currently running. Stop it before opening a project.", ...
+                    "Fit in progress", "Icon", "warning");
+                return;
+            end
             app.write_message("Opening new project");
             pause(0.01);
 
@@ -241,7 +247,7 @@ classdef MenuUtils
             app.configure_harmonics_table();
             app.init_parameters_table(true);
             app.init_quantities_table(true);
-            app.NofcompSpinner.Value = app.number_components;
+            app.NofcomponentsSpinner.Value = app.number_components;
 
             % --- Every plain Value-holding control, in one pass ---
             specs = MenuUtils.simple_field_specs();
@@ -403,8 +409,16 @@ classdef MenuUtils
         function save_project(app)
             start_folder = FileDialogUtils.default_project_folder(app);
             app.ensure_folder(start_folder);
+            default_name = "project.txt";
+            csv_path = string(app.InputDatasetPath.Value);
+            if strlength(csv_path) > 0
+                [~, csv_name] = fileparts(csv_path);
+                if strlength(csv_name) > 0
+                    default_name = csv_name + ".txt";
+                end
+            end
             fullpath = app.safe_putfile('*.txt', start_folder, ...
-                "Save project", "project.txt");
+                "Save project", char(default_name));
 
             if fullpath == ""
                 return;
@@ -429,6 +443,12 @@ classdef MenuUtils
             %NEW_PROJECT "New" menu item: resets the whole app to a
             %   startup-like state without closing/reopening it. Destructive
             %   (loses anything unsaved), so confirm first.
+            if app.fitting_in_progress
+                uialert(app.MagAnalystUIFigure, ...
+                    "A fit is currently running. Stop it before starting a new project.", ...
+                    "Fit in progress", "Icon", "warning");
+                return;
+            end
             selection = uiconfirm(app.MagAnalystUIFigure, ...
                 "Unsaved changes will be lost. Continue?", "New Project", ...
                 "Options", {'Continue', 'Cancel'}, ...
@@ -474,7 +494,7 @@ classdef MenuUtils
             app.lb = [];
             app.ub = [];
             app.select_fit = [];
-            app.NofcompSpinner.Value = 1;
+            app.NofcomponentsSpinner.Value = 1;
             app.number_components = 1;
             app.init_components();
             app.init_parameters_table(true);
@@ -492,7 +512,7 @@ classdef MenuUtils
             app.a_JA.Value = [];
             app.alpha_JA.Value = [];
             app.k_JA.Value = [];
-            app.c_JA.Value = 1/3;
+            app.c_JA.Value = [];
             app.MsLower_JA.Value = 0;
             app.MsUpper_JA.Value = Inf;
             app.aLower_JA.Value = 0;
@@ -508,6 +528,8 @@ classdef MenuUtils
             cla(app.AxesM_2, 'reset');
             app.ErrorDisplay_2.Value = [];
             app.hysteretic_ms_lower_bound_user_edited = false;
+            app.LWModel_eq.Text = DisplayUnits.get_lw_model_eq(app);
+            DisplayUnits.apply_ja_model_eqs(app, app.JAmodel_eq1, app.JAmodel_eq2, app.JAmodel_eq3);
 
             % --- Playground tab ---
             PlaygroundUtils.clear_simulation(app);
@@ -520,6 +542,7 @@ classdef MenuUtils
             PlaygroundUtils.sync_minor_ui(app);
             app.sync_degaussing_ui();
             app.sync_harmonics_ui();
+            PlaygroundUtils.sync_playground_mass_ui(app);
             cla(app.AxesM_5, 'reset');
             app.playground_curve_H = [];
             app.playground_curve_M = [];
@@ -591,7 +614,7 @@ classdef MenuUtils
             value_components = MenuUtils.simple_field_specs();
             value_components = value_components(:,2)';
             extra_value_components = { ...
-                'NofcompSpinner', ...
+                'NofcomponentsSpinner', ...
                 'Ms_JA', 'a_JA', 'alpha_JA', 'c_JA', 'k_JA', ...
                 'MsLower_JA', 'MsUpper_JA', 'aLower_JA', 'aUpper_JA', ...
                 'alphaLower_JA', 'alphaUpper_JA', 'kLower_JA', 'kUpper_JA', ...

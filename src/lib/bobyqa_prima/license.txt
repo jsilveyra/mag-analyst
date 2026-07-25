@@ -1,0 +1,60 @@
+bobyqa_prima — bound-constrained derivative-free optimization for MATLAB
+BSD 3-Clause License
+
+This library has two parts under the same permissive license family:
+
+1. ORIGINAL CODE (bobyqa_prima.m driver, bobyqa_prima_tuned.m size-based npt
+   selection and progress/early-stop wrapper, trsbox.m exact box-constrained
+   trust-region/geometry solver, seed_prima_from_points.m generic KKT-based
+   interpolation seeding) — developed for the MagAnalyst project.
+
+   Copyright (c) 2026, Josefina María Silveyra - Juan Manuel Conde Garrido
+   All rights reserved.
+
+2. REUSED CODE (private/vlagbeta.m, updateh.m, updateq.m, setdrop_tr.m,
+   shiftbase.m, tryqalt.m, trrad.m) — PRIMA's pure-MATLAB port of the
+   incremental least-Frobenius-norm quadratic-model update machinery
+   originally due to M.J.D. Powell (NEWUOA, 2006), reused here under
+   PRIMA's BSD-3-Clause license.
+
+   Copyright (c) Zaikun Zhang and PRIMA contributors.
+   Source: https://github.com/libprima/prima
+
+   NOTE: this notice is a good-faith attribution based on PRIMA's publicly
+   stated BSD-3-Clause licensing (see OPTIMIZER_EVALUATION.md for the
+   evaluation that established this). Before this library is distributed
+   externally (e.g. MATLAB File Exchange, or contributed back to the PRIMA
+   project), verify this notice's exact wording against the LICENSE file
+   in the upstream repository and update if needed.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notices, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notices, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of the copyright holders nor the names of their
+      contributors may be used to endorse or promote products derived from
+      this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+The algorithm implemented here (BOBYQA) is due to M.J.D. Powell:
+  M.J.D. Powell, "The BOBYQA algorithm for bound constrained optimization
+  without derivatives," Report DAMTP 2009/NA06, Centre for Mathematical
+  Sciences, University of Cambridge, August 2009.
+This is a technical report, not a journal article; no DOI is associated
+with it. No source code from Powell's original Fortran distribution is
+included in this library — only the algorithm and mathematics it describes,
+as re-derived/re-implemented in PRIMA (part 2 above) and in the original
+code (part 1 above).

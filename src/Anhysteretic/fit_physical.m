@@ -1,9 +1,11 @@
-function [Ms, alpha, a] = fit_physical(data_curve, seed, N, error_type, lb, ub, select_fit, output_fcn)
+function [Ms, alpha, a] = fit_physical(data_curve, seed, N, error_type, lb, ub, select_fit, output_fcn, solver)
 %FIT_PHYSICAL  Full-DOF anhysteretic fit over the physical parameters.
 %   [Ms, alpha, a] = fit_physical(data_curve, seed, N, error_type, lb, ub, ...
-%       select_fit, output_fcn) optimizes the 3*n physical parameters
+%       select_fit, output_fcn, solver) optimizes the 3*n physical parameters
 %   [Ms(1..n), alpha(1..n), a(1..n)] directly, instead of the 3*n-1
-%   distribution parameters (Hcr, mcr, Hx) that fit.m fits.
+%   distribution parameters (Hcr, mcr, Hx) that fit.m fits. solver selects
+%   the optimizer ("prima" [default] or "nelder_mead"; see
+%   SolverUtils.minimize_bounded).
 %
 %   This is the "reduce dof" UNCHECKED path: the constraint points at the tip
 %   and Hx are dropped, so Ms becomes a free variable. It is meant as a
@@ -27,6 +29,9 @@ function [Ms, alpha, a] = fit_physical(data_curve, seed, N, error_type, lb, ub, 
 
     if nargin < 8
         output_fcn = [];
+    end
+    if nargin < 9
+        solver = "prima";
     end
     [HTip, ~] = Utils().find_tip(data_curve.H, data_curve.M);
     Hhat = logspace(log10(data_curve.H(2)), log10(HTip), N);
@@ -110,13 +115,12 @@ function [Ms, alpha, a] = fit_physical(data_curve, seed, N, error_type, lb, ub, 
     ylb = max(ylb, -BOUND_CAP);
     yub = min(yub, BOUND_CAP);
 
-    options = optimset('MaxIter', 2000, 'MaxFunEvals', 1e4, 'TolX', 1e-5, 'TolFun', 1e-5, 'Display', 'off');
+    scaled_output_fcn = [];
     if ~isempty(output_fcn)
         % Hand the tracker unscaled (physical) points.
         scaled_output_fcn = @(y, optimValues, state) output_fcn(y .* scale, optimValues, state);
-        options = optimset(options, 'OutputFcn', scaled_output_fcn);
     end
-    params_y = minimize(@objective, y0, [],[], [],[], ylb, yub, [], options);
+    params_y = SolverUtils.minimize_bounded(@objective, y0, ylb, yub, scaled_output_fcn, solver);
 
     result = params_y .* scale;
     % Seed guard: never return a point worse than the seed.

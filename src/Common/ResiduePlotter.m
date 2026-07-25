@@ -48,7 +48,13 @@ classdef ResiduePlotter
                 yline(ax, 0, 'k-', 'LineWidth', 1.2, 'HandleVisibility', 'off');
                 obj.apply_detailed_grid(ax);
             end
-            stem(ax, obj.X, obj.Residue, '.', 'markersize', obj.MarkerSize, "Color", obj.ResidueColor);
+            if obj.Log
+                [X_plot, Residue_plot] = obj.positive_x(obj.X, obj.Residue);
+            else
+                X_plot = obj.X;
+                Residue_plot = obj.Residue;
+            end
+            stem(ax, X_plot, Residue_plot, '.', 'markersize', obj.MarkerSize, "Color", obj.ResidueColor);
             xlabel(ax, 'H (A/m)');
             ylabel(ax, 'Residual');
             if obj.Log
@@ -60,8 +66,17 @@ classdef ResiduePlotter
 
         function plot_dots(obj, ax)
             hold( ax, 'on' );
-            plot(ax, obj.X, obj.Y, '.', 'markersize', obj.MarkerSize, "Color", obj.DataColor);
-            plot(ax, obj.Xhat, obj.Yhat, "Color", obj.ModelColor);
+            if obj.Log
+                [X_plot, Y_plot] = obj.positive_x(obj.X, obj.Y);
+                [Xhat_plot, Yhat_plot] = obj.positive_x(obj.Xhat, obj.Yhat);
+            else
+                X_plot = obj.X;
+                Y_plot = obj.Y;
+                Xhat_plot = obj.Xhat;
+                Yhat_plot = obj.Yhat;
+            end
+            plot(ax, X_plot, Y_plot, '.', 'markersize', obj.MarkerSize, "Color", obj.DataColor);
+            plot(ax, Xhat_plot, Yhat_plot, "Color", obj.ModelColor);
             if obj.ShowZeroLines
                 xline(ax, 0, 'k-', 'LineWidth', 1.2, 'HandleVisibility', 'off');
                 yline(ax, 0, 'k-', 'LineWidth', 1.2, 'HandleVisibility', 'off');
@@ -73,6 +88,16 @@ classdef ResiduePlotter
             if obj.Log
                 set(gca,'xscal','log');
             end
+        end
+
+        function [X_positive, Y_positive] = positive_x(~, X, Y)
+            % Drop non-positive-H points before a log-x plot: MATLAB prints
+            % "Warning: Negative data ignored" to the command window for
+            % any H<=0 point on a log axis (e.g. the H=0 anhysteretic
+            % demagnetized-state sample), so filter ahead of the call.
+            valid = X > 0;
+            X_positive = X(valid);
+            Y_positive = Y(valid);
         end
 
         function apply_detailed_grid(~, ax)

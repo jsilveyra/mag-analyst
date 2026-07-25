@@ -39,6 +39,13 @@ addpath(genpath(fullfile(project_root, 'src')));
 pc = ParserConstants();
 data_file = fullfile(project_root, 'data', 'sample_data', '2022_AIP', 'MnZn_ferrite.csv');
 
+% solver: the optimizer used for BOTH fits below ("prima" [default,
+% PRIMA-BOBYQA with tuned npt] or "nelder_mead" [legacy minimize()] -- see
+% demo_1 for the full explanation, and this repo's docs/solvers.md for the
+% benchmark behind the default). Mirrors the GUI's "Solver" dropdown, which
+% each fitting tab sets independently.
+solver = "prima";
+
 % Units of the source file (used both for the anhysteretic import and for
 % re-converting the raw loop below). For mass magnetization data, use
 % pc.SIGMA_ELECTROMAGNETIC_UNIT_PER_GRAM for the y-axis unit.
@@ -56,7 +63,7 @@ seed_anh    = [Hcr_seed, mcr_seed, Hx_seed];
 select_a    = "low";
 anh_error_type = "Diagonal (logH, continuous)";  % Anhysteretic tab default
 [Hcr, mcr, Hx] = fit(data_curve, seed_anh, 100, select_a, ...
-                     anh_error_type, [0 0.4496], [Inf 1], {true true});
+                     anh_error_type, [0 0.4496], [Inf 1], {true true}, [], solver);
 mp = MagneticParameters(data_curve, Hcr, mcr, Hx, select_a);
 
 Ms_seed    = mp.Ms;        % [A/m]
@@ -159,11 +166,12 @@ error_core_fn = @(et, hL, mL, hHat, mHat) ...
 
 %% --- 5) Run the JA fit ---------------------------------------------------
 % JAFitter.fit(params_seed, mask, bounds, Hdata, Mdata, Htip, Mtip, ...
-%              error_type, estimate_k_fn, model_fn, error_core_fn)
+%              error_type, estimate_k_fn, model_fn, error_core_fn, ...
+%              output_fcn, solver)
 % Hdata/Mdata is the full measured cycle (both branches), matching "Entire
 % loop" fitting_region.
 result = JAFitter.fit(params_seed, mask, bounds, H_cycle, M_cycle, Htip, Mtip, ...
-                      error_type, estimate_k_fn, model_fn, error_core_fn);
+                      error_type, estimate_k_fn, model_fn, error_core_fn, [], solver);
 
 if ~result.ok
     error('JA fit failed: %s', result.error_message);

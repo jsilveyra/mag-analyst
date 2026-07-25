@@ -70,9 +70,15 @@ error_type = "Diagonal (logH, continuous)";
 % Model-evaluation grid size.
 N = 100;
 
+% solver: the optimizer used to minimize the fit error ("prima" [default,
+% PRIMA-BOBYQA with tuned npt] or "nelder_mead" [legacy minimize()] -- see
+% demo_1 for the full explanation, and this repo's docs/solvers.md for the
+% benchmark behind the default). Mirrors the GUI's "Solver" dropdown.
+solver = "prima";
+
 %% --- 4) Run the fit ------------------------------------------------------
 [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, ...
-                     lower_bound, upper_bound, select_fit);
+                     lower_bound, upper_bound, select_fit, [], solver);
 
 fprintf('\nFitted distribution parameters (2 components):\n');
 for i = 1:number_components

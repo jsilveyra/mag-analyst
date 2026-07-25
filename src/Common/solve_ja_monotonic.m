@@ -46,11 +46,31 @@ function [Hsol, Msol] = solve_ja_monotonic( ...
         return;
     end
 
+    % Some JA parameter combinations probed by the fit optimizer make the
+    % ODE locally stiff/near-singular (den in ja_ode.m near 0), so ode23tb
+    % can stall below its minimum step size. It reports this as a warning,
+    % not an error, and returns a solution truncated at the stall point --
+    % silently accepting that partial curve would corrupt the fit
+    % objective instead of rejecting the point. Suppress the warning's
+    % console noise and promote it to an error instead, so callers'
+    % existing try/catch (e.g. JAFitter's obj_fun) reject it like any
+    % other invalid-parameter case.
+    warn_id = 'MATLAB:ode23tb:IntegrationTolNotMet';
+    warning('off', warn_id);
+    restore_warning = onCleanup(@() warning('on', warn_id)); %#ok<NASGU>
+    lastwarn('');
+
     sol = ode23tb( ...
         @(H, M) ja_ode(H, M, params, delta), ...
         [Hstart, Hend], ...
         Mstart, ...
         opts);
+
+    [~, fired_id] = lastwarn();
+    if strcmp(fired_id, warn_id)
+        error('solve_ja_monotonic:IntegrationTolNotMet', ...
+            'ode23tb could not meet integration tolerances for the given JA parameters.');
+    end
 
     Hsol = sol.x(:);
     Msol = sol.y(:);

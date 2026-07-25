@@ -103,10 +103,20 @@ error_type = "Diagonal (logH, continuous)";
 % N: number of log-spaced field samples the fitter evaluates the model on.
 N = 100;
 
+% solver: the optimizer used to minimize the fit error. Options:
+%   "prima"       - PRIMA-BOBYQA, tuned npt (default; see src/lib/bobyqa_prima).
+%                   Model-based trust-region solver; picks a full-quadratic or
+%                   2n+1 interpolation model automatically from the parameter
+%                   count (see bobyqa_prima_tuned.m and this repo's
+%                   docs/solvers.md for the benchmark behind that choice).
+%   "nelder_mead" - the legacy Nelder-Mead simplex (src/lib/minimize).
+% This mirrors the GUI's "Solver" dropdown on the Anhysteretic/Hysteretic tabs.
+solver = "prima";
+
 %% --- 4) Run the fit ------------------------------------------------------
-% fit(data_curve, seed, N, select_a, error_type, lb, ub, select_fit)
+% fit(data_curve, seed, N, select_a, error_type, lb, ub, select_fit, output_fcn, solver)
 [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, ...
-                     lower_bound, upper_bound, select_fit);
+                     lower_bound, upper_bound, select_fit, [], solver);
 
 fprintf('\nFitted distribution parameters (1 component):\n');
 fprintf('   Hcr    = %.6g A/m\n', Hcr);

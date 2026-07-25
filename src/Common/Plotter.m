@@ -33,12 +33,18 @@ classdef Plotter
 
         function plot_Hcr(obj, ax)
             if strcmp(ax.XScale, 'log')
-                Hcr = obj.Hcr(isfinite(obj.Hcr) & obj.Hcr > 0);
+                valid_idx = find(isfinite(obj.Hcr) & obj.Hcr > 0);
             else
-                Hcr = obj.Hcr(isfinite(obj.Hcr));
+                valid_idx = find(isfinite(obj.Hcr));
             end
-            for i = 1:length(Hcr)
-                xline(ax, Hcr(i), '--', "Color",[0, 0.4470, 0.7410], "Label", "Hcr");
+            for i = valid_idx
+                % obj.Colors row 1 is the total curve; row i+1 is component i
+                % (same convention as the component-curve plots below).
+                color = [0, 0.4470, 0.7410];
+                if size(obj.Colors, 1) >= i + 1
+                    color = obj.Colors(i + 1, :);
+                end
+                xline(ax, obj.Hcr(i), '--', "Color", color, "Label", "Hcr");
             end
         end
 
@@ -47,6 +53,7 @@ classdef Plotter
                 M_label = 'M [A/m]';
             end
             hold( ax, 'on' );
+            yline(ax, 0);
             tip_data = max(obj.data_curve.M);
             tip_model = max(obj.modeled_curve.M);
             tip = max([tip_model, tip_data]);
@@ -77,8 +84,10 @@ classdef Plotter
             if nargin < 5 || isempty(M_label)
                 M_label = 'M [A/m]';
             end
-            semilogx(ax, obj.data_curve.H, obj.data_curve.M, '.', 'markersize', obj.MarkerSize, "Color", [0 0 0]);
+            [H_data, M_data] = obj.positive_x(obj.data_curve.H, obj.data_curve.M);
+            semilogx(ax, H_data, M_data, '.', 'markersize', obj.MarkerSize, "Color", [0 0 0]);
             hold( ax, 'on' )
+            yline(ax, 0);
             tip_data = max(obj.data_curve.M);
             tip_model = max(obj.modeled_curve.M);
             tip = max([tip_model, tip_data]);
@@ -108,6 +117,7 @@ classdef Plotter
                 dMdH_label = '∂M/∂H';
             end
             hold( ax, 'on' );
+            yline(ax, 0);
             tip_data = max(obj.data_curve.dMdH);
             tip_model = max(obj.modeled_curve.dMdH);
             tip = max([tip_model, tip_data]);
@@ -138,8 +148,10 @@ classdef Plotter
             if nargin < 5 || isempty(dMdH_label)
                 dMdH_label = '∂M/∂H';
             end
-            semilogx(ax, obj.data_curve.H, obj.data_curve.dMdH, '.', 'markersize', obj.MarkerSize, "Color", [0 0 0]);
+            [H_data, dMdH_data] = obj.positive_x(obj.data_curve.H, obj.data_curve.dMdH);
+            semilogx(ax, H_data, dMdH_data, '.', 'markersize', obj.MarkerSize, "Color", [0 0 0]);
             hold( ax, 'on' );
+            yline(ax, 0);
             tip_data = max(obj.data_curve.dMdH);
             tip_model = max(obj.modeled_curve.dMdH);
             tip = max([tip_model, tip_data]);
@@ -169,11 +181,13 @@ classdef Plotter
                 HdMdH_label = '∂M/∂(lnH) [A/m]';
             end
             hold( ax, 'on' );
+            yline(ax, 0);
             tip_data = max(obj.data_curve.HdMdH);
             tip_model = max(obj.modeled_curve.HdMdH);
             tip = max([tip_model, tip_data]);
             ax.YAxis.Exponent = obj.get_scientific_notation_exponent(tip);
-            semilogx(ax, obj.data_curve.H, obj.data_curve.HdMdH, '.', 'markersize', obj.MarkerSize, "Color", [0 0 0]);
+            [H_data, HdMdH_data] = obj.positive_x(obj.data_curve.H, obj.data_curve.HdMdH);
+            semilogx(ax, H_data, HdMdH_data, '.', 'markersize', obj.MarkerSize, "Color", [0 0 0]);
             obj.plot_Hcr(ax);
 
             if(plot_components)
@@ -199,6 +213,7 @@ classdef Plotter
                 HdMdH_label = '∂M/∂(lnH) [A/m]';
             end
             hold( ax, 'on' );
+            yline(ax, 0);
             tip_data = max(obj.data_curve.HdMdH);
             tip_model = max(obj.modeled_curve.HdMdH);
             tip = max([tip_model, tip_data]);
@@ -249,7 +264,8 @@ classdef Plotter
         end
 
         function plot_raw_log(obj, ax, X, Y, X_label, Y_label, plot_title)
-            semilogx(ax, X, Y, '.', 'markersize', obj.MarkerSize, "Color", [0 0 0]);
+            [X_positive, Y_positive] = obj.positive_x(X, Y);
+            semilogx(ax, X_positive, Y_positive, '.', 'markersize', obj.MarkerSize, "Color", [0 0 0]);
             hold( ax, 'on' );
             tip = max(Y);
             ax.YAxis.Exponent = obj.get_scientific_notation_exponent(tip);
@@ -259,6 +275,17 @@ classdef Plotter
             title(ax, plot_title);
             box(ax,'on');
             hold( ax, 'off' )
+        end
+
+        function [X_positive, Y_positive] = positive_x(~, X, Y)
+            % Drop non-positive-H points before a log-x plot call: MATLAB
+            % prints "Warning: Negative data ignored" to the command window
+            % for any H<=0 point (e.g. the H=0 demagnetized-state sample
+            % that anhysteretic curves commonly start at), so it must be
+            % filtered ahead of the call rather than left for MATLAB to warn.
+            valid = X > 0;
+            X_positive = X(valid);
+            Y_positive = Y(valid);
         end
 
         function apply_detailed_grid(~, ax, show_grid)

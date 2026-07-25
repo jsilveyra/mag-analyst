@@ -36,6 +36,7 @@ function [Hcr, mcr, Hx, details] = retrieve_anhysteretic_seeds(data_curve, numbe
     end
 
     x = log(H);
+    [~, halo_full_smooth] = halo_from_curve(H, M);
     residual_M = M;
     found = 0;
     found_Hcr = zeros(1, number_components);
@@ -118,7 +119,135 @@ function [Hcr, mcr, Hx, details] = retrieve_anhysteretic_seeds(data_curve, numbe
     end
 
     if number_components > 1
+        % The peak-and-subtract loop above only resolves components whose
+        % halo peaks are far enough apart in log(H) to show up as distinct
+        % local maxima. When two components' Hcr are close relative to
+        % their width (a shoulder rather than a separate peak -- e.g. the
+        % GOSS_67_MPa dataset, where both Hcr collapsed onto the same
+        % point), it degenerates instead of separating them. Refine (or,
+        % for a degenerate result, rebuild) the seeds by jointly fitting
+        % all `number_components` unit halo templates directly against the
+        % measured halo curve -- this is the deconvolution step the
+        % sequential method skips, and it is what actually resolves
+        % overlapping components.
+        [Hcr_refined, mcr_refined, refined] = joint_refine_seeds( ...
+            H, x, halo_full_smooth, Hcr(1:found), mcr(1:found), select_a, number_components, default_mcr);
+        if refined
+            Hcr(1:number_components) = Hcr_refined;
+            mcr(1:number_components) = mcr_refined;
+            details.messages(end + 1, 1) = "Joint halo-template fit applied to separate overlapping components.";
+        end
         Hx = estimate_crossovers(H, M, Hcr);
+    end
+end
+
+function [Hcr_out, mcr_out, refined] = joint_refine_seeds(H, x, halo_target, Hcr_seed, mcr_seed, select_a, number_components, default_mcr)
+%JOINT_REFINE_SEEDS Jointly fit N unit halo templates to the measured halo.
+%   Starts from the sequential peak-and-subtract seeds when they are
+%   usable (as many distinct Hcr as requested components, not collapsed
+%   onto each other); otherwise starts from an equal-area quantile split
+%   of the halo curve in log(H), which stays sensible even when the
+%   components are too close together to appear as separate local maxima.
+    refined = false;
+    Hcr_out = Hcr_seed;
+    mcr_out = mcr_seed;
+
+    total_area = log_area(x, max(halo_target, 0));
+    if ~isfinite(total_area) || total_area <= 0
+        return;
+    end
+
+    % Each objective evaluation solves modeled_unit_component's per-point
+    % fzero for every H sample and every component, so it dominates the
+    % joint optimizer's runtime; a fit-quality seed does not need every
+    % point of a densely resampled curve, so subsample to keep this
+    % interactive (a 3-component fit on the full ~100-point grid took over
+    % half a minute; 50 points preserves the halo shape at negligible cost).
+    max_eval_points = 50;
+    if numel(H) > max_eval_points
+        eval_idx = round(linspace(1, numel(H), max_eval_points));
+        H_eval = H(eval_idx);
+        halo_target_eval = halo_target(eval_idx);
+    else
+        H_eval = H;
+        halo_target_eval = halo_target;
+    end
+
+    min_log_separation = 0.01;
+    degenerate = numel(Hcr_seed) < number_components;
+    if ~degenerate
+        sorted_log_Hcr = sort(log(Hcr_seed(:).'));
+        degenerate = any(diff(sorted_log_Hcr) < min_log_separation);
+    end
+
+    if degenerate
+        Hcr0 = equal_area_quantiles(x, halo_target, number_components);
+        mcr0 = default_mcr * ones(1, number_components);
+    else
+        Hcr0 = Hcr_seed(:).';
+        mcr0 = mcr_seed(:).';
+    end
+
+    Ms0 = zeros(1, number_components);
+    for i = 1:number_components
+        [~, halo_unit] = modeled_unit_component(H, Hcr0(i), mcr0(i), select_a(i));
+        unit_area = log_area(x, max(halo_unit, 0));
+        if isfinite(unit_area) && unit_area > 0
+            Ms0(i) = (total_area / number_components) / unit_area;
+        end
+    end
+    Ms0(~isfinite(Ms0) | Ms0 <= 0) = total_area / number_components;
+
+    H_min = min(H_eval(H_eval > 0));
+    H_max = max(H_eval);
+    lb = [H_min * ones(1, number_components), 0.45 * ones(1, number_components), zeros(1, number_components)];
+    ub = [H_max * ones(1, number_components), 0.95 * ones(1, number_components), 10 * max(Ms0) * ones(1, number_components)];
+    x0 = [Hcr0, mcr0, Ms0];
+
+    options = optimset('MaxIter', 200, 'MaxFunEvals', 2000, 'TolX', 1e-4, 'TolFun', 1e-6, 'Display', 'off');
+    try
+        p = minimize(@joint_objective, x0, [], [], [], [], lb, ub, [], options);
+    catch
+        return;
+    end
+
+    Hcr_p = p(1:number_components);
+    mcr_p = p(number_components + 1:2 * number_components);
+    if ~all(isfinite(Hcr_p)) || ~all(isfinite(mcr_p))
+        return;
+    end
+
+    [Hcr_out, order] = sort(Hcr_p);
+    mcr_out = mcr_p(order);
+    refined = true;
+
+    function err = joint_objective(p)
+        Hcr_p = p(1:number_components);
+        mcr_p = p(number_components + 1:2 * number_components);
+        Ms_p = p(2 * number_components + 1:end);
+        predicted = zeros(size(halo_target_eval));
+        for k = 1:number_components
+            [~, halo_k] = modeled_unit_component(H_eval, Hcr_p(k), mcr_p(k), select_a(k));
+            predicted = predicted + Ms_p(k) * halo_k;
+        end
+        err = sum((predicted(:) - halo_target_eval(:)).^2) / (max(halo_target_eval)^2 * numel(halo_target_eval));
+    end
+end
+
+function Hcr_q = equal_area_quantiles(x, halo, number_components)
+    x = x(:);
+    halo = max(halo(:), 0);
+    cumulative = cumtrapz(x, halo);
+    total = cumulative(end);
+    if ~isfinite(total) || total <= 0
+        edges = exp(linspace(min(x), max(x), number_components + 2));
+        Hcr_q = edges(2:end-1);
+        return;
+    end
+    Hcr_q = zeros(1, number_components);
+    for i = 1:number_components
+        target = (i - 0.5) / number_components * total;
+        Hcr_q(i) = exp(interp1(cumulative, x, target, 'linear', 'extrap'));
     end
 end
 
