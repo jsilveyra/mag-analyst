@@ -12,3 +12,8 @@ debug.log
 # Entire tools/ folder held back for now (e.g. plot_digitizer) -- will be
 # committed separately once its associated paper is accepted
 /tools/
+
+# Reference papers are not redistributed with the toolbox: the published
+# versions are under publisher copyright. They live in to_organize/articles/;
+# citations and DOIs are in README.md and users-guide.md instead.
+/articles/

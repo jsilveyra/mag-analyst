@@ -98,8 +98,6 @@ Results are saved through a single Export action in the Project menu (*Project �
 ├── README.md
 ├── users-guide.md         # User's Guide: methodology and model documentation (theory + implementation)
 ├── license.txt
-├── articles/             # Reference papers we may redistribute, plus the full
-│                         # citation list for all of them (see its README.md)
 ├── assets/               # Logos and UI images
 ├── data/
 │   └── sample_data/      # Example curves, organized by the article that analyzed them
@@ -189,9 +187,9 @@ If you want to use MagAnalyst to fit mass-magnetization curves, follow and cite 
 
 - J. M. Silveyra, A. Rosales Rivera, N. Salazar Henao, D. Salazar, and J. M. Conde Garrido, "Magnetometry analysis via a multicomponent Langevin-Weiss model with susceptibility-dependent demagnetization," Journal of Magnetism and Magnetic Materials, vol. 647, p. 174000, 2026. https://doi.org/10.1016/j.jmmm.2026.174000
 
-The [`articles/`](articles/) folder carries the versions of these papers we are entitled to redistribute — the open-access one, and the author's accepted versions of the two IEEE papers — together with the full citation list and DOIs for all of them in [`articles/README.md`](articles/README.md).
+Which paper documents which feature: the multicomponent Langevin-Weiss law of mixtures and the `Hcr` / `m(Hcr)` search-space transformation behind the **Anhysteretic fitting** tab are developed in the JMMM 2021, AIP Advances 2022 and JOM 2023 papers; the blind Jiles-Atherton initialization and the coercive-point `k` estimate behind the **Hysteretic fitting** tab in the IEEE TMAG 2026 paper; and mass-magnetization (σ) analysis in the JMMM 2026 paper. The [User's Guide](users-guide.md#references) carries the complete reference list, including the algorithmic and numerical-method citations.
 
-If you don't have access to any of these articles, request them through [ResearchGate](https://www.researchgate.net/profile/Josefina-Silveyra) or write to jsilveyra@fi.uba.ar! We will be happy to share them with you.
+The papers themselves are not redistributed with the toolbox. If you don't have access to any of them, request them through [ResearchGate](https://www.researchgate.net/profile/Josefina-Silveyra) or write to jsilveyra@fi.uba.ar! We will be happy to share them with you.
 
 ## Contact us
 
