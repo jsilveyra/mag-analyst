@@ -1,10 +1,16 @@
 classdef FileDialogUtils
 %FILEDIALOGUTILS Static helpers for cancel-safe, portable file/folder dialogs.
-%   Shared by the Input tab's browse button,
-%   the Output tab's browse button, and the Menus (Open/Save/Save As).
+%   Shared by the Input tab's browse button, the Export dialog, and the
+%   Project menu (Open / Save / Save As).
+%
+%   uigetfile/uiputfile/uigetdir open native OS dialogs, which take the
+%   keyboard focus away from the app window and do not give it back when
+%   they close. Each wrapper below therefore calls restore_focus(app) on
+%   every exit path, so the app stays foremost whether the user confirms
+%   or cancels.
 
     methods (Static)
-        function fullpath = safe_getfile(~, filter, startpath, dialog_title)
+        function fullpath = safe_getfile(app, filter, startpath, dialog_title)
             if nargin < 4 || strlength(string(dialog_title)) == 0
                 dialog_title = "Select file";
             end
@@ -13,6 +19,7 @@ classdef FileDialogUtils
             end
 
             [file, path] = uigetfile(filter, char(dialog_title), char(startpath));
+            FileDialogUtils.restore_focus(app);
 
             if isequal(file,0) || isequal(path,0)
                 fullpath = "";
@@ -22,7 +29,7 @@ classdef FileDialogUtils
             fullpath = string(fullfile(path, file));
         end
 
-        function fullpath = safe_putfile(~, filter, startpath, dialog_title, default_name)
+        function fullpath = safe_putfile(app, filter, startpath, dialog_title, default_name)
             if nargin < 5
                 default_name = "";
             end
@@ -38,6 +45,7 @@ classdef FileDialogUtils
             end
 
             [file, path] = uiputfile(filter, char(dialog_title), char(startpath));
+            FileDialogUtils.restore_focus(app);
 
             if isequal(file,0) || isequal(path,0)
                 fullpath = "";
@@ -47,7 +55,7 @@ classdef FileDialogUtils
             fullpath = string(fullfile(path, file));
         end
 
-        function folder = safe_getdir(~, startpath, dialog_title)
+        function folder = safe_getdir(app, startpath, dialog_title)
             if nargin < 3 || strlength(string(dialog_title)) == 0
                 dialog_title = "Select folder";
             end
@@ -56,6 +64,7 @@ classdef FileDialogUtils
             end
 
             p = uigetdir(char(startpath), char(dialog_title));
+            FileDialogUtils.restore_focus(app);
 
             if isequal(p,0)
                 folder = "";
@@ -104,6 +113,16 @@ classdef FileDialogUtils
             % export via ensure_folder).
             base = FileDialogUtils.default_data_folder(app);
             folder = string(fullfile(base, "exported_data"));
+        end
+
+        function restore_focus(app)
+            %RESTORE_FOCUS Bring the main app window back to the front after a
+            %   native OS dialog stole the focus. Silently does nothing when
+            %   called without a live app (e.g. from a command-line script).
+            if isobject(app) && isvalid(app) && isprop(app, 'MagAnalystUIFigure') ...
+                    && ~isempty(app.MagAnalystUIFigure) && isvalid(app.MagAnalystUIFigure)
+                figure(app.MagAnalystUIFigure);
+            end
         end
 
         function ensure_folder(~, folder)

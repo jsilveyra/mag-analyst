@@ -1,8 +1,8 @@
 classdef SolverUtils
 %SOLVERUTILS  Solver choice shared by the Anhysteretic and Hysteretic fitting
 %   tabs: dispatches a bound-constrained minimization to either PRIMA-BOBYQA
-%   (tuned npt, src/lib/bobyqa_prima/bobyqa_prima_tuned.m) or the legacy
-%   Nelder-Mead minimize() (src/lib/minimize), and maps the fitting tabs'
+%   (tuned npt, src/lib/bobyqa_mat/bobyqa_mat_tuned.m) or Nelder-Mead via
+%   minimize() (src/lib/minimize), and maps the fitting tabs'
 %   "Solver" dropdown text to the internal solver code each fit call site
 %   (fit.m, fit_physical.m, JAFitter.m) expects.
 
@@ -42,7 +42,7 @@ classdef SolverUtils
                 if ~isempty(output_fcn)
                     prima_options.output_fcn = output_fcn;
                 end
-                [x, fval] = bobyqa_prima_tuned(obj, x0, lb, ub, prima_options);
+                [x, fval] = bobyqa_mat_tuned(obj, x0, lb, ub, prima_options);
             end
         end
     end

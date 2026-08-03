@@ -69,8 +69,6 @@ classdef CurveConvertor
             M_end = M(1:H_min_index);
             M_sorted = [M_start M_end];
 
-            % [~, max_index] = max(M_sorted);    % find tip for Mmax 
-            % [~, max_index] = max(H_sorted);    % find tip for Hmax           
             H2M2 = sign(H_sorted).*(H_sorted).^2./max(H_sorted.^2) + sign(M_sorted).*(M_sorted).^2./max(M_sorted.^2);
             [~, max_index] = max(H2M2);          % find tip for normalized H2M2max    
             

@@ -1,20 +1,61 @@
-function [x, f, exitflag, nf] = bobyqa_prima(fun, x0, lb, ub, options)
-%BOBYQA_PRIMA  Bound-constrained derivative-free trust-region minimisation
-%   (BOBYQA-family) with no MEX/compiler and no paid toolbox dependency.
+function [x, f, exitflag, nf] = bobyqa_mat(fun, x0, lb, ub, options)
+%BOBYQA_MAT  Bound-constrained derivative-free trust-region minimisation
+%   (BOBYQA-family) in pure MATLAB - no MEX, no compiler, no toolbox.
 %
-%   [X, F, EXITFLAG, NF] = BOBYQA_PRIMA(FUN, X0, LB, UB) minimises the scalar
+%   [X, F, EXITFLAG, NF] = BOBYQA_MAT(FUN, X0, LB, UB) minimises the scalar
 %   function FUN(X) subject to LB <= X <= UB (either bound may be empty/-Inf/+Inf
 %   for an unconstrained direction), starting from X0, without requiring
 %   derivatives. FUN is evaluated at boundary-respecting points only.
 %
-%   [...] = BOBYQA_PRIMA(FUN, X0, LB, UB, OPTIONS) accepts a struct with fields:
-%     rhobeg  - initial trust-region radius (default 0.1)
-%     rhoend  - final trust-region radius / convergence tolerance (default 1e-6)
+%   Consider calling BOBYQA_MAT_TUNED instead: it wraps this function, picks
+%   NPT automatically from the problem size, preserves X0's row/column shape,
+%   and adds an early-stop/progress hook. Call BOBYQA_MAT directly when you
+%   want to choose NPT yourself.
+%
+%   INPUTS
+%     FUN   - handle to a scalar objective, called as FUN(X) with X a column
+%             vector of length n. Must return a real scalar (Inf/NaN are
+%             tolerated and treated as a failed step, not an error).
+%     X0    - initial point; clipped into [LB, UB] before the search starts.
+%     LB,UB - bounds. May be [] (meaning -Inf/+Inf), scalar (expanded to all
+%             n variables), or n-vectors.
+%
+%   [...] = BOBYQA_MAT(FUN, X0, LB, UB, OPTIONS) accepts a struct with fields:
+%     rhobeg  - initial trust-region radius, RELATIVE to each variable's own
+%               starting magnitude (see SCALING below; default 0.1)
+%     rhoend  - final trust-region radius / convergence tolerance, same
+%               relative units (default 1e-6)
 %     maxfun  - maximum number of function evaluations (default 400*(n+1))
-%     npt     - number of interpolation points, n+2 <= npt <= (n+1)(n+2)/2
-%               (default min((n+1)(n+2)/2, 2n+1); the full-quadratic value,
-%               (n+1)(n+2)/2, gave the best accuracy/efficiency in benchmarking
-%               against classic BOBYQA and Nelder-Mead for n<=11 - see below)
+%     npt     - number of interpolation points, n+2 <= npt <= (n+1)(n+2)/2;
+%               out-of-range values are clipped into that interval
+%               (default min((n+1)(n+2)/2, 2n+1), i.e. 2n+1 for n >= 2, which
+%               is also PRIMA's and Powell's own recommended default). See
+%               BOBYQA_MAT_TUNED and README.md for when a larger NPT pays off.
+%
+%   OUTPUTS
+%     X        - best point found (column vector, length n, always within the
+%                bounds), NOT necessarily the solver's own final iterate: the
+%                best point seen across every evaluation is tracked separately
+%                and returned.
+%     F        - FUN(X) at that point.
+%     EXITFLAG - 0  converged: RHO was reduced to RHOEND (see TERMINATION).
+%                3  the MAXFUN evaluation budget was exhausted first.
+%     NF       - number of times FUN was evaluated.
+%
+%   SCALING (important when reading RHOBEG/RHOEND)
+%   Variables are rescaled internally by s = |X0| elementwise, so the solver
+%   works in units of "fraction of the starting value" and RHOBEG/RHOEND are
+%   RELATIVE, not absolute: the default RHOBEG = 0.1 means the first
+%   trust-region radius is 10% of each variable's own starting magnitude, and
+%   RHOEND = 1e-6 asks for roughly 6 significant digits in each variable.
+%   Parameters spanning wildly different magnitudes (1e4 and 1e-2, say)
+%   therefore need no manual rescaling.
+%
+%   The exception is a variable whose X0 is (near) zero: |X0| < 1e-8 falls
+%   back to s = 1, making RHOBEG/RHOEND absolute for that variable alone. If
+%   such a variable actually ranges over, say, 1e6, either start it away from
+%   zero or rescale it yourself, otherwise its first step will be a 0.1
+%   absolute move - a millionth of its real range.
 %
 %   METHOD
 %   Each iteration builds a local quadratic interpolation model of FUN over NPT
@@ -27,15 +68,56 @@ function [x, f, exitflag, nf] = bobyqa_prima(fun, x0, lb, ub, options)
 %   PRIMA's own trsapp (approximate truncated-CG) and geostep (approximate
 %   Cauchy+line search), this implementation solves BOTH the trust-region step
 %   and the geometry-improving step EXACTLY via an active-set/secular-equation
-%   solver over the box-intersect-ball feasible region (trsbox.m) - benchmarked
-%   to match or exceed the accuracy of the approximate steps for n<=11 at no
-%   extra function-evaluation cost.
+%   solver over the box-intersect-ball feasible region (private/trsbox.m) -
+%   benchmarked to match or exceed the accuracy of the approximate steps for
+%   n <= 11 at no extra function-evaluation cost.
 %
 %   The interpolation state (BMAT/ZMAT/model) is seeded generically from an
-%   arbitrary bound-feasible point set (seed_prima_from_points.m, via a direct
-%   KKT solve, verified to 1e-13 against an independent reference), which
+%   arbitrary bound-feasible point set (private/seed_prima_from_points.m, via a
+%   direct KKT solve, verified to 1e-13 against an independent reference), which
 %   decouples initialisation from NEWUOA's hardwired +/-rhobeg geometry so that
 %   starting points near a bound are handled correctly.
+%
+%   TERMINATION
+%   There are only two stopping conditions, matching Powell's original BOBYQA
+%   [1] (see also the TRUST-REGION section of [2]'s algorithm description):
+%     1. RHO (the trust-region radius floor) has shrunk to RHOEND -> EXITFLAG=0.
+%     2. The evaluation count has reached MAXFUN -> EXITFLAG=3.
+%   RHO only shrinks once the recent trust-region/geometry steps have stopped
+%   making progress at the CURRENT radius (the reduce_rho_1/reduce_rho_2 tests
+%   below, which require several consecutive short/unsuccessful steps before
+%   allowing a reduction), and even then it shrinks in stages (see the
+%   rho/rhoend ratio schedule below), not straight to RHOEND in one jump.
+%
+%   This means long stretches of iterations with NO improvement in the best
+%   objective value seen so far are NORMAL, not a hang or a bug: between two
+%   RHO reductions, the algorithm spends evaluations on geometry-improving
+%   steps ("improve_geo" below) that only repair the interpolation point set
+%   so the next quadratic model is well-conditioned -- by construction these
+%   steps do not need to improve F, and often don't. The larger NPT is (see
+%   bobyqa_mat_tuned.m's automatic NPT-vs-N rule), the more such points can
+%   need fixing per RHO level, so problems with many free parameters can
+%   show hundreds of flat evaluations before the next RHO
+%   reduction finally lands, or before RHO reaches RHOEND altogether. This is
+%   the trust-region analogue of derivative-based methods needing many
+%   iterations near a shallow/flat region before their own stopping
+%   tolerance is satisfied.
+%
+%   Neither this function nor bobyqa_mat_tuned.m has a "no improvement in
+%   the last K evaluations" early-stop -- convergence is judged purely by RHO
+%   vs RHOEND and by MAXFUN, never by the recent trend in F. If a run is
+%   taking too long for your purposes, it is safe to stop it before RHOEND is
+%   reached: bobyqa_mat_tuned's OUTPUT_FCN hook (see that file) aborts the
+%   search at the next evaluation and returns the best point found so far,
+%   not whatever partial iterate the algorithm was mid-step on. Lowering
+%   RHOEND (looser tolerance) or MAXFUN (smaller budget) has the same effect,
+%   set in advance rather than interactively.
+%
+%   EXAMPLE
+%     % Rosenbrock restricted to a box that excludes the true minimum (1,1).
+%     rosen = @(x) 100*(x(2)-x(1)^2)^2 + (1-x(1))^2;
+%     [x, f, flag, nf] = bobyqa_mat(rosen, [0; 0], [-2; -2], [0.5; 0.5]);
+%     % -> x ~ [0.5; 0.25], f ~ 0.25, flag = 0
 %
 %   REFERENCES
 %   [1] M.J.D. Powell, "The BOBYQA algorithm for bound constrained optimization
@@ -45,13 +127,12 @@ function [x, f, exitflag, nf] = bobyqa_prima(fun, x0, lb, ub, options)
 %   [2] Z. Zhang et al., PRIMA: "Reference Implementation for Powell's methods
 %       with Modernization and Amelioration", https://github.com/libprima/prima
 %       (BSD-3-Clause). The pure-MATLAB NEWUOA update machinery in private/ is
-%       reused from this project (see NOTICE / license.txt for full attribution).
+%       reused from this project (see private/NOTICE.md and license.txt for
+%       full attribution). This library is not affiliated with or endorsed by
+%       the PRIMA project.
 %
-%   See also: OPTIMIZER_EVALUATION.md and V2_NOTES.md for the full derivation,
-%   verification, and benchmark comparison against classic BOBYQA, Nelder-Mead
-%   (the fminsearch-based MINIMIZE), and Py-BOBYQA (Cartis et al. 2019,
-%   DOI 10.1145/3338517), from which this solver was selected as the accuracy
-%   and efficiency leader for n<=4, tied on accuracy at n=5.
+%   See also BOBYQA_MAT_TUNED, and README.md for usage notes, the NPT
+%   trade-off, and limitations.
     if nargin < 5, options = struct(); end
     x0 = x0(:); n = numel(x0);
     if isempty(lb), lb = -inf(n,1); end
@@ -61,7 +142,8 @@ function [x, f, exitflag, nf] = bobyqa_prima(fun, x0, lb, ub, options)
     if isscalar(ub), ub = ub*ones(n,1); end
     x0 = min(max(x0, lb), ub);
 
-    % Per-variable scaling (match bqa/pybobyqa for a fair comparison).
+    % Per-variable scaling: work in units of each variable's own starting
+    % magnitude, so rhobeg/rhoend are relative (see SCALING in the help above).
     s = abs(x0); s(s < 1e-8) = 1;
     z0 = x0 ./ s; lbz = lb ./ s; ubz = ub ./ s;
 
@@ -87,7 +169,12 @@ function [x, f, exitflag, nf] = bobyqa_prima(fun, x0, lb, ub, options)
     rho = rhobeg; delta = rho;
     dnormsav = Inf(3,1); moderrsav = Inf(3,1);
     itest = 0;
-    exitflag = 5;
+    % Budget-exhausted is the default outcome; only a rho <= rhoend test below
+    % overwrites it with 0 (converged). Initialising it here rather than at
+    % each break keeps every exit path inside the documented {0,3} set --
+    % previously the two "nf >= maxfun" breaks inside the trust-region and
+    % geometry steps fell through with an undocumented value.
+    exitflag = 3;
 
     maxtr = 20*maxfun;
     for tr = 1:maxtr

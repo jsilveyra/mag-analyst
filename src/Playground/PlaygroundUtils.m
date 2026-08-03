@@ -70,6 +70,19 @@ classdef PlaygroundUtils
             end
         end
 
+        function ok = set_major_amplitude_from_data_tip(app)
+            % Unconditionally sets the Major-loop "H amplitude" field to the
+            % measured curve's tip Htip. Called only from the Hysteretic
+            % tab's "Retrieve seeds" button (HystereticUtils.retrieve_ja_seeds)
+            % -- this is the single trigger that (re)populates the field, so a
+            % saved project's value or a manual edit is otherwise left alone
+            % (see the NOTE in sync_major_ui).
+            [Htip_data, ~, ok] = PlaygroundUtils.get_data_tip(app);
+            if ok
+                app.HamplitudeAmEditField.Value = Htip_data;
+            end
+        end
+
         function set_enable(component, state)
             % Guarded enable/disable: only touches the Enable property when
             % the component actually has one (older-release uilabel safety),
@@ -93,20 +106,20 @@ classdef PlaygroundUtils
 
             start_mode = lower(string(app.StartingpointDropDown.Value));
             is_fixed = string(app.StopcriterionDropDown.Value) == "Fixed repetitions";
-            has_data = PlaygroundUtils.has_data_curve(app);
 
             if contains(start_mode, "demagnetized")
                 app.HstartAmEditField.Value = 0;
                 app.MstartAmEditField.Value = 0;
                 PlaygroundUtils.set_field_enable(app.HstartAmEditField, app.HstartAmEditFieldLabel, 'off');
                 PlaygroundUtils.set_field_enable(app.MstartAmEditField, app.MstartAmEditFieldLabel, 'off');
+                % NOTE: unlike "tip point" below, the amplitude field here is
+                % NOT auto-synced to the data tip on every sync pass -- it is
+                % only ever set by the "Retrieve seeds" button (see
+                % HystereticUtils.retrieve_ja_seeds ->
+                % PlaygroundUtils.set_major_amplitude_from_data_tip) or by the
+                % user typing directly, so a saved project's value (or a
+                % manual edit) is never silently overwritten.
                 PlaygroundUtils.set_field_enable(app.HamplitudeAmEditField, app.HamplitudeAmEditFieldLabel, 'on');
-                if has_data
-                    [Htip_data, ~, ok_tip] = PlaygroundUtils.get_data_tip(app);
-                    if ok_tip && (~isfinite(app.HamplitudeAmEditField.Value) || app.HamplitudeAmEditField.Value <= 0)
-                        app.HamplitudeAmEditField.Value = Htip_data;
-                    end
-                end
             elseif contains(start_mode, "tip point")
                 [Htip_data, Mtip_data, ok_tip] = PlaygroundUtils.get_data_tip(app);
                 if ok_tip
@@ -1294,10 +1307,11 @@ classdef PlaygroundUtils
         end
 
         function values = get_harmonics_default_table_values(app)
-            % Default harmonic drive chosen to resemble the example waveform
-            % more closely: a fundamental plus a few lower-amplitude odd harmonics
-            % with zero phase, which already create nested minor loops without
-            % overcomplicating the initial pattern.
+            % Default harmonic drive: the fundamental at the measured data
+            % tip plus a weaker, phase-shifted 5th harmonic. That is enough to
+            % produce visible nested minor loops without overcomplicating the
+            % initial pattern, and it is only a starting point -- the table is
+            % fully user-editable.
             [Htip, ~, ok] = PlaygroundUtils.get_data_tip(app);
             if ok && isfinite(Htip) && Htip > 0
                 A1 = Htip;

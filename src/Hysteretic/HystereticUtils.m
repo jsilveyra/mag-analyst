@@ -352,7 +352,6 @@ classdef HystereticUtils
             elseif has_raw_data
                 [H_plot, M_plot] = HystereticUtils.build_ja_data_cycle(app);
                 plot(ax, H_plot, M_plot, '.', 'Color', [0 0 0], 'LineWidth', 1.0, 'MarkerSize', 7, 'DisplayName', 'Measured');
-                app.write_message("Hysteresis loop data in " + M_label + " vs " + H_label + " successfully retrieved.");
             else
                 app.write_message("No dataset imported yet. Please import a dataset on the Input data tab first.");
             end
@@ -439,9 +438,23 @@ classdef HystereticUtils
             if app.hysteretic_ms_lower_bound_user_edited
                 return;
             end
-            [~, Mtip, ok] = HystereticUtils.get_ja_tip_from_tab_or_data(app);
-            if ok
-                app.MsLower_JA.Value = Mtip;
+            % Called from InputUtils.import_data, BEFORE app.plot_input()
+            % refreshes app.Htip/app.Mtip for the just-imported curve -- so
+            % get_ja_tip_from_tab_or_data's tab-field-first lookup would
+            % return the PREVIOUS dataset's tip here (e.g. a leftover A/m
+            % tip when the new import is in sigma units), silently seeding
+            % this bound at the wrong scale. Compute the tip directly from
+            % app.data_curve (already updated to the new import at this
+            % point) instead of going through the tab fields.
+            if isempty(app.data_curve) || ~isprop(app.data_curve, 'H') || isempty(app.data_curve.H)
+                return;
+            end
+            try
+                [~, Mtip] = Utils().find_tip(app.data_curve.H, app.data_curve.M);
+                if isfinite(Mtip)
+                    app.MsLower_JA.Value = Mtip;
+                end
+            catch
             end
         end
 
@@ -502,6 +515,7 @@ classdef HystereticUtils
                 app.write_message("Warning: No anhysteretic magnetization modelling has been performed.");
                 app.write_message("Jiles–Atherton seeds for Ms, a, α, and k were not initialized; the coupling parameter c was set to 1/3.");
             end
+            PlaygroundUtils.set_major_amplitude_from_data_tip(app);   % also (re)populate Playground's Major-loop H amplitude from the data tip
             MenuUtils.mark_project_dirty(app);
             drawnow;
         end
@@ -522,7 +536,7 @@ classdef HystereticUtils
             % descending (left) branch via descending_branch(), which is
             % single-valued and -- for the point-symmetric JA major loop --
             % fully determines the fit (this is also the branch the blind
-            % method of Conde Garrido et al., IEEE TMAG 2025, compares).
+            % method of Conde Garrido et al., IEEE TMAG 2026, compares).
             % The continuous Diagonal metric uses distance2curve, which is
             % loop-safe, so it is left on the full loop unchanged. (For the
             % "Left branch only" fitting region every input is already a
@@ -756,9 +770,15 @@ classdef HystereticUtils
                 % Prefer the best point FitProgressUtils tracked across every
                 % evaluated point during the search over JAFitter.fit's own
                 % returned point -- see the matching comment in
-                % AnhystereticUtils.fit_parameters.
+                % AnhystereticUtils.fit_parameters. Only take it when it is
+                % actually better than JAFitter.fit's own (already
+                % seed-guarded) Jopt: FitProgressUtils.get_best has no
+                % knowledge of the seed's error and would otherwise report
+                % a BIG-penalty (unphysical, e.g. k<0) point as "best" when
+                % the search never beat it, replacing a good seed-guarded
+                % result with a worse one.
                 [best_x, best_val, has_best] = FitProgressUtils.get_best(app, 'hyst');
-                if has_best
+                if has_best && best_val < fit_result.Jopt
                     [~, map] = JAFitUtils.pack_params(params_seed, mask);
                     fit_result.params_opt = JAFitUtils.unpack_params(best_x, map, params_seed, mask, estimate_k_fn);
                     fit_result.Jopt = best_val;
@@ -782,6 +802,9 @@ classdef HystereticUtils
                     app.write_message("Fitting stopped by user after " + FormatUtils.format_short(t) + " s");
                 else
                     app.write_message("Fitting finished after " + FormatUtils.format_short(t) + " s");
+                    if mask.k_dependent
+                        app.write_message("Tip: uncheck 'Constrained by Hc' and fit again to further refine the JA model parameters.");
+                    end
                 end
             catch ME
                 t = toc(fit_timer);

@@ -14,6 +14,7 @@ classdef InputUtils
             app.HTipField.Value = HTip;
             app.Htip.Value = HTip;
             app.Mtip.Value = MTip;
+            app.MtipAmLabel.Text = char(DisplayUnits.get_Mtip_label(app));
             cla(app.AxesProcessedInputData, 'reset')
             cla(app.AxesRawInputData, 'reset')
             plotter = Plotter(app.data_curve, app.modeled_curve, [], app.Colors, 5);
@@ -256,9 +257,9 @@ classdef InputUtils
         end
 
         function reprocess_dataset(app)
-            % shared by CurveDropDownValueChanged and InputApplyPointsButtonPushed
-            % (now wired to both the N° of points field and, historically, its
-            % Apply button) -- previously identical logic duplicated in app_exported.m.
+            % Shared by CurveDropDownValueChanged and
+            % InputApplyPointsButtonPushed, so the N° of points field and its
+            % Apply button reprocess the curve identically.
             dataset_path = app.InputDatasetPath.Value;
             if dataset_path == ""
                 FileDialogUtils.write_dataset_not_found_message(app, dataset_path);

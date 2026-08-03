@@ -2,10 +2,16 @@
 %  Programmatic MagAnalyst demo: ANHYSTERETIC fit with a SINGLE component.
 %
 %  Pipeline (mirrors the "Anhysteretic fitting" tab, without the GUI):
-%     import measured M(H)  ->  auto-retrieve fit seeds  ->  fit the
-%     fitting parameters (Hcr, m(Hcr))  ->  derive the physical
-%     magnetic parameters (Ms, a, alpha)  ->  build the modeled curve
-%     ->  report fit errors  ->  plot.
+%     1. Import the measured M(H) curve.
+%     2. Auto-retrieve the fit seeds from the measured H*dM/dH "halo".
+%     3. Choose the fit settings (a-root, bounds, objective, solver).
+%     4. Fit the distribution parameters (Hcr, m(Hcr)).
+%     5. Derive the physical magnetic parameters (Ms, a, alpha).
+%     6. OPTIONAL refinement: re-fit the PHYSICAL parameters directly,
+%        seeded from step 5 (the GUI's "reduce dof" UNCHECKED second stage).
+%     7. Build the modeled curve on a GUI-style log field grid.
+%     8. Report the fit errors.
+%     9. Plot.
 %
 %  The anhysteretic model describes each magnetic "component"
 %  by two fitting parameters:
@@ -104,12 +110,13 @@ error_type = "Diagonal (logH, continuous)";
 N = 100;
 
 % solver: the optimizer used to minimize the fit error. Options:
-%   "prima"       - PRIMA-BOBYQA, tuned npt (default; see src/lib/bobyqa_prima).
+%   "prima"       - PRIMA-BOBYQA, tuned npt (default; see src/lib/bobyqa_mat).
 %                   Model-based trust-region solver; picks a full-quadratic or
 %                   2n+1 interpolation model automatically from the parameter
-%                   count (see bobyqa_prima_tuned.m and this repo's
-%                   docs/solvers.md for the benchmark behind that choice).
-%   "nelder_mead" - the legacy Nelder-Mead simplex (src/lib/minimize).
+%                   count (see bobyqa_mat_tuned.m and
+%                   src/lib/bobyqa_mat/README.md for the benchmark behind
+%                   that choice).
+%   "nelder_mead" - Nelder-Mead simplex via minimize (src/lib/minimize).
 % This mirrors the GUI's "Solver" dropdown on the Anhysteretic/Hysteretic tabs.
 solver = "prima";
 
@@ -134,13 +141,66 @@ fprintf('   alpha = %.6g\n',       magnetic_parameters.alpha);
 fprintf('   Hk    = %.6g A/m\n',   magnetic_parameters.Hk);
 fprintf('   chi_in (total) = %.6g\n', magnetic_parameters.chi_in_total);
 
-%% --- 6) Build the modeled curve on a GUI-style log field grid -----------
+%% --- 6) OPTIONAL: refine the fit over the physical parameters -----------
+% This is the GUI's "reduce dof" UNCHECKED second stage -- the Anhysteretic
+% tab suggests it in the Messages panel after every reduced-dof fit ("Tip:
+% uncheck 'reduce dof' and fit again to further refine the physical
+% parameters.").
+%
+% Steps 4-5 fit the 3*n-1 DISTRIBUTION parameters, which pins the modeled
+% curve to the measured tip (and, for n > 1, to the data at each Hx). That
+% constraint is what removes one degree of freedom: Ms is solved for, not
+% fitted. fit_physical drops those constraint points and optimizes the 3*n
+% PHYSICAL parameters [Ms(1..n), alpha(1..n), a(1..n)] directly, seeded from
+% the values just derived, so Ms becomes a free variable too.
+%
+% They are left unbounded (in a multicomponent model an individual
+% component's Ms may legitimately be negative), and fit_physical both works
+% in seed-normalized coordinates and keeps a seed guard, so the error can
+% only improve or stay equal -- never worsen.
+refine_physical = true;        % set false to stop after the reduced-dof fit
+
+if refine_physical
+    % fit_physical's parameter layout: [Ms(1..n), alpha(1..n), a(1..n)].
+    seed_physical = [magnetic_parameters.Ms, magnetic_parameters.alpha, magnetic_parameters.a];
+
+    BIG = 1e12;                            % finite stand-in for "unbounded"
+    n_physical = 3 * number_components;
+    physical_lb = -BIG * ones(n_physical, 1);
+    physical_ub =  BIG * ones(n_physical, 1);
+    physical_select_fit = num2cell(true(n_physical, 1));   % all free
+
+    % fit_physical(data_curve, seed, N, error_type, lb, ub, select_fit, output_fcn, solver)
+    % -- same objective, sample grid and solver as fit(), so the reported
+    % error is directly comparable with the reduced-dof one.
+    [Ms_ref, alpha_ref, a_ref] = fit_physical(data_curve, seed_physical, N, error_type, ...
+                                              physical_lb, physical_ub, physical_select_fit, ...
+                                              [], solver);
+
+    % Physical construction mode: hand MagneticParameters the fitted Ms /
+    % alpha / a directly instead of deriving them from (Hcr, mcr, Hx).
+    physical = struct('Ms', Ms_ref, 'alpha', alpha_ref, 'a', a_ref);
+    magnetic_parameters = MagneticParameters(data_curve, [], [], [], [], physical);
+
+    fprintf('\nRefined physical parameters ("reduce dof" unchecked):\n');
+    fprintf('   Ms    = %.6g A/m\n',   magnetic_parameters.Ms);
+    fprintf('   a     = %.6g A/m\n',   magnetic_parameters.a);
+    fprintf('   alpha = %.6g\n',       magnetic_parameters.alpha);
+    fprintf('   Hk    = %.6g A/m\n',   magnetic_parameters.Hk);
+    fprintf('   chi_in (total) = %.6g\n', magnetic_parameters.chi_in_total);
+
+    % Hcr / m(Hcr) are NOT re-derived from the refined parameters, so from
+    % here on they are stale -- exactly as in the GUI, which greys out the
+    % mathematical-parameters table in this mode.
+end
+
+%% --- 7) Build the modeled curve on a GUI-style log field grid -----------
 [HTip, ~] = Utils().find_tip(data_curve.H, data_curve.M);
 Hpos = data_curve.H(data_curve.H > 0);
 Hhat = [0, logspace(log10(min(Hpos)), log10(HTip), N-1)];
 modeled_curve = ModeledAnhystereticCurve(Hhat, magnetic_parameters);
 
-%% --- 7) Report the fit errors -------------------------------------------
+%% --- 8) Report the fit errors -------------------------------------------
 % Each error calculator scores the modeled curve against the data with a
 % different metric (all normalized RMS, dimensionless -- see
 % src/Common/ErrorCalculator.m); lower is better. These are the same six
@@ -154,14 +214,22 @@ fprintf('   Diagonal (logH, continuous) = %.6g\n', DiagonalErrorCalculator(data_
 fprintf('   Vertical                    = %.6g\n', VerticalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M, true).get_error());
 fprintf('   Horizontal                  = %.6g\n', HorizontalErrorCalculator(data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M, true).get_error());
 
-%% --- 8) Plots ------------------------------------------------------------
+%% --- 9) Plots ------------------------------------------------------------
 % Colors: row 1 = total modeled curve, rows 2..n+1 = per-component curves.
 colors = [0.85 0.33 0.10;    % total (orange)
           0.00 0.45 0.74];   % component 1 (blue)
 plot_components = false;      % single component -> nothing extra to overlay
 plot_grid       = true;
 
-plotter = Plotter(data_curve, modeled_curve, Hcr, colors, 8);
+% Hcr marker lines: only meaningful while the distribution parameters are
+% the ones behind the modeled curve (pass [] after a physical refinement).
+if refine_physical
+    hcr_markers = [];
+else
+    hcr_markers = Hcr;
+end
+
+plotter = Plotter(data_curve, modeled_curve, hcr_markers, colors, 8);
 
 figure('Name', 'Demo 1 - Anhysteretic fit (1 component)');
 tiledlayout(1, 2);

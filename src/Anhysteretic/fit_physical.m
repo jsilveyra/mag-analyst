@@ -16,9 +16,9 @@ function [Ms, alpha, a] = fit_physical(data_curve, seed, N, error_type, lb, ub, 
 %   Two things keep the promise that the error can only improve, never worsen:
 %     * The optimization runs in SEED-NORMALIZED coordinates -- each parameter
 %       is divided by a per-block characteristic scale so Ms (~1e5), alpha
-%       (~1e-4) and a (~1e1) are all O(1). Without this, the gradient
-%       minimizer's finite-difference steps are swamped by the largest block
-%       and it can step to (and return) a worse point.
+%       (~1e-4) and a (~1e1) are all O(1). Without this, a single step size
+%       and tolerance cannot serve all three blocks at once, and the search
+%       can step to (and return) a worse point.
 %     * A final SEED GUARD compares the optimizer's result against the seed and
 %       returns whichever has the lower error -- so a failed/hurtful search
 %       degrades to "no change", never to "worse".
@@ -106,8 +106,8 @@ function [Ms, alpha, a] = fit_physical(data_curve, seed, N, error_type, lb, ub, 
     % it -- yb range balloons to ~1e15), (y0-ylb)/(yub-ylb) rounds to
     % exactly 0.5 in double precision and the transform silently discards
     % the seed, handing the optimizer an arbitrary starting point instead
-    % (verified: iteration 0's function value no longer matches
-    % objective(y0)). A cap of 1e6 keeps a scaled seed of O(1) many orders
+    % (iteration 0's function value then no longer matches objective(y0)).
+    % A cap of 1e6 keeps a scaled seed of O(1) many orders
     % below the bound -- still effectively unconstrained for the optimizer
     % -- while leaving ~1e-10 of absolute precision around y0, far above
     % TolX=1e-5.

@@ -59,10 +59,13 @@ classdef DisplayUnits
         end
 
         function label = get_HdMdH_label(app)
+            % Ordinary derivative (M is a function of the single variable
+            % H, or equivalently lnH) -- use "d", matching get_dMdH_label,
+            % not the partial-derivative "∂".
             if app.M_is_mass_based
-                label = "∂σ/∂(lnH) [Am²/kg]";
+                label = "dσ/d(lnH) [Am²/kg]";
             else
-                label = "∂M/∂(lnH) [A/m]";
+                label = "dM/d(lnH) [A/m]";
             end
         end
 
@@ -142,10 +145,10 @@ classdef DisplayUnits
 
         function label = get_Js_slot_label(app)
             % Js [T] (saturation polarization) needs the true volume Ms,
-            % not computable from a mass-native fit without a known density
-            % (deferred, see docs/ideas/mass-density-cross-view.md) -- its
-            % display slot is replaced by the total sigma_S instead (same
-            % label as get_Ms_scalar_label, since it's the same quantity).
+            % which a mass-native fit cannot supply without a known density,
+            % so its display slot is replaced by the total sigma_S instead
+            % (same label as get_Ms_scalar_label, since it's the same
+            % quantity).
             if app.M_is_mass_based
                 label = "σs [Am²/kg]";
             else

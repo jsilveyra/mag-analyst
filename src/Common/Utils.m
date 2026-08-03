@@ -11,9 +11,9 @@ classdef Utils
             m = fzero(@f_m, 0.5);
         end
 
-        function [HTip, MTip] = find_tip(~, H, M)
-            [MTip, i] = max(M);
-            HTip = H(i);
+        function [Htip, Mtip] = find_tip(~, H, M)
+            [Mtip, i] = max(M);
+            Htip = H(i);
         end
     end
 end

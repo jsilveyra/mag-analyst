@@ -2,7 +2,7 @@ classdef ThemeUtils
 %THEMEUTILS App-wide runtime visual theme (colors/fonts/line widths).
 %   Shared by every tab, so it lives here rather than in a per-tab Utils
 %   file. app_exported.m only needs a single delegator call,
-%   ThemeUtils.apply_theme(app), at the end of startupFcn. ColorDialog.m
+%   ThemeUtils.apply_theme(app), at the end of startupFcn. ColorDialog
 %   (a separate small .mlapp) needs ThemeUtils.apply_theme_to_dialog(app)
 %   at the end of its own startupFcn.
 

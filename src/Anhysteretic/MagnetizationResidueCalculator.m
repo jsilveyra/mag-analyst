@@ -11,9 +11,9 @@ classdef MagnetizationResidueCalculator < ResidueCalculator
             obj.Y = [0 obj.Y];
 
             obj.Xhat = log(modeled_curve.H(modeled_curve.H>0));
-			obj.Xhat = [0 obj.Xhat];
+            obj.Xhat = [0 obj.Xhat];
             obj.Yhat = modeled_curve.M(modeled_curve.H>0);
-			obj.Yhat = [0 obj.Yhat];
+            obj.Yhat = [0 obj.Yhat];
         end
     end
 end

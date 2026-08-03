@@ -1,7 +1,7 @@
 classdef Plotter
 %PLOTTER  Draws measured vs. modeled anhysteretic curves on a given axes.
 %   Plotter(data_curve, modeled_curve, Hcr, colors, marker_size) plots M,
-%   dM/dH, and the semilog derivative H*dM/dH (linear or log-H variants via
+%   dM/dH, and the semilog derivative dM/d(lnH) = H*dM/dH (linear or log-H variants via
 %   plot_M/plot_M_log/plot_dMdH/plot_dMdH_log/plot_HdMdH/plot_HdMdH_log),
 %   optionally overlaying per-component curves and Hcr marker lines
 %   (plot_Hcr). Also provides plot_raw/plot_raw_log for generic scatter plots.
@@ -114,7 +114,7 @@ classdef Plotter
 
         function plot_dMdH(obj, ax, plot_components, plot_grid, dMdH_label)
             if nargin < 5 || isempty(dMdH_label)
-                dMdH_label = '∂M/∂H';
+                dMdH_label = 'dM/dH';
             end
             hold( ax, 'on' );
             yline(ax, 0);
@@ -146,7 +146,7 @@ classdef Plotter
 
         function plot_dMdH_log(obj, ax, plot_components, plot_grid, dMdH_label)
             if nargin < 5 || isempty(dMdH_label)
-                dMdH_label = '∂M/∂H';
+                dMdH_label = 'dM/dH';
             end
             [H_data, dMdH_data] = obj.positive_x(obj.data_curve.H, obj.data_curve.dMdH);
             semilogx(ax, H_data, dMdH_data, '.', 'markersize', obj.MarkerSize, "Color", [0 0 0]);
@@ -178,7 +178,7 @@ classdef Plotter
 
         function plot_HdMdH_log(obj, ax, plot_components, plot_grid, HdMdH_label)
             if nargin < 5 || isempty(HdMdH_label)
-                HdMdH_label = '∂M/∂(lnH) [A/m]';
+                HdMdH_label = 'dM/d(lnH) [A/m]';
             end
             hold( ax, 'on' );
             yline(ax, 0);
@@ -210,7 +210,7 @@ classdef Plotter
 
         function plot_HdMdH(obj, ax, plot_components, plot_grid, HdMdH_label)
             if nargin < 5 || isempty(HdMdH_label)
-                HdMdH_label = '∂M/∂(lnH) [A/m]';
+                HdMdH_label = 'dM/d(lnH) [A/m]';
             end
             hold( ax, 'on' );
             yline(ax, 0);

@@ -1,6 +1,6 @@
 The MIT License (MIT)
 
-MagAnalyst 2.17
+MagAnalyst 2.0.0
 Copyright © 2026 Matías Ignacio González, Marina Zoe Petean, Tomás Francisco González, Juan Manuel Conde Garrido, Josefina María Silveyra
 All rights reserved.
 
@@ -11,13 +11,19 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 Includes external libraries:
-- minimize, Copyright 2018 Rody Oldenhuis. For licensing see /src/lib//minimize/license.txt
+- minimize, Copyright 2018 Rody Oldenhuis. For licensing see /src/lib/minimize/license.txt
 - interparc, Copyright 2012 John D'Errico. For licensing see /src/lib/interparc/license.txt
 - distance2curve, Copyright 2012 John D'Errico. For licensing see /src/lib/distance2curve/license.txt
 
 Includes a library developed for this project that reuses third-party BSD-3
 code:
-- bobyqa_prima (bound-constrained derivative-free optimizer), Copyright 2026
-  Josefina María Silveyra, incorporating BSD-3-licensed code from the PRIMA
-  project (Copyright Zaikun Zhang and PRIMA contributors,
-  github.com/libprima/prima). For licensing see /src/lib/bobyqa_prima/license.txt
+- bobyqa_mat (bound-constrained derivative-free optimizer), Copyright 2026
+  Josefina María Silveyra and Juan Manuel Conde Garrido, incorporating
+  BSD-3-licensed code from the PRIMA project (Copyright 2020-2026 Zaikun
+  ZHANG, github.com/libprima/prima). For licensing see
+  /src/lib/bobyqa_mat/license.txt
+
+Includes a bundled companion tool with its own license file:
+- MagAnalyst Plot Digitizer, Copyright 2026 Josefina María Silveyra and
+  Juan Manuel Conde Garrido (MIT), bundling a copy of BSD-licensed interparc
+  by John D'Errico. For licensing see /tools/plot_digitizer/license.txt

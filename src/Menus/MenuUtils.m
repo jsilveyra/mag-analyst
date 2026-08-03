@@ -103,9 +103,9 @@ classdef MenuUtils
         function txt = num_to_json_safe_str(value)
             %NUM_TO_JSON_SAFE_STR Render a scalar double as text so Inf/-Inf/
             %   NaN survive a jsonencode/jsondecode round trip (both collapse
-            %   to JSON null and decode back as NaN otherwise -- verified:
-            %   Inf and -Inf are indistinguishable once encoded as bare
-            %   numbers). Empty stays empty (used for "auto"/unset bounds).
+            %   to JSON null and decode back as NaN otherwise, which makes
+            %   Inf and -Inf indistinguishable). Empty stays empty (used for
+            %   "auto"/unset bounds).
             if isempty(value)
                 txt = '';
             else
@@ -247,7 +247,23 @@ classdef MenuUtils
             app.configure_harmonics_table();
             app.init_parameters_table(true);
             app.init_quantities_table(true);
-            app.NofcomponentsSpinner.Value = app.number_components;
+            app.NofcompSpinner.Value = app.number_components;
+
+            % open_project() never re-imports the CSV (only import_data does),
+            % so app.M_is_mass_based -- and therefore VerticalaxisfieldDropDown_2's
+            % Items list, which sync_playground_mass_ui swaps between the single
+            % sigma unit and the volume-unit list -- would otherwise still be
+            % whatever was left over from before this project was opened. Restore
+            % it from the saved Input-tab vertical axis (mass-based projects only
+            % ever save "play_vertical_axis" as the single sigma unit) before the
+            % generic specs loop below tries to set that dropdown's Value, or a
+            % mass-based project fails validateValuePresentInItems.
+            if isfield(s, 'vertical_axis')
+                app.M_is_mass_based = InputUtils.is_mass_unit(s.vertical_axis);
+            else
+                app.M_is_mass_based = false;
+            end
+            PlaygroundUtils.sync_playground_mass_ui(app);
 
             % --- Every plain Value-holding control, in one pass ---
             specs = MenuUtils.simple_field_specs();
@@ -257,10 +273,10 @@ classdef MenuUtils
                     app.(specs{i,2}).Value = s.(key);
                 end
             end
-            % Backward-compat: pre-2.7 files only ever wrote the HdMdH grid/
-            % components checkboxes (as a single shared value) and never
-            % actually wrote the "show Hcr" value at all (save() omitted it,
-            % so it silently always fell back to the default below).
+            % Backward compatibility: project files written by earlier
+            % MagAnalyst versions only stored the HdMdH grid/components
+            % checkboxes (as a single shared value) and never stored the
+            % "show Hcr" value at all, so it falls back to the default below.
             if ~isfield(s, 'anh_show_grid_m') && isfield(s, 'fitting_show_grid_checkbox')
                 app.ShowgridCheckBoxM.Value = s.fitting_show_grid_checkbox;
                 app.ShowgridCheckBoxdMdH.Value = s.fitting_show_grid_checkbox;
@@ -295,8 +311,9 @@ classdef MenuUtils
                 app.lb = lb_vals(:)';
                 app.ub = ub_vals(:)';
             elseif isfield(s, 'fitted_parameters_lower_bound') && isfield(s, 'fitted_parameters_upper_bound')
-                % Legacy (pre-2.7) files stored the sigfig-rounded display
-                % strings instead of the full-precision bound arrays.
+                % Project files written by earlier MagAnalyst versions
+                % stored the significant-figure-rounded display strings
+                % instead of the full-precision bound arrays.
                 app.lb = cellfun(@(v) str2double(v), cellstr(s.fitted_parameters_lower_bound(:)))';
                 app.ub = cellfun(@(v) str2double(v), cellstr(s.fitted_parameters_upper_bound(:)))';
             end
@@ -398,7 +415,14 @@ classdef MenuUtils
             if (app.calculate_and_plot() == -1)
                 return
             end
+            % calculate_plot_and_refresh_hysteretic() -- despite its name --
+            % only draws the Anhysteretic tab's axes and refreshes the
+            % Hysteretic tab's tip fields/error display; it never draws to
+            % the Hysteretic tab's own AxesM_2 or the Playground axes, so
+            % both need an explicit plot call here too.
             app.calculate_plot_and_refresh_hysteretic();
+            app.plot_hysteretic_tab_data();
+            app.plot_playground();
 
             app.ProjectDirty = false;
             MenuUtils.update_window_title(app);
@@ -461,9 +485,7 @@ classdef MenuUtils
 
         function reset_app(app)
             %RESET_APP Clear all four tabs' data/tables/plots/caches back to
-            %   a startup-like state. The deprecated (detached) Output-data
-            %   tab and its Save/Save-as-linked fields are deliberately left
-            %   untouched -- see src/Menus/README.md.
+            %   a startup-like state.
 
             % --- Input tab ---
             app.H_raw = [];
@@ -474,6 +496,11 @@ classdef MenuUtils
             app.last_import_folder = "";
             app.InputDatasetPath.Value = '';
             app.DescriptionTextArea.Value = {''};
+            app.HorizontalaxisfieldDropDown.Value = 'H [A/m]';
+            app.VerticalaxisfieldDropDown.Value = 'B [T]';
+            app.CurvetypeDropDown.Value = 'Hysteresis loop';
+            app.InputAxisScaleDropDown.Value = 'linear';
+            app.InputNumberofPointsEditField.Value = 50;
             cla(app.AxesRawInputData, 'reset');
             cla(app.AxesProcessedInputData, 'reset');
 
@@ -494,11 +521,27 @@ classdef MenuUtils
             app.lb = [];
             app.ub = [];
             app.select_fit = [];
-            app.NofcomponentsSpinner.Value = 1;
+            app.NofcompSpinner.Value = 1;
             app.number_components = 1;
             app.init_components();
             app.init_parameters_table(true);
             app.init_quantities_table(true);
+            app.PointSpaceDropDown.Value = 'log';
+            app.NofpointsEditField.Value = 100;
+            app.ErrorDropDown.Value = 'Diagonal (logH, continuous)';
+            app.SolverDropDown.Value = 'PRIMA-BOBYQA, tuned npt';
+            app.ShowgridCheckBoxM.Value = true;
+            app.ShowgridCheckBoxdMdH.Value = true;
+            app.ShowgridCheckBoxHdMdH.Value = true;
+            app.PlotcomponentsCheckBoxM.Value = true;
+            app.PlotcomponentsCheckBoxdMdH.Value = true;
+            app.PlotcomponentsCheckBoxHdMdH.Value = true;
+            app.ShowhcrCheckBoxM.Value = true;
+            app.ShowhcrCheckBoxdMdH.Value = true;
+            app.ShowhcrCheckBoxHdMdH.Value = true;
+            app.AxisScaleDropDownM.Value = 'semilog-x';
+            app.AxisScaleDropDowndMdH.Value = 'semilog-x';
+            app.AxisScaleDropDownHdMdH.Value = 'semilog-x';
             AnhystereticUtils.sync_reduce_dof_ui(app);
             cla(app.AxesM, 'reset');
             cla(app.AxesdMdH, 'reset');
@@ -525,6 +568,21 @@ classdef MenuUtils
             app.kUpper_JA.Value = Inf;
             app.Htip.Value = [];
             app.Mtip.Value = [];
+            app.SolverDropDown_2.Value = 'PRIMA-BOBYQA, tuned npt';
+            app.MaximumrepetitionsEditField.Value = 3;
+            app.RelativetoleranceEditField.Value = 0.001;
+            app.RepetitionsEditField_3.Value = 1;
+            app.StopcriterionDropDown_5.Value = 'Until convergence';
+            app.FittingregionDropDown.Value = 'Entire loop';
+            app.StartingpointDropDown_4.Value = 'Demagnetized';
+            app.ErrortominimizeDropDown_2.Value = 'Diagonal (H, continuous)';
+            app.ShowgridCheckBoxM_2.Value = true;
+            app.CheckBox.Value = true;
+            app.CheckBox_2.Value = true;
+            app.CheckBox_3.Value = true;
+            app.CheckBox_4.Value = true;
+            app.FitkCheckBox.Value = true;
+            app.kConstrainedCheckBox_2.Value = true;
             cla(app.AxesM_2, 'reset');
             app.ErrorDisplay_2.Value = [];
             app.hysteretic_ms_lower_bound_user_edited = false;
@@ -537,6 +595,38 @@ classdef MenuUtils
             app.configure_degaussing_table();
             app.configure_harmonics_table();
             app.HcaseDropDown.Value = 'Major loop';
+            app.HorizontalaxisfieldDropDown_2.Value = 'H [A/m]';
+            app.VerticalaxisfieldDropDown_2.Value = 'M [A/m]';
+            app.ShowgridCheckBoxM_5.Value = true;
+            app.ShowgridCheckBoxM_4.Value = true;
+            % Major loop panel
+            app.StartingpointDropDown.Value = 'Demagnetized';
+            app.HstartAmEditField.Value = 0;
+            app.MstartAmEditField.Value = 0;
+            app.HamplitudeAmEditField.Value = 0;
+            app.StopcriterionDropDown.Value = 'Fixed repetitions';
+            app.RepetitionsEditField.Value = 1;
+            app.ReltoleranceEditField_6.Value = 0.001;
+            app.MaxrepetitionsEditField.Value = 10;
+            app.PlotDropDown.Value = 'Last loop only';
+            % Minor loops panel
+            app.StopcriterionDropDown_4.Value = 'Fixed repetitions';
+            app.RepetitionsEditField_2.Value = 1;
+            app.ReltoleranceEditField_5.Value = 0.001;
+            app.MaxrepetitionsEditField_2.Value = 10;
+            app.PlotDropDown_2.Value = 'Last loops only';
+            % Degaussing panel
+            app.StartingpointDropDown_3.Value = 'Remanence (data)';
+            app.HstartAmEditField_2.Value = 0;
+            app.MstartAmEditField_2.Value = 0;
+            app.HamplitudeDropDown.Value = 'Automatic';
+            app.NofstepsEditField.Value = 5;
+            app.InitialamplitudeAmEditField.Value = 1;
+            app.FinalamplitudeAmEditField.Value = 1;
+            % Major loop with harmonics panel
+            app.StartingpointDropDown_5.Value = 'Tip point (data)';
+            app.HstartAmEditField_3.Value = 0;
+            app.MstartAmEditField_3.Value = 0;
             app.sync_playground_mode_ui();
             PlaygroundUtils.sync_major_ui(app);
             PlaygroundUtils.sync_minor_ui(app);
@@ -614,7 +704,7 @@ classdef MenuUtils
             value_components = MenuUtils.simple_field_specs();
             value_components = value_components(:,2)';
             extra_value_components = { ...
-                'NofcomponentsSpinner', ...
+                'NofcompSpinner', ...
                 'Ms_JA', 'a_JA', 'alpha_JA', 'c_JA', 'k_JA', ...
                 'MsLower_JA', 'MsUpper_JA', 'aLower_JA', 'aUpper_JA', ...
                 'alphaLower_JA', 'alphaUpper_JA', 'kLower_JA', 'kUpper_JA', ...

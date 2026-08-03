@@ -5,7 +5,7 @@ function error_calculator = make_error_calculator(error_type, data_H, data_M, mo
 %   (the ErrorDropDown value) to the matching ErrorCalculator subclass,
 %   configured with the same logH/sampled flags used throughout the app.
 %
-%   Single source of truth for a dispatch previously duplicated in fit.m,
+%   Single source of truth for the dispatch shared by fit.m,
 %   AnhystereticUtils.update_error_display and fit_physical.m. The three
 %   metrics use use_log_h = true (the Anhysteretic curve's own H>0 domain).
 

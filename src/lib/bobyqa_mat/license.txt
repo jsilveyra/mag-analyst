@@ -1,31 +1,34 @@
-bobyqa_prima — bound-constrained derivative-free optimization for MATLAB
+bobyqa_mat — bound-constrained derivative-free optimization for MATLAB
 BSD 3-Clause License
 
-This library has two parts under the same permissive license family:
+This library has two parts under the same permissive license.
 
-1. ORIGINAL CODE (bobyqa_prima.m driver, bobyqa_prima_tuned.m size-based npt
-   selection and progress/early-stop wrapper, trsbox.m exact box-constrained
-   trust-region/geometry solver, seed_prima_from_points.m generic KKT-based
-   interpolation seeding) — developed for the MagAnalyst project.
+1. ORIGINAL CODE
+   bobyqa_mat.m                      solver driver
+   bobyqa_mat_tuned.m                size-based npt selection, progress /
+                                     early-stop wrapper
+   private/trsbox.m                  exact box-constrained trust-region and
+                                     geometry subproblem solver
+   private/seed_prima_from_points.m  generic KKT-based interpolation seeding
 
-   Copyright (c) 2026, Josefina María Silveyra - Juan Manuel Conde Garrido
+   Copyright (c) 2026, Josefina María Silveyra and Juan Manuel Conde Garrido
    All rights reserved.
 
-2. REUSED CODE (private/vlagbeta.m, updateh.m, updateq.m, setdrop_tr.m,
-   shiftbase.m, tryqalt.m, trrad.m) — PRIMA's pure-MATLAB port of the
-   incremental least-Frobenius-norm quadratic-model update machinery
-   originally due to M.J.D. Powell (NEWUOA, 2006), reused here under
-   PRIMA's BSD-3-Clause license.
+2. REUSED CODE
+   private/vlagbeta.m, private/updateh.m, private/updateq.m,
+   private/setdrop_tr.m, private/shiftbase.m, private/tryqalt.m,
+   private/trrad.m, private/calquad.m, private/verisize.m
 
-   Copyright (c) Zaikun Zhang and PRIMA contributors.
+   PRIMA's pure-MATLAB port of the incremental least-Frobenius-norm
+   quadratic-model update machinery originally due to M.J.D. Powell (NEWUOA,
+   2006), reused here under PRIMA's BSD 3-Clause license.
+
+   Copyright (c) 2020--2026, Zaikun ZHANG ( https://www.zhangzk.net )
    Source: https://github.com/libprima/prima
 
-   NOTE: this notice is a good-faith attribution based on PRIMA's publicly
-   stated BSD-3-Clause licensing (see OPTIMIZER_EVALUATION.md for the
-   evaluation that established this). Before this library is distributed
-   externally (e.g. MATLAB File Exchange, or contributed back to the PRIMA
-   project), verify this notice's exact wording against the LICENSE file
-   in the upstream repository and update if needed.
+   bobyqa_mat is not affiliated with, endorsed by, or an official
+   distribution of the PRIMA project. It is an independent work that reuses
+   the BSD-3-licensed files listed above.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:

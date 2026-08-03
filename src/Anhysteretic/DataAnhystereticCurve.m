@@ -14,10 +14,6 @@ classdef DataAnhystereticCurve
 
     methods (Access = public)
         function obj = DataAnhystereticCurve(H, M)
-            % if (H(1) ~= 0)  % Legacy behavior: enforced origin point for processed data. Probably unnecessary today, kept for reference
-            %     H = [0, H];
-            %     M = [0, M];
-            % end
             obj.H = H;
             obj.M = M;
             obj.dMdH = obj.get_dMdH(H, M);
@@ -31,8 +27,8 @@ classdef DataAnhystereticCurve
             dMdH(dMdH<0) = 0;
         end
 
-        function HdMdH = get_HdMdH(~, H, dHdH)
-            HdMdH = H.*dHdH;
+        function HdMdH = get_HdMdH(~, H, dMdH)
+            HdMdH = H.*dMdH;
             HdMdH(HdMdH<0) = 0;
         end
     end

@@ -4,16 +4,21 @@
 %
 %  This mirrors the "Hysteretic fitting" tab, using its default settings:
 %  Fitting region = "Entire loop", Error to minimize = "Diagonal (H,
-%  continuous)". The workflow is:
-%     1. Import the measured hysteresis loop.
-%     2. Fit the anhysteretic (distribution) model with ONE component to get
-%        physically meaningful seeds for the JA saturation Ms, shape a and
-%        mean-field coupling alpha.
-%     3. Extract the measured descending ("left") branch, then reflect it
+%  continuous)", "Constrained by Hc" checked. The workflow is:
+%     1. Import the measured hysteresis loop and fit the anhysteretic
+%        (distribution) model with ONE component, to get physically
+%        meaningful seeds for the JA saturation Ms, shape a and mean-field
+%        coupling alpha.
+%     2. Extract the measured descending ("left") branch, then reflect it
 %        into a full, point-symmetric measured cycle (both branches).
-%     4. Estimate a seed for the pinning parameter k from the coercive point.
-%     5. Fit the five JA parameters (Ms, a, alpha, k, c) to the full cycle.
-%     6. Plot the measured vs. modeled loop.
+%     3. Seed the remaining JA parameters: the reversibility c, and the
+%        pinning parameter k estimated from the coercive point.
+%     4. Configure the JA fit (mask, bounds, objective, simulated region).
+%     5. Fit the JA parameters to the full measured cycle, with k
+%        "Constrained by Hc" (recomputed each iteration, not free).
+%     6. OPTIONAL refinement: uncheck "Constrained by Hc" and fit again,
+%        now with k a free parameter seeded from the step-5 result.
+%     7. Plot the measured vs. modeled loop.
 %
 %  Jiles-Atherton parameters (SI; H, M in A/m):
 %     Ms    - saturation magnetization                 [A/m]
@@ -40,8 +45,8 @@ pc = ParserConstants();
 data_file = fullfile(project_root, 'data', 'sample_data', '2022_AIP', 'MnZn_ferrite.csv');
 
 % solver: the optimizer used for BOTH fits below ("prima" [default,
-% PRIMA-BOBYQA with tuned npt] or "nelder_mead" [legacy minimize()] -- see
-% demo_1 for the full explanation, and this repo's docs/solvers.md for the
+% PRIMA-BOBYQA with tuned npt] or "nelder_mead" [minimize()] -- see
+% demo_1 for the full explanation, and src/lib/bobyqa_mat/README.md for the
 % benchmark behind the default). Mirrors the GUI's "Solver" dropdown, which
 % each fitting tab sets independently.
 solver = "prima";
@@ -54,7 +59,7 @@ M_unit = pc.B_TESLA;
 
 %% --- 1) Anhysteretic 1-component fit -> Ms, a, alpha seeds ---------------
 % (Identical to demo_1; only the resulting Ms/a/alpha are reused here.)
-parser = Parser(data_file, H_unit, M_unit, pc.HYSTERESIS_LOOP_TYPE, 50);  % InputNumberofPointsEditField default
+parser = Parser(data_file, H_unit, M_unit, pc.HYSTERESIS_LOOP_TYPE, 50);  % the GUI's N° of points default
 [H, M, H_raw, M_raw] = parser.import();
 data_curve = DataAnhystereticCurve(H, M);
 
@@ -82,8 +87,8 @@ fprintf('   alpha = %.6g\n',     alpha_seed);
 % it re-converts the RAW loop columns to A/m (keeping both branches, unlike
 % the folded anhysteretic curve above), extracts a uniformly arc-length-
 % sampled descending (left) branch of n_left points, and reflects it into a
-% symmetric cycle. n_left = 50 is the app's InputNumberofPointsEditField
-% default. It also returns the left branch (Hleft/Mleft) on its own.
+% symmetric cycle. n_left = 50 is the GUI's N° of points default. It also
+% returns the left branch (Hleft/Mleft) on its own.
 n_left = 50;
 [H_cycle, M_cycle, Hleft, Mleft] = HystereticUtils.build_ja_data_cycle_core( ...
     H_raw, M_raw, H_unit, M_unit, n_left);
@@ -123,7 +128,8 @@ disp(params_seed);
 %                                   from the coercive-point estimate on every
 %                                   iteration (mutually exclusive with fitk)
 % This mask/bounds pair matches the Hysteretic tab's own defaults exactly:
-% "Constrained by Hc" is checked by default, so k is never a free parameter.
+% "Constrained by Hc" is checked by default, so k is not a free parameter
+% here. Step 6 re-runs the fit with that constraint released.
 mask = struct('fit_Ms', true, 'fita', true, 'fitalpha', true, ...
               'fitc', true, 'fitk', false, 'k_dependent', true);
 
@@ -186,10 +192,56 @@ fprintf('   k     = %.6g A/m\n', p_opt.k);
 fprintf('   c     = %.6g\n',     p_opt.c);
 fprintf('   error : seed = %.6g  ->  optimized = %.6g\n', result.Jseed, result.Jopt);
 
-%% --- 6) Plot measured vs. modeled ---------------------------------------
+%% --- 6) OPTIONAL: refine with k as a free parameter ---------------------
+% This is the GUI's "uncheck 'Constrained by Hc' and fit again" second stage
+% -- the Hysteretic tab suggests it in the Messages panel after every
+% constrained fit ("Tip: uncheck 'Constrained by Hc' and fit again to
+% further refine the JA model parameters.").
+%
+% In step 5 k was never a free parameter: it was recomputed from the
+% measured coercive point on every iteration, so the modeled loop was forced
+% to reproduce Hc exactly and the search ran over four parameters only.
+% Releasing that constraint gives the optimizer a fifth degree of freedom
+% (k), which can lower the overall loop error at the cost of no longer
+% matching Hc exactly. Note the two masks are mutually exclusive:
+% k_dependent = false and fitk = true.
+%
+% The refinement is seeded from the step-5 optimum, and JAFitter keeps a
+% seed guard, so the error can only improve or stay equal -- never worsen.
+refine_free_k = true;          % set false to stop after the constrained fit
+
+p_final = p_opt;
+if refine_free_k
+    mask_refine = struct('fit_Ms', true, 'fita', true, 'fitalpha', true, ...
+                         'fitc', true, 'fitk', true, 'k_dependent', false);
+
+    % Same bounds, objective, model and solver as step 5; only the mask and
+    % the seed change. bounds.k = [0, Inf] now actually applies, since k is
+    % a searched parameter rather than a derived one.
+    result_refine = JAFitter.fit(p_opt, mask_refine, bounds, H_cycle, M_cycle, Htip, Mtip, ...
+                                 error_type, estimate_k_fn, model_fn, error_core_fn, [], solver);
+
+    if result_refine.ok
+        p_final = result_refine.params_opt;
+        fprintf('\nRefined JA parameters (k free, "Constrained by Hc" unchecked):\n');
+        fprintf('   Ms    = %.6g A/m\n', p_final.Ms);
+        fprintf('   a     = %.6g A/m\n', p_final.a);
+        fprintf('   alpha = %.6g\n',     p_final.alpha);
+        fprintf('   k     = %.6g A/m\n', p_final.k);
+        fprintf('   c     = %.6g\n',     p_final.c);
+        fprintf('   error : constrained = %.6g  ->  refined = %.6g\n', ...
+                result_refine.Jseed, result_refine.Jopt);
+    else
+        warning('JA refinement failed (%s); keeping the constrained fit.', ...
+                result_refine.error_message);
+        refine_free_k = false;
+    end
+end
+
+%% --- 7) Plot measured vs. modeled ---------------------------------------
 % Modeled full cycle (last of the "Entire loop" repetitions) from the
 % fitted parameters, using the same model_fn the fit itself minimized.
-[Hmodel_cycle, Mmodel_cycle] = model_fn(p_opt);
+[Hmodel_cycle, Mmodel_cycle] = model_fn(p_final);
 
 figure('Name', 'Demo 3 - Jiles-Atherton fit');
 hold on;
@@ -197,7 +249,16 @@ plot(H_raw_cycle, M_raw_cycle, '.', 'Color', [0.6 0.6 0.6], 'MarkerSize', 6, ...
      'DisplayName', 'Measured loop (raw)');
 plot(H_cycle, M_cycle, '.', 'Color', [0 0 0], 'MarkerSize', 8, ...
      'DisplayName', 'Measured loop (symmetrized, fitted)');
-plot(Hmodel_cycle, Mmodel_cycle, 'r-', 'LineWidth', 1.4, 'DisplayName', 'JA fit (entire loop)');
+if refine_free_k
+    % Overlay the step-5 constrained fit for comparison.
+    [Hmodel_c, Mmodel_c] = model_fn(p_opt);
+    plot(Hmodel_c, Mmodel_c, '--', 'Color', [0 0.45 0.74], 'LineWidth', 1.2, ...
+         'DisplayName', 'JA fit (k constrained by Hc)');
+    model_label = 'JA fit (k refined)';
+else
+    model_label = 'JA fit (entire loop)';
+end
+plot(Hmodel_cycle, Mmodel_cycle, 'r-', 'LineWidth', 1.4, 'DisplayName', model_label);
 xline(0, 'k-'); yline(0, 'k-');
 grid on; box on;
 xlabel('H [A/m]'); ylabel('M [A/m]');

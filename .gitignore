@@ -1,9 +1,11 @@
 *.asv
+debug.log
 
 # Local-only, not shared via git (see conversation 2026-07-20)
 /CLAUDE.md
 /.agents/
 /.claude/
+.claude/
 /to_organize/
 /.venv/
 

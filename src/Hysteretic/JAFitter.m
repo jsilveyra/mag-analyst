@@ -45,6 +45,18 @@ classdef JAFitter
                 if params.Ms <= 0 || params.a <= 0 || params.k <= 0 || params.c <= 0 || params.c >= 1
                     J = BIG; return;
                 end
+                % When k is derived from Hc (mask.k_dependent) rather than
+                % searched over directly, it never goes through the
+                % optimizer's own lb/ub -- so a derived k landing outside
+                % the user's k bounds would otherwise pass silently. Reject
+                % it here instead, for every solver (this obj_fun is what
+                % both "prima" and "nelder_mead" minimize, and it's also
+                % what computes Jseed above).
+                if isfield(mask, 'k_dependent') && mask.k_dependent && isfield(bounds, 'k') && ~isempty(bounds.k)
+                    if params.k < bounds.k(1) || params.k > bounds.k(2)
+                        J = BIG; return;
+                    end
+                end
                 try
                     [Hhat, Mhat] = model_fn(params);
                     [J, ok_J] = error_core_fn(error_type, Hleft, Mleft, Hhat, Mhat);
@@ -54,7 +66,7 @@ classdef JAFitter
                 end
             end
 
-            % Per-parameter O(1) scaling for minimize(), matching
+            % Per-parameter O(1) scaling for the solver, matching
             % Anhysteretic/fit_physical.m: Ms (~1e5), a (~1e1), alpha
             % (~1e-4), c (~1e-1), k (~1e2) span wildly different magnitudes,
             % so a single TolX/TolFun/initial step size cannot serve all of
@@ -74,9 +86,8 @@ classdef JAFitter
                 % Same optimizer settings regardless of mask.fitk, and matching
                 % the Anhysteretic fit (fit.m) -- one consistent configuration
                 % across every fit in the app, rather than per-case tuning.
-                % One tight solver call per Fit click -- a loose-then-tight
-                % two-stage scheme was tried and rejected; see the
-                % matching comment in fit.m for why.
+                % One tight solver call per Fit click; see the matching
+                % comment in fit.m for why.
 
                 if isempty(x0)
                     xopt = x0;
@@ -89,8 +100,7 @@ classdef JAFitter
                     ylb = min(yb1, yb2);
                     yub = max(yb1, yb2);
 
-                    % Cap the SCALED bound range (see
-                    % minimize-and-parameter-scaling.md): minimize() maps a
+                    % Cap the SCALED bound range: minimize() maps a
                     % two-sided-bounded variable through
                     % asin(2*(y0-ylb)/(yub-ylb) - 1), which loses the seed
                     % to floating-point cancellation once yub-ylb is many

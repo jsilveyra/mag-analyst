@@ -37,8 +37,8 @@ classdef app_exported < matlab.apps.AppBase
         InputBrowseButton               matlab.ui.control.Button
         InputDatasetpathLabel           matlab.ui.control.Label
         DescriptionTextArea             matlab.ui.control.TextArea
-        AxesRawInputData                matlab.ui.control.UIAxes
         AxesProcessedInputData          matlab.ui.control.UIAxes
+        AxesRawInputData                matlab.ui.control.UIAxes
         AnhystereticfittingTab          matlab.ui.container.Tab
         GridLayout11                    matlab.ui.container.GridLayout
         LWModel_eq                      matlab.ui.control.Label
@@ -46,7 +46,7 @@ classdef app_exported < matlab.apps.AppBase
         SolverDropDownLabel             matlab.ui.control.Label
         NofpointsEditField              matlab.ui.control.NumericEditField
         NofpointsLabel                  matlab.ui.control.Label
-        NofcomponentsSpinner            matlab.ui.control.Spinner
+        NofcompSpinner                  matlab.ui.control.Spinner
         NofcompLabel                    matlab.ui.control.Label
         JsTLabel                        matlab.ui.control.Label
         JsField                         matlab.ui.control.NumericEditField
@@ -83,9 +83,9 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesHdMdH                       matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesM                           matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesHdMdH                       matlab.ui.control.UIAxes
         HystereticfittingTab            matlab.ui.container.Tab
         GridLayout10                    matlab.ui.container.GridLayout
         JAModelFormulationLabel         matlab.ui.control.Label
@@ -321,8 +321,13 @@ classdef app_exported < matlab.apps.AppBase
         end
 
         %%
-        function adjust_window(app)
-        
+        function adjust_window(app)        
+            % Called from a delayed timer in startupFcn, so the app (and its
+            % window) may already have been closed by the time it runs.
+            if ~isvalid(app) || ~isvalid(app.MagAnalystUIFigure)
+                return;
+            end
+
             scr = get(groot,'ScreenSize');
             pos = app.MagAnalystUIFigure.Position;
         
@@ -335,7 +340,7 @@ classdef app_exported < matlab.apps.AppBase
             pos(2) = max(40, (scr(4) - pos(4))/2);
         
             app.MagAnalystUIFigure.Position = pos;
-            figure(app.MagAnalystUIFigure);  % devolver foco
+            figure(app.MagAnalystUIFigure);  % return focus to the app window
         end
 
         function report_callback_error(app, ME)
@@ -345,7 +350,7 @@ classdef app_exported < matlab.apps.AppBase
             % what pulls focus away from the app window.
             app.write_message("Error: " + string(ME.message));
             uialert(app.MagAnalystUIFigure, ME.message, "Error", "Icon", "error");
-            figure(app.MagAnalystUIFigure);  % devolver foco
+            figure(app.MagAnalystUIFigure);  % return focus to the app window
         end
 
         function plot(app)
@@ -867,7 +872,7 @@ classdef app_exported < matlab.apps.AppBase
             app.ProjectPath = "";
             MenuUtils.setup_dirty_tracking(app);   % window-title dirty tracking
             MenuUtils.update_window_title(app);    % window-title dirty tracking
-            app.number_components = app.NofcomponentsSpinner.Value;
+            app.number_components = app.NofcompSpinner.Value;
         
             app.init_components();
             app.configure_minor_loop_table();
@@ -890,16 +895,16 @@ classdef app_exported < matlab.apps.AppBase
             update_components(app);
             app.sync_k_fit_mode_ui();
             app.sync_hysteretic_fitting_ui();
-            app.apply_detailed_grid(app.AxesM, app.ShowgridCheckBoxM.Value == 1);   % grid checkbox defaults to checked but was never applied until Calculate&Plot
-            app.apply_detailed_grid(app.AxesdMdH, app.ShowgridCheckBoxdMdH.Value == 1);   % grid checkbox defaults to checked but was never applied until Calculate&Plot
-            app.apply_detailed_grid(app.AxesHdMdH, app.ShowgridCheckBoxHdMdH.Value == 1);   % grid checkbox defaults to checked but was never applied until Calculate&Plot
-            app.apply_detailed_grid(app.AxesM_2, app.ShowgridCheckBoxM_2.Value == 1);   % grid checkbox defaults to checked but was never applied until Calculate&Plot
+            app.apply_detailed_grid(app.AxesM, app.ShowgridCheckBoxM.Value == 1);   % apply the grid checkbox's default state at startup
+            app.apply_detailed_grid(app.AxesdMdH, app.ShowgridCheckBoxdMdH.Value == 1);   % apply the grid checkbox's default state at startup
+            app.apply_detailed_grid(app.AxesHdMdH, app.ShowgridCheckBoxHdMdH.Value == 1);   % apply the grid checkbox's default state at startup
+            app.apply_detailed_grid(app.AxesM_2, app.ShowgridCheckBoxM_2.Value == 1);   % apply the grid checkbox's default state at startup
             PlaygroundUtils.clear_simulation(app);
             PlaygroundUtils.sync_major_ui(app);
             PlaygroundUtils.sync_minor_ui(app);   % gray minor-loop stop-criterion fields+labels
             app.sync_playground_mode_ui();
             app.sync_degaussing_ui();
-            app.apply_detailed_grid(app.AxesM_5, app.ShowgridCheckBoxM_5.Value == 1);   % grid checkbox defaults to checked but was never applied until Calculate&Plot
+            app.apply_detailed_grid(app.AxesM_5, app.ShowgridCheckBoxM_5.Value == 1);   % apply the grid checkbox's default state at startup
             app.sync_harmonics_ui();
 
             % note the convergence-mode repetition cap in the Rel. tolerance labels
@@ -929,7 +934,8 @@ classdef app_exported < matlab.apps.AppBase
             t = timer( ...
                 'StartDelay', 0.05, ...
                 'ExecutionMode', 'singleShot', ...
-                'TimerFcn', @(~,~) adjust_window(app) );
+                'TimerFcn', @(~,~) adjust_window(app), ...
+                'StopFcn',  @(src,~) delete(src) );
             start(t);
 
         end
@@ -964,9 +970,9 @@ classdef app_exported < matlab.apps.AppBase
             app.calculate_plot_and_refresh_hysteretic();
         end
 
-        % Value changed function: NofcomponentsSpinner
-        function NofcomponentsSpinnerValueChanged(app, event)
-            app.number_components = app.NofcomponentsSpinner.Value;
+        % Value changed function: NofcompSpinner
+        function NofcompSpinnerValueChanged(app, event)
+            app.number_components = app.NofcompSpinner.Value;
             app.init_components();
             app.configure_minor_loop_table();
             app.calculate_plot_and_refresh_hysteretic_live();
@@ -996,6 +1002,9 @@ classdef app_exported < matlab.apps.AppBase
                 update_components(app)
                 calculate_parameters(app)
                 app.plot_input();
+                app.calculate_plot_and_refresh_hysteretic();
+                app.plot_hysteretic_tab_data();
+                app.plot_playground();
                 app.write_message("Imported " + fullpath);
                 MenuUtils.mark_project_dirty(app);   % window-title dirty tracking
             catch e
@@ -1013,6 +1022,9 @@ classdef app_exported < matlab.apps.AppBase
                 update_components(app)
                 calculate_parameters(app)
                 app.plot_input();
+                app.calculate_plot_and_refresh_hysteretic();
+                app.plot_hysteretic_tab_data();
+                app.plot_playground();
                 app.write_message("Imported " + dataset_path);
                 MenuUtils.mark_project_dirty(app);   % window-title dirty tracking
             catch e
@@ -1248,21 +1260,22 @@ classdef app_exported < matlab.apps.AppBase
             if app.fitting_in_progress
                 return;
             end
-        
+
             app.fitting_in_progress = true;
             app.stop_fit_already_requested = false;
-        
+
             app.write_message("Fitting started");
             drawnow;
-        
+
             try
                 app.fit_ja_parameters();
             catch ME
                 app.fitting_in_progress = false;
                 app.stop_fit_already_requested = false;
-                rethrow(ME);
+                app.report_callback_error(ME);
+                return;
             end
-        
+
             app.fitting_in_progress = false;
             app.stop_fit_already_requested = false;
         end
@@ -1650,13 +1663,6 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayout9.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
             app.GridLayout9.RowSpacing = 4.5;
 
-            % Create AxesProcessedInputData
-            app.AxesProcessedInputData = uiaxes(app.GridLayout9);
-            title(app.AxesProcessedInputData, 'Processed input data')
-            app.AxesProcessedInputData.Box = 'on';
-            app.AxesProcessedInputData.Layout.Row = [1 15];
-            app.AxesProcessedInputData.Layout.Column = [9 12];
-
             % Create AxesRawInputData
             app.AxesRawInputData = uiaxes(app.GridLayout9);
             title(app.AxesRawInputData, 'Raw input data')
@@ -1664,6 +1670,13 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesRawInputData.Box = 'on';
             app.AxesRawInputData.Layout.Row = [1 15];
             app.AxesRawInputData.Layout.Column = [5 8];
+
+            % Create AxesProcessedInputData
+            app.AxesProcessedInputData = uiaxes(app.GridLayout9);
+            title(app.AxesProcessedInputData, 'Processed input data')
+            app.AxesProcessedInputData.Box = 'on';
+            app.AxesProcessedInputData.Layout.Row = [1 15];
+            app.AxesProcessedInputData.Layout.Column = [9 12];
 
             % Create DescriptionTextArea
             app.DescriptionTextArea = uitextarea(app.GridLayout9);
@@ -1828,9 +1841,27 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create GridLayout11
             app.GridLayout11 = uigridlayout(app.AnhystereticfittingTab);
-            app.GridLayout11.ColumnWidth = {'1.5x', '1x', '1x', '1x', '1x', '2.5x', '0.75x', '1.25x', '1x', '1x', '0.4x', '1.6x', '1x', '1x', '0.75x', '1.25x'};
+            app.GridLayout11.ColumnWidth = {'1.5x', '1x', '1x', '1x', '1x', '2.5x', '1x', '0.75x', '1x', '1x', '0.4x', '1.6x', '1x', '1x', '0.6x', '1.4x'};
             app.GridLayout11.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
             app.GridLayout11.RowSpacing = 4.5;
+
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayout11);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, 'dM/d(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = [13 17];
+            app.AxesHdMdH.Layout.Column = [1 6];
+
+            % Create AxesdMdH
+            app.AxesdMdH = uiaxes(app.GridLayout11);
+            xlabel(app.AxesdMdH, 'H [A/m]')
+            ylabel(app.AxesdMdH, 'dM/dH')
+            zlabel(app.AxesdMdH, 'Z')
+            app.AxesdMdH.Box = 'on';
+            app.AxesdMdH.Layout.Row = [7 11];
+            app.AxesdMdH.Layout.Column = [1 6];
 
             % Create AxesM
             app.AxesM = uiaxes(app.GridLayout11);
@@ -1840,24 +1871,6 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesM.Box = 'on';
             app.AxesM.Layout.Row = [1 5];
             app.AxesM.Layout.Column = [1 6];
-
-            % Create AxesdMdH
-            app.AxesdMdH = uiaxes(app.GridLayout11);
-            xlabel(app.AxesdMdH, 'H [A/m]')
-            ylabel(app.AxesdMdH, '∂M/∂H')
-            zlabel(app.AxesdMdH, 'Z')
-            app.AxesdMdH.Box = 'on';
-            app.AxesdMdH.Layout.Row = [7 11];
-            app.AxesdMdH.Layout.Column = [1 6];
-
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayout11);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, '∂M/∂(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = [13 17];
-            app.AxesHdMdH.Layout.Column = [1 6];
 
             % Create ResidualplotButtonM
             app.ResidualplotButtonM = uibutton(app.GridLayout11, 'push');
@@ -2004,7 +2017,7 @@ classdef app_exported < matlab.apps.AppBase
             app.ErrorDisplay.Editable = 'off';
             app.ErrorDisplay.HorizontalAlignment = 'left';
             app.ErrorDisplay.Layout.Row = 18;
-            app.ErrorDisplay.Layout.Column = 12;
+            app.ErrorDisplay.Layout.Column = [12 13];
             app.ErrorDisplay.Value = [];
 
             % Create StopfitButton
@@ -2035,7 +2048,7 @@ classdef app_exported < matlab.apps.AppBase
             app.chiinLabel.HorizontalAlignment = 'right';
             app.chiinLabel.FontWeight = 'bold';
             app.chiinLabel.Layout.Row = 13;
-            app.chiinLabel.Layout.Column = 11;
+            app.chiinLabel.Layout.Column = [10 11];
             app.chiinLabel.Text = 'χᵢₙ';
 
             % Create PointSpaceDropDown
@@ -2134,7 +2147,7 @@ classdef app_exported < matlab.apps.AppBase
             app.JsField.AllowEmpty = 'on';
             app.JsField.Editable = 'off';
             app.JsField.Layout.Row = 13;
-            app.JsField.Layout.Column = [15 16];
+            app.JsField.Layout.Column = 16;
             app.JsField.Value = [];
 
             % Create JsTLabel
@@ -2142,22 +2155,22 @@ classdef app_exported < matlab.apps.AppBase
             app.JsTLabel.HorizontalAlignment = 'right';
             app.JsTLabel.FontWeight = 'bold';
             app.JsTLabel.Layout.Row = 13;
-            app.JsTLabel.Layout.Column = 14;
+            app.JsTLabel.Layout.Column = [14 15];
             app.JsTLabel.Text = 'Js [T]';
 
             % Create NofcompLabel
             app.NofcompLabel = uilabel(app.GridLayout11);
             app.NofcompLabel.Layout.Row = 2;
             app.NofcompLabel.Layout.Column = [7 8];
-            app.NofcompLabel.Text = 'N° of components';
+            app.NofcompLabel.Text = 'N° of comp.';
 
-            % Create NofcomponentsSpinner
-            app.NofcomponentsSpinner = uispinner(app.GridLayout11);
-            app.NofcomponentsSpinner.Limits = [1 4];
-            app.NofcomponentsSpinner.ValueChangedFcn = createCallbackFcn(app, @NofcomponentsSpinnerValueChanged, true);
-            app.NofcomponentsSpinner.Layout.Row = 2;
-            app.NofcomponentsSpinner.Layout.Column = 9;
-            app.NofcomponentsSpinner.Value = 1;
+            % Create NofcompSpinner
+            app.NofcompSpinner = uispinner(app.GridLayout11);
+            app.NofcompSpinner.Limits = [1 4];
+            app.NofcompSpinner.ValueChangedFcn = createCallbackFcn(app, @NofcompSpinnerValueChanged, true);
+            app.NofcompSpinner.Layout.Row = 2;
+            app.NofcompSpinner.Layout.Column = 9;
+            app.NofcompSpinner.Value = 1;
 
             % Create NofpointsLabel
             app.NofpointsLabel = uilabel(app.GridLayout11);
@@ -2188,7 +2201,7 @@ classdef app_exported < matlab.apps.AppBase
             app.SolverDropDown = uidropdown(app.GridLayout11);
             app.SolverDropDown.Items = {'PRIMA-BOBYQA, tuned npt', 'Nelder-Mead (minimize lib)'};
             app.SolverDropDown.Layout.Row = 17;
-            app.SolverDropDown.Layout.Column = [8 12];
+            app.SolverDropDown.Layout.Column = [8 13];
             app.SolverDropDown.Value = 'PRIMA-BOBYQA, tuned npt';
 
             % Create LWModel_eq
@@ -2235,13 +2248,13 @@ classdef app_exported < matlab.apps.AppBase
             % Create Ms_JALabel
             app.Ms_JALabel = uilabel(app.GridLayout10);
             app.Ms_JALabel.Layout.Row = 10;
-            app.Ms_JALabel.Layout.Column = 6;
+            app.Ms_JALabel.Layout.Column = [6 7];
             app.Ms_JALabel.Text = 'Ms [A/m]';
 
             % Create a_JALabel
             app.a_JALabel = uilabel(app.GridLayout10);
             app.a_JALabel.Layout.Row = 11;
-            app.a_JALabel.Layout.Column = 6;
+            app.a_JALabel.Layout.Column = [6 7];
             app.a_JALabel.Text = 'a [A/m]';
 
             % Create Ms_JA
@@ -2250,13 +2263,13 @@ classdef app_exported < matlab.apps.AppBase
             app.Ms_JA.AllowEmpty = 'on';
             app.Ms_JA.ValueChangedFcn = createCallbackFcn(app, @JAParamsHystereticValueChanged, true);
             app.Ms_JA.Layout.Row = 10;
-            app.Ms_JA.Layout.Column = [7 9];
+            app.Ms_JA.Layout.Column = [8 9];
             app.Ms_JA.Value = [];
 
             % Create alpha_JALabel
             app.alpha_JALabel = uilabel(app.GridLayout10);
             app.alpha_JALabel.Layout.Row = 12;
-            app.alpha_JALabel.Layout.Column = 6;
+            app.alpha_JALabel.Layout.Column = [6 7];
             app.alpha_JALabel.Text = 'α';
 
             % Create a_JA
@@ -2265,13 +2278,13 @@ classdef app_exported < matlab.apps.AppBase
             app.a_JA.AllowEmpty = 'on';
             app.a_JA.ValueChangedFcn = createCallbackFcn(app, @JAParamsHystereticValueChanged, true);
             app.a_JA.Layout.Row = 11;
-            app.a_JA.Layout.Column = [7 9];
+            app.a_JA.Layout.Column = [8 9];
             app.a_JA.Value = [];
 
             % Create c_JALabel
             app.c_JALabel = uilabel(app.GridLayout10);
             app.c_JALabel.Layout.Row = 13;
-            app.c_JALabel.Layout.Column = 6;
+            app.c_JALabel.Layout.Column = [6 7];
             app.c_JALabel.Text = 'c';
 
             % Create alpha_JA
@@ -2280,13 +2293,13 @@ classdef app_exported < matlab.apps.AppBase
             app.alpha_JA.AllowEmpty = 'on';
             app.alpha_JA.ValueChangedFcn = createCallbackFcn(app, @JAParamsHystereticValueChanged, true);
             app.alpha_JA.Layout.Row = 12;
-            app.alpha_JA.Layout.Column = [7 9];
+            app.alpha_JA.Layout.Column = [8 9];
             app.alpha_JA.Value = [];
 
             % Create k_JALabel
             app.k_JALabel = uilabel(app.GridLayout10);
             app.k_JALabel.Layout.Row = 14;
-            app.k_JALabel.Layout.Column = 6;
+            app.k_JALabel.Layout.Column = [6 7];
             app.k_JALabel.Text = 'k [A/m]';
 
             % Create c_JA
@@ -2295,7 +2308,7 @@ classdef app_exported < matlab.apps.AppBase
             app.c_JA.AllowEmpty = 'on';
             app.c_JA.ValueChangedFcn = createCallbackFcn(app, @JAParamsHystereticValueChanged, true);
             app.c_JA.Layout.Row = 13;
-            app.c_JA.Layout.Column = [7 9];
+            app.c_JA.Layout.Column = [8 9];
             app.c_JA.Value = [];
 
             % Create FitButton_2
@@ -2322,7 +2335,7 @@ classdef app_exported < matlab.apps.AppBase
             app.k_JA.AllowEmpty = 'on';
             app.k_JA.ValueChangedFcn = createCallbackFcn(app, @JAParamsHystereticValueChanged, true);
             app.k_JA.Layout.Row = 14;
-            app.k_JA.Layout.Column = [7 9];
+            app.k_JA.Layout.Column = [8 9];
             app.k_JA.Value = [];
 
             % Create ErrortominimizeDropDownLabel_2
@@ -2338,7 +2351,7 @@ classdef app_exported < matlab.apps.AppBase
             app.ErrortominimizeDropDown_2.Items = {'Diagonal (H, continuous)', 'Diagonal (H, sampled)', 'Vertical', 'Horizontal'};
             app.ErrortominimizeDropDown_2.ValueChangedFcn = createCallbackFcn(app, @ErrortominimizeDropDown_2ValueChanged, true);
             app.ErrortominimizeDropDown_2.Layout.Row = 17;
-            app.ErrortominimizeDropDown_2.Layout.Column = [7 9];
+            app.ErrortominimizeDropDown_2.Layout.Column = [7 10];
             app.ErrortominimizeDropDown_2.Value = 'Diagonal (H, continuous)';
 
             % Create RetrieveseedsButton
@@ -2362,13 +2375,13 @@ classdef app_exported < matlab.apps.AppBase
             app.ErrorDisplay_2.Editable = 'off';
             app.ErrorDisplay_2.HorizontalAlignment = 'left';
             app.ErrorDisplay_2.Layout.Row = 17;
-            app.ErrorDisplay_2.Layout.Column = 10;
+            app.ErrorDisplay_2.Layout.Column = 11;
             app.ErrorDisplay_2.Value = [];
 
             % Create HtipLabel
             app.HtipLabel = uilabel(app.GridLayout10);
             app.HtipLabel.Layout.Row = 7;
-            app.HtipLabel.Layout.Column = 6;
+            app.HtipLabel.Layout.Column = [6 7];
             app.HtipLabel.Text = 'Htip [A/m]';
 
             % Create ShowgridCheckBoxM_2
@@ -2392,13 +2405,13 @@ classdef app_exported < matlab.apps.AppBase
             app.Htip.AllowEmpty = 'on';
             app.Htip.Editable = 'off';
             app.Htip.Layout.Row = 7;
-            app.Htip.Layout.Column = [7 8];
+            app.Htip.Layout.Column = [8 9];
             app.Htip.Value = [];
 
             % Create MtipLabel
             app.MtipLabel = uilabel(app.GridLayout10);
             app.MtipLabel.Layout.Row = 8;
-            app.MtipLabel.Layout.Column = 6;
+            app.MtipLabel.Layout.Column = [6 7];
             app.MtipLabel.Text = 'Mtip [A/m]';
 
             % Create MsLower_JA
@@ -2422,7 +2435,7 @@ classdef app_exported < matlab.apps.AppBase
             app.Mtip.AllowEmpty = 'on';
             app.Mtip.Editable = 'off';
             app.Mtip.Layout.Row = 8;
-            app.Mtip.Layout.Column = [7 8];
+            app.Mtip.Layout.Column = [8 9];
             app.Mtip.Value = [];
 
             % Create aLower_JA
@@ -2661,7 +2674,7 @@ classdef app_exported < matlab.apps.AppBase
             app.SolverDropDown_2 = uidropdown(app.GridLayout10);
             app.SolverDropDown_2.Items = {'PRIMA-BOBYQA, tuned npt', 'Nelder-Mead (minimize lib)'};
             app.SolverDropDown_2.Layout.Row = 16;
-            app.SolverDropDown_2.Layout.Column = [7 10];
+            app.SolverDropDown_2.Layout.Column = [7 11];
             app.SolverDropDown_2.Value = 'PRIMA-BOBYQA, tuned npt';
 
             % Create JAmodel_eq1
@@ -3061,7 +3074,7 @@ classdef app_exported < matlab.apps.AppBase
             app.RepetitionsEditField.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
             app.RepetitionsEditField.Layout.Row = 6;
             app.RepetitionsEditField.Layout.Column = 3;
-            app.RepetitionsEditField.Value = 1;
+            app.RepetitionsEditField.Value = 3;
 
             % Create ReltoleranceEditField_6Label
             app.ReltoleranceEditField_6Label = uilabel(app.GridLayout4);
@@ -3090,7 +3103,7 @@ classdef app_exported < matlab.apps.AppBase
             app.PlotDropDown.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
             app.PlotDropDown.Layout.Row = 9;
             app.PlotDropDown.Layout.Column = [2 3];
-            app.PlotDropDown.Value = 'Last loop only';
+            app.PlotDropDown.Value = 'Full history';
 
             % Create StartingpointDropDownLabel
             app.StartingpointDropDownLabel = uilabel(app.GridLayout4);

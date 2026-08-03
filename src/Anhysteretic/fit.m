@@ -65,18 +65,14 @@ function [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub,
         end
     end
 
-    % One tight solver call per Fit click. A loose-then-tight two-stage
-    % scheme was tried and rejected: seeding the tight pass from
-    % a loosely-converged intermediate point has no monotonicity guarantee
-    % (unlike restarting from a pass's own FULLY tight-converged result,
-    % which can only match or improve, never worsen, since both solvers
-    % always evaluate their own starting point first) -- a
-    % tolerance sweep showed the loose relocation can land in a genuinely
-    % worse basin, sometimes well worse than not restarting at all. Pressing
-    % Fit again (unchanged) reproduces the safe, monotonic restart instead,
-    % seeded from this call's own tight result -- see
-    % AnhystereticUtils.fit_parameters, which also surfaces a one-time tip
-    % about this.
+    % One tight solver call per Fit click. Restarting the search from a
+    % loosely-converged intermediate point carries no monotonicity guarantee
+    % and can land in a worse basin; restarting from a fully converged result
+    % can only match or improve it, since both solvers always evaluate their
+    % own starting point first. Pressing Fit again therefore repeats the
+    % search seeded from this call's own converged result -- see
+    % AnhystereticUtils.fit_parameters, which surfaces a one-time tip about
+    % this.
     params = SolverUtils.minimize_bounded(@fit_parameters, seed, lb, ub, output_fcn, solver);
 
     Hcr = params(1:number_components);

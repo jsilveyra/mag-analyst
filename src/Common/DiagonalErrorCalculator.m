@@ -56,7 +56,7 @@ classdef DiagonalErrorCalculator < ErrorCalculator
 
         function e = get_continuous_error(~, Xdat, Ydat, Xmod, Ymod, x_scale, y_scale)
             if exist('distance2curve', 'file') == 0
-                warning('distance2curve not found in MATLAB path. Falling back to sampled diagonal error. Install it from https://la.mathworks.com/matlabcentral/fileexchange/34869-distance2curve');
+                warning('distance2curve not found in MATLAB path. Falling back to sampled diagonal error. Install it from https://www.mathworks.com/matlabcentral/fileexchange/34869-distance2curve');
                 e = DiagonalErrorCalculator.get_sampled_error_static(Xdat, Ydat, Xmod, Ymod, x_scale, y_scale);
                 return;
             end

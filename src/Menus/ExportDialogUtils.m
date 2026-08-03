@@ -1,6 +1,6 @@
 classdef ExportDialogUtils
-%EXPORTDIALOGUTILS Unified "Export..." dialog (replaces the deprecated
-%   Output-data tab). A single Project > Export... action opens a code-built
+%EXPORTDIALOGUTILS Unified "Export..." dialog.
+%   A single Project > Export... action opens a code-built
 %   uifigure listing every exportable artifact across the whole app as
 %   checkboxes, with shared output-folder / file-prefix / figure-format
 %   settings. Generic file-IO lives in the standalone ExportUtils.m; the
@@ -106,12 +106,9 @@ classdef ExportDialogUtils
             fig.CloseRequestFcn = @(s,e) ExportDialogUtils.close_dialog(app);
             d.Fig = fig;
 
-            % Mirror the main window's palette (app_exported.m's
-            % theme_palette) so this standalone dialog reads as part of the
-            % same app rather than a bare default uifigure. Kept as local
-            % literals rather than calling app.theme_palette() because that
-            % method is a private app-class method, not reachable from this
-            % external classdef.
+            % Mirror the main window's palette (ThemeUtils.theme_palette)
+            % so this code-built dialog reads as part of the same app rather
+            % than a bare default uifigure.
             accent = [0.945 0.353 0.161]; % #F15A29 brand orange
             ink    = [0.149 0.153 0.173];
             canvas = [0.957 0.949 0.937];
@@ -562,17 +559,13 @@ classdef ExportDialogUtils
                 lines = lines + nl + sprintf("  %-28s = %12.4e", err_specs{k, 1}, val);
             end
 
-            % --- Fitting conditions (error metric + stop criterion) ---
+            % --- Fitting conditions (error metric + solver) ---
             lines = lines + nl + nl + "Fitting conditions";
             lines = lines + nl + "------------------";
             lines = lines + nl + sprintf("  %-18s = %s", "Error metric", ...
                 strtrim(string(app.ErrorDropDown.Value)));
-            lines = lines + nl + sprintf("  %-18s = %s", "Stop criterion", ...
-                strtrim(string(app.StopcriterionDropDown.Value)));
-            if strcmp(app.StopcriterionDropDown.Value, 'Fixed repetitions')
-                lines = lines + nl + sprintf("  %-18s = %d", "Repetitions", ...
-                    int32(app.RepetitionsEditField.Value));
-            end
+            lines = lines + nl + sprintf("  %-18s = %s", "Solver", ...
+                strtrim(string(app.SolverDropDown.Value)));
 
             % --- Total elapsed time ---
             [~, ~, ~, ~, elapsed_time] = FitProgressUtils.get_history(app, 'anh');
@@ -695,12 +688,13 @@ classdef ExportDialogUtils
             lines = lines + nl + sprintf("  %-18s = %s", "Stop criterion", ...
                 strtrim(string(app.StopcriterionDropDown_5.Value)));
             if strcmp(app.StopcriterionDropDown_5.Value, 'Fixed repetitions')
-                % Need to find the repetitions field for Hysteretic -- it may not
-                % be directly visible in the tab structure, so check if it exists.
-                % For now, rely on the displayed value if available.
+                lines = lines + nl + sprintf("  %-18s = %d", "Repetitions", ...
+                    int32(app.RepetitionsEditField_3.Value));
             end
             lines = lines + nl + sprintf("  %-18s = %s", "Error metric", ...
                 strtrim(string(app.ErrortominimizeDropDown_2.Value)));
+            lines = lines + nl + sprintf("  %-18s = %s", "Solver", ...
+                strtrim(string(app.SolverDropDown_2.Value)));
             bound_specs = { ...
                 "Ms bounds",    app.MsLower_JA,    app.MsUpper_JA; ...
                 "a bounds",     app.aLower_JA,     app.aUpper_JA; ...

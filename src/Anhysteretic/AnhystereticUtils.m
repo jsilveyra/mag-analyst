@@ -16,12 +16,11 @@ classdef AnhystereticUtils
             AnhystereticUtils.sync_fitted_parameter_values_from_components(app);
             AnhystereticUtils.refresh_table_value_display(app);
             % Js [T] (saturation polarization) requires the true volume Ms,
-            % not computable from a mass-native fit without a known density
-            % (deferred feature, see docs/ideas/mass-density-cross-view.md).
+            % which a mass-native fit cannot supply without a known density.
             % Its display slot is repurposed to show the total saturation
-            % mass magnetization sigma_S = sum(sigma_S,i) instead -- the
-            % paper's own Eq. 13 quantity, and exactly what magnetic_parameters.Ms
-            % already holds per-component when M_is_mass_based.
+            % mass magnetization sigma_S = sum(sigma_S,i) instead -- exactly
+            % what magnetic_parameters.Ms already holds per-component when
+            % M_is_mass_based.
             app.LWModel_eq.Text = DisplayUnits.get_lw_model_eq(app);
             app.JsTLabel.Text = char(DisplayUnits.get_Js_slot_label(app));
             if app.M_is_mass_based
@@ -320,7 +319,7 @@ classdef AnhystereticUtils
             % the whole Mathematical-parameters (Hcr/mcr/Hx) fit table, and the
             % "Select aᵢ" column of the Physical-parameters table (the a-root
             % choice is only used by the distribution->a conversion). No-op
-            % before the checkbox exists (pre-port).
+            % when the checkbox component is not present.
             if ~isprop(app, 'ReduceDofCheckBox') || isempty(app.ReduceDofCheckBox)
                 return;
             end
@@ -342,9 +341,7 @@ classdef AnhystereticUtils
             % table, as opposed to the legacy Java uitable) does not support
             % styling the column HEADER: addStyle's targets are only
             % "table"/"row"/"column"/"cell" (all data cells), and ColumnName
-            % does not render HTML markup (confirmed -- an earlier attempt at
-            % graying the header text via '<html><font color=...>' just
-            % displayed the literal tags). So only the data cells in the
+            % does not render HTML markup. So only the data cells in the
             % "Select aᵢ" column are grayed; the header text itself always
             % stays plain.
             AnhystereticUtils.shade_parameters_table(app);
@@ -512,11 +509,11 @@ classdef AnhystereticUtils
             for i = 1:app.number_components
                 s = 'Hcr' + string(char(8320 + i));
                 row_names(2*i - 1,:) = {convertStringsToChars(s + ' [A/m]')};
-                component_values(2*i-1) = seed_Hcr(i); %legacy: 0.01*i;
+                component_values(2*i-1) = seed_Hcr(i);
                 row_types(2*i-1) = "Hcr";
                 s = 'm' + string(char(8320 + i)) + ' (' + s + ')';
                 row_names(2*i,:) = {convertStringsToChars(s)};
-                component_values(2*i) = seed_mcr(i); %legacy: 0.521657107787896;
+                component_values(2*i) = seed_mcr(i);
                 row_types(2*i) = "m";
                 lb_col(2*i-1) = 0;
                 lb_col(2*i) = 0.4496;
@@ -528,7 +525,7 @@ classdef AnhystereticUtils
                 row_index = i + 2*app.number_components;
                 s = 'Hx' + string(char(8320 + i)) + ' [A/m]';
                 row_names(row_index,:) = {convertStringsToChars(s)};
-                component_values(row_index) = seed_Hx(i); %legacy: i*0.015;
+                component_values(row_index) = seed_Hx(i);
                 row_types(row_index) = "Hx";
                 lb_col(row_index) = 0;
                 ub_col(row_index) = 1000000;
@@ -832,10 +829,10 @@ classdef AnhystereticUtils
         end
 
         function [ms_seed, a_seed, alpha_seed, has_seeds] = get_first_anhysteretic_seeds(app)
-            % reads the full-precision source (app.magnetic_parameters) directly,
-            % not the TableParameters display text -- that text is a 6-sig-fig rendering,
-            % and parsing it back was silently truncating the seeds handed to the
-            % Hysteretic and Playground tabs.
+            % Reads the full-precision source (app.magnetic_parameters)
+            % directly rather than the TableParameters display text, which is
+            % only a 6-significant-figure rendering: parsing it back would
+            % truncate the seeds handed to the Hysteretic and Playground tabs.
             has_seeds = false;
             ms_seed = NaN;
             a_seed = NaN;

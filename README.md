@@ -10,13 +10,14 @@
 3. [Setup and usage instructions](#setup-and-usage-instructions)
 4. [Overview of the GUI](#overview-of-the-gui)
 5. [Description of the files and directory structure](#description-of-the-files-and-directory-structure)
-6. [External libraries](#external-libraries)
-7. [User's Guide](#users-guide)
-8. [Sample data](#sample-data)
-9. [Cite as](#cite-as)
-10. [Contact us](#contact-us)
-11. [License](#license)
-12. [Acknowledgment](#acknowledgment)
+6. [Bundled tools](#bundled-tools)
+7. [Third-party libraries](#third-party-libraries)
+8. [User's Guide](#users-guide)
+9. [Sample data](#sample-data)
+10. [Cite as](#cite-as)
+11. [Contact us](#contact-us)
+12. [License](#license)
+13. [Acknowledgment](#acknowledgment)
 
 ## Authors
 
@@ -69,7 +70,12 @@ If you prefer to use MagAnalyst from the command line (or to call it from your o
 
 The demo scripts build their data paths with MATLAB's `fullfile` helper (e.g., `fullfile('data','sample_data','2022_AIP','MnZn_ferrite.csv')`), so they load the same files on Windows, macOS, and Linux without manual path tweaks.
 
-MagAnalyst 2.13 was implemented and tested with MATLAB R2025b. It relies on App Designer / `uifigure` features (e.g. `exportgraphics`, `uigridlayout`); the authors cannot guarantee that the code runs on earlier versions.
+MagAnalyst 2.0.0 was implemented and tested with MATLAB R2025b. Compatibility with earlier releases differs depending on what you want to do:
+
+- **Using the app** (running `MagAnalyst.m`, `app_exported.m`, or `app.mlapp` as-is): this is the more forgiving case. The GUI is built on `uifigure`/App Designer components and functions such as `exportgraphics` and `uigridlayout`, which have been part of base MATLAB since roughly R2019b–R2020a, so a normal install from that era onward should be able to *run* the app. `app.mlapp`'s own App Designer metadata reports a minimum supported release of R2018a, though that figure only accounts for the UI components placed in Design View, not for individual function calls made in Code View (like `exportgraphics`), so treat R2019b/R2020a as the more realistic practical floor. The demo scripts under `demos/` and the standalone `src/**` functions have no App Designer dependency at all and should run on considerably older releases.
+- **Editing `app.mlapp` in App Designer**: this is the real constraint. A `.mlapp` file saved by a given MATLAB release's App Designer generally **cannot be opened for editing in an older release** — App Designer's project format only saves forward, not backward. Since this repository's `app.mlapp` was last saved with R2025b, editing it (as opposed to just running it) requires R2025b or later. `app_exported.m` (the plain-`.m` mirror of the same code, see below) has no such restriction and can be read/edited in any editor or MATLAB release, but it is a generated artifact — changes made only there do not propagate back into `app.mlapp` (see the note on the two files below).
+
+In short: the App Designer *file format* is the strict, version-locked part of MagAnalyst; running the app, and reading or editing the plain `.m` source, is not.
 
 ## Overview of the GUI
 
@@ -92,11 +98,15 @@ Results are saved through a single Export action in the Project menu (*Project �
 ├── README.md
 ├── users-guide.md         # User's Guide: methodology and model documentation (theory + implementation)
 ├── license.txt
-├── articles/             # Reference papers behind the implemented methods
+├── articles/             # Reference papers we may redistribute, plus the full
+│                         # citation list for all of them (see its README.md)
 ├── assets/               # Logos and UI images
 ├── data/
 │   └── sample_data/      # Example curves, organized by the article that analyzed them
 ├── demos/                # Seven standalone command-line examples (no GUI required)
+├── tools/
+│   └── plot_digitizer/   # MagAnalyst Plot Digitizer: standalone GUI to extract
+│                         # curves from published figures (see its own README.md)
 └── src/
     ├── Input/            # Input-data tab: CSV import, unit conversion, curve resampling
     ├── Anhysteretic/     # Anhysteretic-fitting tab: model, fits, seeds, residuals
@@ -105,17 +115,43 @@ Results are saved through a single Export action in the Project menu (*Project �
     ├── Menus/            # Project menu: Open/Save, New, unified Export dialog
     ├── Common/           # Code shared by two or more tabs (Langevin, JA ODE, error metrics, plotting, units)
     ├── Theme/            # Runtime visual theme (single palette tweak point)
-    └── lib/              # External libraries (minimize, bobyqa_prima, interparc, distance2curve)
+    └── lib/              # External libraries (minimize, bobyqa_mat, interparc, distance2curve)
 ```
 
 The `src/` tree is organized by GUI tab: each tab has its own folder with a `<Tab>Utils.m` static class holding that tab's logic, and everything used by two or more tabs lives in `src/Common/`.
 
-## External libraries
+## Bundled tools
 
-MagAnalyst currently uses the following third-party libraries (bundled under `src/lib/`):
+Two components of MagAnalyst are also released standalone on the MATLAB File Exchange, so each carries its own README and license file and is documented for an outside reader. Both are bundled here and need no separate installation.
 
-- [minimize](https://www.mathworks.com/matlabcentral/fileexchange/24298-minimize) (Nelder-Mead via `fminsearch`) to find the constrained minimum of the objective function starting at the user's initial estimates — one of the two solvers offered by the fitting tabs' Solver dropdown.
-- `bobyqa_prima` — the other Solver dropdown option, and the default: a bound-constrained implementation of Powell's BOBYQA algorithm [Powell, 2009], reusing PRIMA's [Zhang et al.](https://github.com/libprima/prima) pure-MATLAB incremental model-update machinery. Written for MagAnalyst; see `src/lib/bobyqa_prima/README.md` for full documentation, licensing, and the empirical rule of thumb behind its automatic `npt` (interpolation-point count) choice, and [User's Guide § Optimization technique](users-guide.md#optimization-technique) for the citations and benchmark summary.
+### `bobyqa_mat` — bound-constrained derivative-free optimizer
+
+Location: [`src/lib/bobyqa_mat/`](src/lib/bobyqa_mat/) · own [README](src/lib/bobyqa_mat/README.md) and [license](src/lib/bobyqa_mat/license.txt)
+
+The default option in both fitting tabs' **Solver** dropdown (*PRIMA-BOBYQA, tuned npt*): a pure-MATLAB, bound-constrained implementation of Powell's BOBYQA algorithm (no MEX, no compiler, no toolbox), reusing PRIMA's ([Zhang et al.](https://github.com/libprima/prima), BSD-3) incremental model-update machinery and adding an exact box-constrained trust-region solver. `bobyqa_mat_tuned` picks the number of interpolation points (`npt`) automatically from the parameter count. See its README for the benchmark behind that rule and [User's Guide § Optimization technique](users-guide.md#optimization-technique) for the citations and a summary.
+
+Self-test: `cd src/lib/bobyqa_mat` then `test_bobyqa_mat`. Worked examples: `demo_bobyqa_mat`.
+
+### MagAnalyst Plot Digitizer — extract curves from published figures
+
+Location: [`tools/plot_digitizer/`](tools/plot_digitizer/) · own [README](tools/plot_digitizer/README.md) and [license](tools/plot_digitizer/license.txt)
+
+A standalone MATLAB GUI (version 1.0.0) that recovers numerical `(x, y)` data from a raster image of a plot — a scanned or downloaded figure from the literature — so it can be imported into MagAnalyst's Input-data tab as a CSV. It calibrates the axes from two points per axis (linear or logarithmic), finds curve colors automatically, and traces either continuous lines (Zhang–Suen skeletonization) or discrete data markers (normalized cross-correlation template matching plus Hough circle detection). Whole digitizing sessions can be saved and reopened as `.pdig` project files, and results exported as CSV.
+
+It is **not** loaded by the main app's path setup; launch it on its own:
+
+```matlab
+addpath(fullfile('tools','plot_digitizer'));
+PlotDigitizer
+```
+
+Self-test: `cd tools/plot_digitizer` then `test_plot_digitizer`. Guided example: `demo_plot_digitizer`.
+
+## Third-party libraries
+
+MagAnalyst also bundles the following third-party libraries under `src/lib/`:
+
+- [minimize](https://www.mathworks.com/matlabcentral/fileexchange/24298-minimize) (Nelder-Mead via `fminsearch`) to find the constrained minimum of the objective function starting at the user's initial estimates — the second solver offered by the fitting tabs' Solver dropdown.
 - [interparc](https://www.mathworks.com/matlabcentral/fileexchange/34874-interparc) to calculate a set of equally spaced points from an original curve with unevenly spaced points.
 - [distance2curve](https://www.mathworks.com/matlabcentral/fileexchange/34869-distance2curve) to compute the minimum Euclidean distance from data points to the modeled curve for the continuous diagonal error metrics.
 
@@ -153,7 +189,9 @@ If you want to use MagAnalyst to fit mass-magnetization curves, follow and cite 
 
 - J. M. Silveyra, A. Rosales Rivera, N. Salazar Henao, D. Salazar, and J. M. Conde Garrido, "Magnetometry analysis via a multicomponent Langevin-Weiss model with susceptibility-dependent demagnetization," Journal of Magnetism and Magnetic Materials, vol. 647, p. 174000, 2026. https://doi.org/10.1016/j.jmmm.2026.174000
 
-If you don't have access to any of these articles, request them through ResearchGate! We will be happy to share them with you.
+The [`articles/`](articles/) folder carries the versions of these papers we are entitled to redistribute — the open-access one, and the author's accepted versions of the two IEEE papers — together with the full citation list and DOIs for all of them in [`articles/README.md`](articles/README.md).
+
+If you don't have access to any of these articles, request them through [ResearchGate](https://www.researchgate.net/profile/Josefina-Silveyra) or write to jsilveyra@fi.uba.ar! We will be happy to share them with you.
 
 ## Contact us
 
