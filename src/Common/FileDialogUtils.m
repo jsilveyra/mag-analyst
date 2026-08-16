@@ -8,9 +8,17 @@ classdef FileDialogUtils
 %   they close. Each wrapper below therefore calls restore_focus(app) on
 %   every exit path, so the app stays foremost whether the user confirms
 %   or cancels.
+%
+%   When the browse button lives in a secondary window (e.g. the Export
+%   dialog's own uifigure) rather than the main window, pass that figure
+%   as the last argument (focus_target) so focus returns to *it* instead
+%   of the main window, which would otherwise cover the dialog.
 
     methods (Static)
-        function fullpath = safe_getfile(app, filter, startpath, dialog_title)
+        function fullpath = safe_getfile(app, filter, startpath, dialog_title, focus_target)
+            if nargin < 5
+                focus_target = [];
+            end
             if nargin < 4 || strlength(string(dialog_title)) == 0
                 dialog_title = "Select file";
             end
@@ -19,7 +27,7 @@ classdef FileDialogUtils
             end
 
             [file, path] = uigetfile(filter, char(dialog_title), char(startpath));
-            FileDialogUtils.restore_focus(app);
+            FileDialogUtils.restore_focus(app, focus_target);
 
             if isequal(file,0) || isequal(path,0)
                 fullpath = "";
@@ -29,7 +37,10 @@ classdef FileDialogUtils
             fullpath = string(fullfile(path, file));
         end
 
-        function fullpath = safe_putfile(app, filter, startpath, dialog_title, default_name)
+        function fullpath = safe_putfile(app, filter, startpath, dialog_title, default_name, focus_target)
+            if nargin < 6
+                focus_target = [];
+            end
             if nargin < 5
                 default_name = "";
             end
@@ -45,7 +56,7 @@ classdef FileDialogUtils
             end
 
             [file, path] = uiputfile(filter, char(dialog_title), char(startpath));
-            FileDialogUtils.restore_focus(app);
+            FileDialogUtils.restore_focus(app, focus_target);
 
             if isequal(file,0) || isequal(path,0)
                 fullpath = "";
@@ -55,7 +66,10 @@ classdef FileDialogUtils
             fullpath = string(fullfile(path, file));
         end
 
-        function folder = safe_getdir(app, startpath, dialog_title)
+        function folder = safe_getdir(app, startpath, dialog_title, focus_target)
+            if nargin < 4
+                focus_target = [];
+            end
             if nargin < 3 || strlength(string(dialog_title)) == 0
                 dialog_title = "Select folder";
             end
@@ -64,7 +78,7 @@ classdef FileDialogUtils
             end
 
             p = uigetdir(char(startpath), char(dialog_title));
-            FileDialogUtils.restore_focus(app);
+            FileDialogUtils.restore_focus(app, focus_target);
 
             if isequal(p,0)
                 folder = "";
@@ -115,10 +129,20 @@ classdef FileDialogUtils
             folder = string(fullfile(base, "exported_data"));
         end
 
-        function restore_focus(app)
-            %RESTORE_FOCUS Bring the main app window back to the front after a
-            %   native OS dialog stole the focus. Silently does nothing when
-            %   called without a live app (e.g. from a command-line script).
+        function restore_focus(app, focus_target)
+            %RESTORE_FOCUS Bring the app back to the front after a native OS
+            %   dialog stole the focus. Raises focus_target (a secondary
+            %   window such as the Export dialog's uifigure) when one is
+            %   given and still alive, otherwise the main app window --
+            %   raising the main window from a secondary window's browse
+            %   button would bury that window behind it. Silently does
+            %   nothing when called without a live app (e.g. from a
+            %   command-line script).
+            if nargin >= 2 && ~isempty(focus_target) && isvalid(focus_target)
+                figure(focus_target);
+                return;
+            end
+
             if isobject(app) && isvalid(app) && isprop(app, 'MagAnalystUIFigure') ...
                     && ~isempty(app.MagAnalystUIFigure) && isvalid(app.MagAnalystUIFigure)
                 figure(app.MagAnalystUIFigure);

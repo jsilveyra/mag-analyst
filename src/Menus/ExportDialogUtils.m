@@ -203,7 +203,11 @@ classdef ExportDialogUtils
 
         function browse(app)
             startFolder = string(app.export_dialog.FolderField.Value);
-            folder = app.safe_getdir(startFolder, "Select output folder");
+            % Focus goes back to this dialog, not the main window: the app's
+            % safe_getdir delegator restores the main figure, which would
+            % cover the Export dialog the moment the folder picker closes.
+            folder = FileDialogUtils.safe_getdir(app, startFolder, ...
+                "Select output folder", app.export_dialog.Fig);
             if folder == ""
                 return;
             end
