@@ -3,7 +3,9 @@ function [Hcr, mcr, Hx, details] = retrieve_anhysteretic_seeds(data_curve, numbe
 %
 %   Hcr is taken from peaks of H*dM/dH = dM/d(ln H). The dimensionless
 %   m(Hcr) seed is retrieved by matching an amplitude-independent halo
-%   width, area/peak height, to single-component model templates. After
+%   width, the full width at half maximum of the halo in log(H), to
+%   single-component model templates (stored on disk in
+%   anhysteretic_seed_templates.mat, see template_library). After
 %   each component seed is found, a temporary modeled component is
 %   subtracted from the experimental curve before finding the next peak.
 
@@ -386,25 +388,60 @@ function mcr = estimate_mcr_from_width(equivalent_width, half_width, select_mode
 end
 
 function library = template_library(select_mode)
-    persistent low_library high_library
+%TEMPLATE_LIBRARY Width-vs-m(Hcr) lookup table for one a-root.
+%   The tables for both a-roots are stored on disk in
+%   anhysteretic_seed_templates.mat, next to this file, so no session ever
+%   has to rebuild them (each build solves the self-consistent m(H) at 321
+%   fields for 51 values of m(Hcr)). They are loaded once per session into
+%   a persistent cache. If the .mat file is missing, or its grids differ
+%   from those in template_grid, both tables are rebuilt from the model
+%   and the file is rewritten. To force a rebuild after changing the
+%   single-component model, delete the .mat file.
+    persistent libraries
 
     select_mode = lower(string(select_mode));
-    if select_mode == "high"
-        if isempty(high_library)
-            high_library = build_template_library("high");
+    if select_mode ~= "high"
+        select_mode = "low";
+    end
+
+    if isempty(libraries)
+        libraries = load_or_build_template_libraries();
+    end
+    library = libraries.(select_mode);
+end
+
+function libraries = load_or_build_template_libraries()
+    mat_path = fullfile(fileparts(mfilename('fullpath')), 'anhysteretic_seed_templates.mat');
+    [m_values, x] = template_grid();
+
+    if exist(mat_path, 'file') == 2
+        stored = load(mat_path);
+        if isfield(stored, 'libraries') && isfield(stored, 'm_values') && isfield(stored, 'x') ...
+                && isequal(stored.m_values, m_values) && isequal(stored.x, x)
+            libraries = stored.libraries;
+            return;
         end
-        library = high_library;
-    else
-        if isempty(low_library)
-            low_library = build_template_library("low");
-        end
-        library = low_library;
+        warning('retrieve_anhysteretic_seeds:staleTemplates', ...
+            'Seed template file %s does not match the current grid; rebuilding.', mat_path);
+    end
+
+    libraries = struct( ...
+        'low', build_template_library("low", m_values, x), ...
+        'high', build_template_library("high", m_values, x));
+    try
+        save(mat_path, 'libraries', 'm_values', 'x');
+    catch save_error
+        warning('retrieve_anhysteretic_seeds:templateSaveFailed', ...
+            'Could not save seed templates to %s: %s', mat_path, save_error.message);
     end
 end
 
-function library = build_template_library(select_mode)
+function [m_values, x] = template_grid()
     m_values = 0.45:0.01:0.95;
     x = linspace(-8, 8, 321).';
+end
+
+function library = build_template_library(select_mode, m_values, x)
     H = exp(x);
     equivalent_width = nan(size(m_values));
     half_width = nan(size(m_values));
