@@ -527,20 +527,27 @@ classdef HystereticUtils
             % does not apply. See src/Common/ErrorCalculator.m for why.
             %
             % When the fitting region is the entire loop, Hleft/Mleft (data)
-            % and Hhat/Mhat (model) are full, closed loops. The three
+            % and Hhat/Mhat (model) are full, closed loops. The continuous
+            % Diagonal metric uses distance2curve, which is loop-safe, so it
+            % is evaluated on the full loop directly. The three
             % single-valued-projection metrics -- sampled Diagonal, Vertical,
             % Horizontal -- interpolate one curve onto the other's abscissa
-            % (interp1 of M(H) or H(M)); those projections are undefined on a
-            % closed loop (two H per M, two M per H) and silently return
-            % garbage. So for those three we first reduce both curves to their
-            % descending (left) branch via descending_branch(), which is
-            % single-valued and -- for the point-symmetric JA major loop --
-            % fully determines the fit (this is also the branch the blind
-            % method of Conde Garrido et al., IEEE TMAG 2026, compares).
-            % The continuous Diagonal metric uses distance2curve, which is
-            % loop-safe, so it is left on the full loop unchanged. (For the
-            % "Left branch only" fitting region every input is already a
-            % single descending branch, so descending_branch() is a no-op.)
+            % (interp1 of M(H) or H(M)), which is undefined on a closed loop
+            % (two H per M, two M per H) and silently returns garbage. For
+            % those three, both loops are therefore split at their minimum-H
+            % corner into a descending and an ascending branch (each
+            % single-valued), each data branch is compared with the matching
+            % model branch, and the per-point squared residuals of both
+            % branches are pooled into ONE root mean square -- see
+            % pooled_branch_error. Every measured point of the loop thus
+            % enters the objective exactly once, with the same normalization
+            % on both branches (both share the +-Htip corners, so max|H| and
+            % max|M| are the same per branch as over the whole loop). Until
+            % 2026-09-18 these three metrics silently dropped the ascending
+            % branch instead, turning "Entire loop" into "Left branch only"
+            % for them. (For the "Left branch only" fitting region every
+            % input is already a single descending branch, so the split
+            % finds no ascending branch and the pooling is a no-op.)
             BIG = 1e6;
             J = BIG;
             ok = false;
@@ -549,17 +556,17 @@ classdef HystereticUtils
                     case "Diagonal (H, continuous)"
                         calculator = DiagonalErrorCalculator(Hleft, Mleft, Hhat, Mhat, false, true);
                     case "Diagonal (H, sampled)"
-                        [Hd, Md] = HystereticUtils.descending_branch(Hleft, Mleft);
-                        [Hhd, Mhd] = HystereticUtils.descending_branch(Hhat, Mhat);
-                        calculator = DiagonalErrorCalculator(Hd, Md, Hhd, Mhd, false, false);
+                        make = @(Hd, Md, Hm, Mm) DiagonalErrorCalculator(Hd, Md, Hm, Mm, false, false);
+                        [J, ok] = HystereticUtils.pooled_branch_error(make, Hleft, Mleft, Hhat, Mhat, BIG);
+                        return;
                     case "Vertical"
-                        [Hd, Md] = HystereticUtils.descending_branch(Hleft, Mleft);
-                        [Hhd, Mhd] = HystereticUtils.descending_branch(Hhat, Mhat);
-                        calculator = VerticalErrorCalculator(Hd, Md, Hhd, Mhd, false);
+                        make = @(Hd, Md, Hm, Mm) VerticalErrorCalculator(Hd, Md, Hm, Mm, false);
+                        [J, ok] = HystereticUtils.pooled_branch_error(make, Hleft, Mleft, Hhat, Mhat, BIG);
+                        return;
                     case "Horizontal"
-                        [Hd, Md] = HystereticUtils.descending_branch(Hleft, Mleft);
-                        [Hhd, Mhd] = HystereticUtils.descending_branch(Hhat, Mhat);
-                        calculator = HorizontalErrorCalculator(Hd, Md, Hhd, Mhd, false);
+                        make = @(Hd, Md, Hm, Mm) HorizontalErrorCalculator(Hd, Md, Hm, Mm, false);
+                        [J, ok] = HystereticUtils.pooled_branch_error(make, Hleft, Mleft, Hhat, Mhat, BIG);
+                        return;
                     otherwise
                         return;
                 end
@@ -580,17 +587,77 @@ classdef HystereticUtils
             end
         end
 
-        function [Hd, Md] = descending_branch(H, M)
-            % Descending (upper/left) branch of a loop or branch: the portion
-            % from the starting corner (+Htip) down to the minimum-H point.
-            % For an already-single descending branch (min-H at the end, as in
-            % "Left branch only" mode) this returns the whole curve unchanged;
-            % for a full closed loop it returns just the first, descending half.
+        function [J, ok] = pooled_branch_error(make_calculator, Hdat, Mdat, Hmod, Mmod, BIG)
+            % Single-valued-projection error of a loop (or lone branch),
+            % pooled over its branches. make_calculator(Hd, Md, Hm, Mm)
+            % must return an ErrorCalculator whose get_error() is a
+            % normalized RMS over its data points (sampled Diagonal,
+            % Vertical, Horizontal all are). Data and model are split into
+            % descending/ascending branches (split_loop_branches); each data
+            % branch is scored against the same-direction model branch, and
+            % the two RMS values are recombined as ONE RMS over all N data
+            % points: J = sqrt((Nd*Ed^2 + Na*Ea^2)/(Nd + Na)). A data curve
+            % with no ascending branch ("Left branch only") contributes only
+            % its descending term, so J reduces to the plain branch error.
+            J = BIG;
+            ok = false;
+            try
+                [Hd, Md, Ha, Ma] = HystereticUtils.split_loop_branches(Hdat, Mdat);
+                [Hhd, Mhd, Hha, Mha] = HystereticUtils.split_loop_branches(Hmod, Mmod);
+                pairs = {Hd, Md, Hhd, Mhd; Ha, Ma, Hha, Mha};
+
+                sum_sq = 0;
+                n_total = 0;
+                for b = 1:size(pairs, 1)
+                    [Hd_b, Md_b, Hm_b, Mm_b] = pairs{b, :};
+                    if numel(Hd_b) < 2
+                        continue;   % data has no such branch (lone descending branch)
+                    end
+                    if numel(Hm_b) < 2
+                        return;     % data has the branch but the model does not: not comparable
+                    end
+                    calculator = make_calculator(Hd_b, Md_b, Hm_b, Mm_b);
+                    if numel(calculator.X) < 2 || numel(calculator.Xhat) < 2
+                        return;
+                    end
+                    e_b = calculator.get_error();
+                    if ~isfinite(e_b)
+                        return;
+                    end
+                    n_b = numel(calculator.X);
+                    sum_sq = sum_sq + n_b * e_b^2;
+                    n_total = n_total + n_b;
+                end
+                if n_total == 0
+                    return;
+                end
+                J = sqrt(sum_sq / n_total);
+                ok = true;
+            catch
+                J = BIG;
+                ok = false;
+            end
+        end
+
+        function [Hd, Md, Ha, Ma] = split_loop_branches(H, M)
+            % Split a loop (or lone branch) at its minimum-H corner into the
+            % descending branch (from the +Htip start down to min H) and the
+            % ascending branch (from min H back up). Both are single-valued
+            % in H and in M for a major loop, so interp1-based metrics apply
+            % to each. Both halves keep the shared min-H corner point, so
+            % the model's ascending branch covers the data's full range for
+            % interpolation (the corner is counted twice among the data
+            % points; with ~100 points per branch this is immaterial). For
+            % an already-single descending branch (min H at the end, as in
+            % "Left branch only" mode) Hd/Md is the whole curve and Ha/Ma
+            % are empty.
             H = H(:);
             M = M(:);
             valid = isfinite(H) & isfinite(M);
             H = H(valid);
             M = M(valid);
+            Ha = zeros(0, 1);
+            Ma = zeros(0, 1);
             if numel(H) < 2
                 Hd = H;
                 Md = M;
@@ -604,6 +671,10 @@ classdef HystereticUtils
             end
             Hd = H(1:imin);
             Md = M(1:imin);
+            if imin < numel(H)
+                Ha = H(imin:end);
+                Ma = M(imin:end);
+            end
         end
 
         function [v, ok] = read_numeric_field(~, field_handle)
