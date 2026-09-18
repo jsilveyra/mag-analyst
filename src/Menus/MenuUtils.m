@@ -105,8 +105,11 @@ classdef MenuUtils
             %   NaN survive a jsonencode/jsondecode round trip (both collapse
             %   to JSON null and decode back as NaN otherwise, which makes
             %   Inf and -Inf indistinguishable). Empty stays empty (used for
-            %   "auto"/unset bounds).
-            if isempty(value)
+            %   "auto"/unset bounds). CompatUtils.is_blank, not isempty:
+            %   on a release without AllowEmpty an "unset" field holds NaN
+            %   instead of [] (see CompatUtils), and that must still save
+            %   as the same "auto" marker, not as the literal text "NaN".
+            if CompatUtils.is_blank(value)
                 txt = '';
             else
                 txt = sprintf('%.17g', value);
@@ -333,16 +336,16 @@ classdef MenuUtils
             end
             if isfield(s, 'hysteretic_bounds')
                 b = s.hysteretic_bounds;
-                app.MsLower_JA.Value = MenuUtils.json_safe_str_to_num(b.Ms_lower);
-                app.MsUpper_JA.Value = MenuUtils.json_safe_str_to_num(b.Ms_upper);
-                app.aLower_JA.Value = MenuUtils.json_safe_str_to_num(b.a_lower);
-                app.aUpper_JA.Value = MenuUtils.json_safe_str_to_num(b.a_upper);
-                app.alphaLower_JA.Value = MenuUtils.json_safe_str_to_num(b.alpha_lower);
-                app.alphaUpper_JA.Value = MenuUtils.json_safe_str_to_num(b.alpha_upper);
-                app.kLower_JA.Value = MenuUtils.json_safe_str_to_num(b.k_lower);
-                app.kUpper_JA.Value = MenuUtils.json_safe_str_to_num(b.k_upper);
-                app.cLower_JA.Value = MenuUtils.json_safe_str_to_num(b.c_lower);
-                app.cUpper_JA.Value = MenuUtils.json_safe_str_to_num(b.c_upper);
+                CompatUtils.set_value(app.MsLower_JA, MenuUtils.json_safe_str_to_num(b.Ms_lower));
+                CompatUtils.set_value(app.MsUpper_JA, MenuUtils.json_safe_str_to_num(b.Ms_upper));
+                CompatUtils.set_value(app.aLower_JA, MenuUtils.json_safe_str_to_num(b.a_lower));
+                CompatUtils.set_value(app.aUpper_JA, MenuUtils.json_safe_str_to_num(b.a_upper));
+                CompatUtils.set_value(app.alphaLower_JA, MenuUtils.json_safe_str_to_num(b.alpha_lower));
+                CompatUtils.set_value(app.alphaUpper_JA, MenuUtils.json_safe_str_to_num(b.alpha_upper));
+                CompatUtils.set_value(app.kLower_JA, MenuUtils.json_safe_str_to_num(b.k_lower));
+                CompatUtils.set_value(app.kUpper_JA, MenuUtils.json_safe_str_to_num(b.k_upper));
+                CompatUtils.set_value(app.cLower_JA, MenuUtils.json_safe_str_to_num(b.c_lower));
+                CompatUtils.set_value(app.cUpper_JA, MenuUtils.json_safe_str_to_num(b.c_upper));
                 app.hysteretic_ms_lower_bound_user_edited = true;
             end
             app.sync_k_fit_mode_ui();
@@ -546,16 +549,16 @@ classdef MenuUtils
             cla(app.AxesM, 'reset');
             cla(app.AxesdMdH, 'reset');
             cla(app.AxesHdMdH, 'reset');
-            app.ErrorDisplay.Value = [];
-            app.JsField.Value = [];
-            app.chiinField.Value = [];
+            CompatUtils.clear_value(app.ErrorDisplay);
+            CompatUtils.clear_value(app.JsField);
+            CompatUtils.clear_value(app.chiinField);
 
             % --- Hysteretic fitting tab ---
-            app.Ms_JA.Value = [];
-            app.a_JA.Value = [];
-            app.alpha_JA.Value = [];
-            app.k_JA.Value = [];
-            app.c_JA.Value = [];
+            CompatUtils.clear_value(app.Ms_JA);
+            CompatUtils.clear_value(app.a_JA);
+            CompatUtils.clear_value(app.alpha_JA);
+            CompatUtils.clear_value(app.k_JA);
+            CompatUtils.clear_value(app.c_JA);
             app.MsLower_JA.Value = 0;
             app.MsUpper_JA.Value = Inf;
             app.aLower_JA.Value = 0;
@@ -566,8 +569,8 @@ classdef MenuUtils
             app.cUpper_JA.Value = 1;
             app.kLower_JA.Value = 0;
             app.kUpper_JA.Value = Inf;
-            app.Htip.Value = [];
-            app.Mtip.Value = [];
+            CompatUtils.clear_value(app.Htip);
+            CompatUtils.clear_value(app.Mtip);
             app.SolverDropDown_2.Value = 'PRIMA-BOBYQA, tuned npt';
             app.MaximumrepetitionsEditField.Value = 3;
             app.RelativetoleranceEditField.Value = 0.001;
@@ -583,8 +586,10 @@ classdef MenuUtils
             app.CheckBox_4.Value = true;
             app.FitkCheckBox.Value = true;
             app.kConstrainedCheckBox_2.Value = true;
+            app.sync_k_fit_mode_ui();   % re-grey/uncheck FitkCheckBox to match kConstrainedCheckBox_2, same as startupFcn/open_project
+            app.sync_hysteretic_fitting_ui();
             cla(app.AxesM_2, 'reset');
-            app.ErrorDisplay_2.Value = [];
+            CompatUtils.clear_value(app.ErrorDisplay_2);
             app.hysteretic_ms_lower_bound_user_edited = false;
             app.LWModel_eq.Text = DisplayUnits.get_lw_model_eq(app);
             DisplayUnits.apply_ja_model_eqs(app, app.JAmodel_eq1, app.JAmodel_eq2, app.JAmodel_eq3);
@@ -637,11 +642,11 @@ classdef MenuUtils
             app.playground_curve_H = [];
             app.playground_curve_M = [];
             app.playground_curve_ready = false;
-            app.Ms_JA_Playground.Value = [];
-            app.a_JA_Playground.Value = [];
-            app.alpha_JA_Playground.Value = [];
-            app.c_JA_Playground.Value = [];
-            app.k_JA_Playground.Value = [];
+            CompatUtils.clear_value(app.Ms_JA_Playground);
+            CompatUtils.clear_value(app.a_JA_Playground);
+            CompatUtils.clear_value(app.alpha_JA_Playground);
+            CompatUtils.clear_value(app.c_JA_Playground);
+            CompatUtils.clear_value(app.k_JA_Playground);
 
             % --- Cross-cutting ---
             app.ProjectPath = "";

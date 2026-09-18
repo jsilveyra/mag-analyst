@@ -37,8 +37,8 @@ classdef app_exported < matlab.apps.AppBase
         InputBrowseButton               matlab.ui.control.Button
         InputDatasetpathLabel           matlab.ui.control.Label
         DescriptionTextArea             matlab.ui.control.TextArea
-        AxesProcessedInputData          matlab.ui.control.UIAxes
         AxesRawInputData                matlab.ui.control.UIAxes
+        AxesProcessedInputData          matlab.ui.control.UIAxes
         AnhystereticfittingTab          matlab.ui.container.Tab
         GridLayout11                    matlab.ui.container.GridLayout
         LWModel_eq                      matlab.ui.control.Label
@@ -83,9 +83,9 @@ classdef app_exported < matlab.apps.AppBase
         ShowgridCheckBoxM               matlab.ui.control.CheckBox
         PlotcomponentsCheckBoxM         matlab.ui.control.CheckBox
         ResidualplotButtonM             matlab.ui.control.Button
-        AxesM                           matlab.ui.control.UIAxes
-        AxesdMdH                        matlab.ui.control.UIAxes
         AxesHdMdH                       matlab.ui.control.UIAxes
+        AxesdMdH                        matlab.ui.control.UIAxes
+        AxesM                           matlab.ui.control.UIAxes
         HystereticfittingTab            matlab.ui.container.Tab
         GridLayout10                    matlab.ui.container.GridLayout
         JAModelFormulationLabel         matlab.ui.control.Label
@@ -868,6 +868,13 @@ classdef app_exported < matlab.apps.AppBase
             if isfolder(src_folder)
                 addpath(genpath(char(src_folder)));
             end
+
+            % Re-apply component properties that Design View can only emit
+            % unconditionally (AllowEmpty, LaTeX label Interpreter, table
+            % Selection API, the window Icon...) but that don't exist on
+            % every MATLAB release. createComponents no longer sets these
+            % directly -- see src/Common/CompatUtils.m.
+            CompatUtils.apply(app);
           
             app.ProjectPath = "";
             MenuUtils.setup_dirty_tracking(app);   % window-title dirty tracking
@@ -1603,7 +1610,6 @@ classdef app_exported < matlab.apps.AppBase
             app.MagAnalystUIFigure = uifigure('Visible', 'off');
             app.MagAnalystUIFigure.Position = [100 100 1044 768];
             app.MagAnalystUIFigure.Name = 'MagAnalyst';
-            app.MagAnalystUIFigure.Icon = fullfile(pathToMLAPP, 'assets', 'logo.png');
             app.MagAnalystUIFigure.CloseRequestFcn = createCallbackFcn(app, @MagAnalystUIFigureCloseRequest, true);
 
             % Create ProjectMenu
@@ -1663,6 +1669,13 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayout9.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
             app.GridLayout9.RowSpacing = 4.5;
 
+            % Create AxesProcessedInputData
+            app.AxesProcessedInputData = uiaxes(app.GridLayout9);
+            title(app.AxesProcessedInputData, 'Processed input data')
+            app.AxesProcessedInputData.Box = 'on';
+            app.AxesProcessedInputData.Layout.Row = [1 15];
+            app.AxesProcessedInputData.Layout.Column = [9 12];
+
             % Create AxesRawInputData
             app.AxesRawInputData = uiaxes(app.GridLayout9);
             title(app.AxesRawInputData, 'Raw input data')
@@ -1670,13 +1683,6 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesRawInputData.Box = 'on';
             app.AxesRawInputData.Layout.Row = [1 15];
             app.AxesRawInputData.Layout.Column = [5 8];
-
-            % Create AxesProcessedInputData
-            app.AxesProcessedInputData = uiaxes(app.GridLayout9);
-            title(app.AxesProcessedInputData, 'Processed input data')
-            app.AxesProcessedInputData.Box = 'on';
-            app.AxesProcessedInputData.Layout.Row = [1 15];
-            app.AxesProcessedInputData.Layout.Column = [9 12];
 
             % Create DescriptionTextArea
             app.DescriptionTextArea = uitextarea(app.GridLayout9);
@@ -1803,11 +1809,9 @@ classdef app_exported < matlab.apps.AppBase
             % Create HTipField
             app.HTipField = uieditfield(app.GridLayout9, 'numeric');
             app.HTipField.ValueDisplayFormat = '%.6e';
-            app.HTipField.AllowEmpty = 'on';
             app.HTipField.Editable = 'off';
             app.HTipField.Layout.Row = 16;
             app.HTipField.Layout.Column = [6 7];
-            app.HTipField.Value = [];
 
             % Create HtipAmLabel
             app.HtipAmLabel = uilabel(app.GridLayout9);
@@ -1820,11 +1824,9 @@ classdef app_exported < matlab.apps.AppBase
             % Create MTipField
             app.MTipField = uieditfield(app.GridLayout9, 'numeric');
             app.MTipField.ValueDisplayFormat = '%.6e';
-            app.MTipField.AllowEmpty = 'on';
             app.MTipField.Editable = 'off';
             app.MTipField.Layout.Row = 17;
             app.MTipField.Layout.Column = [6 7];
-            app.MTipField.Value = [];
 
             % Create MtipAmLabel
             app.MtipAmLabel = uilabel(app.GridLayout9);
@@ -1845,14 +1847,14 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayout11.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
             app.GridLayout11.RowSpacing = 4.5;
 
-            % Create AxesHdMdH
-            app.AxesHdMdH = uiaxes(app.GridLayout11);
-            xlabel(app.AxesHdMdH, 'H [A/m]')
-            ylabel(app.AxesHdMdH, 'dM/d(lnH) [A/m]')
-            zlabel(app.AxesHdMdH, 'Z')
-            app.AxesHdMdH.Box = 'on';
-            app.AxesHdMdH.Layout.Row = [13 17];
-            app.AxesHdMdH.Layout.Column = [1 6];
+            % Create AxesM
+            app.AxesM = uiaxes(app.GridLayout11);
+            xlabel(app.AxesM, 'H [A/m]')
+            ylabel(app.AxesM, 'M [A/m]')
+            zlabel(app.AxesM, 'Z')
+            app.AxesM.Box = 'on';
+            app.AxesM.Layout.Row = [1 5];
+            app.AxesM.Layout.Column = [1 6];
 
             % Create AxesdMdH
             app.AxesdMdH = uiaxes(app.GridLayout11);
@@ -1863,14 +1865,14 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesdMdH.Layout.Row = [7 11];
             app.AxesdMdH.Layout.Column = [1 6];
 
-            % Create AxesM
-            app.AxesM = uiaxes(app.GridLayout11);
-            xlabel(app.AxesM, 'H [A/m]')
-            ylabel(app.AxesM, 'M [A/m]')
-            zlabel(app.AxesM, 'Z')
-            app.AxesM.Box = 'on';
-            app.AxesM.Layout.Row = [1 5];
-            app.AxesM.Layout.Column = [1 6];
+            % Create AxesHdMdH
+            app.AxesHdMdH = uiaxes(app.GridLayout11);
+            xlabel(app.AxesHdMdH, 'H [A/m]')
+            ylabel(app.AxesHdMdH, 'dM/d(lnH) [A/m]')
+            zlabel(app.AxesHdMdH, 'Z')
+            app.AxesHdMdH.Box = 'on';
+            app.AxesHdMdH.Layout.Row = [13 17];
+            app.AxesHdMdH.Layout.Column = [1 6];
 
             % Create ResidualplotButtonM
             app.ResidualplotButtonM = uibutton(app.GridLayout11, 'push');
@@ -2005,7 +2007,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create CalculatePlotButton
             app.CalculatePlotButton = uibutton(app.GridLayout11, 'push');
             app.CalculatePlotButton.ButtonPushedFcn = createCallbackFcn(app, @CalculatePlotButtonPushed, true);
-            app.CalculatePlotButton.WordWrap = 'on';
             app.CalculatePlotButton.Layout.Row = 17;
             app.CalculatePlotButton.Layout.Column = [14 16];
             app.CalculatePlotButton.Text = 'Calculate & Plot';
@@ -2013,12 +2014,10 @@ classdef app_exported < matlab.apps.AppBase
             % Create ErrorDisplay
             app.ErrorDisplay = uieditfield(app.GridLayout11, 'numeric');
             app.ErrorDisplay.ValueDisplayFormat = '%.5e';
-            app.ErrorDisplay.AllowEmpty = 'on';
             app.ErrorDisplay.Editable = 'off';
             app.ErrorDisplay.HorizontalAlignment = 'left';
             app.ErrorDisplay.Layout.Row = 18;
             app.ErrorDisplay.Layout.Column = [12 13];
-            app.ErrorDisplay.Value = [];
 
             % Create StopfitButton
             app.StopfitButton = uibutton(app.GridLayout11, 'push');
@@ -2037,11 +2036,9 @@ classdef app_exported < matlab.apps.AppBase
             % Create chiinField
             app.chiinField = uieditfield(app.GridLayout11, 'numeric');
             app.chiinField.ValueDisplayFormat = '%.6g';
-            app.chiinField.AllowEmpty = 'on';
             app.chiinField.Editable = 'off';
             app.chiinField.Layout.Row = 13;
             app.chiinField.Layout.Column = [12 13];
-            app.chiinField.Value = [];
 
             % Create chiinLabel
             app.chiinLabel = uilabel(app.GridLayout11);
@@ -2144,11 +2141,9 @@ classdef app_exported < matlab.apps.AppBase
             % Create JsField
             app.JsField = uieditfield(app.GridLayout11, 'numeric');
             app.JsField.ValueDisplayFormat = '%.6g';
-            app.JsField.AllowEmpty = 'on';
             app.JsField.Editable = 'off';
             app.JsField.Layout.Row = 13;
             app.JsField.Layout.Column = 16;
-            app.JsField.Value = [];
 
             % Create JsTLabel
             app.JsTLabel = uilabel(app.GridLayout11);
@@ -2209,7 +2204,6 @@ classdef app_exported < matlab.apps.AppBase
             app.LWModel_eq.FontSize = 14;
             app.LWModel_eq.Layout.Row = 1;
             app.LWModel_eq.Layout.Column = [12 16];
-            app.LWModel_eq.Interpreter = 'latex';
             app.LWModel_eq.Text = '$M(H) = \sum_{i}^{n} M_i(H) = \sum_{i}^{n} M_{S,i} \mathcal{L}\left[(H + \alpha_i M_i) / a_i\right]$';
 
             % Create HystereticfittingTab
@@ -2260,11 +2254,9 @@ classdef app_exported < matlab.apps.AppBase
             % Create Ms_JA
             app.Ms_JA = uieditfield(app.GridLayout10, 'numeric');
             app.Ms_JA.ValueDisplayFormat = '%.5e';
-            app.Ms_JA.AllowEmpty = 'on';
             app.Ms_JA.ValueChangedFcn = createCallbackFcn(app, @JAParamsHystereticValueChanged, true);
             app.Ms_JA.Layout.Row = 10;
             app.Ms_JA.Layout.Column = [8 9];
-            app.Ms_JA.Value = [];
 
             % Create alpha_JALabel
             app.alpha_JALabel = uilabel(app.GridLayout10);
@@ -2275,11 +2267,9 @@ classdef app_exported < matlab.apps.AppBase
             % Create a_JA
             app.a_JA = uieditfield(app.GridLayout10, 'numeric');
             app.a_JA.ValueDisplayFormat = '%.5g';
-            app.a_JA.AllowEmpty = 'on';
             app.a_JA.ValueChangedFcn = createCallbackFcn(app, @JAParamsHystereticValueChanged, true);
             app.a_JA.Layout.Row = 11;
             app.a_JA.Layout.Column = [8 9];
-            app.a_JA.Value = [];
 
             % Create c_JALabel
             app.c_JALabel = uilabel(app.GridLayout10);
@@ -2290,11 +2280,9 @@ classdef app_exported < matlab.apps.AppBase
             % Create alpha_JA
             app.alpha_JA = uieditfield(app.GridLayout10, 'numeric');
             app.alpha_JA.ValueDisplayFormat = '%.5e';
-            app.alpha_JA.AllowEmpty = 'on';
             app.alpha_JA.ValueChangedFcn = createCallbackFcn(app, @JAParamsHystereticValueChanged, true);
             app.alpha_JA.Layout.Row = 12;
             app.alpha_JA.Layout.Column = [8 9];
-            app.alpha_JA.Value = [];
 
             % Create k_JALabel
             app.k_JALabel = uilabel(app.GridLayout10);
@@ -2305,11 +2293,9 @@ classdef app_exported < matlab.apps.AppBase
             % Create c_JA
             app.c_JA = uieditfield(app.GridLayout10, 'numeric');
             app.c_JA.ValueDisplayFormat = '%.6g';
-            app.c_JA.AllowEmpty = 'on';
             app.c_JA.ValueChangedFcn = createCallbackFcn(app, @JAParamsHystereticValueChanged, true);
             app.c_JA.Layout.Row = 13;
             app.c_JA.Layout.Column = [8 9];
-            app.c_JA.Value = [];
 
             % Create FitButton_2
             app.FitButton_2 = uibutton(app.GridLayout10, 'push');
@@ -2324,7 +2310,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create CalculatePlotButton_2
             app.CalculatePlotButton_2 = uibutton(app.GridLayout10, 'push');
             app.CalculatePlotButton_2.ButtonPushedFcn = createCallbackFcn(app, @CalculatePlotButton_2Pushed, true);
-            app.CalculatePlotButton_2.WordWrap = 'on';
             app.CalculatePlotButton_2.Layout.Row = 16;
             app.CalculatePlotButton_2.Layout.Column = [12 14];
             app.CalculatePlotButton_2.Text = 'Calculate & Plot';
@@ -2332,11 +2317,9 @@ classdef app_exported < matlab.apps.AppBase
             % Create k_JA
             app.k_JA = uieditfield(app.GridLayout10, 'numeric');
             app.k_JA.ValueDisplayFormat = '%.6g';
-            app.k_JA.AllowEmpty = 'on';
             app.k_JA.ValueChangedFcn = createCallbackFcn(app, @JAParamsHystereticValueChanged, true);
             app.k_JA.Layout.Row = 14;
             app.k_JA.Layout.Column = [8 9];
-            app.k_JA.Value = [];
 
             % Create ErrortominimizeDropDownLabel_2
             app.ErrortominimizeDropDownLabel_2 = uilabel(app.GridLayout10);
@@ -2371,12 +2354,10 @@ classdef app_exported < matlab.apps.AppBase
             % Create ErrorDisplay_2
             app.ErrorDisplay_2 = uieditfield(app.GridLayout10, 'numeric');
             app.ErrorDisplay_2.ValueDisplayFormat = '%.5e';
-            app.ErrorDisplay_2.AllowEmpty = 'on';
             app.ErrorDisplay_2.Editable = 'off';
             app.ErrorDisplay_2.HorizontalAlignment = 'left';
             app.ErrorDisplay_2.Layout.Row = 17;
             app.ErrorDisplay_2.Layout.Column = 11;
-            app.ErrorDisplay_2.Value = [];
 
             % Create HtipLabel
             app.HtipLabel = uilabel(app.GridLayout10);
@@ -2402,11 +2383,9 @@ classdef app_exported < matlab.apps.AppBase
             % Create Htip
             app.Htip = uieditfield(app.GridLayout10, 'numeric');
             app.Htip.ValueDisplayFormat = '%.5e';
-            app.Htip.AllowEmpty = 'on';
             app.Htip.Editable = 'off';
             app.Htip.Layout.Row = 7;
             app.Htip.Layout.Column = [8 9];
-            app.Htip.Value = [];
 
             % Create MtipLabel
             app.MtipLabel = uilabel(app.GridLayout10);
@@ -2416,7 +2395,6 @@ classdef app_exported < matlab.apps.AppBase
 
             % Create MsLower_JA
             app.MsLower_JA = uieditfield(app.GridLayout10, 'numeric');
-            app.MsLower_JA.AllowEmpty = 'on';
             app.MsLower_JA.ValueChangedFcn = createCallbackFcn(app, @MsLower_JAValueChanged, true);
             app.MsLower_JA.Layout.Row = 10;
             app.MsLower_JA.Layout.Column = 10;
@@ -2424,7 +2402,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create MsUpper_JA
             app.MsUpper_JA = uieditfield(app.GridLayout10, 'numeric');
             app.MsUpper_JA.ValueDisplayFormat = '%.6g';
-            app.MsUpper_JA.AllowEmpty = 'on';
             app.MsUpper_JA.Layout.Row = 10;
             app.MsUpper_JA.Layout.Column = 11;
             app.MsUpper_JA.Value = Inf;
@@ -2432,11 +2409,9 @@ classdef app_exported < matlab.apps.AppBase
             % Create Mtip
             app.Mtip = uieditfield(app.GridLayout10, 'numeric');
             app.Mtip.ValueDisplayFormat = '%.5e';
-            app.Mtip.AllowEmpty = 'on';
             app.Mtip.Editable = 'off';
             app.Mtip.Layout.Row = 8;
             app.Mtip.Layout.Column = [8 9];
-            app.Mtip.Value = [];
 
             % Create aLower_JA
             app.aLower_JA = uieditfield(app.GridLayout10, 'numeric');
@@ -2447,7 +2422,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create aUpper_JA
             app.aUpper_JA = uieditfield(app.GridLayout10, 'numeric');
             app.aUpper_JA.ValueDisplayFormat = '%.6g';
-            app.aUpper_JA.AllowEmpty = 'on';
             app.aUpper_JA.Layout.Row = 11;
             app.aUpper_JA.Layout.Column = 11;
             app.aUpper_JA.Value = Inf;
@@ -2455,7 +2429,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create alphaLower_JA
             app.alphaLower_JA = uieditfield(app.GridLayout10, 'numeric');
             app.alphaLower_JA.ValueDisplayFormat = '%.5e';
-            app.alphaLower_JA.AllowEmpty = 'on';
             app.alphaLower_JA.Layout.Row = 12;
             app.alphaLower_JA.Layout.Column = 10;
             app.alphaLower_JA.Value = -Inf;
@@ -2463,7 +2436,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create alphaUpper_JA
             app.alphaUpper_JA = uieditfield(app.GridLayout10, 'numeric');
             app.alphaUpper_JA.ValueDisplayFormat = '%.5e';
-            app.alphaUpper_JA.AllowEmpty = 'on';
             app.alphaUpper_JA.Layout.Row = 12;
             app.alphaUpper_JA.Layout.Column = 11;
             app.alphaUpper_JA.Value = Inf;
@@ -2471,14 +2443,12 @@ classdef app_exported < matlab.apps.AppBase
             % Create cLower_JA
             app.cLower_JA = uieditfield(app.GridLayout10, 'numeric');
             app.cLower_JA.ValueDisplayFormat = '%.6g';
-            app.cLower_JA.AllowEmpty = 'on';
             app.cLower_JA.Layout.Row = 13;
             app.cLower_JA.Layout.Column = 10;
 
             % Create cUpper_JA
             app.cUpper_JA = uieditfield(app.GridLayout10, 'numeric');
             app.cUpper_JA.ValueDisplayFormat = '%.6g';
-            app.cUpper_JA.AllowEmpty = 'on';
             app.cUpper_JA.Layout.Row = 13;
             app.cUpper_JA.Layout.Column = 11;
             app.cUpper_JA.Value = 1;
@@ -2493,7 +2463,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create kLower_JA
             app.kLower_JA = uieditfield(app.GridLayout10, 'numeric');
             app.kLower_JA.ValueDisplayFormat = '%.6g';
-            app.kLower_JA.AllowEmpty = 'on';
             app.kLower_JA.Layout.Row = 14;
             app.kLower_JA.Layout.Column = 10;
 
@@ -2507,7 +2476,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create kUpper_JA
             app.kUpper_JA = uieditfield(app.GridLayout10, 'numeric');
             app.kUpper_JA.ValueDisplayFormat = '%.6g';
-            app.kUpper_JA.AllowEmpty = 'on';
             app.kUpper_JA.Layout.Row = 14;
             app.kUpper_JA.Layout.Column = 11;
             app.kUpper_JA.Value = Inf;
@@ -2682,7 +2650,6 @@ classdef app_exported < matlab.apps.AppBase
             app.JAmodel_eq1.FontSize = 14;
             app.JAmodel_eq1.Layout.Row = 3;
             app.JAmodel_eq1.Layout.Column = [6 9];
-            app.JAmodel_eq1.Interpreter = 'latex';
             app.JAmodel_eq1.Text = '$\quad M_{anh} = M_S \mathcal{L}\left[(H + \alpha M) / a\right]$';
 
             % Create JAmodel_eq2
@@ -2690,7 +2657,6 @@ classdef app_exported < matlab.apps.AppBase
             app.JAmodel_eq2.FontSize = 14;
             app.JAmodel_eq2.Layout.Row = 4;
             app.JAmodel_eq2.Layout.Column = [6 9];
-            app.JAmodel_eq2.Interpreter = 'latex';
             app.JAmodel_eq2.Text = '$\quad M = c M_{anh} + (1 - c) M_{irr}$';
 
             % Create JAmodel_eq3
@@ -2698,7 +2664,6 @@ classdef app_exported < matlab.apps.AppBase
             app.JAmodel_eq3.FontSize = 14;
             app.JAmodel_eq3.Layout.Row = 5;
             app.JAmodel_eq3.Layout.Column = [6 9];
-            app.JAmodel_eq3.Interpreter = 'latex';
             app.JAmodel_eq3.Text = '$\quad M_{irr} = M_{anh} - \delta k \, d M_{irr} / d H_{eff}$';
 
             % Create JAModelFormulationLabel
@@ -2743,12 +2708,8 @@ classdef app_exported < matlab.apps.AppBase
             % Create UITable
             app.UITable = uitable(app.GridLayout6);
             app.UITable.ColumnName = {'Htip_i'};
-            app.UITable.ColumnRearrangeable = 'on';
             app.UITable.RowName = {};
-            app.UITable.ColumnSortable = true;
-            app.UITable.SelectionType = 'row';
             app.UITable.ColumnEditable = true;
-            app.UITable.Multiselect = 'off';
             app.UITable.Layout.Row = [2 4];
             app.UITable.Layout.Column = [2 4];
 
@@ -2948,13 +2909,9 @@ classdef app_exported < matlab.apps.AppBase
             % Create UITable_3
             app.UITable_3 = uitable(app.GridLayout5);
             app.UITable_3.ColumnName = {'Htip_i'};
-            app.UITable_3.ColumnRearrangeable = 'on';
             app.UITable_3.RowName = {};
-            app.UITable_3.ColumnSortable = true;
-            app.UITable_3.SelectionType = 'row';
             app.UITable_3.ColumnEditable = true;
             app.UITable_3.CellEditCallback = createCallbackFcn(app, @DegaussingTableCellEdit, true);
-            app.UITable_3.Multiselect = 'off';
             app.UITable_3.Layout.Row = 8;
             app.UITable_3.Layout.Column = [2 3];
 
@@ -3014,11 +2971,8 @@ classdef app_exported < matlab.apps.AppBase
             app.UITable2 = uitable(app.GridLayout7);
             app.UITable2.ColumnName = {'Order'; 'Amplitude [A/m]'; 'Phase [deg]'};
             app.UITable2.RowName = {};
-            app.UITable2.ColumnSortable = [true false false];
-            app.UITable2.SelectionType = 'column';
             app.UITable2.ColumnEditable = [true true true];
             app.UITable2.CellEditCallback = createCallbackFcn(app, @HarmonicsTableCellEdit, true);
-            app.UITable2.Multiselect = 'off';
             app.UITable2.Layout.Row = [7 10];
             app.UITable2.Layout.Column = [1 4];
 
@@ -3026,7 +2980,6 @@ classdef app_exported < matlab.apps.AppBase
             app.quadHtsum_kA_ksinkomegatphi_kLabel = uilabel(app.GridLayout7);
             app.quadHtsum_kA_ksinkomegatphi_kLabel.Layout.Row = 6;
             app.quadHtsum_kA_ksinkomegatphi_kLabel.Layout.Column = [1 3];
-            app.quadHtsum_kA_ksinkomegatphi_kLabel.Interpreter = 'latex';
             app.quadHtsum_kA_ksinkomegatphi_kLabel.Text = '$\quad H(t) = \sum_{k} A_k \sin(k\omega t + \phi_k)$';
 
             % Create DistortedmajorloopwithharmoniccomponentsLabel
@@ -3197,11 +3150,9 @@ classdef app_exported < matlab.apps.AppBase
             % Create Ms_JA_Playground
             app.Ms_JA_Playground = uieditfield(app.GridLayout3, 'numeric');
             app.Ms_JA_Playground.ValueDisplayFormat = '%.5e';
-            app.Ms_JA_Playground.AllowEmpty = 'on';
             app.Ms_JA_Playground.ValueChangedFcn = createCallbackFcn(app, @JAParamsPlaygroundValueChanged, true);
             app.Ms_JA_Playground.Layout.Row = 8;
             app.Ms_JA_Playground.Layout.Column = [2 3];
-            app.Ms_JA_Playground.Value = [];
 
             % Create a_JA_PlaygroundLabel
             app.a_JA_PlaygroundLabel = uilabel(app.GridLayout3);
@@ -3212,11 +3163,9 @@ classdef app_exported < matlab.apps.AppBase
             % Create a_JA_Playground
             app.a_JA_Playground = uieditfield(app.GridLayout3, 'numeric');
             app.a_JA_Playground.ValueDisplayFormat = '%.6g';
-            app.a_JA_Playground.AllowEmpty = 'on';
             app.a_JA_Playground.ValueChangedFcn = createCallbackFcn(app, @JAParamsPlaygroundValueChanged, true);
             app.a_JA_Playground.Layout.Row = 9;
             app.a_JA_Playground.Layout.Column = [2 3];
-            app.a_JA_Playground.Value = [];
 
             % Create alpha_JA_PlaygroundLabel
             app.alpha_JA_PlaygroundLabel = uilabel(app.GridLayout3);
@@ -3227,11 +3176,9 @@ classdef app_exported < matlab.apps.AppBase
             % Create alpha_JA_Playground
             app.alpha_JA_Playground = uieditfield(app.GridLayout3, 'numeric');
             app.alpha_JA_Playground.ValueDisplayFormat = '%.5e';
-            app.alpha_JA_Playground.AllowEmpty = 'on';
             app.alpha_JA_Playground.ValueChangedFcn = createCallbackFcn(app, @JAParamsPlaygroundValueChanged, true);
             app.alpha_JA_Playground.Layout.Row = 10;
             app.alpha_JA_Playground.Layout.Column = [2 3];
-            app.alpha_JA_Playground.Value = [];
 
             % Create c_JA_PlaygroundLabel
             app.c_JA_PlaygroundLabel = uilabel(app.GridLayout3);
@@ -3242,11 +3189,9 @@ classdef app_exported < matlab.apps.AppBase
             % Create c_JA_Playground
             app.c_JA_Playground = uieditfield(app.GridLayout3, 'numeric');
             app.c_JA_Playground.ValueDisplayFormat = '%.6g';
-            app.c_JA_Playground.AllowEmpty = 'on';
             app.c_JA_Playground.ValueChangedFcn = createCallbackFcn(app, @JAParamsPlaygroundValueChanged, true);
             app.c_JA_Playground.Layout.Row = 11;
             app.c_JA_Playground.Layout.Column = [2 3];
-            app.c_JA_Playground.Value = [];
 
             % Create k_JA_PlaygroundLabel
             app.k_JA_PlaygroundLabel = uilabel(app.GridLayout3);
@@ -3257,11 +3202,9 @@ classdef app_exported < matlab.apps.AppBase
             % Create k_JA_Playground
             app.k_JA_Playground = uieditfield(app.GridLayout3, 'numeric');
             app.k_JA_Playground.ValueDisplayFormat = '%.6g';
-            app.k_JA_Playground.AllowEmpty = 'on';
             app.k_JA_Playground.ValueChangedFcn = createCallbackFcn(app, @JAParamsPlaygroundValueChanged, true);
             app.k_JA_Playground.Layout.Row = 12;
             app.k_JA_Playground.Layout.Column = [2 3];
-            app.k_JA_Playground.Value = [];
 
             % Create RetrieveparametersButton
             app.RetrieveparametersButton = uibutton(app.GridLayout3, 'push');
@@ -3303,7 +3246,6 @@ classdef app_exported < matlab.apps.AppBase
             % Create CalculatePlotButton_3
             app.CalculatePlotButton_3 = uibutton(app.GridLayout3, 'push');
             app.CalculatePlotButton_3.ButtonPushedFcn = createCallbackFcn(app, @CalculatePlotButton_3Pushed, true);
-            app.CalculatePlotButton_3.WordWrap = 'on';
             app.CalculatePlotButton_3.Layout.Row = 17;
             app.CalculatePlotButton_3.Layout.Column = [13 14];
             app.CalculatePlotButton_3.Text = 'Calculate & Plot';
@@ -3350,7 +3292,6 @@ classdef app_exported < matlab.apps.AppBase
             app.JAmodel_eq3_2.FontSize = 14;
             app.JAmodel_eq3_2.Layout.Row = 5;
             app.JAmodel_eq3_2.Layout.Column = [1 3];
-            app.JAmodel_eq3_2.Interpreter = 'latex';
             app.JAmodel_eq3_2.Text = '$\quad M_{irr} = M_{anh} - \delta k \, d M_{irr} / d H_{eff}$';
 
             % Create JAmodel_eq2_2
@@ -3358,7 +3299,6 @@ classdef app_exported < matlab.apps.AppBase
             app.JAmodel_eq2_2.FontSize = 14;
             app.JAmodel_eq2_2.Layout.Row = 4;
             app.JAmodel_eq2_2.Layout.Column = [1 3];
-            app.JAmodel_eq2_2.Interpreter = 'latex';
             app.JAmodel_eq2_2.Text = '$\quad M = c M_{anh} + (1 - c) M_{irr}$';
 
             % Create JAmodel_eq1_2
@@ -3366,7 +3306,6 @@ classdef app_exported < matlab.apps.AppBase
             app.JAmodel_eq1_2.FontSize = 14;
             app.JAmodel_eq1_2.Layout.Row = 3;
             app.JAmodel_eq1_2.Layout.Column = [1 3];
-            app.JAmodel_eq1_2.Interpreter = 'latex';
             app.JAmodel_eq1_2.Text = '$\quad M_{anh} = M_S \mathcal{L}\left[(H + \alpha M) / a\right]$';
 
             % Create MessagesTabPanel

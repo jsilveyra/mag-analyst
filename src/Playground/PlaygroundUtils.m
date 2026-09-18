@@ -606,7 +606,7 @@ classdef PlaygroundUtils
                 return;
             end
 
-            app.UITable.SelectionType = 'cell';
+            CompatUtils.set_prop(app.UITable, 'SelectionType', 'cell');   % SelectionType needs R2023a
             app.UITable.ColumnEditable = [true];
             app.UITable.ColumnFormat = {'short g'};
             app.UITable.Data = PlaygroundUtils.get_minor_loop_default_values(app);
@@ -696,10 +696,10 @@ classdef PlaygroundUtils
             H_target_unit = string(H_target_unit);
             M_target_unit = string(M_target_unit);
 
-            H_source_factor = uc.UnitConversions(H_source_unit);
-            H_target_factor = uc.UnitConversions(H_target_unit);
-            M_source_factor = uc.UnitConversions(M_source_unit);
-            M_target_factor = uc.UnitConversions(M_target_unit);
+            H_source_factor = uc.factor(H_source_unit);
+            H_target_factor = uc.factor(H_target_unit);
+            M_source_factor = uc.factor(M_source_unit);
+            M_target_factor = uc.factor(M_target_unit);
 
             H_base = H_in .* H_source_factor;
             H_out = H_base ./ H_target_factor;
@@ -986,7 +986,7 @@ classdef PlaygroundUtils
                 return;
             end
 
-            app.UITable_3.SelectionType = 'cell';
+            CompatUtils.set_prop(app.UITable_3, 'SelectionType', 'cell');   % SelectionType needs R2023a
             app.UITable_3.ColumnEditable = [true];
             app.UITable_3.ColumnFormat = {'short g'};
             app.UITable_3.Data = PlaygroundUtils.get_degaussing_default_table_values(app);

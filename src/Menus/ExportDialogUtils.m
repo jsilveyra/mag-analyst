@@ -616,7 +616,9 @@ classdef ExportDialogUtils
                 txt = 'auto';
                 return;
             end
-            if isempty(v)
+            if CompatUtils.is_blank(v)
+                % is_blank, not isempty: on releases without AllowEmpty a
+                % blank field holds NaN instead of [] (see CompatUtils).
                 txt = 'auto';
             elseif ~isfinite(v)
                 if v > 0
@@ -712,7 +714,11 @@ classdef ExportDialogUtils
             end
 
             err_name = strtrim(string(app.ErrortominimizeDropDown_2.Value));
-            err_val = strtrim(string(app.ErrorDisplay_2.Value));
+            if CompatUtils.is_blank(app.ErrorDisplay_2)
+                err_val = "";   % blank is [] or NaN depending on release
+            else
+                err_val = strtrim(string(app.ErrorDisplay_2.Value));
+            end
             if strlength(err_val) > 0
                 lines = lines + nl + nl + "Fit error";
                 lines = lines + nl + "---------";

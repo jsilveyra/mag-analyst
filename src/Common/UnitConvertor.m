@@ -12,9 +12,15 @@
 % name used everywhere except the Input tab's own dropdown (which spells
 % out the emu/g equivalence for a user picking a unit for the first time).
 
+% The unit -> factor table is a pair of parallel arrays looked up with
+% strcmp rather than a MATLAB `dictionary`. dictionary only exists from
+% R2022b on, and MagAnalyst supports older releases; with 17 entries the
+% linear lookup costs nothing. Use factor(unit) to read a single factor.
+
 classdef UnitConvertor
     properties
-        UnitConversions
+        Units       % string array of unit labels
+        Factors     % matching multipliers into the base unit (A/m)
     end
 
     methods
@@ -25,11 +31,24 @@ classdef UnitConvertor
             tesla_conversion = 1/mu0; % multiply T by this to get A/m
             gauss_conversion = tesla_conversion * 1e-4; % 1 G = 1e-4 T
             conversion = [1 1000 oe_conversion oe_conversion*1000 tesla_conversion gauss_conversion gauss_conversion*1000 1 1000 1000000 1000 tesla_conversion tesla_conversion gauss_conversion gauss_conversion*1000 1 1];
-            obj.UnitConversions = dictionary(units, conversion);
+            obj.Units = units;
+            obj.Factors = conversion;
+        end
+
+        function f = factor(obj, unit)
+            % Multiplier that takes a value expressed in UNIT to the base
+            % unit. Errors on an unknown unit, like the dictionary this
+            % replaced did.
+            idx = find(strcmp(obj.Units, string(unit)), 1);
+            if isempty(idx)
+                error('UnitConvertor:UnknownUnit', ...
+                    'Unknown unit "%s".', char(string(unit)));
+            end
+            f = obj.Factors(idx);
         end
 
         function X = convert(obj, X_raw, unit)
-            X = X_raw .* obj.UnitConversions(unit);
+            X = X_raw .* obj.factor(unit);
         end
 
         function [H, M] = convert_H_M(obj, H_raw, H_unit, M_raw, M_unit)

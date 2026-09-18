@@ -227,7 +227,7 @@ classdef HystereticUtils
         end
 
         function update_hysteretic_error_display(app)
-            app.ErrorDisplay_2.Value = [];
+            CompatUtils.clear_value(app.ErrorDisplay_2);
 
             has_raw_data = ~isempty(app.H_raw) && ~isempty(app.M_raw);
             if ~has_raw_data || app.is_last_import_anhysteretic()
@@ -253,7 +253,7 @@ classdef HystereticUtils
                     app.ErrorDisplay_2.Value = J;
                 end
             catch
-                app.ErrorDisplay_2.Value = [];
+                CompatUtils.clear_value(app.ErrorDisplay_2);
             end
         end
 
@@ -502,15 +502,15 @@ classdef HystereticUtils
                     app.c_JA.Value = c_seed;
                     app.write_message("Jiles–Atherton seeds retrieved: " + Ms_seed_label + "=" + ms_display + ", a=" + a_display + " [A/m], " + alpha_seed_label + "=" + alpha_display + ", c=" + FormatUtils.format_short(c_seed) + ", k=" + k_display + " [A/m].");
                 else
-                    app.k_JA.Value = [];
+                    CompatUtils.clear_value(app.k_JA);
                     app.c_JA.Value = c_seed;
                     app.write_message("Jiles–Atherton seeds retrieved: " + Ms_seed_label + "=" + ms_display + ", a=" + a_display + " [A/m], " + alpha_seed_label + "=" + alpha_display + ", c=" + FormatUtils.format_short(c_seed) + ", k=not available.");
                 end
             else
-                app.Ms_JA.Value = [];
-                app.a_JA.Value = [];
-                app.alpha_JA.Value = [];
-                app.k_JA.Value = [];
+                CompatUtils.clear_value(app.Ms_JA);
+                CompatUtils.clear_value(app.a_JA);
+                CompatUtils.clear_value(app.alpha_JA);
+                CompatUtils.clear_value(app.k_JA);
                 app.c_JA.Value = c_seed;
                 app.write_message("Warning: No anhysteretic magnetization modelling has been performed.");
                 app.write_message("Jiles–Atherton seeds for Ms, a, α, and k were not initialized; the coupling parameter c was set to 1/3.");

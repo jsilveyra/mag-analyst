@@ -37,17 +37,23 @@ function app = MagAnalyst()
     w = 480; h = 300;
     pos = [(scr(3) - w) / 2, (scr(4) - h) / 2, w, h];
 
-    % 'Icon' replaces the generic MATLAB icon that would otherwise show in
-    % the window's title bar (top-left corner) with the app's own mark --
-    % same asset the main app window uses (app_exported.m, MagAnalystUIFigure.Icon).
-    iconFile = fullfile(fileparts(mfilename('fullpath')), 'assets', 'logo.png');
-
     splash = uifigure( ...
         'Name', 'MagAnalyst', ...
-        'Icon', iconFile, ...
         'Position', pos, ...
         'Resize', 'off', ...
         'Color', figBG);
+
+    % 'Icon' replaces the generic MATLAB icon that would otherwise show in
+    % the window's title bar (top-left corner) with the app's own mark --
+    % same asset the main app window uses (see CompatUtils.apply_window_icon).
+    % It is set after construction and behind an isprop guard because the
+    % property only exists from R2023b on; on older releases the splash
+    % simply keeps the default MATLAB icon. CompatUtils itself is not usable
+    % here: src/ only goes on the path once app_exported's startupFcn runs.
+    iconFile = fullfile(fileparts(mfilename('fullpath')), 'assets', 'logo.png');
+    if isprop(splash, 'Icon') && isfile(iconFile)
+        splash.Icon = iconFile;
+    end
 
     % Always tear the splash down, even if construction errors out.
     cleaner = onCleanup(@() delete(splash));
