@@ -81,14 +81,15 @@ fprintf('   a     = %.6g A/m\n', a_seed);
 fprintf('   alpha = %.6g\n',     alpha_seed);
 
 %% --- 2) Build the full measured cycle from the left branch ---------------
-% "Entire loop" fitting compares against a full, point-symmetric cycle. We
-% call the SAME function the app uses to build it,
+% "Entire loop" fitting compares against the full measured cycle. We call
+% the SAME function the app uses to build it,
 % HystereticUtils.build_ja_data_cycle_core, rather than reimplementing it:
 % it re-converts the RAW loop columns to A/m (keeping both branches, unlike
-% the folded anhysteretic curve above), extracts a uniformly arc-length-
-% sampled descending (left) branch of n_left points, and reflects it into a
-% symmetric cycle. n_left = 50 is the GUI's N° of points default. It also
-% returns the left branch (Hleft/Mleft) on its own.
+% the folded anhysteretic curve above), extracts the measured descending
+% (left) and ascending (right) branches, each uniformly arc-length-sampled
+% with n_left points, and joins them into a closed cycle. n_left = 50 is
+% the GUI's N° of points default. It also returns the left branch
+% (Hleft/Mleft) on its own.
 n_left = 50;
 [H_cycle, M_cycle, Hleft, Mleft] = HystereticUtils.build_ja_data_cycle_core( ...
     H_raw, M_raw, H_unit, M_unit, n_left);
