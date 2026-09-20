@@ -503,7 +503,7 @@ classdef MenuUtils
             app.VerticalaxisfieldDropDown.Value = 'B [T]';
             app.CurvetypeDropDown.Value = 'Hysteresis loop';
             app.InputAxisScaleDropDown.Value = 'linear';
-            app.InputNumberofPointsEditField.Value = 50;
+            MenuUtils.restore_gui_default(app, 'InputNumberofPointsEditField');
             cla(app.AxesRawInputData, 'reset');
             cla(app.AxesProcessedInputData, 'reset');
 
@@ -532,7 +532,7 @@ classdef MenuUtils
             app.PointSpaceDropDown.Value = 'log';
             app.NofpointsEditField.Value = 100;
             app.ErrorDropDown.Value = 'Diagonal (logH, continuous)';
-            app.SolverDropDown.Value = 'PRIMA-BOBYQA, tuned npt';
+            MenuUtils.restore_gui_default(app, 'SolverDropDown');
             app.ShowgridCheckBoxM.Value = true;
             app.ShowgridCheckBoxdMdH.Value = true;
             app.ShowgridCheckBoxHdMdH.Value = true;
@@ -571,7 +571,7 @@ classdef MenuUtils
             app.kUpper_JA.Value = Inf;
             CompatUtils.clear_value(app.Htip);
             CompatUtils.clear_value(app.Mtip);
-            app.SolverDropDown_2.Value = 'PRIMA-BOBYQA, tuned npt';
+            MenuUtils.restore_gui_default(app, 'SolverDropDown_2');
             app.MaximumrepetitionsEditField.Value = 3;
             app.RelativetoleranceEditField.Value = 0.001;
             app.RepetitionsEditField_3.Value = 1;
@@ -699,6 +699,33 @@ classdef MenuUtils
             app.MagAnalystUIFigure.Name = char("MagAnalyst - " + project_name + suffix);
         end
 
+        function snapshot_gui_defaults(app)
+            %SNAPSHOT_GUI_DEFAULTS Remember the design-time Value of the
+            %   controls reset_app restores (called once from startupFcn via
+            %   setup_dirty_tracking, before any user or project changes them).
+            names = MenuUtils.gui_default_components();
+            d = struct();
+            for i = 1:numel(names)
+                d.(names{i}) = app.(names{i}).Value;
+            end
+            setappdata(app.MagAnalystUIFigure, 'gui_defaults', d);
+        end
+
+        function restore_gui_default(app, name)
+            %RESTORE_GUI_DEFAULT Put one control back to its design-time Value.
+            if ~isappdata(app.MagAnalystUIFigure, 'gui_defaults')
+                return;
+            end
+            d = getappdata(app.MagAnalystUIFigure, 'gui_defaults');
+            if isfield(d, name)
+                app.(name).Value = d.(name);
+            end
+        end
+
+        function names = gui_default_components()
+            names = {'InputNumberofPointsEditField', 'SolverDropDown', 'SolverDropDown_2'};
+        end
+
         function setup_dirty_tracking(app)
             %SETUP_DIRTY_TRACKING Wire a change listener to every control
             %   whose value save() persists, so any user edit marks the
@@ -706,6 +733,12 @@ classdef MenuUtils
             %   component's ValueChangedFcn/CellEditCallback so it runs
             %   alongside the component's existing wiring instead of
             %   replacing it. Called once from startupFcn.
+            % Snapshot the design-time values of the controls whose defaults
+            % reset_app restores, before anything can change them, so
+            % new_project restores the GUI's own defaults instead of values
+            % repeated here (Design View is the single source of truth).
+            MenuUtils.snapshot_gui_defaults(app);
+
             value_components = MenuUtils.simple_field_specs();
             value_components = value_components(:,2)';
             extra_value_components = { ...

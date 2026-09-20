@@ -261,9 +261,11 @@ classdef AnhystereticUtils
             % the seed.
             seed = [mp.Ms(:).', mp.alpha(:).', mp.a(:).'];
 
-            BIG = 1e12;                       % wide finite stand-in for unbounded
-            fit_lb = -BIG * ones(3*n, 1);
-            fit_ub =  BIG * ones(3*n, 1);
+            % Unbounded: pass +/-Inf, which minimize() leaves untransformed
+            % (until 2026-09-19 a finite 1e12 stand-in was used, which forced
+            % its asin bound transform and needed a cap in fit_physical.m).
+            fit_lb = -Inf(3*n, 1);
+            fit_ub =  Inf(3*n, 1);
             fit_select_fit = num2cell(true(3*n, 1));
 
             app.stop_fit_requested = false;

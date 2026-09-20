@@ -13,7 +13,15 @@ function ret = Langevin(h, order)
 %   catastrophic cancellation.
 %
 %   See also LangevinPrivate.
-    L = LangevinPrivate();
+    % LangevinPrivate is stateless, so build it once: this function is the
+    % innermost call of the JA ODE right-hand side (twice per ja_ode call,
+    % ~1e4 calls per simulated branch) and constructing the object on every
+    % call was ~half of the right-hand side's cost (2026-09-19 profile:
+    % 75 us -> 30 us per ja_ode call).
+    persistent L
+    if isempty(L)
+        L = LangevinPrivate();
+    end
     switch order
         case -1
             ret = L.inverse(h);

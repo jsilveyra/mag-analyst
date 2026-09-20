@@ -59,7 +59,7 @@ M_unit = pc.B_TESLA;
 
 %% --- 1) Anhysteretic 1-component fit -> Ms, a, alpha seeds ---------------
 % (Identical to demo_1; only the resulting Ms/a/alpha are reused here.)
-parser = Parser(data_file, H_unit, M_unit, pc.HYSTERESIS_LOOP_TYPE, 50);  % the GUI's N° of points default
+parser = Parser(data_file, H_unit, M_unit, pc.HYSTERESIS_LOOP_TYPE, 50);  % anhysteretic-curve samples (an explicit choice here; the GUI has its own field)
 [H, M, H_raw, M_raw] = parser.import();
 data_curve = DataAnhystereticCurve(H, M);
 
@@ -86,13 +86,12 @@ fprintf('   alpha = %.6g\n',     alpha_seed);
 % HystereticUtils.build_ja_data_cycle_core, rather than reimplementing it:
 % it re-converts the RAW loop columns to A/m (keeping both branches, unlike
 % the folded anhysteretic curve above), extracts the measured descending
-% (left) and ascending (right) branches, each uniformly arc-length-sampled
-% with n_left points, and joins them into a closed cycle. n_left = 50 is
-% the GUI's N° of points default. It also returns the left branch
-% (Hleft/Mleft) on its own.
-n_left = 50;
+% (left) and ascending (right) branches -- every measured point, no
+% resampling (the Input tab's N° of points only affects the anhysteretic
+% curve) -- and joins them into a closed cycle. It also returns the left
+% branch (Hleft/Mleft) on its own.
 [H_cycle, M_cycle, Hleft, Mleft] = HystereticUtils.build_ja_data_cycle_core( ...
-    H_raw, M_raw, H_unit, M_unit, n_left);
+    H_raw, M_raw, H_unit, M_unit);
 
 % Raw measured loop (both branches, in A/m) for the comparison plot only.
 [H_raw_cycle, M_raw_cycle] = UnitConvertor().convert_H_M(H_raw, H_unit, M_raw, M_unit);

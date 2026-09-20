@@ -15,14 +15,20 @@ function [Manh, dManh_dHeff] = anhysteretic(Heff, p)
 %     Manh         : anhysteretic magnetization [A/m]
 %     dManh_dHeff  : derivative dManh/dHeff
 
-    if ~isstruct(p) || ~isfield(p, 'Ms') || ~isfield(p, 'a')
-        error('anhysteretic:InvalidParams', ...
-            'Input p must be a struct with fields Ms and a.');
-    end
-
+    % No argument validation: called from the ODE right-hand side (see
+    % ja_ode.m); a malformed p fails on the field access below.
     h = Heff ./ p.a;
-    Lh = Langevin(h, 0);
-    dLdh = Langevin(h, 1);
+    % L(h) and L'(h) inlined from LangevinPrivate (same formulas, same
+    % three-term Taylor switch at |h| <= 1e-3): the two Langevin() calls
+    % were half of the ODE right-hand side's cost (2026-09-19 profile).
+    % Keep in sync with LangevinPrivate.L / .first_derivative.
+    if abs(h) <= 0.001
+        Lh = h/3 - (h^3)/45 + (2/945)*(h^5);
+        dLdh = 1/3 - (h^2)/15 + (2/189)*h^4;
+    else
+        Lh = coth(h) - 1/h;
+        dLdh = 1/(h^2) - csch(h)^2;
+    end
 
     Manh = p.Ms .* Lh;
     dManh_dHeff = (p.Ms ./ p.a) .* dLdh;

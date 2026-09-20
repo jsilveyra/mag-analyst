@@ -4,8 +4,13 @@ function [Hmod, Mmod, info] = solve_ja_hysteretic_region( ...
 %
 %   [Hmod, Mmod, info] = solve_ja_hysteretic_region(...)
 %
-%   For "Left branch only", the function returns the left branch of the
-%   full major loop.
+%   For "Left branch only", the function returns the descending branch
+%   +Htip -> -Htip, started from the data tip magnetization Mtip ("Tip
+%   point") or from the model's own tip magnetization after the first
+%   magnetization curve (0,0) -> +Htip ("Demagnetized", as in Conde
+%   Garrido et al., IEEE TMAG 2026). Until 2026-09-19 the start mode was
+%   ignored here (always the data tip) and the whole loop was integrated
+%   and then cut, at twice the cost.
 %
 %   For "Entire loop", the function returns only the last simulated cycle.
 %   If the start mode is Demagnetized, the first magnetization branch is
@@ -37,13 +42,14 @@ function [Hmod, Mmod, info] = solve_ja_hysteretic_region( ...
         'used_initial_magnetization', false);
 
     if fitting_region == "Left branch only"
-        [Hfull, Mfull] = solve_ja_from_tip(Htip, Mtip, params, opts);
-        min_index = find(Hfull == min(Hfull), 1, 'first');
-        if isempty(min_index)
-            min_index = numel(Hfull);
+        if contains(lower(start_mode), "demagnetized")
+            [~, Minit] = solve_ja_monotonic(0, Htip, 0, params, +1, opts);
+            M0 = Minit(end);
+            info.used_initial_magnetization = true;
+        else
+            M0 = Mtip;
         end
-        Hmod = Hfull(1:min_index);
-        Mmod = Mfull(1:min_index);
+        [Hmod, Mmod] = solve_ja_monotonic(Htip, -Htip, M0, params, -1, opts);
         info.cycles_simulated = 1;
         return;
     end

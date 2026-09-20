@@ -17,36 +17,22 @@ function [H_left, M_left] = extract_left_branch_uniform_arc(H_in, M_in, number_p
 %   robust left-branch extraction implicitly, since the anhysteretic curve is
 %   built by averaging the left and right hysteresis branches.
 
-    H = H_in(:)';
-    M = M_in(:)';
-    valid = isfinite(H) & isfinite(M);
-    H = H(valid);
-    M = M(valid);
-
-    if numel(H) < 2
-        H_left = H;
-        M_left = M;
+    % Corner detection is shared with the raw-branch extractor; this
+    % function only adds the arc-length resampling.
+    [H_left_raw, M_left_raw] = extract_left_branch(H_in, M_in);
+    if numel(H_left_raw) < 2
+        H_left = H_left_raw;
+        M_left = M_left_raw;
         return;
     end
-
-    [~, H_min_index] = min(H);
-    H_sorted = [H(H_min_index:end) H(1:H_min_index)];
-    M_sorted = [M(H_min_index:end) M(1:H_min_index)];
-
-    denom_H = max(H_sorted.^2);
-    denom_M = max(M_sorted.^2);
+    denom_H = max(H_left_raw.^2);
+    denom_M = max(M_left_raw.^2);
     if denom_H == 0
         denom_H = 1;
     end
     if denom_M == 0
         denom_M = 1;
     end
-
-    H2M2 = sign(H_sorted).*(H_sorted).^2./denom_H + sign(M_sorted).*(M_sorted).^2./denom_M;
-    [~, max_index] = max(H2M2);
-    H_left_raw = H_sorted(max_index:end);
-    M_left_raw = M_sorted(max_index:end);
-
     if nargin < 3 || isempty(number_points) || number_points < 2
         number_points = numel(H_left_raw);
     end

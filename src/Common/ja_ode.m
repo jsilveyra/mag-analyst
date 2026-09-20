@@ -15,16 +15,11 @@ function dMdH = ja_ode(H, M, p, delta)
 %   Output:
 %     dMdH  : differential susceptibility dM/dH
 
-    required_fields = {'Ms', 'a', 'alpha', 'k', 'c'};
-    if ~isstruct(p) || ~all(isfield(p, required_fields))
-        error('ja_ode:InvalidParams', ...
-            'Input p must be a struct with fields Ms, a, alpha, k, c.');
-    end
-
-    if ~(isscalar(delta) && (delta == 1 || delta == -1))
-        error('ja_ode:InvalidDelta', 'delta must be +1 or -1.');
-    end
-
+    % No argument validation here on purpose: this is the ODE right-hand
+    % side, called ~1e4 times per simulated branch, and the isstruct/
+    % isfield/delta checks that used to sit here cost about as much as the
+    % arithmetic (2026-09-19 profile). A malformed p fails on the first
+    % field access below with an equally clear error.
     Heff = H + p.alpha .* M;
     [Manh, dManh_dHeff] = anhysteretic(Heff, p);
 

@@ -10,7 +10,7 @@ function [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub,
 %   the error metric named by error_type (see make_error_calculator).
 %   select_a picks the low or high root of the a(Hcr, m(Hcr)) equation.
 %   output_fcn, if given, is forwarded to the optimizer (live progress).
-%   solver selects the optimizer ("prima" [default] or "nelder_mead"; see
+%   solver selects the optimizer ("nelder_mead" [default] or "prima"; see
 %   SolverUtils.minimize_bounded).
 %
 %   See also fit_physical, retrieve_anhysteretic_seeds, MagneticParameters.
@@ -18,7 +18,7 @@ function [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub,
         output_fcn = [];
     end
     if nargin < 10
-        solver = "prima";
+        solver = "nelder_mead";
     end
     [HTip, ~] = Utils().find_tip(data_curve.H, data_curve.M);
     Hhat = logspace(log10(data_curve.H(2)),log10(HTip),N);

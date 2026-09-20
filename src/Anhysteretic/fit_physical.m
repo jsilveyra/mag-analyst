@@ -4,7 +4,7 @@ function [Ms, alpha, a] = fit_physical(data_curve, seed, N, error_type, lb, ub, 
 %       select_fit, output_fcn, solver) optimizes the 3*n physical parameters
 %   [Ms(1..n), alpha(1..n), a(1..n)] directly, instead of the 3*n-1
 %   distribution parameters (Hcr, mcr, Hx) that fit.m fits. solver selects
-%   the optimizer ("prima" [default] or "nelder_mead"; see
+%   the optimizer ("nelder_mead" [default] or "prima"; see
 %   SolverUtils.minimize_bounded).
 %
 %   This is the "reduce dof" UNCHECKED path: the constraint points at the tip
@@ -31,7 +31,7 @@ function [Ms, alpha, a] = fit_physical(data_curve, seed, N, error_type, lb, ub, 
         output_fcn = [];
     end
     if nargin < 9
-        solver = "prima";
+        solver = "nelder_mead";
     end
     [HTip, ~] = Utils().find_tip(data_curve.H, data_curve.M);
     Hhat = logspace(log10(data_curve.H(2)), log10(HTip), N);
@@ -98,22 +98,11 @@ function [Ms, alpha, a] = fit_physical(data_curve, seed, N, error_type, lb, ub, 
     ylb = min(yb1, yb2);
     yub = max(yb1, yb2);
 
-    % Cap the SCALED bound magnitude: minimize() maps two-sided-bounded
-    % variables through xin = asin(2*(y0-ylb)/(yub-ylb) - 1), and when
-    % yub-ylb is many orders of magnitude larger than the O(1) scaled seed
-    % (as happens for a block whose physical scale is tiny, e.g. alpha
-    % ~1e-4, once the caller's BIG=1e12 "unbounded" stand-in is divided by
-    % it -- yb range balloons to ~1e15), (y0-ylb)/(yub-ylb) rounds to
-    % exactly 0.5 in double precision and the transform silently discards
-    % the seed, handing the optimizer an arbitrary starting point instead
-    % (iteration 0's function value then no longer matches objective(y0)).
-    % A cap of 1e6 keeps a scaled seed of O(1) many orders
-    % below the bound -- still effectively unconstrained for the optimizer
-    % -- while leaving ~1e-10 of absolute precision around y0, far above
-    % TolX=1e-5.
-    BOUND_CAP = 1e6;
-    ylb = max(ylb, -BOUND_CAP);
-    yub = min(yub, BOUND_CAP);
+    % Infinite bounds stay infinite: minimize() applies no transform to an
+    % unbounded variable, so no cap is needed (the former 1e6 cap existed
+    % only because the caller passed finite 1e12 stand-ins, whose asin
+    % transform lost the seed to cancellation; removed 2026-09-19 together
+    % with the stand-ins). A parameter may therefore grow without limit.
 
     scaled_output_fcn = [];
     if ~isempty(output_fcn)

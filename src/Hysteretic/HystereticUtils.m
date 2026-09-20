@@ -17,39 +17,38 @@ classdef HystereticUtils
             [H_cycle, M_cycle] = HystereticUtils.build_ja_data_cycle_core( ...
                 app.H_raw, app.M_raw, ...
                 app.HorizontalaxisfieldDropDown.Value, ...
-                app.VerticalaxisfieldDropDown.Value, ...
-                app.InputNumberofPointsEditField.Value);
+                app.VerticalaxisfieldDropDown.Value);
         end
 
         function [H_left, M_left] = get_hysteretic_left_branch_data(app)
             [~, ~, H_left, M_left] = HystereticUtils.build_ja_data_cycle_core( ...
                 app.H_raw, app.M_raw, ...
                 app.HorizontalaxisfieldDropDown.Value, ...
-                app.VerticalaxisfieldDropDown.Value, ...
-                app.InputNumberofPointsEditField.Value);
+                app.VerticalaxisfieldDropDown.Value);
         end
 
         function [H_right, M_right] = get_hysteretic_right_branch_data(app)
             [~, ~, ~, ~, H_right, M_right] = HystereticUtils.build_ja_data_cycle_core( ...
                 app.H_raw, app.M_raw, ...
                 app.HorizontalaxisfieldDropDown.Value, ...
-                app.VerticalaxisfieldDropDown.Value, ...
-                app.InputNumberofPointsEditField.Value);
+                app.VerticalaxisfieldDropDown.Value);
         end
 
-        function [H_cycle, M_cycle, H_left, M_left, H_right, M_right] = build_ja_data_cycle_core(H_raw, M_raw, H_unit, M_unit, number_of_points)
+        function [H_cycle, M_cycle, H_left, M_left, H_right, M_right] = build_ja_data_cycle_core(H_raw, M_raw, H_unit, M_unit)
             % Pure (app-independent) core shared by build_ja_data_cycle,
             % get_hysteretic_left_branch_data and
             % get_hysteretic_right_branch_data, and callable directly from
             % command-line scripts/demos (which have no live app to read the
-            % Input tab's unit dropdowns / number-of-points field from):
-            % convert the raw imported columns to base units (A/m), extract
-            % the measured descending (left) and ascending (right) branches,
-            % each uniformly arc-length-sampled with number_of_points
-            % samples, and join them into a closed cycle running from the
-            % positive corner down the left branch, through the negative
-            % corner and back up the right branch. Keeping this one copy
-            % means the demo's data cycle is byte-for-byte the app's.
+            % Input tab's unit dropdowns from): convert the raw imported
+            % columns to base units (A/m), extract the measured descending
+            % (left) and ascending (right) branches AS MEASURED (every
+            % point, no resampling -- since 2026-09-19; before, each branch
+            % was resampled to the Input tab's N points uniformly in arc
+            % length, which only the anhysteretic curve needs), and join
+            % them into a closed cycle running from the positive corner
+            % down the left branch, through the negative corner and back up
+            % the right branch. Keeping this one copy means the demo's data
+            % cycle is byte-for-byte the app's.
             %
             % Both branches are the MEASURED ones. Until 2026-09-18 the right
             % branch was the point reflection of the left (H_right = -H_left,
@@ -58,9 +57,8 @@ classdef HystereticUtils
             % and any asymmetry of the measured loop was invisible to the fit.
             [H_conv, M_conv] = UnitConvertor().convert_H_M(H_raw, H_unit, M_raw, M_unit);
 
-            n_branch = max(2, round(number_of_points));
-            [H_left, M_left] = extract_left_branch_uniform_arc(H_conv, M_conv, n_branch);
-            [H_right, M_right] = extract_right_branch_uniform_arc(H_conv, M_conv, n_branch);
+            [H_left, M_left] = extract_left_branch(H_conv, M_conv);
+            [H_right, M_right] = extract_right_branch(H_conv, M_conv);
 
             % The left branch ends at the loop's minimum-H point and the right
             % branch starts at its negative corner; on a measured loop these
@@ -503,9 +501,7 @@ classdef HystereticUtils
                 k_value = NaN;
                 if has_curve_data && isfinite(ms_num) && isfinite(a_num) && isfinite(alpha_num) && a_num ~= 0
                     try
-                        [H_cycle, M_cycle] = HystereticUtils.build_ja_data_cycle(app);
-                        n_left = max(2, round(app.InputNumberofPointsEditField.Value));
-                        [H_left, M_left] = extract_left_branch_uniform_arc(H_cycle, M_cycle, n_left);
+                        [H_left, M_left] = HystereticUtils.get_hysteretic_left_branch_data(app);
                         k_value = HystereticUtils.estimate_k_from_coercive_point(app, H_left, M_left, ms_num, a_num, alpha_num, c_seed);
                     catch ME
                         k_value = NaN;
@@ -769,9 +765,7 @@ classdef HystereticUtils
                 return;
             end
 
-            [H_conv, M_conv] = deal(H_cycle, M_cycle);
-            n_left = max(2, round(app.InputNumberofPointsEditField.Value));
-            [Hleft, Mleft] = extract_left_branch_uniform_arc(H_conv, M_conv, n_left);
+            [Hleft, Mleft] = HystereticUtils.get_hysteretic_left_branch_data(app);
             fitting_region = string(app.FittingregionDropDown.Value);
             start_mode = string(app.StartingpointDropDown_4.Value);
             stop_criterion = string(app.StopcriterionDropDown_5.Value);
@@ -918,6 +912,10 @@ classdef HystereticUtils
 
             [Mleft, idx_sort] = sort(Mleft, 'ascend');
             Hleft = Hleft(idx_sort);
+            % Measured branches (no resampling since 2026-09-19) can repeat
+            % an M value; interp1 needs a strictly increasing grid.
+            [Mleft, idx_unique] = unique(Mleft, 'stable');
+            Hleft = Hleft(idx_unique);
 
             Hc = -interp1(Mleft, Hleft, 0, 'linear', 'extrap');
 
