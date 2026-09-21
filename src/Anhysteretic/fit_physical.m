@@ -1,11 +1,15 @@
-function [Ms, alpha, a] = fit_physical(data_curve, seed, N, error_type, lb, ub, select_fit, output_fcn, solver)
+function [Ms, alpha, a, polish] = fit_physical(data_curve, seed, N, error_type, lb, ub, select_fit, output_fcn, solver, n_sig)
 %FIT_PHYSICAL  Full-DOF anhysteretic fit over the physical parameters.
-%   [Ms, alpha, a] = fit_physical(data_curve, seed, N, error_type, lb, ub, ...
-%       select_fit, output_fcn, solver) optimizes the 3*n physical parameters
+%   [Ms, alpha, a, polish] = fit_physical(data_curve, seed, N, error_type, lb, ub, ...
+%       select_fit, output_fcn, solver, n_sig) optimizes the 3*n physical parameters
 %   [Ms(1..n), alpha(1..n), a(1..n)] directly, instead of the 3*n-1
 %   distribution parameters (Hcr, mcr, Hx) that fit.m fits. solver selects
-%   the optimizer ("nelder_mead" [default] or "prima"; see
-%   SolverUtils.minimize_bounded).
+%   the optimizer ("prima" [default] or "nelder_mead"; see
+%   SolverUtils.minimize_bounded). n_sig (default 3; Inf = off): after the
+%   solver and the seed guard, Ms, alpha and a are polished on the lattice of
+%   n_sig-digit numbers (SolverUtils.lattice_polish, in physical units), so
+%   the returned values are exactly the printed ones and locally optimal
+%   among them; polish is the lattice_polish info struct.
 %
 %   This is the "reduce dof" UNCHECKED path: the constraint points at the tip
 %   and Hx are dropped, so Ms becomes a free variable. It is meant as a
@@ -30,8 +34,11 @@ function [Ms, alpha, a] = fit_physical(data_curve, seed, N, error_type, lb, ub, 
     if nargin < 8
         output_fcn = [];
     end
-    if nargin < 9
-        solver = "nelder_mead";
+    if nargin < 9 || isempty(solver)
+        solver = "prima";
+    end
+    if nargin < 10 || isempty(n_sig)
+        n_sig = 3;
     end
     [HTip, ~] = Utils().find_tip(data_curve.H, data_curve.M);
     Hhat = logspace(log10(data_curve.H(2)), log10(HTip), N);
@@ -115,6 +122,18 @@ function [Ms, alpha, a] = fit_physical(data_curve, seed, N, error_type, lb, ub, 
     % Seed guard: never return a point worse than the seed.
     if physical_error(result) > physical_error(seed)
         result = seed;
+    end
+
+    % Lattice polish on the physical values (parameters held fixed by
+    % select_fit are neither rounded nor moved).
+    polish = struct();
+    if isfinite(n_sig)
+        fixed = ~cellfun(@logical, select_fit(:));
+        [result_q, ~, polish] = SolverUtils.lattice_polish(@physical_error, result(:), n_sig, ...
+            struct('output_fcn', output_fcn, 'fixed', fixed, 'lb', lb(:), 'ub', ub(:)));
+        if isfinite(polish.fval_start) || polish.moves > 0
+            result = result_q(:).';
+        end
     end
 
     physical = unpack(result);

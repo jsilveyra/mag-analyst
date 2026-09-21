@@ -533,6 +533,7 @@ classdef MenuUtils
             app.NofpointsEditField.Value = 100;
             app.ErrorDropDown.Value = 'Diagonal (logH, continuous)';
             MenuUtils.restore_gui_default(app, 'SolverDropDown');
+            MenuUtils.restore_gui_default(app, 'SignificantdigitsDropDown');
             app.ShowgridCheckBoxM.Value = true;
             app.ShowgridCheckBoxdMdH.Value = true;
             app.ShowgridCheckBoxHdMdH.Value = true;
@@ -572,6 +573,7 @@ classdef MenuUtils
             CompatUtils.clear_value(app.Htip);
             CompatUtils.clear_value(app.Mtip);
             MenuUtils.restore_gui_default(app, 'SolverDropDown_2');
+            MenuUtils.restore_gui_default(app, 'SignificantdigitsDropDown_2');
             app.MaximumrepetitionsEditField.Value = 3;
             app.RelativetoleranceEditField.Value = 0.001;
             app.RepetitionsEditField_3.Value = 1;
@@ -706,7 +708,9 @@ classdef MenuUtils
             names = MenuUtils.gui_default_components();
             d = struct();
             for i = 1:numel(names)
-                d.(names{i}) = app.(names{i}).Value;
+                if isprop(app, names{i}) && ~isempty(app.(names{i}))   % tolerate an older .mlapp
+                    d.(names{i}) = app.(names{i}).Value;
+                end
             end
             setappdata(app.MagAnalystUIFigure, 'gui_defaults', d);
         end
@@ -717,13 +721,14 @@ classdef MenuUtils
                 return;
             end
             d = getappdata(app.MagAnalystUIFigure, 'gui_defaults');
-            if isfield(d, name)
+            if isfield(d, name) && isprop(app, name) && ~isempty(app.(name))
                 app.(name).Value = d.(name);
             end
         end
 
         function names = gui_default_components()
-            names = {'InputNumberofPointsEditField', 'SolverDropDown', 'SolverDropDown_2'};
+            names = {'InputNumberofPointsEditField', 'SolverDropDown', 'SolverDropDown_2', ...
+                'SignificantdigitsDropDown', 'SignificantdigitsDropDown_2'};
         end
 
         function setup_dirty_tracking(app)

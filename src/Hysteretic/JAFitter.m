@@ -1,22 +1,30 @@
 classdef JAFitter
 %JAFITTER  Static Jiles-Atherton parameter fitter.
 %   JAFitter.fit(params_seed, mask, bounds, Hleft, Mleft, Htip, Mtip,
-%   error_type, estimate_k_fn, model_fn, error_core_fn, output_fcn, solver)
+%   error_type, estimate_k_fn, model_fn, error_core_fn, output_fcn, solver,
+%   scale_by_seed, solver_options, n_sig)
 %   packs the free JA parameters (per mask) into a vector, minimizes an error
 %   function that simulates the hysteretic left branch (via
 %   model_fn/solve_ja_monotonic) and compares it to the measured Hleft/Mleft
 %   using error_core_fn, and returns a result struct with params_opt, Jseed,
-%   Jopt, ok, error_message. solver selects the optimizer ("nelder_mead"
-%   [default] or "prima"; see SolverUtils.minimize_bounded). scale_by_seed
+%   Jopt, ok, error_message, polish. solver selects the optimizer ("prima"
+%   [default] or "nelder_mead"; see SolverUtils.minimize_bounded). scale_by_seed
 %   (default true) divides each free parameter by its seed so the solver
 %   works on O(1) variables; false hands the solver the raw physical values
 %   (as in Conde Garrido et al., IEEE TMAG 2026) -- an experiment switch,
 %   not exposed in the GUI. solver_options (struct, optional) is passed to
 %   SolverUtils.minimize_bounded to override individual solver settings
 %   (rhobeg/rhoend/npt/maxfun for "prima", TolX/TolFun/MaxIter/MaxFunEvals
-%   for "nelder_mead"); same purpose.
+%   for "nelder_mead"); same purpose. n_sig (default 3; Inf = off) is the
+%   number of significant digits of the reported parameters: after the
+%   solver, the free parameters are polished on the lattice of n_sig-digit
+%   numbers (SolverUtils.lattice_polish, in physical units), so params_opt
+%   holds exactly the printed values, Jopt is the error at them, and no
+%   lattice neighbour is better (result.polish.certified). A derived k
+%   (mask.k_dependent) is not a lattice value: uncheck the constraint and
+%   fit again to polish all five.
     methods (Static)
-        function result = fit(params_seed, mask, bounds, Hleft, Mleft, Htip, Mtip, error_type, estimate_k_fn, model_fn, error_core_fn, output_fcn, solver, scale_by_seed, solver_options)
+        function result = fit(params_seed, mask, bounds, Hleft, Mleft, Htip, Mtip, error_type, estimate_k_fn, model_fn, error_core_fn, output_fcn, solver, scale_by_seed, solver_options, n_sig)
             BIG = 1e6;
             opts = odeset('RelTol', 1e-7, 'AbsTol', 1e-6);
 
@@ -26,8 +34,8 @@ classdef JAFitter
             if nargin < 12
                 output_fcn = [];
             end
-            if nargin < 13
-                solver = "nelder_mead";
+            if nargin < 13 || isempty(solver)
+                solver = "prima";
             end
             if nargin < 14 || isempty(scale_by_seed)
                 scale_by_seed = true;
@@ -35,13 +43,17 @@ classdef JAFitter
             if nargin < 15 || isempty(solver_options)
                 solver_options = struct();
             end
+            if nargin < 16 || isempty(n_sig)
+                n_sig = 3;
+            end
 
             result = struct( ...
                 'ok', false, ...
                 'params_opt', params_seed, ...
                 'Jseed', BIG, ...
                 'Jopt', BIG, ...
-                'error_message', "");
+                'error_message', "", ...
+                'polish', struct());
 
             [x0, map] = JAFitUtils.pack_params(params_seed, mask);
             [lb, ub] = JAFitUtils.pack_bounds(bounds, mask);
@@ -157,6 +169,25 @@ classdef JAFitter
                         xopt = x0;
                         Jopt = result.Jseed;
                     end
+
+                    % Lattice polish on the physical (unscaled) values: the
+                    % reported parameters are exactly n_sig-digit numbers and
+                    % locally optimal among them (see SolverUtils.lattice_polish).
+                    % A BIG penalty is not a usable value, so it is mapped to
+                    % Inf for the polish, which never accepts such points.
+                    if isfinite(n_sig)
+                        polish_obj = @(x_) JAFitter.finite_or_inf(obj_fun(x_), BIG);
+                        [xq, Jq, result.polish] = SolverUtils.lattice_polish(polish_obj, xopt, n_sig, ...
+                            struct('output_fcn', output_fcn));
+                        if isfinite(Jq)
+                            xopt = xq;
+                            Jopt = Jq;
+                        else
+                            % nothing on the lattice around the optimum could be
+                            % evaluated: keep the full-precision point
+                            result.polish.kept_full_precision = true;
+                        end
+                    end
                 end
 
                 result.params_opt = JAFitUtils.unpack_params(xopt, map, params_seed, mask, estimate_k_fn);
@@ -164,6 +195,12 @@ classdef JAFitter
                 result.ok = true;
             catch ME
                 result.error_message = string(ME.message);
+            end
+        end
+
+        function J = finite_or_inf(J, BIG)
+            if ~isfinite(J) || J >= BIG
+                J = Inf;
             end
         end
     end

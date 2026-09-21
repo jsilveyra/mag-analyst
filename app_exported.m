@@ -42,6 +42,8 @@ classdef app_exported < matlab.apps.AppBase
         AnhystereticfittingTab          matlab.ui.container.Tab
         GridLayout11                    matlab.ui.container.GridLayout
         LWModel_eq                      matlab.ui.control.Label
+        SignificantdigitsDropDown       matlab.ui.control.DropDown
+        SignificantdigitsDropDownLabel  matlab.ui.control.Label
         SolverDropDown                  matlab.ui.control.DropDown
         SolverDropDownLabel             matlab.ui.control.Label
         NofpointsEditField              matlab.ui.control.NumericEditField
@@ -92,6 +94,8 @@ classdef app_exported < matlab.apps.AppBase
         JAmodel_eq3                     matlab.ui.control.Label
         JAmodel_eq2                     matlab.ui.control.Label
         JAmodel_eq1                     matlab.ui.control.Label
+        SignificantdigitsDropDown_2     matlab.ui.control.DropDown
+        SignificantdigitsDropDownLabel_2  matlab.ui.control.Label
         SolverDropDown_2                matlab.ui.control.DropDown
         SolverDropDownLabel_2           matlab.ui.control.Label
         MaximumrepetitionsEditField     matlab.ui.control.NumericEditField
@@ -2199,6 +2203,22 @@ classdef app_exported < matlab.apps.AppBase
             app.SolverDropDown.Layout.Column = [8 13];
             app.SolverDropDown.Value = 'PRIMA-BOBYQA, tuned npt';
 
+            % Create SignificantdigitsDropDownLabel
+            app.SignificantdigitsDropDownLabel = uilabel(app.GridLayout11);
+            app.SignificantdigitsDropDownLabel.FontWeight = 'bold';
+            app.SignificantdigitsDropDownLabel.Tooltip = {'Number of significant digits of the fitted parameters: after the solver, the parameters are polished on the lattice of numbers with this many digits, so the reported values are exactly what you read and no neighbouring value is better.'};
+            app.SignificantdigitsDropDownLabel.Layout.Row = 17;
+            app.SignificantdigitsDropDownLabel.Layout.Column = 14;
+            app.SignificantdigitsDropDownLabel.Text = 'Digits';
+
+            % Create SignificantdigitsDropDown
+            app.SignificantdigitsDropDown = uidropdown(app.GridLayout11);
+            app.SignificantdigitsDropDown.Items = {'3', '4', '5', '6', 'Full precision'};
+            app.SignificantdigitsDropDown.Tooltip = {'Significant digits of the fitted parameters (Full precision: no polish).'};
+            app.SignificantdigitsDropDown.Layout.Row = 17;
+            app.SignificantdigitsDropDown.Layout.Column = [15 16];
+            app.SignificantdigitsDropDown.Value = '3';
+
             % Create LWModel_eq
             app.LWModel_eq = uilabel(app.GridLayout11);
             app.LWModel_eq.FontSize = 14;
@@ -2644,6 +2664,22 @@ classdef app_exported < matlab.apps.AppBase
             app.SolverDropDown_2.Layout.Row = 16;
             app.SolverDropDown_2.Layout.Column = [7 11];
             app.SolverDropDown_2.Value = 'PRIMA-BOBYQA, tuned npt';
+
+            % Create SignificantdigitsDropDownLabel_2
+            app.SignificantdigitsDropDownLabel_2 = uilabel(app.GridLayout10);
+            app.SignificantdigitsDropDownLabel_2.FontWeight = 'bold';
+            app.SignificantdigitsDropDownLabel_2.Tooltip = {'Number of significant digits of the fitted parameters: after the solver, the parameters are polished on the lattice of numbers with this many digits, so the reported values are exactly what you read and no neighbouring value is better.'};
+            app.SignificantdigitsDropDownLabel_2.Layout.Row = 16;
+            app.SignificantdigitsDropDownLabel_2.Layout.Column = 12;
+            app.SignificantdigitsDropDownLabel_2.Text = 'Digits';
+
+            % Create SignificantdigitsDropDown_2
+            app.SignificantdigitsDropDown_2 = uidropdown(app.GridLayout10);
+            app.SignificantdigitsDropDown_2.Items = {'3', '4', '5', '6', 'Full precision'};
+            app.SignificantdigitsDropDown_2.Tooltip = {'Significant digits of the fitted parameters (Full precision: no polish).'};
+            app.SignificantdigitsDropDown_2.Layout.Row = 16;
+            app.SignificantdigitsDropDown_2.Layout.Column = [13 14];
+            app.SignificantdigitsDropDown_2.Value = '3';
 
             % Create JAmodel_eq1
             app.JAmodel_eq1 = uilabel(app.GridLayout10);

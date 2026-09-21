@@ -139,6 +139,30 @@ classdef AnhystereticUtils
             end
         end
 
+        function n_sig = significant_digits(app)
+            %SIGNIFICANT_DIGITS Number of significant digits the Anhysteretic
+            %   fit polishes its parameters to (Inf = full precision), from
+            %   the tab's "Significant digits" dropdown; 3 when the app has
+            %   no such component (older .mlapp).
+            n_sig = 3;
+            if isprop(app, 'SignificantdigitsDropDown') && ~isempty(app.SignificantdigitsDropDown)
+                n_sig = SolverUtils.n_sig_from_dropdown(app.SignificantdigitsDropDown.Value);
+            end
+        end
+
+        function tf = was_polished(polish)
+            tf = isstruct(polish) && isfield(polish, 'moves');
+        end
+
+        function write_polish_message(app, polish)
+            %WRITE_POLISH_MESSAGE One line in the Messages panel about the
+            %   lattice polish (shared wording with the Hysteretic tab).
+            if ~AnhystereticUtils.was_polished(polish)
+                return;
+            end
+            app.write_message(SolverUtils.polish_summary(polish));
+        end
+
         function reduce_dof = reduce_dof_enabled(app)
             % Defensive default: fit with reduced degrees of freedom when the
             % checkbox component is not available.
@@ -204,21 +228,27 @@ classdef AnhystereticUtils
             try
                 output_fcn = @(x, optimValues, state) app.fit_stop_output_fcn(x, optimValues, state);
                 solver = SolverUtils.solver_code_from_dropdown(app.SolverDropDown.Value);
-                [app.Hcr, app.mcr, app.Hx] = fit(app.data_curve, seed, N, select_a, app.ErrorDropDown.Value, fit_lb, fit_ub, fit_select_fit, output_fcn, solver);
+                n_sig = AnhystereticUtils.significant_digits(app);
+                [app.Hcr, app.mcr, app.Hx, polish] = fit(app.data_curve, seed, N, select_a, app.ErrorDropDown.Value, fit_lb, fit_ub, fit_select_fit, output_fcn, solver, n_sig);
                 % Prefer the best point FitProgressUtils tracked across every
                 % evaluated point during the search over minimize()'s own
                 % returned point: guarantees a "Stop fit" mid-search (or any
                 % other reason the search's own final iterate might not be
                 % its best) never leaves worse parameters than the best the
-                % search actually found.
+                % search actually found. Not when the fit was polished on
+                % the significant-digit lattice: the tracker also saw the
+                % full-precision points, whose error can be marginally lower
+                % than the lattice optimum's, and the whole point of the
+                % polish is to report the lattice values.
                 [best_x, ~, has_best] = FitProgressUtils.get_best(app, 'anh');
-                if has_best
+                if has_best && ~AnhystereticUtils.was_polished(polish)
                     n = app.number_components;
                     app.Hcr = best_x(1:n);
                     app.mcr = best_x(n+1:2*n);
                     app.Hx = best_x(2*n+1:end);
                 end
                 FitProgressUtils.remember_fit_result(app, 'anh', cat(2, app.Hcr, app.mcr, app.Hx));
+                AnhystereticUtils.write_polish_message(app, polish);
                 elapsed = toc;
                 FitProgressUtils.record_elapsed_time(app, 'anh', elapsed);
                 t = sprintf("%0.2f", elapsed);
@@ -285,15 +315,19 @@ classdef AnhystereticUtils
             try
                 output_fcn = @(x, optimValues, state) app.fit_stop_output_fcn(x, optimValues, state);
                 solver = SolverUtils.solver_code_from_dropdown(app.SolverDropDown.Value);
-                [Ms, alpha, a] = fit_physical(app.data_curve, seed, N, app.ErrorDropDown.Value, fit_lb, fit_ub, fit_select_fit, output_fcn, solver);
+                n_sig = AnhystereticUtils.significant_digits(app);
+                [Ms, alpha, a, polish] = fit_physical(app.data_curve, seed, N, app.ErrorDropDown.Value, fit_lb, fit_ub, fit_select_fit, output_fcn, solver, n_sig);
                 % Prefer the best point tracked across the search (same
-                % guarantee as the distribution path, incl. after a Stop fit).
+                % guarantee as the distribution path, incl. after a Stop
+                % fit) -- unless the fit was polished on the lattice (see
+                % the distribution path for why).
                 [best_x, ~, has_best] = FitProgressUtils.get_best(app, 'anh');
-                if has_best
+                if has_best && ~AnhystereticUtils.was_polished(polish)
                     Ms = best_x(1:n);
                     alpha = best_x(n+1:2*n);
                     a = best_x(2*n+1:end);
                 end
+                AnhystereticUtils.write_polish_message(app, polish);
                 physical.Ms = Ms;
                 physical.alpha = alpha;
                 physical.a = a;

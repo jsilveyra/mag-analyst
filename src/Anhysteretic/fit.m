@@ -1,7 +1,7 @@
-function [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub, select_fit, output_fcn, solver)
+function [Hcr, mcr, Hx, polish] = fit(data_curve, seed, N, select_a, error_type, lb, ub, select_fit, output_fcn, solver, n_sig)
 %FIT  Anhysteretic fit over the distribution (fitting) parameters.
-%   [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub,
-%       select_fit, output_fcn, solver) fits a DataAnhystereticCurve with an
+%   [Hcr, mcr, Hx, polish] = fit(data_curve, seed, N, select_a, error_type,
+%       lb, ub, select_fit, output_fcn, solver, n_sig) fits a DataAnhystereticCurve with an
 %   n-component Langevin-Weiss model, optimizing the 3*n-1 fitting
 %   parameters [Hcr(1..n), m(Hcr)(1..n), Hx(1..n-1)] within the bounds
 %   lb/ub. Parameters whose select_fit entry is false are held (nearly)
@@ -10,15 +10,22 @@ function [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub,
 %   the error metric named by error_type (see make_error_calculator).
 %   select_a picks the low or high root of the a(Hcr, m(Hcr)) equation.
 %   output_fcn, if given, is forwarded to the optimizer (live progress).
-%   solver selects the optimizer ("nelder_mead" [default] or "prima"; see
-%   SolverUtils.minimize_bounded).
+%   solver selects the optimizer ("prima" [default] or "nelder_mead"; see
+%   SolverUtils.minimize_bounded). n_sig (default 3; Inf = off): after the
+%   solver, the fitted parameters are polished on the lattice of
+%   n_sig-digit numbers (SolverUtils.lattice_polish), so the returned
+%   values are exactly the printed ones and locally optimal among them;
+%   polish is the lattice_polish info struct.
 %
 %   See also fit_physical, retrieve_anhysteretic_seeds, MagneticParameters.
     if nargin < 9
         output_fcn = [];
     end
-    if nargin < 10
-        solver = "nelder_mead";
+    if nargin < 10 || isempty(solver)
+        solver = "prima";
+    end
+    if nargin < 11 || isempty(n_sig)
+        n_sig = 3;
     end
     [HTip, ~] = Utils().find_tip(data_curve.H, data_curve.M);
     Hhat = logspace(log10(data_curve.H(2)),log10(HTip),N);
@@ -74,6 +81,19 @@ function [Hcr, mcr, Hx] = fit(data_curve, seed, N, select_a, error_type, lb, ub,
     % AnhystereticUtils.fit_parameters, which surfaces a one-time tip about
     % this.
     params = SolverUtils.minimize_bounded(@fit_parameters, seed, lb, ub, output_fcn, solver);
+
+    % Lattice polish: the reported Hcr, m(Hcr), Hx are exactly n_sig-digit
+    % numbers and locally optimal among them (parameters held fixed by
+    % select_fit are neither rounded nor moved).
+    polish = struct();
+    if isfinite(n_sig)
+        fixed = ~cellfun(@logical, select_fit(:));
+        [params_q, ~, polish] = SolverUtils.lattice_polish(@fit_parameters, params, n_sig, ...
+            struct('output_fcn', output_fcn, 'fixed', fixed, 'lb', lb, 'ub', ub));
+        if isfinite(polish.fval_start) || polish.moves > 0
+            params = reshape(params_q, size(params));   % keep the solver's orientation
+        end
+    end
 
     Hcr = params(1:number_components);
     mcr = params(number_components+1:2*number_components);

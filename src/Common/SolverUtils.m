@@ -2,39 +2,250 @@ classdef SolverUtils
 %SOLVERUTILS  Solver choice shared by the Anhysteretic and Hysteretic fitting
 %   tabs: dispatches a bound-constrained minimization to either PRIMA-BOBYQA
 %   (tuned npt, src/lib/bobyqa_mat/bobyqa_mat_tuned.m) or Nelder-Mead via
-%   minimize() (src/lib/minimize), and maps the fitting tabs'
-%   "Solver" dropdown text to the internal solver code each fit call site
-%   (fit.m, fit_physical.m, JAFitter.m) expects.
+%   minimize() (src/lib/minimize), maps the fitting tabs' "Solver" and
+%   "Significant digits" dropdown texts to what each fit call site (fit.m,
+%   fit_physical.m, JAFitter.m) expects, and provides the lattice polish
+%   (lattice_polish) every fit runs after its solver so that the fitted
+%   parameters are exactly the numbers with the chosen number of
+%   significant digits, and locally optimal among them.
 
     methods (Static)
         function code = solver_code_from_dropdown(value)
             %SOLVER_CODE_FROM_DROPDOWN Map a SolverDropDown/SolverDropDown_2
             %   Value string to "prima" or "nelder_mead". Falls back to
-            %   "nelder_mead" (the default since 2026-09-19: on the
-            %   Jiles 1992 synthetic loop and the three published loops of
-            %   the LMAG 2026 manuscript both solvers reached the same
-            %   minima, Nelder-Mead in fewer evaluations) for any
-            %   unrecognised value.
+            %   "prima" (the default: on the Jiles 1992 synthetic loop and
+            %   the three published loops of the LMAG 2026 manuscript both
+            %   solvers reached the same lattice points after polishing,
+            %   BOBYQA in the shortest total time on every loop,
+            %   2026-09-21) for any unrecognised value.
             switch string(value)
-                case "PRIMA-BOBYQA, tuned npt"
-                    code = "prima";
-                case "Hybrid (Nelder-Mead, then BOBYQA)"
-                    code = "hybrid";
-                otherwise
+                case "Nelder-Mead (minimize lib)"
                     code = "nelder_mead";
+                otherwise
+                    code = "prima";
+            end
+        end
+
+        function n_sig = n_sig_from_dropdown(value)
+            %N_SIG_FROM_DROPDOWN Map a "Significant digits" dropdown Value
+            %   ('3', '4', '5', '6' or 'Full precision') to the number of
+            %   significant digits the fitted parameters are polished to
+            %   (Inf = no polish, full double precision). Unrecognised
+            %   values give 3, the GUI default.
+            v = strtrim(string(value));
+            if strcmpi(v, "Full precision")
+                n_sig = Inf;
+            else
+                n_sig = str2double(v);
+                if ~isfinite(n_sig) || n_sig < 1
+                    n_sig = 3;
+                end
+                n_sig = round(n_sig);
+            end
+        end
+
+        function [x, fval, info] = lattice_polish(obj, x0, n_sig, opts)
+            %LATTICE_POLISH  Local search on the lattice of n_sig-digit numbers.
+            %   [x, fval, info] = lattice_polish(obj, x0, n_sig, opts) rounds
+            %   x0 to n_sig significant digits per component and then
+            %   improves obj on that lattice by direct search: at each
+            %   iteration the 1-change neighbourhood (each component +/- one
+            %   unit in its last significant digit) is evaluated and the best
+            %   improving point taken; when none improves, the 2-change
+            %   neighbourhood (every pair of components, +/- one unit each),
+            %   and when that fails too, the extended pairs (steps of two
+            %   units), which follow a curved valley whose floor runs
+            %   between lattice points. The search stops when a full sweep
+            %   of all three finds nothing better (info.certified = true),
+            %   or at opts.max_evals evaluations (info.capped = true).
+            %
+            %   This is the local search of Kodek and Steiglitz for
+            %   finite-wordlength filter design (IEEE Trans. Circuits Syst.
+            %   28, 28, 1981: round the continuous optimum, then explore its
+            %   1- and 2-change neighbourhoods) and the poll step at minimal
+            %   granularity of mesh adaptive direct search (Audet, Le
+            %   Digabel and Tribes, SIAM J. Optim. 29, 1164, 2019, "granular
+            %   variables"). Best-improvement rather than first-improvement:
+            %   on the Jiles 1992 synthetic loop the exact ground truth was
+            %   a 1-change neighbour of the rounded start, and a randomly
+            %   ordered first-improvement walk stepped away from it
+            %   (2026-09-21).
+            %
+            %   obj(x) must return +Inf (or any non-finite/huge value) for
+            %   points it cannot evaluate; such points are never accepted.
+            %   x0 is in the same (physical, unscaled) units as x: the
+            %   lattice is defined on the values a user reads and types.
+            %   opts fields (all optional): max_evals (default 300),
+            %   output_fcn (stop = output_fcn(x, optimValues, 'iter'), called
+            %   after every accepted move; true aborts, info.stopped = true),
+            %   extended (default true: poll the +/-2 pairs), fixed (logical
+            %   mask of components that are neither rounded nor moved, e.g.
+            %   parameters the user chose not to fit), lb/ub (bounds; points
+            %   outside are skipped).
+            if nargin < 4 || isempty(opts), opts = struct(); end
+            t_polish = tic;
+            max_evals = SolverUtils.opt(opts, 'max_evals', 300);
+            output_fcn = SolverUtils.opt(opts, 'output_fcn', []);
+            extended = SolverUtils.opt(opts, 'extended', true);
+            x0 = x0(:);
+            n = numel(x0);
+            fixed = logical(SolverUtils.opt(opts, 'fixed', false(n, 1))); fixed = fixed(:);
+            lb = SolverUtils.opt(opts, 'lb', -Inf(n, 1)); lb = lb(:);
+            ub = SolverUtils.opt(opts, 'ub', Inf(n, 1)); ub = ub(:);
+            x = x0;
+            x(~fixed) = SolverUtils.round_sig(x0(~fixed), n_sig);
+            fval = obj(x);
+            info = struct('n_sig', n_sig, 'x_start', x, 'fval_start', fval, ...
+                'start_feasible', isfinite(fval), 'moves', 0, 'evals', 1, 'sweeps', 0, ...
+                'certified', false, 'capped', false, 'stopped', false);
+            % neighbourhoods as integer offsets (rows), in last-digit units,
+            % over the free components only
+            free = find(~fixed);
+            if isempty(free) || ~isfinite(n_sig)
+                info.certified = isfinite(fval);
+                info.x = x; info.fval = fval; info.time_s = toc(t_polish);
+                SolverUtils.last_polish_info(info);
+                return;
+            end
+            E = eye(n);
+            N1 = [E(free, :); -E(free, :)];
+            if numel(free) < 2
+                pairs = zeros(0, 2);
+            else
+                pairs = nchoosek(free(:)', 2);
+            end
+            N2 = zeros(0, n); N2x = zeros(0, n);
+            for r = 1:size(pairs, 1)
+                for si = [-2 -1 1 2]
+                    for sj = [-2 -1 1 2]
+                        d = zeros(1, n); d(pairs(r, 1)) = si; d(pairs(r, 2)) = sj;
+                        if abs(si) == 1 && abs(sj) == 1
+                            N2(end + 1, :) = d; %#ok<AGROW>
+                        else
+                            N2x(end + 1, :) = d; %#ok<AGROW>
+                        end
+                    end
+                end
+            end
+            if extended
+                levels = {N1, N2, N2x};
+            else
+                levels = {N1, N2};
+            end
+            while true
+                if info.evals >= max_evals
+                    info.capped = true;
+                    break;
+                end
+                info.sweeps = info.sweeps + 1;
+                moved = false;
+                for L = 1:numel(levels)
+                    D = levels{L};
+                    best_f = fval; best_x = [];
+                    for r = 1:size(D, 1)
+                        y = SolverUtils.lattice_step(x, D(r, :), n_sig);
+                        if any(y < lb) || any(y > ub), continue; end
+                        fy = obj(y);
+                        info.evals = info.evals + 1;
+                        if isfinite(fy) && fy < best_f
+                            best_f = fy; best_x = y;
+                        end
+                        if info.evals >= max_evals, break; end
+                    end
+                    if ~isempty(best_x)
+                        x = best_x; fval = best_f; moved = true;
+                        info.moves = info.moves + 1;
+                        if ~isempty(output_fcn)
+                            ov = struct('fval', fval, 'iteration', info.moves, 'funccount', info.evals);
+                            if output_fcn(x, ov, 'iter')
+                                info.stopped = true;
+                                info.x = x; info.fval = fval; info.time_s = toc(t_polish);
+                                SolverUtils.last_polish_info(info);
+                                return;
+                            end
+                        end
+                        break;   % any move: back to the 1-change neighbourhood
+                    end
+                    if info.evals >= max_evals, break; end
+                end
+                if ~moved
+                    info.certified = isfinite(fval) && info.evals < max_evals;
+                    if info.evals >= max_evals, info.capped = true; end   % budget hit inside the last sweep
+                    break;
+                end
+            end
+            if info.capped, info.certified = false; end
+            info.x = x; info.fval = fval; info.time_s = toc(t_polish);
+            SolverUtils.last_polish_info(info);
+        end
+
+        function info = last_polish_info(set_value)
+            %LAST_POLISH_INFO Info struct of the last lattice_polish call in
+            %   this session (for scripts that drive the app headlessly);
+            %   called with an argument by lattice_polish to store it.
+            persistent stored
+            if nargin > 0
+                stored = set_value;
+            end
+            info = stored;
+            if isempty(info), info = struct(); end
+        end
+
+        function y = lattice_step(x, d, n_sig)
+            %LATTICE_STEP  x moved by d units of the last significant digit
+            %   of each component (d integer vector), re-rounded so the
+            %   result stays on the lattice when a value crosses a decade.
+            y = x;
+            for i = find(d(:)')
+                v = x(i);
+                if v == 0
+                    ulp = 10^(-n_sig);
+                else
+                    ulp = 10^(floor(log10(abs(v))) - n_sig + 1);
+                end
+                y(i) = SolverUtils.round_sig(v + d(i)*ulp, n_sig);
+            end
+        end
+
+        function y = round_sig(x, n_sig)
+            %ROUND_SIG  Round to n_sig significant digits (Inf: unchanged).
+            if ~isfinite(n_sig)
+                y = x;
+            else
+                y = round(x, n_sig, 'significant');
+            end
+        end
+
+        function msg = polish_summary(info)
+            %POLISH_SUMMARY One-line Messages-panel text for a lattice_polish
+            %   info struct.
+            msg = sprintf("Parameters polished to %d significant digits: %d move(s) in %d evaluations", ...
+                info.n_sig, info.moves, info.evals);
+            if isfield(info, 'stopped') && info.stopped
+                msg = msg + " (stopped by user)";
+            elseif isfield(info, 'capped') && info.capped
+                msg = msg + " (evaluation budget reached; not certified as a lattice optimum)";
+            elseif isfield(info, 'certified') && info.certified
+                msg = msg + " (no better neighbour on the lattice)";
+            end
+            if isfield(info, 'start_feasible') && ~info.start_feasible
+                msg = msg + "; the plainly rounded parameters could not be evaluated";
+            end
+            msg = string(msg);
+        end
+
+        function v = opt(s, name, default)
+            if isfield(s, name) && ~isempty(s.(name))
+                v = s.(name);
+            else
+                v = default;
             end
         end
 
         function [x, fval] = minimize_bounded(obj, x0, lb, ub, output_fcn, solver, solver_options)
             %MINIMIZE_BOUNDED  Minimize obj(x) subject to lb <= x <= ub,
             %   starting from x0, using the solver named by `solver`
-            %   ("nelder_mead" [default], "prima", or "hybrid" = a short
-            %   Nelder-Mead prelude of HYBRID_NM_ITER iterations, whose
-            %   large early simplex moves pick the basin, followed by
-            %   BOBYQA from its best point for the local convergence; on
-            %   the four LMAG 2026 benchmark loops this matched
-            %   Nelder-Mead's minima and was faster on three, 2026-09-19).
-            %   output_fcn, if
+            %   ("prima" [default] or "nelder_mead"). output_fcn, if
             %   non-empty, is called after every function evaluation as
             %   stop = output_fcn(x, optimValues, state) (optimset
             %   convention); returning true aborts the fit early and the
@@ -44,7 +255,7 @@ classdef SolverUtils
             %   MaxFunEvals for "nelder_mead" -- a tuning hook for scripts,
             %   not used by the GUI.
             if nargin < 6 || isempty(solver)
-                solver = "nelder_mead";
+                solver = "prima";
             end
             if nargin < 7 || isempty(solver_options)
                 solver_options = struct();
@@ -57,21 +268,6 @@ classdef SolverUtils
             function y = counted_obj(x_)
                 n_evals = n_evals + 1;
                 y = obj(x_);
-            end
-            if strcmp(solver, "hybrid")
-                HYBRID_NM_ITER = 30;
-                nm_opts = struct('MaxIter', HYBRID_NM_ITER, 'TolX', 0, 'TolFun', 0);   % exactly the prelude
-                for f = intersect(fieldnames(solver_options)', {'MaxIter'})
-                    nm_opts.MaxIter = solver_options.(f{1});
-                end
-                [x1, f1] = SolverUtils.minimize_bounded(obj, x0, lb, ub, output_fcn, "nelder_mead", nm_opts);
-                n1 = SolverUtils.last_eval_count();
-                [x, fval] = SolverUtils.minimize_bounded(obj, x1, lb, ub, output_fcn, "prima", solver_options);
-                if fval > f1          % never leave the prelude's point for a worse one
-                    x = x1; fval = f1;
-                end
-                SolverUtils.last_eval_count(n1 + SolverUtils.last_eval_count());
-                return;
             end
             if strcmp(solver, "nelder_mead")
                 % TolX acts on the seed-scaled variables (~1e-5 relative);

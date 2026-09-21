@@ -570,6 +570,8 @@ classdef ExportDialogUtils
                 strtrim(string(app.ErrorDropDown.Value)));
             lines = lines + nl + sprintf("  %-18s = %s", "Solver", ...
                 strtrim(string(app.SolverDropDown.Value)));
+            lines = lines + nl + sprintf("  %-18s = %s", "Significant digits", ...
+                ExportDialogUtils.significant_digits_text(app, 'SignificantdigitsDropDown'));
 
             % --- Total elapsed time ---
             [~, ~, ~, ~, elapsed_time] = FitProgressUtils.get_history(app, 'anh');
@@ -701,6 +703,8 @@ classdef ExportDialogUtils
                 strtrim(string(app.ErrortominimizeDropDown_2.Value)));
             lines = lines + nl + sprintf("  %-18s = %s", "Solver", ...
                 strtrim(string(app.SolverDropDown_2.Value)));
+            lines = lines + nl + sprintf("  %-18s = %s", "Significant digits", ...
+                ExportDialogUtils.significant_digits_text(app, 'SignificantdigitsDropDown_2'));
             bound_specs = { ...
                 "Ms bounds",    app.MsLower_JA,    app.MsUpper_JA; ...
                 "a bounds",     app.aLower_JA,     app.aUpper_JA; ...
@@ -838,6 +842,16 @@ classdef ExportDialogUtils
             file_name = ExportDialogUtils.export_filename(app, char(string(base) + string(fmt)));
             ExportUtils.save_axes_image(ax, fullfile(folder, file_name), 400);
             names = string(file_name);
+        end
+
+        function txt = significant_digits_text(app, component)
+            %SIGNIFICANT_DIGITS_TEXT The "Significant digits" dropdown value
+            %   for the metadata export ("3" ... "6" or "Full precision"), or
+            %   "3 (default)" when the app has no such component.
+            txt = "3 (default)";
+            if isprop(app, component) && ~isempty(app.(component))
+                txt = strtrim(string(app.(component).Value));
+            end
         end
     end
 end

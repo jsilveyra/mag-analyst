@@ -20,6 +20,17 @@ classdef HystereticUtils
                 app.VerticalaxisfieldDropDown.Value);
         end
 
+        function n_sig = significant_digits(app)
+            %SIGNIFICANT_DIGITS Number of significant digits the JA fit
+            %   polishes its parameters to (Inf = full precision), from the
+            %   tab's "Significant digits" dropdown; 3 when the app has no
+            %   such component (older .mlapp).
+            n_sig = 3;
+            if isprop(app, 'SignificantdigitsDropDown_2') && ~isempty(app.SignificantdigitsDropDown_2)
+                n_sig = SolverUtils.n_sig_from_dropdown(app.SignificantdigitsDropDown_2.Value);
+            end
+        end
+
         function [H_left, M_left] = get_hysteretic_left_branch_data(app)
             [~, ~, H_left, M_left] = HystereticUtils.build_ja_data_cycle_core( ...
                 app.H_raw, app.M_raw, ...
@@ -840,13 +851,14 @@ classdef HystereticUtils
                 output_fcn = @(x, optimValues, state) app.fit_stop_output_fcn(x, optimValues, state);
                 estimate_k_fn = @(p) HystereticUtils.estimate_k_from_coercive_point(app, Hleft, Mleft, p.Ms, p.a, p.alpha, p.c);
                 solver = SolverUtils.solver_code_from_dropdown(app.SolverDropDown_2.Value);
+                n_sig = HystereticUtils.significant_digits(app);
                 fit_result = JAFitter.fit( ...
                     params_seed, mask, bounds, HfitData, MfitData, Htip, Mtip, error_type, ...
                     estimate_k_fn, ...
                     model_fn, ...
                     @(err_type, hL, mL, hHat, mHat) HystereticUtils.compute_ja_left_branch_error_core(app, err_type, hL, mL, hHat, mHat), ...
                     output_fcn, ...
-                    solver);
+                    solver, [], [], n_sig);
 
                 if ~fit_result.ok
                     error(char(fit_result.error_message));
@@ -862,8 +874,13 @@ classdef HystereticUtils
                 % a BIG-penalty (unphysical, e.g. k<0) point as "best" when
                 % the search never beat it, replacing a good seed-guarded
                 % result with a worse one.
+                % Not when the fit was polished on the significant-digit
+                % lattice: the tracker also saw the full-precision points,
+                % whose J can be marginally lower than the lattice optimum's,
+                % and the point of the polish is to report the lattice values.
+                polished = isfield(fit_result, 'polish') && isfield(fit_result.polish, 'moves');
                 [best_x, best_val, has_best] = FitProgressUtils.get_best(app, 'hyst');
-                if has_best && best_val < fit_result.Jopt
+                if has_best && best_val < fit_result.Jopt && ~polished
                     [~, map] = JAFitUtils.pack_params(params_seed, mask);
                     fit_result.params_opt = JAFitUtils.unpack_params(best_x, map, params_seed, mask, estimate_k_fn);
                     fit_result.Jopt = best_val;
@@ -887,8 +904,11 @@ classdef HystereticUtils
                     app.write_message("Fitting stopped by user after " + FormatUtils.format_short(t) + " s");
                 else
                     app.write_message("Fitting finished after " + FormatUtils.format_short(t) + " s");
+                    if polished
+                        app.write_message(SolverUtils.polish_summary(fit_result.polish));
+                    end
                     if mask.k_dependent
-                        app.write_message("Tip: uncheck 'Constrained by Hc' and fit again to further refine the JA model parameters.");
+                        app.write_message("Tip: uncheck 'Constrained by Hc' and fit again to further refine the JA model parameters (and to polish k too).");
                     end
                 end
             catch ME
