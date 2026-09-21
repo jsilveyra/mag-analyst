@@ -177,8 +177,9 @@ classdef JAFitter
                     % Inf for the polish, which never accepts such points.
                     if isfinite(n_sig)
                         polish_obj = @(x_) JAFitter.finite_or_inf(obj_fun(x_), BIG);
+                        full = struct('params', JAFitUtils.unpack_params(xopt, map, params_seed, mask, estimate_k_fn), 'J', Jopt);
                         [xq, Jq, result.polish] = SolverUtils.lattice_polish(polish_obj, xopt, n_sig, ...
-                            struct('output_fcn', output_fcn));
+                            struct('output_fcn', output_fcn, 'full', full));
                         if isfinite(Jq)
                             xopt = xq;
                             Jopt = Jq;

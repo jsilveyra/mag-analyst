@@ -130,7 +130,8 @@ function [Ms, alpha, a, polish] = fit_physical(data_curve, seed, N, error_type, 
     if isfinite(n_sig)
         fixed = ~cellfun(@logical, select_fit(:));
         [result_q, ~, polish] = SolverUtils.lattice_polish(@physical_error, result(:), n_sig, ...
-            struct('output_fcn', output_fcn, 'fixed', fixed, 'lb', lb(:), 'ub', ub(:)));
+            struct('output_fcn', output_fcn, 'fixed', fixed, 'lb', lb(:), 'ub', ub(:), ...
+                   'full', struct('x', result(:), 'J', physical_error(result))));
         if isfinite(polish.fval_start) || polish.moves > 0
             result = result_q(:).';
         end

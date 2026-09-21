@@ -89,7 +89,8 @@ function [Hcr, mcr, Hx, polish] = fit(data_curve, seed, N, select_a, error_type,
     if isfinite(n_sig)
         fixed = ~cellfun(@logical, select_fit(:));
         [params_q, ~, polish] = SolverUtils.lattice_polish(@fit_parameters, params, n_sig, ...
-            struct('output_fcn', output_fcn, 'fixed', fixed, 'lb', lb, 'ub', ub));
+            struct('output_fcn', output_fcn, 'fixed', fixed, 'lb', lb, 'ub', ub, ...
+                   'full', struct('x', params, 'J', fit_parameters(params))));
         if isfinite(polish.fval_start) || polish.moves > 0
             params = reshape(params_q, size(params));   % keep the solver's orientation
         end

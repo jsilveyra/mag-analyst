@@ -81,7 +81,9 @@ classdef SolverUtils
             %   extended (default true: poll the +/-2 pairs), fixed (logical
             %   mask of components that are neither rounded nor moved, e.g.
             %   parameters the user chose not to fit), lb/ub (bounds; points
-            %   outside are skipped).
+            %   outside are skipped), full (any struct describing the
+            %   solver's full-precision result, stored as info.full for
+            %   reports that compare it with the polished one).
             if nargin < 4 || isempty(opts), opts = struct(); end
             t_polish = tic;
             max_evals = SolverUtils.opt(opts, 'max_evals', 300);
@@ -97,7 +99,8 @@ classdef SolverUtils
             fval = obj(x);
             info = struct('n_sig', n_sig, 'x_start', x, 'fval_start', fval, ...
                 'start_feasible', isfinite(fval), 'moves', 0, 'evals', 1, 'sweeps', 0, ...
-                'certified', false, 'capped', false, 'stopped', false);
+                'certified', false, 'capped', false, 'stopped', false, ...
+                'full', SolverUtils.opt(opts, 'full', struct('x', x0)));
             % neighbourhoods as integer offsets (rows), in last-digit units,
             % over the free components only
             free = find(~fixed);
