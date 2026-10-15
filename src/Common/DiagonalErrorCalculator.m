@@ -40,6 +40,27 @@ classdef DiagonalErrorCalculator < ErrorCalculator
                 e = obj.get_sampled_error(Xdat, Ydat, Xmod, Ymod, x_scale, y_scale);
             end
         end
+
+        function r = get_residuals(obj)
+            %GET_RESIDUALS Per-point normalized distances whose RMS is
+            %   get_error(), signed so that each one crosses zero smoothly
+            %   when the model curve crosses its data point: the residual
+            %   vector of the DFO-LS solver. Continuous metric: the distance
+            %   to the model polyline, signed by the side of the polyline the
+            %   point lies on (signed_point_to_polyline_distance). Sampled
+            %   metric (since 2026-09-25): the triangle altitude of
+            %   get_sampled_error, signed by the horizontal offset
+            %   X_data - X_model(Y_data).
+            [x_scale, y_scale] = obj.get_scales(obj.X, obj.Y);
+            if obj.use_continuous
+                model = [obj.Xhat(:)/x_scale, obj.Yhat(:)/y_scale];
+                data = [obj.X(:)/x_scale, obj.Y(:)/y_scale];
+                r = signed_point_to_polyline_distance(data, model);
+            else
+                [delta_o, sgn] = DiagonalErrorCalculator.sampled_altitudes(obj.X, obj.Y, obj.Xhat, obj.Yhat, x_scale, y_scale);
+                r = sgn .* delta_o;
+            end
+        end
     end
 
     methods (Access = private)
@@ -100,6 +121,26 @@ classdef DiagonalErrorCalculator < ErrorCalculator
             nz = r > 0;
             delta_o(nz) = delta_x(nz).*delta_y(nz)./r(nz);
             e = sqrt(mean(delta_o.^2));
+        end
+
+        function [delta_o, sgn] = sampled_altitudes(Xdat, Ydat, Xmod, Ymod, x_scale, y_scale)
+            % The per-point altitudes of get_sampled_error_static (same
+            % arithmetic, so sqrt(mean(delta_o.^2)) is its error), plus the
+            % sign of the horizontal offset X_data - X_model(Y_data), +1
+            % where it is zero: get_residuals' sampled residual vector.
+            Xdat = Xdat(:); Ydat = Ydat(:);
+            [Ymod_u, Xmod_u] = ErrorCalculator.sorted_unique(Ymod(:), Xmod(:));
+            [Xdat_u, Ydat_u] = ErrorCalculator.sorted_unique(Xdat, Ydat);
+            x_on_model = interp1(Ymod_u, Xmod_u, Ydat, 'linear', 'extrap');
+            y_on_data = interp1(Xdat_u, Ydat_u, x_on_model, 'linear', 'extrap');
+            delta_x = abs(x_on_model - Xdat)/x_scale;
+            delta_y = abs(y_on_data - Ydat)/y_scale;
+            r = hypot(delta_x, delta_y);
+            delta_o = zeros(size(r));
+            nz = r > 0;
+            delta_o(nz) = delta_x(nz).*delta_y(nz)./r(nz);
+            sgn = sign(Xdat - x_on_model);
+            sgn(sgn == 0) = 1;
         end
     end
 end

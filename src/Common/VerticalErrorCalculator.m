@@ -36,5 +36,21 @@ classdef VerticalErrorCalculator < ErrorCalculator
 
             e = sqrt(mean(residual.^2)) / y_scale;
         end
+
+        function r = get_residuals(obj)
+            %GET_RESIDUALS Normalized signed vertical offsets, one per data
+            %   point, whose root mean square is get_error(): the residual
+            %   vector of the DFO-LS solver. [] when there is no model.
+            [Xhat_u, Yhat_u] = ErrorCalculator.sorted_unique(obj.Xhat, obj.Yhat);
+            if numel(Xhat_u) < 2 || numel(obj.X) < 1
+                r = [];
+                return;
+            end
+            y_scale = max(abs(obj.Y));
+            if y_scale <= 0 || ~isfinite(y_scale)
+                y_scale = 1;
+            end
+            r = (obj.Y - interp1(Xhat_u, Yhat_u, obj.X, 'linear', 'extrap')) / y_scale;
+        end
     end
 end

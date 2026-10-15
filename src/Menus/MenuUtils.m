@@ -147,7 +147,12 @@ classdef MenuUtils
             end
 
             s.number_components = app.number_components;
-            s.select_a = app.TableParameters.Data.(5);
+            s.select_a = app.TableParameters.Data.select_a_col;
+            % Linear term (component 0) and the physical-table Fit flags
+            % (2026-10-03); the chi0 value itself is a row of the fitted-
+            % parameter table, saved below with the others.
+            s.linear_term = AnhystereticUtils.linear_term_enabled(app);
+            s.physical_fit_flags = AnhystereticUtils.physical_fit_flags(app);
 
             % --- "reduce dof" state: the checkbox, plus the directly-fit
             % physical parameters when the last fit was a physical (unchecked)
@@ -160,6 +165,7 @@ classdef MenuUtils
                 s.physical_Ms = app.magnetic_parameters.Ms(:);
                 s.physical_alpha = app.magnetic_parameters.alpha(:);
                 s.physical_a = app.magnetic_parameters.a(:);
+                s.physical_chi0 = app.magnetic_parameters.chi0;
             end
 
             % --- Anhysteretic fitted-parameter table (full precision; see
@@ -238,19 +244,28 @@ classdef MenuUtils
                 return;
             end
 
+            MenuUtils.load_project_file(app, fullpath);
+        end
+
+        function load_project_file(app, fullpath)
+            %LOAD_PROJECT_FILE Restore a project from fullpath (open_project
+            %   after its file dialog; also usable headless, e.g. in tests).
             app.ProjectPath = fullpath;
 
             data = fileread(app.ProjectPath);
             s = jsondecode(data);
 
             app.number_components = s.number_components;
+            if isprop(app, 'LinearTermCheckBox') && ~isempty(app.LinearTermCheckBox)
+                app.LinearTermCheckBox.Value = isfield(s, 'linear_term') && logical(s.linear_term);
+            end
             app.init_components();
             app.configure_minor_loop_table();
             app.configure_degaussing_table();
             app.configure_harmonics_table();
             app.init_parameters_table(true);
             app.init_quantities_table(true);
-            app.NofcompSpinner.Value = app.number_components;
+            app.NofcompnSpinner.Value = app.number_components;
 
             % open_project() never re-imports the CSV (only import_data does),
             % so app.M_is_mass_based -- and therefore VerticalaxisfieldDropDown_2's
@@ -300,8 +315,14 @@ classdef MenuUtils
 
             % --- select_a (per-component high/low root) ---
             if isfield(s, 'select_a')
-                app.TableParameters.Data.(5) = cellstr(s.select_a);
-                app.TableParameters.Data.(5) = categorical(app.TableParameters.Data.(5), {'high', 'low'}, 'Ordinal', true);
+                app.TableParameters.Data.select_a_col = categorical(cellstr(s.select_a), AnhystereticUtils.select_a_options(), 'Ordinal', true);
+            end
+            if isfield(s, 'physical_fit_flags') && numel(s.physical_fit_flags) == 3*app.number_components
+                f = logical(s.physical_fit_flags(:));
+                n = app.number_components;
+                app.TableParameters.Data.fit_Ms_col = f(1:n);
+                app.TableParameters.Data.fit_alpha_col = f(n+1:2*n);
+                app.TableParameters.Data.fit_a_col = f(2*n+1:3*n);
             end
 
             % --- Anhysteretic fitted-parameter table (full precision) ---
@@ -400,6 +421,7 @@ classdef MenuUtils
                     physical.Ms = s.physical_Ms(:).';
                     physical.alpha = s.physical_alpha(:).';
                     physical.a = s.physical_a(:).';
+                    physical.chi0 = AnhystereticUtils.chi0_value(app);
                     if numel(physical.Ms) == app.number_components
                         app.magnetic_parameters = MagneticParameters(app.data_curve, [], [], [], [], physical);
                         app.physical_fit_active = true;
@@ -430,7 +452,7 @@ classdef MenuUtils
             app.ProjectDirty = false;
             MenuUtils.update_window_title(app);
             [~, name, ext] = fileparts(app.ProjectPath);
-            app.write_message(name + ext + " was opened successfully");
+            app.write_message(string(name) + ext + " was opened successfully");
         end
 
         function save_project(app)
@@ -519,12 +541,15 @@ classdef MenuUtils
             if isprop(app, 'ReduceDofCheckBox') && ~isempty(app.ReduceDofCheckBox)
                 app.ReduceDofCheckBox.Value = true;
             end
+            if isprop(app, 'LinearTermCheckBox') && ~isempty(app.LinearTermCheckBox)
+                app.LinearTermCheckBox.Value = false;
+            end
             app.fitted_parameter_values = [];
             app.component_row_types = [];
             app.lb = [];
             app.ub = [];
             app.select_fit = [];
-            app.NofcompSpinner.Value = 1;
+            app.NofcompnSpinner.Value = 1;
             app.number_components = 1;
             app.init_components();
             app.init_parameters_table(true);
@@ -747,7 +772,7 @@ classdef MenuUtils
             value_components = MenuUtils.simple_field_specs();
             value_components = value_components(:,2)';
             extra_value_components = { ...
-                'NofcompSpinner', ...
+                'NofcompnSpinner', ...
                 'Ms_JA', 'a_JA', 'alpha_JA', 'c_JA', 'k_JA', ...
                 'MsLower_JA', 'MsUpper_JA', 'aLower_JA', 'aUpper_JA', ...
                 'alphaLower_JA', 'alphaUpper_JA', 'kLower_JA', 'kUpper_JA', ...

@@ -108,6 +108,33 @@ classdef DisplayUnits
             end
         end
 
+        function label = get_chi0_label(app)
+            % Linear term (component 0): "χₘ₀ [m³/kg]" in mass mode, mirroring
+            % "χₘᵢₙ", and the dimensionless "χ₀" in volume mode.
+            if app.M_is_mass_based
+                label = "χₘ₀ [m³/kg]";
+            else
+                label = "χ₀";
+            end
+        end
+
+        function text = get_linear_term_text(app)
+            if app.M_is_mass_based
+                text = "Linear term (χₘ₀)";
+            else
+                text = "Linear term (χ₀)";
+            end
+        end
+
+        function label = get_chi0_ascii_label(app)
+            % Plain-text name for exported files.
+            if app.M_is_mass_based
+                label = "chi_m0 [m^3/kg]";
+            else
+                label = "chi0";
+            end
+        end
+
         function label = get_density_product_label(app)
             if app.M_is_mass_based
                 label = "NᵢkвT/ρ [J/kg]";

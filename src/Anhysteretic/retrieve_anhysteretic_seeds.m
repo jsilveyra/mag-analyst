@@ -261,8 +261,8 @@ function select_a = normalize_select_a(select_a, number_components)
     if numel(select_a) < number_components
         select_a(end + 1:number_components, 1) = select_a(end);
     end
-    select_a = lower(select_a(1:number_components));
-    select_a(select_a ~= "high" & select_a ~= "low") = "low";
+    % the root each entry currently uses ('auto (high)' -> "high", ...)
+    select_a = select_a_root(select_a(1:number_components));
 end
 
 function [H, M] = sanitize_curve(data_curve)

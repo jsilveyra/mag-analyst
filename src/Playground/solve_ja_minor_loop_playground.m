@@ -44,6 +44,7 @@ function [Hmod, Mmod, info] = solve_ja_minor_loop_playground( ...
         'tip_starts', [], ...
         'tip_ends', [], ...
         'tip_last_loop_starts', []);
+    all_tips_converged = true;
 
     segments_H = {};
     segments_M = {};
@@ -83,6 +84,7 @@ function [Hmod, Mmod, info] = solve_ja_minor_loop_playground( ...
         else
             max_cycles = repetitions;
         end
+        tip_converged = false;
         for cycle = 1:max_cycles
             last_loop_start_index = next_start_index;
             [Hleft, Mleft] = solve_ja_monotonic(Htip, -Htip, current_positive_M, params, -1, opts);
@@ -104,11 +106,14 @@ function [Hmod, Mmod, info] = solve_ja_minor_loop_playground( ...
             if stop_criterion == "Until convergence"
                 rel_base = max(abs(previous_cycle_end), eps);
                 if abs(current_positive_M - previous_cycle_end) / rel_base < rel_tol
-                    info.converged = true;
+                    tip_converged = true;
                     break;
                 end
                 previous_cycle_end = current_positive_M;
             end
+        end
+        if stop_criterion == "Until convergence" && ~tip_converged
+            all_tips_converged = false;
         end
 
         previous_positive_tip = Htip;
@@ -126,6 +131,9 @@ function [Hmod, Mmod, info] = solve_ja_minor_loop_playground( ...
     end
 
     info.branch_starts = branch_starts;
+    if stop_criterion == "Until convergence"
+        info.converged = all_tips_converged;
+    end
 end
 
 function [Hout, Mout] = local_concat_segments(segments_H, segments_M)

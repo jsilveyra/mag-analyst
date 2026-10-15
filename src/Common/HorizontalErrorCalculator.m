@@ -33,5 +33,21 @@ classdef HorizontalErrorCalculator < ErrorCalculator
 
             e = sqrt(mean(residual.^2)) / x_scale;
         end
+
+        function r = get_residuals(obj)
+            %GET_RESIDUALS Normalized signed horizontal offsets, one per data
+            %   point, whose root mean square is get_error(): the residual
+            %   vector of the DFO-LS solver. [] when there is no model.
+            [Yhat_u, Xhat_u] = ErrorCalculator.sorted_unique(obj.Yhat, obj.Xhat);
+            if numel(Yhat_u) < 2 || numel(obj.Y) < 1
+                r = [];
+                return;
+            end
+            x_scale = max(abs(obj.X));
+            if x_scale <= 0 || ~isfinite(x_scale)
+                x_scale = 1;
+            end
+            r = (obj.X - interp1(Yhat_u, Xhat_u, obj.Y, 'linear', 'extrap')) / x_scale;
+        end
     end
 end

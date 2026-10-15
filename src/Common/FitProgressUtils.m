@@ -29,6 +29,16 @@ classdef FitProgressUtils
 %   same kind's existing Vals/BestVal/BestX (a plain "Fit again" repeat with
 %   nothing edited -- see check_and_remember_conditions) or starts a fresh
 %   history (anything changed since the last fit of that kind).
+%
+%   ONE popup window per app, reused by every fit (2026-09-28). It is
+%   created hidden on first use, shown by open(), hidden (never deleted) by
+%   close_popup/close and by its own close button, and deleted only when
+%   the app's main window is destroyed. Until then every fit deleted the
+%   previous popup and created a new one (4-5 per blind workflow), and
+%   deleting uifigures that hold uiaxes crashes MATLAB R2022b now and then
+%   with heap corruption (0xc0000374): reproduced without any MagAnalyst
+%   code, create/plot/delete cycles died after ~15-110 cycles, while one
+%   reused window survived 150 fits.
 
     methods (Static)
         function open(app, kind, title_text, error_name, accumulate)
@@ -40,8 +50,8 @@ classdef FitProgressUtils
                 return;
             end
 
-            % Tear down any currently-visible popup(s) without discarding
-            % either kind's numeric history -- see close_popup.
+            % Detach any kind from the popup without discarding either
+            % kind's numeric history -- see close_popup.
             FitProgressUtils.close_popup(app);
 
             key = FitProgressUtils.state_key(kind);
@@ -52,10 +62,37 @@ classdef FitProgressUtils
             end
             state.ErrName = string(error_name);
 
+            popup = FitProgressUtils.get_popup(root);
+            popup.Fig.Name = title_text;
+            ylabel(popup.Ax, "Best " + string(error_name) + " error so far");
+            if isempty(state.Vals)
+                set(popup.Line, 'XData', NaN, 'YData', NaN);
+            else
+                set(popup.Line, 'XData', 0:(numel(state.Vals) - 1), 'YData', state.Vals);
+            end
+            popup.Fig.Visible = 'on';
+
+            state.Fig = popup.Fig;
+            state.Line = popup.Line;
+            setappdata(root, key, state);
+            setappdata(root, 'fit_progress_active_kind', char(string(kind)));
+            drawnow;
+        end
+
+        function popup = get_popup(root)
+            %GET_POPUP The app's one progress window (see the class doc),
+            %   created hidden on first use.
+            if isappdata(root, 'fit_progress_popup')
+                popup = getappdata(root, 'fit_progress_popup');
+                if isvalid(popup.Fig) && isvalid(popup.Line)
+                    return;
+                end
+            end
             w = 480; h = 360;
             scr = get(groot, 'ScreenSize');
-            fig = uifigure('Name', title_text);
+            fig = uifigure('Name', 'Optimization progress', 'Visible', 'off');
             fig.Position = [scr(1) + max(0, (scr(3) - w) / 2), scr(2) + max(0, (scr(4) - h) / 2), w, h];
+            fig.CloseRequestFcn = @(f, ~) set(f, 'Visible', 'off');   % hide, never delete
             try
                 fig.Icon = root.Icon;
             catch
@@ -63,20 +100,16 @@ classdef FitProgressUtils
             g = uigridlayout(fig, [1 1]);
             ax = uiaxes(g);
             xlabel(ax, 'Iteration');
-            ylabel(ax, "Best " + string(error_name) + " error so far");
             title(ax, 'Optimization progress');
             grid(ax, 'on');
             ax.YScale = 'log';
             ln = plot(ax, NaN, NaN, '-o', 'LineWidth', 1.2, 'MarkerSize', 4, 'Color', [0.945 0.353 0.161]);
-            if ~isempty(state.Vals)
-                set(ln, 'XData', 0:(numel(state.Vals) - 1), 'YData', state.Vals);
-            end
-
-            state.Fig = fig;
-            state.Line = ln;
-            setappdata(root, key, state);
-            setappdata(root, 'fit_progress_active_kind', char(string(kind)));
-            drawnow;
+            % A separate window, not a child of the app's figure: deleted
+            % with it (without this, delete(app) -- a script, a test --
+            % left it open, one orphan window and renderer per app).
+            addlistener(root, 'ObjectBeingDestroyed', @(~, ~) FitProgressUtils.delete_if_valid(fig));
+            popup = struct('Fig', fig, 'Ax', ax, 'Line', ln);
+            setappdata(root, 'fit_progress_popup', popup);
         end
 
         function append(app, x, optim_values)
@@ -187,15 +220,20 @@ classdef FitProgressUtils
         end
 
         function close_popup(app)
-            %CLOSE_POPUP Delete any currently-visible progress popup(s)
-            %   WITHOUT discarding the numeric history (Vals/BestVal/BestX)
-            %   either kind has recorded -- called at the start of every
-            %   open() so a new fit never leaves a stale popup on screen.
-            %   Safe to sweep both kinds defensively; only one is ever
-            %   actually live at a time.
+            %CLOSE_POPUP Hide the progress popup and detach both kinds from
+            %   it, WITHOUT discarding the numeric history (Vals/BestVal/
+            %   BestX) either kind has recorded -- called at the start of
+            %   every open(). The window itself is kept for the next fit
+            %   (see the class doc: deleting it is what crashed R2022b).
             root = FitProgressUtils.get_root(app);
             if isempty(root)
                 return;
+            end
+            if isappdata(root, 'fit_progress_popup')
+                popup = getappdata(root, 'fit_progress_popup');
+                if isvalid(popup.Fig)
+                    popup.Fig.Visible = 'off';
+                end
             end
             for kind = ["anh", "hyst"]
                 key = FitProgressUtils.state_key(kind);
@@ -203,17 +241,34 @@ classdef FitProgressUtils
                     continue;
                 end
                 state = getappdata(root, key);
-                if isfield(state, 'Fig') && ~isempty(state.Fig) && isvalid(state.Fig)
-                    delete(state.Fig);
-                end
                 state.Fig = [];
                 state.Line = [];
                 setappdata(root, key, state);
             end
         end
 
+        function delete_if_valid(fig)
+            % The one deletion of the popup, with its app's main window.
+            % Rendering is flushed and allowed to settle first: in the
+            % R2022b reproduction, create/plot/delete cycles survived 300
+            % cycles with drawnow + pause(0.3) before delete, crashed at
+            % ~110 without, and at ~50 when the window was hidden first.
+            if ~isempty(fig) && isvalid(fig)
+                FitProgressUtils.settle();
+                delete(fig);
+            end
+        end
+
+        function settle()
+            %SETTLE Let pending rendering finish before a uifigure is deleted
+            %   (see delete_if_valid). Also called by close(), which runs
+            %   right before the app's own window is deleted.
+            drawnow;
+            pause(0.3);
+        end
+
         function close(app)
-            %CLOSE Full teardown: closes any live popup AND discards all
+            %CLOSE Full teardown: hides the popup AND discards all
             %   history for both kinds. Called at app close and by "New".
             root = FitProgressUtils.get_root(app);
             if isempty(root)
@@ -229,6 +284,7 @@ classdef FitProgressUtils
             if isappdata(root, 'fit_progress_active_kind')
                 rmappdata(root, 'fit_progress_active_kind');
             end
+            FitProgressUtils.settle();
         end
 
         function fval = extract_fval(optim_values)

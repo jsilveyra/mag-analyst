@@ -41,14 +41,16 @@ classdef app_exported < matlab.apps.AppBase
         AxesProcessedInputData          matlab.ui.control.UIAxes
         AnhystereticfittingTab          matlab.ui.container.Tab
         GridLayout11                    matlab.ui.container.GridLayout
-        LWModel_eq                      matlab.ui.control.Label
+        LinearTermCheckBox              matlab.ui.control.CheckBox
         SignificantdigitsDropDown       matlab.ui.control.DropDown
-        SignificantdigitsDropDownLabel  matlab.ui.control.Label
+        SignifdigitsDropDownLabel       matlab.ui.control.Label
+        PolishButton                    matlab.ui.control.Button
+        LWModel_eq                      matlab.ui.control.Label
         SolverDropDown                  matlab.ui.control.DropDown
         SolverDropDownLabel             matlab.ui.control.Label
         NofpointsEditField              matlab.ui.control.NumericEditField
         NofpointsLabel                  matlab.ui.control.Label
-        NofcompSpinner                  matlab.ui.control.Spinner
+        NofcompnSpinner                 matlab.ui.control.Spinner
         NofcompLabel                    matlab.ui.control.Label
         JsTLabel                        matlab.ui.control.Label
         JsField                         matlab.ui.control.NumericEditField
@@ -90,12 +92,13 @@ classdef app_exported < matlab.apps.AppBase
         AxesM                           matlab.ui.control.UIAxes
         HystereticfittingTab            matlab.ui.container.Tab
         GridLayout10                    matlab.ui.container.GridLayout
+        SignificantdigitsDropDown_2     matlab.ui.control.DropDown
+        SignifdigitsDropDownLabel_2     matlab.ui.control.Label
+        PolishButton_2                  matlab.ui.control.Button
         JAModelFormulationLabel         matlab.ui.control.Label
         JAmodel_eq3                     matlab.ui.control.Label
         JAmodel_eq2                     matlab.ui.control.Label
         JAmodel_eq1                     matlab.ui.control.Label
-        SignificantdigitsDropDown_2     matlab.ui.control.DropDown
-        SignificantdigitsDropDownLabel_2  matlab.ui.control.Label
         SolverDropDown_2                matlab.ui.control.DropDown
         SolverDropDownLabel_2           matlab.ui.control.Label
         MaximumrepetitionsEditField     matlab.ui.control.NumericEditField
@@ -205,17 +208,6 @@ classdef app_exported < matlab.apps.AppBase
         RepetitionsEditFieldLabel       matlab.ui.control.Label
         StopcriterionDropDown           matlab.ui.control.DropDown
         StopcriterionDropDownLabel      matlab.ui.control.Label
-        MajorloopwithharmonicsPanel     matlab.ui.container.Panel
-        GridLayout7                     matlab.ui.container.GridLayout
-        DistortedmajorloopwithharmoniccomponentsLabel  matlab.ui.control.Label
-        quadHtsum_kA_ksinkomegatphi_kLabel  matlab.ui.control.Label
-        UITable2                        matlab.ui.control.Table
-        HstartAmEditField_3             matlab.ui.control.NumericEditField
-        HstartAmEditField_3Label        matlab.ui.control.Label
-        MstartAmEditField_3             matlab.ui.control.NumericEditField
-        MstartAmEditField_3Label        matlab.ui.control.Label
-        StartingpointDropDown_5         matlab.ui.control.DropDown
-        StartingpointDropDown_5Label    matlab.ui.control.Label
         DegaussingPanel                 matlab.ui.container.Panel
         GridLayout5                     matlab.ui.container.GridLayout
         UITable_3                       matlab.ui.control.Table
@@ -235,6 +227,7 @@ classdef app_exported < matlab.apps.AppBase
         StartingpointDropDown_3Label    matlab.ui.control.Label
         MinorloopsPanel                 matlab.ui.container.Panel
         GridLayout6                     matlab.ui.container.GridLayout
+        UITable                         matlab.ui.control.Table
         MaxrepetitionsEditFieldLabel_2  matlab.ui.control.Label
         MaxrepetitionsEditField_2       matlab.ui.control.NumericEditField
         ReltoleranceEditField_5         matlab.ui.control.NumericEditField
@@ -247,7 +240,17 @@ classdef app_exported < matlab.apps.AppBase
         RepetitionsEditFieldLabel_2     matlab.ui.control.Label
         StopcriterionDropDown_2Label_3  matlab.ui.control.Label
         StopcriterionDropDown_2Label_2  matlab.ui.control.Label
-        UITable                         matlab.ui.control.Table
+        MajorloopwithharmonicsPanel     matlab.ui.container.Panel
+        GridLayout7                     matlab.ui.container.GridLayout
+        DistortedmajorloopwithharmoniccomponentsLabel  matlab.ui.control.Label
+        quadHtsum_kA_ksinkomegatphi_kLabel  matlab.ui.control.Label
+        UITable2                        matlab.ui.control.Table
+        HstartAmEditField_3             matlab.ui.control.NumericEditField
+        HstartAmEditField_3Label        matlab.ui.control.Label
+        MstartAmEditField_3             matlab.ui.control.NumericEditField
+        MstartAmEditField_3Label        matlab.ui.control.Label
+        StartingpointDropDown_5         matlab.ui.control.DropDown
+        StartingpointDropDown_5Label    matlab.ui.control.Label
         AxesM_5                         matlab.ui.control.UIAxes
         ContextMenu                     matlab.ui.container.ContextMenu
         Menu                            matlab.ui.container.Menu
@@ -373,6 +376,10 @@ classdef app_exported < matlab.apps.AppBase
             AnhystereticUtils.fit_parameters(app);
         end
         
+        function polish_fit(app)
+            AnhystereticUtils.polish_fit(app);
+        end
+
         function stop = fit_stop_output_fcn(app, x, optimValues, ~)
             FitProgressUtils.append(app, x, optimValues);
             drawnow limitrate;
@@ -604,6 +611,10 @@ classdef app_exported < matlab.apps.AppBase
 
         function fit_ja_parameters(app)
             HystereticUtils.fit_ja_parameters(app);
+        end
+
+        function polish_ja_fit(app)
+            HystereticUtils.polish_fit(app);
         end
 
         function k_est = estimate_k_from_coercive_point(app, Hleft, Mleft, Ms, a, alpha, c)
@@ -883,7 +894,7 @@ classdef app_exported < matlab.apps.AppBase
             app.ProjectPath = "";
             MenuUtils.setup_dirty_tracking(app);   % window-title dirty tracking
             MenuUtils.update_window_title(app);    % window-title dirty tracking
-            app.number_components = app.NofcompSpinner.Value;
+            app.number_components = app.NofcompnSpinner.Value;
         
             app.init_components();
             app.configure_minor_loop_table();
@@ -956,10 +967,8 @@ classdef app_exported < matlab.apps.AppBase
             if app.fitting_in_progress
                 return;
             end
-    
             app.fitting_in_progress = true;
             app.stop_fit_already_requested = false;
-    
             try
                 update_components(app)
                 fit_parameters(app)
@@ -971,7 +980,6 @@ classdef app_exported < matlab.apps.AppBase
                 app.report_callback_error(ME);
                 return;
             end
-    
             app.fitting_in_progress = false;
             app.stop_fit_already_requested = false;
         end
@@ -981,9 +989,9 @@ classdef app_exported < matlab.apps.AppBase
             app.calculate_plot_and_refresh_hysteretic();
         end
 
-        % Value changed function: NofcompSpinner
-        function NofcompSpinnerValueChanged(app, event)
-            app.number_components = app.NofcompSpinner.Value;
+        % Value changed function: NofcompnSpinner
+        function NofcompnSpinnerValueChanged(app, event)
+            app.number_components = app.NofcompnSpinner.Value;
             app.init_components();
             app.configure_minor_loop_table();
             app.calculate_plot_and_refresh_hysteretic_live();
@@ -1171,6 +1179,9 @@ classdef app_exported < matlab.apps.AppBase
             if isempty(event.Indices)
                 return
             end
+            if AnhystereticUtils.reject_fitted_table_edit(app, event)
+                return
+            end
             row = event.Indices(1,1);
             col = event.Indices(1,2);
             if row > size(app.TableFittedParameters.Data, 1)
@@ -1275,7 +1286,7 @@ classdef app_exported < matlab.apps.AppBase
             app.fitting_in_progress = true;
             app.stop_fit_already_requested = false;
 
-            app.write_message("Fitting started");
+            app.write_message(HystereticUtils.fit_start_message(app));
             drawnow;
 
             try
@@ -1505,46 +1516,12 @@ classdef app_exported < matlab.apps.AppBase
 
         % Cell selection callback: TableParameters
         function TableParametersCellSelection(app, event)
-            if isempty(event.Indices)
-                return
-            end
-            row = event.Indices(1,1);
-            col = event.Indices(1,2);
-            if row > height(app.TableParameters.Data) || isempty(app.magnetic_parameters) || row > numel(app.magnetic_parameters.Ms)
-                return
-            end
-            app.init_parameters_table(false);
-            switch col
-                case 2
-                    app.TableParameters.Data.Ms_col{row} = sprintf('%.16g', app.magnetic_parameters.Ms(row));
-                case 3
-                    app.TableParameters.Data.alpha_col{row} = sprintf('%.16g', app.magnetic_parameters.alpha(row));
-                case 4
-                    app.TableParameters.Data.a_col{row} = sprintf('%.16g', app.magnetic_parameters.a(row));
-            end
+            AnhystereticUtils.on_parameters_cell_selection(app, event);
         end
 
         % Cell selection callback: TableQuantities
         function TableQuantitiesCellSelection(app, event)
-            if isempty(event.Indices)
-                return
-            end
-            row = event.Indices(1,1);
-            col = event.Indices(1,2);
-            if row > height(app.TableQuantities.Data) || isempty(app.magnetic_parameters) || row > numel(app.magnetic_parameters.dimensionless_alphaMs)
-                return
-            end
-            app.init_quantities_table(false);
-            switch col
-                case 2
-                    app.TableQuantities.Data.dimensionless_alphaMs_col{row} = sprintf('%.16g', app.magnetic_parameters.dimensionless_alphaMs(row));
-                case 3
-                    app.TableQuantities.Data.density_product_col{row} = sprintf('%.16g', app.magnetic_parameters.density_product(row));
-                case 4
-                    app.TableQuantities.Data.Hk_col{row} = sprintf('%.16g', app.magnetic_parameters.Hk(row));
-                case 5
-                    app.TableQuantities.Data.chi_in_col{row} = sprintf('%.16g', app.magnetic_parameters.chi_in(row));
-            end
+            AnhystereticUtils.on_quantities_cell_selection(app, event);
         end
 
         % Value changed function: ErrorDropDown
@@ -1599,6 +1576,59 @@ classdef app_exported < matlab.apps.AppBase
         function ReduceDofCheckBoxValueChanged(app, event)
             AnhystereticUtils.on_reduce_dof_changed(app);
         end
+
+        % Button pushed function: PolishButton
+        function PolishButtonPushed(app, event)
+            if app.fitting_in_progress
+                return;
+            end
+            app.fitting_in_progress = true;
+            app.stop_fit_already_requested = false;
+            try
+                update_components(app)
+                polish_fit(app)
+                calculate_parameters(app)
+                plot(app)
+            catch ME
+                app.fitting_in_progress = false;
+                app.stop_fit_already_requested = false;
+                app.report_callback_error(ME);
+                return;
+            end
+            app.fitting_in_progress = false;
+            app.stop_fit_already_requested = false;
+        end
+
+        % Button pushed function: PolishButton_2
+        function PolishButton_2Pushed(app, event)
+            if app.fitting_in_progress
+                return;
+            end
+            app.fitting_in_progress = true;
+            app.stop_fit_already_requested = false;
+            try
+                app.polish_ja_fit();
+            catch ME
+                app.fitting_in_progress = false;
+                app.stop_fit_already_requested = false;
+                app.report_callback_error(ME);
+                return;
+            end
+            app.fitting_in_progress = false;
+            app.stop_fit_already_requested = false;
+        end
+
+        % Cell edit callback: UITable
+        function UITableCellEdit(app, event)
+            app.minor_loop_table_user_edited = true;   % stop auto-filling defaults once edited
+            app.expand_minor_loop_table_if_needed(event);
+            app.run_playground_live();
+        end
+
+        % Value changed function: LinearTermCheckBox
+        function LinearTermCheckBoxValueChanged(app, event)
+            AnhystereticUtils.on_linear_term_changed(app);
+        end
     end
 
     % Component initialization
@@ -1614,6 +1644,7 @@ classdef app_exported < matlab.apps.AppBase
             app.MagAnalystUIFigure = uifigure('Visible', 'off');
             app.MagAnalystUIFigure.Position = [100 100 1044 768];
             app.MagAnalystUIFigure.Name = 'MagAnalyst';
+            app.MagAnalystUIFigure.Icon = fullfile(pathToMLAPP, 'assets', 'logo.png');
             app.MagAnalystUIFigure.CloseRequestFcn = createCallbackFcn(app, @MagAnalystUIFigureCloseRequest, true);
 
             % Create ProjectMenu
@@ -2005,14 +2036,14 @@ classdef app_exported < matlab.apps.AppBase
             app.FitButton.FontWeight = 'bold';
             app.FitButton.FontColor = [0.9412 0.9412 0.9412];
             app.FitButton.Layout.Row = 18;
-            app.FitButton.Layout.Column = [14 15];
+            app.FitButton.Layout.Column = 9;
             app.FitButton.Text = 'Fit';
 
             % Create CalculatePlotButton
             app.CalculatePlotButton = uibutton(app.GridLayout11, 'push');
             app.CalculatePlotButton.ButtonPushedFcn = createCallbackFcn(app, @CalculatePlotButtonPushed, true);
-            app.CalculatePlotButton.Layout.Row = 17;
-            app.CalculatePlotButton.Layout.Column = [14 16];
+            app.CalculatePlotButton.Layout.Row = 18;
+            app.CalculatePlotButton.Layout.Column = [7 8];
             app.CalculatePlotButton.Text = 'Calculate & Plot';
 
             % Create ErrorDisplay
@@ -2020,14 +2051,14 @@ classdef app_exported < matlab.apps.AppBase
             app.ErrorDisplay.ValueDisplayFormat = '%.5e';
             app.ErrorDisplay.Editable = 'off';
             app.ErrorDisplay.HorizontalAlignment = 'left';
-            app.ErrorDisplay.Layout.Row = 18;
+            app.ErrorDisplay.Layout.Row = 17;
             app.ErrorDisplay.Layout.Column = [12 13];
 
             % Create StopfitButton
             app.StopfitButton = uibutton(app.GridLayout11, 'push');
             app.StopfitButton.ButtonPushedFcn = createCallbackFcn(app, @StopFitButtonPushed, true);
             app.StopfitButton.Layout.Row = 18;
-            app.StopfitButton.Layout.Column = 16;
+            app.StopfitButton.Layout.Column = [10 11];
             app.StopfitButton.Text = 'Stop fit';
 
             % Create CalculatedquantitiesLabel
@@ -2120,17 +2151,17 @@ classdef app_exported < matlab.apps.AppBase
             % Create ReduceDofCheckBox
             app.ReduceDofCheckBox = uicheckbox(app.GridLayout11);
             app.ReduceDofCheckBox.ValueChangedFcn = createCallbackFcn(app, @ReduceDofCheckBoxValueChanged, true);
-            app.ReduceDofCheckBox.Tooltip = {'Use constraint points at Htip and Hx_(i+1) to reduce the number of degrees of freedom of the optimization problem.'};
-            app.ReduceDofCheckBox.Text = 'reduce dof';
+            app.ReduceDofCheckBox.Tooltip = {'Model forced through n measured points, n being the number of components: the tip (at Htip) and the n−1 cross-over points (at Hxᵢ). Uncheck to fit the 3n physical parameters freely.'};
+            app.ReduceDofCheckBox.Text = 'Constrained by n data points';
             app.ReduceDofCheckBox.Layout.Row = 9;
-            app.ReduceDofCheckBox.Layout.Column = [15 16];
+            app.ReduceDofCheckBox.Layout.Column = [13 16];
             app.ReduceDofCheckBox.Value = true;
 
             % Create ErrorDropDownLabel
             app.ErrorDropDownLabel = uilabel(app.GridLayout11);
             app.ErrorDropDownLabel.WordWrap = 'on';
             app.ErrorDropDownLabel.FontWeight = 'bold';
-            app.ErrorDropDownLabel.Layout.Row = 18;
+            app.ErrorDropDownLabel.Layout.Row = 17;
             app.ErrorDropDownLabel.Layout.Column = 7;
             app.ErrorDropDownLabel.Text = 'Error';
 
@@ -2138,7 +2169,7 @@ classdef app_exported < matlab.apps.AppBase
             app.ErrorDropDown = uidropdown(app.GridLayout11);
             app.ErrorDropDown.Items = {'Diagonal (H, sampled)', 'Diagonal (H, continuous)', 'Diagonal (logH, sampled)', 'Diagonal (logH, continuous)', 'Vertical', 'Horizontal'};
             app.ErrorDropDown.ValueChangedFcn = createCallbackFcn(app, @ErrorDropDownValueChanged, true);
-            app.ErrorDropDown.Layout.Row = 18;
+            app.ErrorDropDown.Layout.Row = 17;
             app.ErrorDropDown.Layout.Column = [8 11];
             app.ErrorDropDown.Value = 'Diagonal (logH, continuous)';
 
@@ -2161,15 +2192,15 @@ classdef app_exported < matlab.apps.AppBase
             app.NofcompLabel = uilabel(app.GridLayout11);
             app.NofcompLabel.Layout.Row = 2;
             app.NofcompLabel.Layout.Column = [7 8];
-            app.NofcompLabel.Text = 'N° of comp.';
+            app.NofcompLabel.Text = 'N° of comp. (n)';
 
-            % Create NofcompSpinner
-            app.NofcompSpinner = uispinner(app.GridLayout11);
-            app.NofcompSpinner.Limits = [1 4];
-            app.NofcompSpinner.ValueChangedFcn = createCallbackFcn(app, @NofcompSpinnerValueChanged, true);
-            app.NofcompSpinner.Layout.Row = 2;
-            app.NofcompSpinner.Layout.Column = 9;
-            app.NofcompSpinner.Value = 1;
+            % Create NofcompnSpinner
+            app.NofcompnSpinner = uispinner(app.GridLayout11);
+            app.NofcompnSpinner.Limits = [1 4];
+            app.NofcompnSpinner.ValueChangedFcn = createCallbackFcn(app, @NofcompnSpinnerValueChanged, true);
+            app.NofcompnSpinner.Layout.Row = 2;
+            app.NofcompnSpinner.Layout.Column = 9;
+            app.NofcompnSpinner.Value = 1;
 
             % Create NofpointsLabel
             app.NofpointsLabel = uilabel(app.GridLayout11);
@@ -2193,31 +2224,15 @@ classdef app_exported < matlab.apps.AppBase
             app.SolverDropDownLabel = uilabel(app.GridLayout11);
             app.SolverDropDownLabel.FontWeight = 'bold';
             app.SolverDropDownLabel.Layout.Row = 17;
-            app.SolverDropDownLabel.Layout.Column = 7;
+            app.SolverDropDownLabel.Layout.Column = 14;
             app.SolverDropDownLabel.Text = 'Solver';
 
             % Create SolverDropDown
             app.SolverDropDown = uidropdown(app.GridLayout11);
-            app.SolverDropDown.Items = {'PRIMA-BOBYQA, tuned npt', 'Nelder-Mead (minimize lib)'};
+            app.SolverDropDown.Items = {'DFO-LS', 'BOBYQA', 'Nelder-Mead'};
             app.SolverDropDown.Layout.Row = 17;
-            app.SolverDropDown.Layout.Column = [8 13];
-            app.SolverDropDown.Value = 'PRIMA-BOBYQA, tuned npt';
-
-            % Create SignificantdigitsDropDownLabel
-            app.SignificantdigitsDropDownLabel = uilabel(app.GridLayout11);
-            app.SignificantdigitsDropDownLabel.FontWeight = 'bold';
-            app.SignificantdigitsDropDownLabel.Tooltip = {'Number of significant digits of the fitted parameters: after the solver, the parameters are polished on the lattice of numbers with this many digits, so the reported values are exactly what you read and no neighbouring value is better.'};
-            app.SignificantdigitsDropDownLabel.Layout.Row = 17;
-            app.SignificantdigitsDropDownLabel.Layout.Column = 14;
-            app.SignificantdigitsDropDownLabel.Text = 'Digits';
-
-            % Create SignificantdigitsDropDown
-            app.SignificantdigitsDropDown = uidropdown(app.GridLayout11);
-            app.SignificantdigitsDropDown.Items = {'3', '4', '5', '6', 'Full precision'};
-            app.SignificantdigitsDropDown.Tooltip = {'Significant digits of the fitted parameters (Full precision: no polish).'};
-            app.SignificantdigitsDropDown.Layout.Row = 17;
-            app.SignificantdigitsDropDown.Layout.Column = [15 16];
-            app.SignificantdigitsDropDown.Value = '3';
+            app.SolverDropDown.Layout.Column = [15 16];
+            app.SolverDropDown.Value = 'DFO-LS';
 
             % Create LWModel_eq
             app.LWModel_eq = uilabel(app.GridLayout11);
@@ -2226,13 +2241,45 @@ classdef app_exported < matlab.apps.AppBase
             app.LWModel_eq.Layout.Column = [12 16];
             app.LWModel_eq.Text = '$M(H) = \sum_{i}^{n} M_i(H) = \sum_{i}^{n} M_{S,i} \mathcal{L}\left[(H + \alpha_i M_i) / a_i\right]$';
 
+            % Create PolishButton
+            app.PolishButton = uibutton(app.GridLayout11, 'push');
+            app.PolishButton.ButtonPushedFcn = createCallbackFcn(app, @PolishButtonPushed, true);
+            app.PolishButton.BackgroundColor = [0.8667 0.3294 0];
+            app.PolishButton.FontWeight = 'bold';
+            app.PolishButton.FontColor = [0.9412 0.9412 0.9412];
+            app.PolishButton.Layout.Row = 18;
+            app.PolishButton.Layout.Column = [15 16];
+            app.PolishButton.Text = 'Polish';
+
+            % Create SignifdigitsDropDownLabel
+            app.SignifdigitsDropDownLabel = uilabel(app.GridLayout11);
+            app.SignifdigitsDropDownLabel.HorizontalAlignment = 'right';
+            app.SignifdigitsDropDownLabel.Layout.Row = 18;
+            app.SignifdigitsDropDownLabel.Layout.Column = 12;
+            app.SignifdigitsDropDownLabel.Text = 'Signif. digits';
+
+            % Create SignificantdigitsDropDown
+            app.SignificantdigitsDropDown = uidropdown(app.GridLayout11);
+            app.SignificantdigitsDropDown.Items = {'3', '4', '5', '6', 'Full precision'};
+            app.SignificantdigitsDropDown.Layout.Row = 18;
+            app.SignificantdigitsDropDown.Layout.Column = [13 14];
+            app.SignificantdigitsDropDown.Value = '3';
+
+            % Create LinearTermCheckBox
+            app.LinearTermCheckBox = uicheckbox(app.GridLayout11);
+            app.LinearTermCheckBox.ValueChangedFcn = createCallbackFcn(app, @LinearTermCheckBoxValueChanged, true);
+            app.LinearTermCheckBox.Tooltip = {'Adds component 0, a term linear in the field.'};
+            app.LinearTermCheckBox.Text = 'Linear term (χ₀)';
+            app.LinearTermCheckBox.Layout.Row = 3;
+            app.LinearTermCheckBox.Layout.Column = [13 15];
+
             % Create HystereticfittingTab
             app.HystereticfittingTab = uitab(app.TabGroup);
             app.HystereticfittingTab.Title = 'Hysteretic fitting ';
 
             % Create GridLayout10
             app.GridLayout10 = uigridlayout(app.HystereticfittingTab);
-            app.GridLayout10.ColumnWidth = {'1x', '1x', '1x', '1x', '1.5x', '0.85x', '0.4x', '1.2x', '0.5x', '1.2x', '1.2x', '0.4x', '0.7x', '1x'};
+            app.GridLayout10.ColumnWidth = {'1x', '1x', '1x', '1x', '1.5x', '0.85x', '0.4x', '0.8x', '0.9x', '1.2x', '1.2x', '0.4x', '0.7x', '1x'};
             app.GridLayout10.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
             app.GridLayout10.RowSpacing = 4.5;
 
@@ -2256,7 +2303,7 @@ classdef app_exported < matlab.apps.AppBase
             app.ModelparametersLabel = uilabel(app.GridLayout10);
             app.ModelparametersLabel.FontWeight = 'bold';
             app.ModelparametersLabel.Layout.Row = 9;
-            app.ModelparametersLabel.Layout.Column = [6 9];
+            app.ModelparametersLabel.Layout.Column = [6 8];
             app.ModelparametersLabel.Text = 'Model parameters';
 
             % Create Ms_JALabel
@@ -2324,14 +2371,14 @@ classdef app_exported < matlab.apps.AppBase
             app.FitButton_2.FontWeight = 'bold';
             app.FitButton_2.FontColor = [0.9412 0.9412 0.9412];
             app.FitButton_2.Layout.Row = 17;
-            app.FitButton_2.Layout.Column = [12 13];
+            app.FitButton_2.Layout.Column = 8;
             app.FitButton_2.Text = 'Fit';
 
             % Create CalculatePlotButton_2
             app.CalculatePlotButton_2 = uibutton(app.GridLayout10, 'push');
             app.CalculatePlotButton_2.ButtonPushedFcn = createCallbackFcn(app, @CalculatePlotButton_2Pushed, true);
-            app.CalculatePlotButton_2.Layout.Row = 16;
-            app.CalculatePlotButton_2.Layout.Column = [12 14];
+            app.CalculatePlotButton_2.Layout.Row = 17;
+            app.CalculatePlotButton_2.Layout.Column = [6 7];
             app.CalculatePlotButton_2.Text = 'Calculate & Plot';
 
             % Create k_JA
@@ -2345,7 +2392,7 @@ classdef app_exported < matlab.apps.AppBase
             app.ErrortominimizeDropDownLabel_2 = uilabel(app.GridLayout10);
             app.ErrortominimizeDropDownLabel_2.WordWrap = 'on';
             app.ErrortominimizeDropDownLabel_2.FontWeight = 'bold';
-            app.ErrortominimizeDropDownLabel_2.Layout.Row = 17;
+            app.ErrortominimizeDropDownLabel_2.Layout.Row = 16;
             app.ErrortominimizeDropDownLabel_2.Layout.Column = 6;
             app.ErrortominimizeDropDownLabel_2.Text = 'Error';
 
@@ -2353,8 +2400,8 @@ classdef app_exported < matlab.apps.AppBase
             app.ErrortominimizeDropDown_2 = uidropdown(app.GridLayout10);
             app.ErrortominimizeDropDown_2.Items = {'Diagonal (H, continuous)', 'Diagonal (H, sampled)', 'Vertical', 'Horizontal'};
             app.ErrortominimizeDropDown_2.ValueChangedFcn = createCallbackFcn(app, @ErrortominimizeDropDown_2ValueChanged, true);
-            app.ErrortominimizeDropDown_2.Layout.Row = 17;
-            app.ErrortominimizeDropDown_2.Layout.Column = [7 10];
+            app.ErrortominimizeDropDown_2.Layout.Row = 16;
+            app.ErrortominimizeDropDown_2.Layout.Column = [7 9];
             app.ErrortominimizeDropDown_2.Value = 'Diagonal (H, continuous)';
 
             % Create RetrieveseedsButton
@@ -2376,8 +2423,8 @@ classdef app_exported < matlab.apps.AppBase
             app.ErrorDisplay_2.ValueDisplayFormat = '%.5e';
             app.ErrorDisplay_2.Editable = 'off';
             app.ErrorDisplay_2.HorizontalAlignment = 'left';
-            app.ErrorDisplay_2.Layout.Row = 17;
-            app.ErrorDisplay_2.Layout.Column = 11;
+            app.ErrorDisplay_2.Layout.Row = 16;
+            app.ErrorDisplay_2.Layout.Column = 10;
 
             % Create HtipLabel
             app.HtipLabel = uilabel(app.GridLayout10);
@@ -2554,7 +2601,7 @@ classdef app_exported < matlab.apps.AppBase
             app.StopfitButton_2 = uibutton(app.GridLayout10, 'push');
             app.StopfitButton_2.ButtonPushedFcn = createCallbackFcn(app, @StopfitButton_2Pushed, true);
             app.StopfitButton_2.Layout.Row = 17;
-            app.StopfitButton_2.Layout.Column = 14;
+            app.StopfitButton_2.Layout.Column = 9;
             app.StopfitButton_2.Text = 'Stop fit';
 
             % Create FittingconditionsLabel
@@ -2655,31 +2702,15 @@ classdef app_exported < matlab.apps.AppBase
             app.SolverDropDownLabel_2 = uilabel(app.GridLayout10);
             app.SolverDropDownLabel_2.FontWeight = 'bold';
             app.SolverDropDownLabel_2.Layout.Row = 16;
-            app.SolverDropDownLabel_2.Layout.Column = 6;
+            app.SolverDropDownLabel_2.Layout.Column = 11;
             app.SolverDropDownLabel_2.Text = 'Solver';
 
             % Create SolverDropDown_2
             app.SolverDropDown_2 = uidropdown(app.GridLayout10);
-            app.SolverDropDown_2.Items = {'PRIMA-BOBYQA, tuned npt', 'Nelder-Mead (minimize lib)'};
+            app.SolverDropDown_2.Items = {'DFO-LS', 'BOBYQA', 'Nelder-Mead'};
             app.SolverDropDown_2.Layout.Row = 16;
-            app.SolverDropDown_2.Layout.Column = [7 11];
-            app.SolverDropDown_2.Value = 'PRIMA-BOBYQA, tuned npt';
-
-            % Create SignificantdigitsDropDownLabel_2
-            app.SignificantdigitsDropDownLabel_2 = uilabel(app.GridLayout10);
-            app.SignificantdigitsDropDownLabel_2.FontWeight = 'bold';
-            app.SignificantdigitsDropDownLabel_2.Tooltip = {'Number of significant digits of the fitted parameters: after the solver, the parameters are polished on the lattice of numbers with this many digits, so the reported values are exactly what you read and no neighbouring value is better.'};
-            app.SignificantdigitsDropDownLabel_2.Layout.Row = 16;
-            app.SignificantdigitsDropDownLabel_2.Layout.Column = 12;
-            app.SignificantdigitsDropDownLabel_2.Text = 'Digits';
-
-            % Create SignificantdigitsDropDown_2
-            app.SignificantdigitsDropDown_2 = uidropdown(app.GridLayout10);
-            app.SignificantdigitsDropDown_2.Items = {'3', '4', '5', '6', 'Full precision'};
-            app.SignificantdigitsDropDown_2.Tooltip = {'Significant digits of the fitted parameters (Full precision: no polish).'};
-            app.SignificantdigitsDropDown_2.Layout.Row = 16;
-            app.SignificantdigitsDropDown_2.Layout.Column = [13 14];
-            app.SignificantdigitsDropDown_2.Value = '3';
+            app.SolverDropDown_2.Layout.Column = [12 14];
+            app.SolverDropDown_2.Value = 'DFO-LS';
 
             % Create JAmodel_eq1
             app.JAmodel_eq1 = uilabel(app.GridLayout10);
@@ -2709,6 +2740,30 @@ classdef app_exported < matlab.apps.AppBase
             app.JAModelFormulationLabel.Layout.Column = [6 9];
             app.JAModelFormulationLabel.Text = 'Classical J-A model formulation';
 
+            % Create PolishButton_2
+            app.PolishButton_2 = uibutton(app.GridLayout10, 'push');
+            app.PolishButton_2.ButtonPushedFcn = createCallbackFcn(app, @PolishButton_2Pushed, true);
+            app.PolishButton_2.BackgroundColor = [0.8667 0.3294 0];
+            app.PolishButton_2.FontWeight = 'bold';
+            app.PolishButton_2.FontColor = [0.9412 0.9412 0.9412];
+            app.PolishButton_2.Layout.Row = 17;
+            app.PolishButton_2.Layout.Column = [13 14];
+            app.PolishButton_2.Text = 'Polish';
+
+            % Create SignifdigitsDropDownLabel_2
+            app.SignifdigitsDropDownLabel_2 = uilabel(app.GridLayout10);
+            app.SignifdigitsDropDownLabel_2.HorizontalAlignment = 'right';
+            app.SignifdigitsDropDownLabel_2.Layout.Row = 17;
+            app.SignifdigitsDropDownLabel_2.Layout.Column = 10;
+            app.SignifdigitsDropDownLabel_2.Text = 'Signif. digits';
+
+            % Create SignificantdigitsDropDown_2
+            app.SignificantdigitsDropDown_2 = uidropdown(app.GridLayout10);
+            app.SignificantdigitsDropDown_2.Items = {'3', '4', '5', '6', 'Full precision'};
+            app.SignificantdigitsDropDown_2.Layout.Row = 17;
+            app.SignificantdigitsDropDown_2.Layout.Column = [11 12];
+            app.SignificantdigitsDropDown_2.Value = '3';
+
             % Create PlaygroundTab
             app.PlaygroundTab = uitab(app.TabGroup);
             app.PlaygroundTab.Title = 'Playground';
@@ -2728,6 +2783,80 @@ classdef app_exported < matlab.apps.AppBase
             app.AxesM_5.Layout.Row = [4 16];
             app.AxesM_5.Layout.Column = [9 14];
 
+            % Create MajorloopwithharmonicsPanel
+            app.MajorloopwithharmonicsPanel = uipanel(app.GridLayout3);
+            app.MajorloopwithharmonicsPanel.Title = 'Major loop with harmonics';
+            app.MajorloopwithharmonicsPanel.Layout.Row = [3 17];
+            app.MajorloopwithharmonicsPanel.Layout.Column = [4 8];
+
+            % Create GridLayout7
+            app.GridLayout7 = uigridlayout(app.MajorloopwithharmonicsPanel);
+            app.GridLayout7.ColumnWidth = {'1x', '1x', '1x', '0.5x'};
+            app.GridLayout7.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '6x'};
+            app.GridLayout7.RowSpacing = 4.5;
+
+            % Create StartingpointDropDown_5Label
+            app.StartingpointDropDown_5Label = uilabel(app.GridLayout7);
+            app.StartingpointDropDown_5Label.Layout.Row = 1;
+            app.StartingpointDropDown_5Label.Layout.Column = 1;
+            app.StartingpointDropDown_5Label.Text = 'Starting point';
+
+            % Create StartingpointDropDown_5
+            app.StartingpointDropDown_5 = uidropdown(app.GridLayout7);
+            app.StartingpointDropDown_5.Items = {'Demagnetized', 'Tip point (data)', 'User-defined'};
+            app.StartingpointDropDown_5.ValueChangedFcn = createCallbackFcn(app, @HarmonicsValueChanged, true);
+            app.StartingpointDropDown_5.Layout.Row = 1;
+            app.StartingpointDropDown_5.Layout.Column = [2 3];
+            app.StartingpointDropDown_5.Value = 'Tip point (data)';
+
+            % Create MstartAmEditField_3Label
+            app.MstartAmEditField_3Label = uilabel(app.GridLayout7);
+            app.MstartAmEditField_3Label.Layout.Row = 2;
+            app.MstartAmEditField_3Label.Layout.Column = 2;
+            app.MstartAmEditField_3Label.Text = 'Mstart [A/m]';
+
+            % Create MstartAmEditField_3
+            app.MstartAmEditField_3 = uieditfield(app.GridLayout7, 'numeric');
+            app.MstartAmEditField_3.ValueDisplayFormat = '%.6g';
+            app.MstartAmEditField_3.ValueChangedFcn = createCallbackFcn(app, @HarmonicsValueChanged, true);
+            app.MstartAmEditField_3.Layout.Row = 2;
+            app.MstartAmEditField_3.Layout.Column = 3;
+
+            % Create HstartAmEditField_3Label
+            app.HstartAmEditField_3Label = uilabel(app.GridLayout7);
+            app.HstartAmEditField_3Label.Layout.Row = 3;
+            app.HstartAmEditField_3Label.Layout.Column = 2;
+            app.HstartAmEditField_3Label.Text = 'Hstart [A/m]';
+
+            % Create HstartAmEditField_3
+            app.HstartAmEditField_3 = uieditfield(app.GridLayout7, 'numeric');
+            app.HstartAmEditField_3.ValueDisplayFormat = '%.6g';
+            app.HstartAmEditField_3.ValueChangedFcn = createCallbackFcn(app, @HarmonicsValueChanged, true);
+            app.HstartAmEditField_3.Layout.Row = 3;
+            app.HstartAmEditField_3.Layout.Column = 3;
+
+            % Create UITable2
+            app.UITable2 = uitable(app.GridLayout7);
+            app.UITable2.ColumnName = {'Order'; 'Amplitude [A/m]'; 'Phase [deg]'};
+            app.UITable2.RowName = {};
+            app.UITable2.ColumnEditable = [true true true];
+            app.UITable2.CellEditCallback = createCallbackFcn(app, @HarmonicsTableCellEdit, true);
+            app.UITable2.Multiselect = 'off';
+            app.UITable2.Layout.Row = [7 10];
+            app.UITable2.Layout.Column = [1 4];
+
+            % Create quadHtsum_kA_ksinkomegatphi_kLabel
+            app.quadHtsum_kA_ksinkomegatphi_kLabel = uilabel(app.GridLayout7);
+            app.quadHtsum_kA_ksinkomegatphi_kLabel.Layout.Row = 6;
+            app.quadHtsum_kA_ksinkomegatphi_kLabel.Layout.Column = [1 3];
+            app.quadHtsum_kA_ksinkomegatphi_kLabel.Text = '$\quad H(t) = \sum_{k} A_k \sin(k\omega t + \phi_k)$';
+
+            % Create DistortedmajorloopwithharmoniccomponentsLabel
+            app.DistortedmajorloopwithharmoniccomponentsLabel = uilabel(app.GridLayout7);
+            app.DistortedmajorloopwithharmoniccomponentsLabel.Layout.Row = 5;
+            app.DistortedmajorloopwithharmoniccomponentsLabel.Layout.Column = [1 3];
+            app.DistortedmajorloopwithharmoniccomponentsLabel.Text = 'Distorted major loop with harmonic components:';
+
             % Create MinorloopsPanel
             app.MinorloopsPanel = uipanel(app.GridLayout3);
             app.MinorloopsPanel.Title = 'Minor loops';
@@ -2741,18 +2870,10 @@ classdef app_exported < matlab.apps.AppBase
             app.GridLayout6.RowHeight = {'1x', '1x', '7x', '1x', '1x', '1x', '1x', '1x', '1x'};
             app.GridLayout6.RowSpacing = 4.5;
 
-            % Create UITable
-            app.UITable = uitable(app.GridLayout6);
-            app.UITable.ColumnName = {'Htip_i'};
-            app.UITable.RowName = {};
-            app.UITable.ColumnEditable = true;
-            app.UITable.Layout.Row = [2 4];
-            app.UITable.Layout.Column = [2 4];
-
             % Create StopcriterionDropDown_2Label_2
             app.StopcriterionDropDown_2Label_2 = uilabel(app.GridLayout6);
             app.StopcriterionDropDown_2Label_2.Layout.Row = 2;
-            app.StopcriterionDropDown_2Label_2.Layout.Column = [1 3];
+            app.StopcriterionDropDown_2Label_2.Layout.Column = 1;
             app.StopcriterionDropDown_2Label_2.Text = 'H amplitude [A/m]';
 
             % Create StopcriterionDropDown_2Label_3
@@ -2830,6 +2951,15 @@ classdef app_exported < matlab.apps.AppBase
             app.MaxrepetitionsEditFieldLabel_2.Layout.Row = 8;
             app.MaxrepetitionsEditFieldLabel_2.Layout.Column = 2;
             app.MaxrepetitionsEditFieldLabel_2.Text = 'Max. repetitions';
+
+            % Create UITable
+            app.UITable = uitable(app.GridLayout6);
+            app.UITable.ColumnName = {'Htip_i'};
+            app.UITable.RowName = {};
+            app.UITable.ColumnEditable = true;
+            app.UITable.CellEditCallback = createCallbackFcn(app, @UITableCellEdit, true);
+            app.UITable.Layout.Row = [2 3];
+            app.UITable.Layout.Column = [2 4];
 
             % Create DegaussingPanel
             app.DegaussingPanel = uipanel(app.GridLayout3);
@@ -2948,81 +3078,9 @@ classdef app_exported < matlab.apps.AppBase
             app.UITable_3.RowName = {};
             app.UITable_3.ColumnEditable = true;
             app.UITable_3.CellEditCallback = createCallbackFcn(app, @DegaussingTableCellEdit, true);
+            app.UITable_3.Multiselect = 'off';
             app.UITable_3.Layout.Row = 8;
             app.UITable_3.Layout.Column = [2 3];
-
-            % Create MajorloopwithharmonicsPanel
-            app.MajorloopwithharmonicsPanel = uipanel(app.GridLayout3);
-            app.MajorloopwithharmonicsPanel.Title = 'Major loop with harmonics';
-            app.MajorloopwithharmonicsPanel.Layout.Row = [3 17];
-            app.MajorloopwithharmonicsPanel.Layout.Column = [4 8];
-
-            % Create GridLayout7
-            app.GridLayout7 = uigridlayout(app.MajorloopwithharmonicsPanel);
-            app.GridLayout7.ColumnWidth = {'1x', '1x', '1x', '0.5x'};
-            app.GridLayout7.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '6x'};
-            app.GridLayout7.RowSpacing = 4.5;
-
-            % Create StartingpointDropDown_5Label
-            app.StartingpointDropDown_5Label = uilabel(app.GridLayout7);
-            app.StartingpointDropDown_5Label.Layout.Row = 1;
-            app.StartingpointDropDown_5Label.Layout.Column = 1;
-            app.StartingpointDropDown_5Label.Text = 'Starting point';
-
-            % Create StartingpointDropDown_5
-            app.StartingpointDropDown_5 = uidropdown(app.GridLayout7);
-            app.StartingpointDropDown_5.Items = {'Demagnetized', 'Tip point (data)', 'User-defined'};
-            app.StartingpointDropDown_5.ValueChangedFcn = createCallbackFcn(app, @HarmonicsValueChanged, true);
-            app.StartingpointDropDown_5.Layout.Row = 1;
-            app.StartingpointDropDown_5.Layout.Column = [2 3];
-            app.StartingpointDropDown_5.Value = 'Tip point (data)';
-
-            % Create MstartAmEditField_3Label
-            app.MstartAmEditField_3Label = uilabel(app.GridLayout7);
-            app.MstartAmEditField_3Label.Layout.Row = 2;
-            app.MstartAmEditField_3Label.Layout.Column = 2;
-            app.MstartAmEditField_3Label.Text = 'Mstart [A/m]';
-
-            % Create MstartAmEditField_3
-            app.MstartAmEditField_3 = uieditfield(app.GridLayout7, 'numeric');
-            app.MstartAmEditField_3.ValueDisplayFormat = '%.6g';
-            app.MstartAmEditField_3.ValueChangedFcn = createCallbackFcn(app, @HarmonicsValueChanged, true);
-            app.MstartAmEditField_3.Layout.Row = 2;
-            app.MstartAmEditField_3.Layout.Column = 3;
-
-            % Create HstartAmEditField_3Label
-            app.HstartAmEditField_3Label = uilabel(app.GridLayout7);
-            app.HstartAmEditField_3Label.Layout.Row = 3;
-            app.HstartAmEditField_3Label.Layout.Column = 2;
-            app.HstartAmEditField_3Label.Text = 'Hstart [A/m]';
-
-            % Create HstartAmEditField_3
-            app.HstartAmEditField_3 = uieditfield(app.GridLayout7, 'numeric');
-            app.HstartAmEditField_3.ValueDisplayFormat = '%.6g';
-            app.HstartAmEditField_3.ValueChangedFcn = createCallbackFcn(app, @HarmonicsValueChanged, true);
-            app.HstartAmEditField_3.Layout.Row = 3;
-            app.HstartAmEditField_3.Layout.Column = 3;
-
-            % Create UITable2
-            app.UITable2 = uitable(app.GridLayout7);
-            app.UITable2.ColumnName = {'Order'; 'Amplitude [A/m]'; 'Phase [deg]'};
-            app.UITable2.RowName = {};
-            app.UITable2.ColumnEditable = [true true true];
-            app.UITable2.CellEditCallback = createCallbackFcn(app, @HarmonicsTableCellEdit, true);
-            app.UITable2.Layout.Row = [7 10];
-            app.UITable2.Layout.Column = [1 4];
-
-            % Create quadHtsum_kA_ksinkomegatphi_kLabel
-            app.quadHtsum_kA_ksinkomegatphi_kLabel = uilabel(app.GridLayout7);
-            app.quadHtsum_kA_ksinkomegatphi_kLabel.Layout.Row = 6;
-            app.quadHtsum_kA_ksinkomegatphi_kLabel.Layout.Column = [1 3];
-            app.quadHtsum_kA_ksinkomegatphi_kLabel.Text = '$\quad H(t) = \sum_{k} A_k \sin(k\omega t + \phi_k)$';
-
-            % Create DistortedmajorloopwithharmoniccomponentsLabel
-            app.DistortedmajorloopwithharmoniccomponentsLabel = uilabel(app.GridLayout7);
-            app.DistortedmajorloopwithharmoniccomponentsLabel.Layout.Row = 5;
-            app.DistortedmajorloopwithharmoniccomponentsLabel.Layout.Column = [1 3];
-            app.DistortedmajorloopwithharmoniccomponentsLabel.Text = 'Distorted major loop with harmonic components:';
 
             % Create MajorloopPanel
             app.MajorloopPanel = uipanel(app.GridLayout3);

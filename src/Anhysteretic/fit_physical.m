@@ -1,25 +1,33 @@
-function [Ms, alpha, a, polish] = fit_physical(data_curve, seed, N, error_type, lb, ub, select_fit, output_fcn, solver, n_sig)
+function [Ms, alpha, a, polish, chi0] = fit_physical(data_curve, seed, N, error_type, lb, ub, select_fit, output_fcn, solver, n_sig, polish_only, linear)
 %FIT_PHYSICAL  Full-DOF anhysteretic fit over the physical parameters.
 %   [Ms, alpha, a, polish] = fit_physical(data_curve, seed, N, error_type, lb, ub, ...
 %       select_fit, output_fcn, solver, n_sig) optimizes the 3*n physical parameters
 %   [Ms(1..n), alpha(1..n), a(1..n)] directly, instead of the 3*n-1
 %   distribution parameters (Hcr, mcr, Hx) that fit.m fits. solver selects
-%   the optimizer ("prima" [default] or "nelder_mead"; see
-%   SolverUtils.minimize_bounded). n_sig (default 3; Inf = off): after the
+%   the optimizer ("prima" [default], "nelder_mead" or "dfols", which gets
+%   the metric's residual vector; see SolverUtils.minimize_bounded). n_sig (default 3; Inf = off): after the
 %   solver and the seed guard, Ms, alpha and a are polished on the lattice of
 %   n_sig-digit numbers (SolverUtils.lattice_polish, in physical units), so
 %   the returned values are exactly the printed ones and locally optimal
 %   among them; polish is the lattice_polish info struct.
+%   polish_only (default false) skips the solver and the seed guard and runs
+%   only the lattice polish, seeded from the caller's seed: what the
+%   Anhysteretic tab's "Polish" button does to a finished physical fit
+%   (see AnhystereticUtils.polish_fit).
+%   linear (default false) adds the linear term chi0 (component 0, M0 =
+%   chi0*H) as the FIRST parameter: [chi0, Ms(1..n), alpha(1..n), a(1..n)],
+%   3*n+1 parameters; chi0 is the 5th output (0 when linear is false).
 %
-%   This is the "reduce dof" UNCHECKED path: the constraint points at the tip
-%   and Hx are dropped, so Ms becomes a free variable. It is meant as a
+%   This is the GUI's "Constrained by n data points" UNCHECKED path: the
+%   constraint points at the tip and Hx are dropped, so Ms becomes a free
+%   variable. It is meant as a
 %   second-stage refinement seeded from a prior fit's physical parameters. Ms
 %   may be negative (a component's saturation contribution can be negative in a
 %   multicomponent model), so it is left unbounded by the caller.
 %
 %   Two things keep the promise that the error can only improve, never worsen:
 %     * The optimization runs in SEED-NORMALIZED coordinates -- each parameter
-%       is divided by a per-block characteristic scale so Ms (~1e5), alpha
+%       is divided by the magnitude of its own seed so Ms (~1e5), alpha
 %       (~1e-4) and a (~1e1) are all O(1). Without this, a single step size
 %       and tolerance cannot serve all three blocks at once, and the search
 %       can step to (and return) a worse point.
@@ -40,6 +48,13 @@ function [Ms, alpha, a, polish] = fit_physical(data_curve, seed, N, error_type, 
     if nargin < 10 || isempty(n_sig)
         n_sig = 3;
     end
+    if nargin < 11 || isempty(polish_only)
+        polish_only = false;
+    end
+    if nargin < 12 || isempty(linear)
+        linear = false;
+    end
+    k0 = double(logical(linear));   % 1 when chi0 leads the parameter vector
     [HTip, ~] = Utils().find_tip(data_curve.H, data_curve.M);
     Hhat = logspace(log10(data_curve.H(2)), log10(HTip), N);
 
@@ -50,8 +65,8 @@ function [Ms, alpha, a, polish] = fit_physical(data_curve, seed, N, error_type, 
     if (length(select_fit) ~= expected_params)
         error('select_fit must have the same length as the bounds.');
     end
-    if (mod(expected_params, 3) ~= 0)
-        error('Invalid parameter vector size. Expected 3*n parameters.');
+    if (mod(expected_params - k0, 3) ~= 0)
+        error('Invalid parameter vector size. Expected 3*n parameters (3*n+1 with the linear term).');
     end
 
     if (length(seed) > expected_params)
@@ -61,7 +76,7 @@ function [Ms, alpha, a, polish] = fit_physical(data_curve, seed, N, error_type, 
         seed = [seed(:).', midpoint_seed(length(seed)+1:end)];
     end
 
-    n = expected_params/3;
+    n = (expected_params - k0)/3;
     seed = seed(:).';
     lb = lb(:).';
     ub = ub(:).';
@@ -74,27 +89,56 @@ function [Ms, alpha, a, polish] = fit_physical(data_curve, seed, N, error_type, 
         end
     end
 
-    % Per-block characteristic scale (Ms / alpha / a), floored away from zero.
-    block_scale = @(v) max(max(abs(v)), eps);
-    scale = [block_scale(seed(1:n))     * ones(1, n), ...
-             block_scale(seed(n+1:2*n)) * ones(1, n), ...
-             block_scale(seed(2*n+1:end)) * ones(1, n)];
-
-    function physical = unpack(x)
-        physical.Ms    = x(1:n);
-        physical.alpha = x(n+1:2*n);
-        physical.a     = x(2*n+1:end);
+    % Per-parameter scale = |own seed| (clipped to the bounds), 1 below
+    % 1e-8 -- the same rule as fit.m and JAFitter. Until 2026-09-28 every
+    % component's Ms (alpha, a) shared the largest |seed| of its kind,
+    % but parameters of the same kind need not have the same order of
+    % magnitude across components.
+    scale = abs(min(max(seed, lb), ub));
+    scale(scale < 1e-8) = 1;
+    if k0
+        % chi0 seeded at (or near) 0: scale it by 1e-3 of the tip M/H, not 1
+        % (same rule as fit.m).
+        [HTip_s, MTip_s] = Utils().find_tip(data_curve.H, data_curve.M);
+        scale(1) = max(abs(min(max(seed(1), lb(1)), ub(1))), 1e-3 * abs(MTip_s / HTip_s));
     end
 
-    function e = physical_error(x)
+    function physical = unpack(x)
+        physical.chi0  = 0;
+        if k0
+            physical.chi0 = x(1);
+        end
+        physical.Ms    = x(k0+1:k0+n);
+        physical.alpha = x(k0+n+1:k0+2*n);
+        physical.a     = x(k0+2*n+1:end);
+    end
+
+    function error_calculator = calculator_at(x)
         magnetic_parameters = MagneticParameters(data_curve, [], [], [], [], unpack(x));
         modeled_curve = ModeledAnhystereticCurve(Hhat, magnetic_parameters);
         error_calculator = make_error_calculator(error_type, data_curve.H, data_curve.M, modeled_curve.H, modeled_curve.M);
-        e = error_calculator.get_error();
+    end
+
+    function e = physical_error(x)
+        e = calculator_at(x).get_error();
     end
 
     function ret = objective(y)          % y is scaled; unscale to evaluate
         ret = physical_error(y .* scale);
+    end
+
+    % The residual vector whose root mean square is objective(y), for the
+    % DFO-LS solver (since 2026-09-25; before, "DFO-LS" ran BOBYQA here);
+    % [] where the point cannot be scored.
+    function r = residuals(y)
+        try
+            r = calculator_at(y .* scale).get_residuals();
+            if isempty(r) || ~isreal(r) || any(~isfinite(r(:)))
+                r = [];
+            end
+        catch
+            r = [];
+        end
     end
 
     % Scaled seed/bounds. Bounds may be ordered (-BIG..+BIG) either way after
@@ -116,12 +160,26 @@ function [Ms, alpha, a, polish] = fit_physical(data_curve, seed, N, error_type, 
         % Hand the tracker unscaled (physical) points.
         scaled_output_fcn = @(y, optimValues, state) output_fcn(y .* scale, optimValues, state);
     end
-    params_y = SolverUtils.minimize_bounded(@objective, y0, ylb, yub, scaled_output_fcn, solver);
-
-    result = params_y .* scale;
-    % Seed guard: never return a point worse than the seed.
-    if physical_error(result) > physical_error(seed)
+    if polish_only
+        % "Polish" button: the parameters are already fitted; only the
+        % lattice search below runs. No seed guard is needed -- the polish
+        % never accepts a point worse than its starting one.
         result = seed;
+    else
+        solver_options = struct();
+        if strcmp(solver, "dfols")
+            solver_options.residual_fun = @residuals;
+        end
+        % Parameters held by select_fit are excluded from the solver (kept
+        % exactly at their seed; see SolverUtils.minimize_bounded_free).
+        free = cellfun(@logical, select_fit(:)).';
+        params_y = SolverUtils.minimize_bounded_free(@objective, y0, ylb, yub, free, scaled_output_fcn, solver, solver_options);
+
+        result = params_y .* scale;
+        % Seed guard: never return a point worse than the seed.
+        if physical_error(result) > physical_error(seed)
+            result = seed;
+        end
     end
 
     % Lattice polish on the physical values (parameters held fixed by
@@ -141,4 +199,5 @@ function [Ms, alpha, a, polish] = fit_physical(data_curve, seed, N, error_type, 
     Ms    = physical.Ms;
     alpha = physical.alpha;
     a     = physical.a;
+    chi0  = physical.chi0;
 end

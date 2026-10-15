@@ -533,6 +533,11 @@ classdef HystereticUtils
                     app.c_JA.Value = c_seed;
                     app.write_message("Jiles–Atherton seeds retrieved: " + Ms_seed_label + "=" + ms_display + ", a=" + a_display + " [A/m], " + alpha_seed_label + "=" + alpha_display + ", c=" + FormatUtils.format_short(c_seed) + ", k=not available.");
                 end
+                if app.number_components > 1
+                    % The JA model has a single anhysteretic component, and
+                    % get_first_anhysteretic_seeds takes component 1 only.
+                    app.write_message("Warning: the anhysteretic fit has " + app.number_components + " components, so these seeds come from component 1 only, which cannot describe the whole loop. For Jiles–Atherton seeds, fit 1 component in the Anhysteretic tab and retrieve the seeds again.");
+                end
             else
                 CompatUtils.clear_value(app.Ms_JA);
                 CompatUtils.clear_value(app.a_JA);
@@ -545,6 +550,67 @@ classdef HystereticUtils
             PlaygroundUtils.set_major_amplitude_from_data_tip(app);   % also (re)populate Playground's Major-loop H amplitude from the data tip
             MenuUtils.mark_project_dirty(app);
             drawnow;
+        end
+
+        function r = compute_ja_residuals_core(error_type, Hdat, Mdat, Hhat, Mhat)
+            %COMPUTE_JA_RESIDUALS_CORE Residual vector for the DFO-LS solver:
+            %   the signed normalized per-point residuals whose root mean
+            %   square is compute_ja_left_branch_error_core's J. Continuous
+            %   Diagonal (the default): the signed point-to-loop distances.
+            %   Sampled Diagonal, Vertical, Horizontal: the per-branch
+            %   residuals of pooled_branch_error, concatenated (since
+            %   2026-09-25; before, these three returned [] and DFO-LS
+            %   stopped at its seed). [] when the point cannot be scored.
+            r = [];
+            switch string(error_type)
+                case "Diagonal (H, continuous)"
+                    calculator = DiagonalErrorCalculator(Hdat, Mdat, Hhat, Mhat, false, true);
+                    r = calculator.get_residuals();
+                case "Diagonal (H, sampled)"
+                    r = HystereticUtils.pooled_branch_residuals( ...
+                        @(Hd, Md, Hm, Mm) DiagonalErrorCalculator(Hd, Md, Hm, Mm, false, false), Hdat, Mdat, Hhat, Mhat);
+                case "Vertical"
+                    r = HystereticUtils.pooled_branch_residuals( ...
+                        @(Hd, Md, Hm, Mm) VerticalErrorCalculator(Hd, Md, Hm, Mm, false), Hdat, Mdat, Hhat, Mhat);
+                case "Horizontal"
+                    r = HystereticUtils.pooled_branch_residuals( ...
+                        @(Hd, Md, Hm, Mm) HorizontalErrorCalculator(Hd, Md, Hm, Mm, false), Hdat, Mdat, Hhat, Mhat);
+            end
+        end
+
+        function r = pooled_branch_residuals(make_calculator, Hdat, Mdat, Hmod, Mmod)
+            % The residual vector of pooled_branch_error: each data branch's
+            % residuals against the same-direction model branch, stacked, so
+            % that sqrt(mean(r.^2)) is the pooled J. [] wherever
+            % pooled_branch_error would return its penalty.
+            r = [];
+            try
+                [Hd, Md, Ha, Ma] = HystereticUtils.split_loop_branches(Hdat, Mdat);
+                [Hhd, Mhd, Hha, Mha] = HystereticUtils.split_loop_branches(Hmod, Mmod);
+                pairs = {Hd, Md, Hhd, Mhd; Ha, Ma, Hha, Mha};
+                parts = cell(1, size(pairs, 1));
+                for b = 1:size(pairs, 1)
+                    [Hd_b, Md_b, Hm_b, Mm_b] = pairs{b, :};
+                    if numel(Hd_b) < 2
+                        continue;
+                    end
+                    if numel(Hm_b) < 2
+                        return;
+                    end
+                    calculator = make_calculator(Hd_b, Md_b, Hm_b, Mm_b);
+                    if numel(calculator.X) < 2 || numel(calculator.Xhat) < 2
+                        return;
+                    end
+                    r_b = calculator.get_residuals();
+                    if isempty(r_b) || any(~isfinite(r_b))
+                        return;
+                    end
+                    parts{b} = r_b(:);
+                end
+                r = vertcat(parts{:});
+            catch
+                r = [];
+            end
         end
 
         function [J, ok] = compute_ja_left_branch_error_core(~, error_type, Hleft, Mleft, Hhat, Mhat)
@@ -724,12 +790,57 @@ classdef HystereticUtils
             end
         end
 
-        function fit_ja_parameters(app)
+        function polish_fit(app)
+            %POLISH_FIT "Polish" button of the Hysteretic-fitting tab.
+            %   Runs SolverUtils.lattice_polish on the JA parameters the tab
+            %   already holds, at the significant digits chosen in the Digits
+            %   dropdown, without refitting. The free parameters are the ones
+            %   currently checked, so the two fitting stages are polished
+            %   independently: with 'Constrained by Hc' checked k is derived
+            %   and is not a lattice value; uncheck it to polish all five.
+            if ~isfinite(HystereticUtils.significant_digits(app))
+                app.write_message("Set 'Signif. digits' to a number of significant digits before polishing ('Full precision' means no polish).");
+                return;
+            end
+            app.write_message("Polishing started");
+            drawnow;
+            HystereticUtils.fit_ja_parameters(app, true);
+        end
+
+        function tf = k_constrained(app)
+            %K_CONSTRAINED True when 'Constrained by Hc' is checked (k derived
+            %   from the coercive point, four free parameters); true when the
+            %   app has no such checkbox (older .mlapp).
+            tf = true;
+            if isprop(app, 'kConstrainedCheckBox_2') && ~isempty(app.kConstrainedCheckBox_2)
+                tf = logical(app.kConstrainedCheckBox_2.Value);
+            end
+        end
+
+        function msg = fit_start_message(app)
+            %FIT_START_MESSAGE What the Hysteretic tab's Fit button announces:
+            %   "Fitting started" for the k-constrained fit, "Refinement
+            %   started" for the five-parameter refinement.
+            if HystereticUtils.k_constrained(app)
+                msg = "Fitting started";
+            else
+                msg = "Refinement started";
+            end
+        end
+
+        function fit_ja_parameters(app, polish_only)
+            % polish_only (default false): skip the solver and run only the
+            % lattice polish on the parameters the tab already holds -- the
+            % "Polish" button (see polish_fit). A plain Fit never polishes.
+            if nargin < 2 || isempty(polish_only)
+                polish_only = false;
+            end
             has_raw_data = ~isempty(app.H_raw) && ~isempty(app.M_raw);
             if ~has_raw_data
                 app.write_message("No dataset imported yet. Please import a dataset on the Input data tab first.");
                 return;
             end
+            SolverUtils.eval_limit_info(struct('hit', false, 'limit', 0));
 
             mask = struct( ...
                 'fit_Ms', logical(app.CheckBox.Value), ...
@@ -838,9 +949,14 @@ classdef HystereticUtils
              conditions.repetitions = repetitions;
              conditions.rel_tolerance = rel_tolerance;
              conditions.max_repetitions = max_repetitions;
+             conditions.polish_only = polish_only;
              is_rerun = FitProgressUtils.check_and_remember_conditions(app, 'hyst', conditions, params_seed);
 
-             FitProgressUtils.open(app, 'hyst', "Hysteretic (JA) fit progress", error_type, is_rerun);
+             if polish_only
+                 FitProgressUtils.open(app, 'hyst', "Hysteretic (JA) polish progress", error_type, is_rerun);
+             else
+                 FitProgressUtils.open(app, 'hyst', "Hysteretic (JA) fit progress", error_type, is_rerun);
+             end
 
              fit_timer = tic;
             try
@@ -851,14 +967,20 @@ classdef HystereticUtils
                 output_fcn = @(x, optimValues, state) app.fit_stop_output_fcn(x, optimValues, state);
                 estimate_k_fn = @(p) HystereticUtils.estimate_k_from_coercive_point(app, Hleft, Mleft, p.Ms, p.a, p.alpha, p.c);
                 solver = SolverUtils.solver_code_from_dropdown(app.SolverDropDown_2.Value);
-                n_sig = HystereticUtils.significant_digits(app);
+                % The lattice polish runs only when the user asks for it with
+                % the "Polish" button: a plain Fit always returns the solver's
+                % full-precision result (see polish_fit).
+                n_sig = Inf;
+                if polish_only
+                    n_sig = HystereticUtils.significant_digits(app);
+                end
                 fit_result = JAFitter.fit( ...
                     params_seed, mask, bounds, HfitData, MfitData, Htip, Mtip, error_type, ...
                     estimate_k_fn, ...
                     model_fn, ...
                     @(err_type, hL, mL, hHat, mHat) HystereticUtils.compute_ja_left_branch_error_core(app, err_type, hL, mL, hHat, mHat), ...
                     output_fcn, ...
-                    solver, [], [], n_sig);
+                    solver, [], [], n_sig, polish_only);
 
                 if ~fit_result.ok
                     error(char(fit_result.error_message));
@@ -900,21 +1022,32 @@ classdef HystereticUtils
                 FitProgressUtils.remember_fit_result(app, 'hyst', params_opt);
                 t = toc(fit_timer);
                 FitProgressUtils.record_elapsed_time(app, 'hyst', t);
+                SolverUtils.last_fit_time(t);
                 if app.stop_fit_requested
-                    app.write_message("Fitting stopped by user after " + FormatUtils.format_short(t) + " s");
-                else
-                    app.write_message("Fitting finished after " + FormatUtils.format_short(t) + " s");
+                    app.write_message(AnhystereticUtils.run_verb(polish_only, "stopped by user", ~mask.k_dependent) + " after " + FormatUtils.format_short(t) + " s");
+                elseif polish_only
+                    app.write_message("Polishing finished after " + FormatUtils.format_short(t) + " s");
                     if polished
                         app.write_message(SolverUtils.polish_summary(fit_result.polish));
                     end
                     if mask.k_dependent
-                        app.write_message("Tip: uncheck 'Constrained by Hc' and fit again to further refine the JA model parameters (and to polish k too).");
+                        app.write_message("Note: k is derived from the coercive point, so it is not a lattice value. Uncheck 'Constrained by Hc', fit, and polish again to polish all five.");
+                    end
+                else
+                    app.write_message(AnhystereticUtils.run_verb(false, "finished", ~mask.k_dependent) + " after " + FormatUtils.format_short(t) + " s");
+                    AnhystereticUtils.write_eval_limit_message(app);
+                    if fit_result.Jopt >= 1e6   % JAFitter's BIG penalty: nothing evaluable
+                        app.write_message("Warning: the model could not be evaluated at any point the solver tried inside the bounds. Check the seeds and bounds (the seeds come from component 1 of the anhysteretic fit).");
+                    elseif mask.k_dependent
+                        app.write_message("Tip: uncheck 'Constrained by Hc' and fit again to further refine the JA model parameters.");
+                    else
+                        AnhystereticUtils.write_polish_tip(app);
                     end
                 end
             catch ME
                 t = toc(fit_timer);
                 FitProgressUtils.record_elapsed_time(app, 'hyst', t);
-                app.write_message("Fitting failed after " + FormatUtils.format_short(t) + " s: " + string(ME.message));
+                app.write_message(AnhystereticUtils.run_verb(polish_only, "failed", ~HystereticUtils.k_constrained(app)) + " after " + FormatUtils.format_short(t) + " s: " + string(ME.message));
             end
         end
 

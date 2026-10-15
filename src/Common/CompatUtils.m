@@ -1,10 +1,19 @@
 % Backward-compatibility shims for older MATLAB releases.
 %
-% MagAnalyst is developed on R2024a, but several App Designer component
-% properties used by the UI only exist in R2023a or later. Setting one of
-% them on an older release is a hard error inside createComponents, so the
-% app fails to construct at all (this is what "AllowEmpty is not a
-% recognized property" looks like on R2022a/b).
+% MagAnalyst is developed on R2025b and supported from R2022b on (the
+% oldest release it is tested on). Some App Designer component properties
+% used by the UI only exist in newer releases. Setting one of them on an
+% older release is a hard error inside createComponents, so the app fails
+% to construct at all (this is what "AllowEmpty is not a recognized
+% property" looks like on R2022a/b).
+%
+% Checked against the R2022b documentation (2026-09-24): of the properties
+% handled below, only NumericEditField AllowEmpty is missing in R2022b
+% (it arrived in R2023a). uifigure Icon (R2020b), the uitable selection
+% API and ColumnRearrangeable (R2022a), ColumnSortable, Label Interpreter
+% 'latex' and Button WordWrap all exist in R2022b, so Design View may set
+% them without breaking the supported releases; the shims for them only
+% matter below R2022b.
 %
 % The rule used throughout the project is therefore:
 %
@@ -216,7 +225,7 @@ classdef CompatUtils
         end
 
         function apply_latex_labels(app)
-            % uilabel's Interpreter property needs R2023a.
+            % uilabel's Interpreter property: present in R2022b (older releases untested).
             specs = CompatUtils.latex_label_specs();
             for i = 1:size(specs, 1)
                 lbl = CompatUtils.comp(app, specs{i, 1});
@@ -229,8 +238,11 @@ classdef CompatUtils
         end
 
         function apply_button_word_wrap(app)
-            % WordWrap on a Button needs R2023a (on a Label it is older).
-            names = {'CalculatePlotButton', 'CalculatePlotButton_2', 'CalculatePlotButton_3'};
+            % WordWrap on a Button: present in R2022b (older releases untested).
+            % Only the Playground's Calculate & Plot button. On the fitting
+            % tabs wrapping pushed "Plot" to a second line that the one-row
+            % button cannot show.
+            names = {'CalculatePlotButton_3'};
             for i = 1:numel(names)
                 CompatUtils.set_prop(CompatUtils.comp(app, names{i}), 'WordWrap', 'on');
             end
@@ -238,11 +250,10 @@ classdef CompatUtils
 
         function apply_table_selection(app)
             % uitable's Selection API (SelectionType/Multiselect/Selection/
-            % SelectionChangedFcn) needs R2023a. ColumnRearrangeable and
-            % ColumnSortable are applied here too, defensively, so that
-            % removing all four from Design View together (they sit in the
-            % same Inspector group) is always safe regardless of exactly
-            % which release introduced which one.
+            % SelectionChangedFcn) and ColumnRearrangeable arrived in R2022a;
+            % ColumnSortable is older. All exist in R2022b, so setting them
+            % in Design View is also fine; this shim only matters on
+            % releases before R2022a.
             specs = { ...
                 'UITable',   'row',    'off', 'on', true; ...
                 'UITable_3', 'row',    'off', 'on', true; ...
@@ -262,7 +273,7 @@ classdef CompatUtils
         end
 
         function apply_window_icon(app)
-            % uifigure's Icon property needs R2023b.
+            % uifigure's Icon property arrived in R2020b.
             fig = CompatUtils.comp(app, 'MagAnalystUIFigure');
             if isempty(fig) || ~CompatUtils.supports(fig, 'Icon')
                 return;

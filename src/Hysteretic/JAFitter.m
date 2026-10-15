@@ -2,7 +2,7 @@ classdef JAFitter
 %JAFITTER  Static Jiles-Atherton parameter fitter.
 %   JAFitter.fit(params_seed, mask, bounds, Hleft, Mleft, Htip, Mtip,
 %   error_type, estimate_k_fn, model_fn, error_core_fn, output_fcn, solver,
-%   scale_by_seed, solver_options, n_sig)
+%   scale_by_seed, solver_options, n_sig, polish_only)
 %   packs the free JA parameters (per mask) into a vector, minimizes an error
 %   function that simulates the hysteretic left branch (via
 %   model_fn/solve_ja_monotonic) and compares it to the measured Hleft/Mleft
@@ -22,9 +22,12 @@ classdef JAFitter
 %   holds exactly the printed values, Jopt is the error at them, and no
 %   lattice neighbour is better (result.polish.certified). A derived k
 %   (mask.k_dependent) is not a lattice value: uncheck the constraint and
-%   fit again to polish all five.
+%   fit again to polish all five. polish_only (default false) skips the
+%   solver and the seed guard and runs only the lattice polish, seeded from
+%   params_seed: what the Hysteretic tab's "Polish" button does to a
+%   finished fit (see HystereticUtils.polish_fit).
     methods (Static)
-        function result = fit(params_seed, mask, bounds, Hleft, Mleft, Htip, Mtip, error_type, estimate_k_fn, model_fn, error_core_fn, output_fcn, solver, scale_by_seed, solver_options, n_sig)
+        function result = fit(params_seed, mask, bounds, Hleft, Mleft, Htip, Mtip, error_type, estimate_k_fn, model_fn, error_core_fn, output_fcn, solver, scale_by_seed, solver_options, n_sig, polish_only)
             BIG = 1e6;
             opts = odeset('RelTol', 1e-7, 'AbsTol', 1e-6);
 
@@ -46,6 +49,9 @@ classdef JAFitter
             if nargin < 16 || isempty(n_sig)
                 n_sig = 3;
             end
+            if nargin < 17 || isempty(polish_only)
+                polish_only = false;
+            end
 
             result = struct( ...
                 'ok', false, ...
@@ -61,6 +67,12 @@ classdef JAFitter
                 result.error_message = "lower bound is greater than upper bound.";
                 return;
             end
+            % Start from the seed projected into the bounds (what the
+            % solvers do internally anyway). obj_fun does not check the
+            % bounds, so an out-of-bounds seed -- e.g. Ms of component 1 of
+            % a multi-component anhysteretic fit, below Ms >= Mtip -- used
+            % to win the seed guard below and be returned unchanged.
+            x0 = min(max(x0, lb), ub);
 
             function J = obj_fun(x)
                 params = JAFitUtils.unpack_params(x, map, params_seed, mask, estimate_k_fn);
@@ -100,14 +112,49 @@ classdef JAFitter
             % nested functions must be declared at the function's top level
             % (not inside try/if), so this one is declared here but only
             % invoked from within the try block.
+            % A seed below 1e-8 in magnitude (e.g. alpha = 0) says nothing
+            % about the parameter's scale: it gets 1 (unscaled, the default
+            % typical magnitude of Dennis & Schnabel 1996, Sec. 7.1), as in
+            % fit.m and fit_physical.m. Until 2026-09-28 it got eps, which
+            % froze that parameter (every solver step ~1e-17 physical).
+            % The seed is re-read at every Fit click, so a rerun rescales
+            % by the previous result.
             if scale_by_seed
-                scale = max(abs(x0), eps);
+                scale = abs(x0);
+                scale(scale < 1e-8) = 1;
             else
                 scale = ones(size(x0));
             end
 
             function J = obj_fun_scaled(y)
                 J = obj_fun(y .* scale);
+            end
+
+            % The residual vector whose root mean square is obj_fun, for the
+            % DFO-LS solver ("dfols"): the signed point-to-curve distances
+            % (HystereticUtils.compute_ja_residuals_core); [] wherever
+            % obj_fun returns its BIG penalty.
+            function r = res_fun_scaled(y)
+                r = [];
+                params = JAFitUtils.unpack_params(y .* scale, map, params_seed, mask, estimate_k_fn);
+                if ~isfinite(params.k) || params.Ms <= 0 || params.a <= 0 || params.k <= 0 || params.c <= 0 || params.c >= 1
+                    return;
+                end
+                if isfield(mask, 'k_dependent') && mask.k_dependent && isfield(bounds, 'k') && ~isempty(bounds.k)
+                    if params.k < bounds.k(1) || params.k > bounds.k(2)
+                        return;
+                    end
+                end
+                try
+                    [Hhat, Mhat] = model_fn(params);
+                    r = HystereticUtils.compute_ja_residuals_core(error_type, Hleft, Mleft, Hhat, Mhat);
+                    if any(~isfinite(r)), r = []; end
+                catch
+                    r = [];
+                end
+            end
+            if strcmp(solver, "dfols")
+                solver_options.residual_fun = @res_fun_scaled;
             end
 
             try
@@ -160,14 +207,23 @@ classdef JAFitter
                         % same wrapper in fit_physical.m.
                         scaled_output_fcn = @(y, optimValues, state) output_fcn(y .* scale, optimValues, state);
                     end
-                    [yopt, Jopt] = SolverUtils.minimize_bounded(@obj_fun_scaled, y0, ylb, yub, scaled_output_fcn, solver, solver_options);
-                    xopt = yopt .* scale;
-
-                    % Seed guard: never return a point worse than the seed
-                    % (matches fit_physical.m).
-                    if Jopt > result.Jseed
+                    if polish_only
+                        % "Polish" button: the parameters are already
+                        % fitted; only the lattice search below runs. No
+                        % seed guard is needed -- the polish never accepts
+                        % a point worse than its starting one.
                         xopt = x0;
                         Jopt = result.Jseed;
+                    else
+                        [yopt, Jopt] = SolverUtils.minimize_bounded(@obj_fun_scaled, y0, ylb, yub, scaled_output_fcn, solver, solver_options);
+                        xopt = yopt .* scale;
+
+                        % Seed guard: never return a point worse than the seed
+                        % (matches fit_physical.m).
+                        if Jopt > result.Jseed
+                            xopt = x0;
+                            Jopt = result.Jseed;
+                        end
                     end
 
                     % Lattice polish on the physical (unscaled) values: the

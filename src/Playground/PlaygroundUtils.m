@@ -588,16 +588,56 @@ classdef PlaygroundUtils
         end
 
         function values = get_minor_loop_default_values(app)
-            % default Htip_i are derived from the measured-curve tip
-            % (Htip, Htip*2/3, Htip*1/3) when data is available; otherwise
-            % fall back to a plain 1/2/3 placeholder. Display order is
-            % cosmetic: the solver sorts the tips ascending and simulates
-            % the smallest tip first.
+            % default Htip_i from the measured loop: spaced geometrically
+            % between half its coercive field and its tip,
+            % Hl*(Htip/Hl).^[1 2/3 1/3] with Hl = Hc/2 (since 2026-09-26),
+            % so that the three loops stay open and distinct however far
+            % the measured loop is driven into saturation; the former
+            % Htip*[1 2/3 1/3] saturated all three loops when Htip >> Hc.
+            % Without a usable Hc (an anhysteretic import, or Htip <= Hc/2)
+            % the tips are
+            % Htip*[1 2/3 1/3]; without data, a plain 1/2/3 placeholder.
+            % Display order is cosmetic: the solver sorts the tips ascending
+            % and simulates the smallest tip first.
             [Htip, ~, ok] = PlaygroundUtils.get_data_tip(app);
             if ok && isfinite(Htip) && Htip > 0
-                values = [Htip; Htip*2/3; Htip*1/3; NaN];
+                [Hc, ok_c] = PlaygroundUtils.get_data_coercive_field(app);
+                Hl = Hc / 2;
+                if ok_c && Hl > 0 && Hl < Htip
+                    values = [Hl * (Htip/Hl).^[1; 2/3; 1/3]; NaN];
+                else
+                    values = [Htip; Htip*2/3; Htip*1/3; NaN];
+                end
             else
                 values = [1; 2; 3; NaN];
+            end
+        end
+
+        function [Hc, ok] = get_data_coercive_field(app)
+            % coercive field |H(M=0)| of the measured loop's descending
+            % branch, in the same units as get_data_tip; ok = false for an
+            % anhysteretic import or when the branch does not cross M = 0.
+            Hc = NaN;
+            ok = false;
+            try
+                if app.is_last_import_anhysteretic()
+                    return;
+                end
+                [H_plot, M_plot, has_data] = PlaygroundUtils.get_data_curve(app);
+                if ~has_data
+                    return;
+                end
+                [H_left, M_left] = extract_left_branch(H_plot, M_plot);
+                H_left = H_left(:); M_left = M_left(:);
+                if numel(H_left) < 2 || min(M_left) > 0 || max(M_left) < 0
+                    return;
+                end
+                [M_u, idx] = unique(M_left);
+                Hc = abs(interp1(M_u, H_left(idx), 0, 'linear'));
+                ok = isfinite(Hc) && Hc > 0;
+            catch
+                Hc = NaN;
+                ok = false;
             end
         end
 
@@ -795,6 +835,9 @@ classdef PlaygroundUtils
                 info.status = "ok";
                 PlaygroundUtils.set_simulation(app, Hsim, Msim, info);
                 app.plot_playground();
+                if notify && info.stop_criterion == "Until convergence" && ~info.converged
+                    app.write_message("Warning: not converged within " + info.cycles_simulated + " cycle(s) at one or more tips; raise 'Max. repetitions' or the tolerance.");
+                end
             catch
                 PlaygroundUtils.clear_simulation(app);
                 app.plot_playground();
@@ -844,6 +887,9 @@ classdef PlaygroundUtils
                 info.status = "ok";
                 PlaygroundUtils.set_simulation(app, Hsim, Msim, info);
                 app.plot_playground();
+                if notify && info.stop_criterion == "Until convergence" && ~info.converged
+                    app.write_message("Warning: not converged within " + info.cycles_simulated + " cycle(s); raise 'Max. repetitions' or the tolerance.");
+                end
             catch
                 PlaygroundUtils.clear_simulation(app);
                 app.plot_playground();

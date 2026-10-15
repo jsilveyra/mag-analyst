@@ -8,7 +8,8 @@
 %     4. Fit the distribution parameters (Hcr, m(Hcr)).
 %     5. Derive the physical magnetic parameters (Ms, a, alpha).
 %     6. OPTIONAL refinement: re-fit the PHYSICAL parameters directly,
-%        seeded from step 5 (the GUI's "reduce dof" UNCHECKED second stage).
+%        seeded from step 5 (the GUI's "Constrained by n data points" UNCHECKED
+%        second stage).
 %     7. Build the modeled curve on a GUI-style log field grid.
 %     8. Report the fit errors.
 %     9. Plot.
@@ -142,10 +143,10 @@ fprintf('   Hk    = %.6g A/m\n',   magnetic_parameters.Hk);
 fprintf('   chi_in (total) = %.6g\n', magnetic_parameters.chi_in_total);
 
 %% --- 6) OPTIONAL: refine the fit over the physical parameters -----------
-% This is the GUI's "reduce dof" UNCHECKED second stage -- the Anhysteretic
-% tab suggests it in the Messages panel after every reduced-dof fit ("Tip:
-% uncheck 'reduce dof' and fit again to further refine the physical
-% parameters.").
+% This is the GUI's "Constrained by n data points" UNCHECKED second stage --
+% the Anhysteretic tab suggests it in the Messages panel after every
+% constrained fit ("Tip: uncheck 'Constrained by n data points' and fit again
+% to further refine the physical parameters.").
 %
 % Steps 4-5 fit the 3*n-1 DISTRIBUTION parameters, which pins the modeled
 % curve to the measured tip (and, for n > 1, to the data at each Hx). That
@@ -182,7 +183,7 @@ if refine_physical
     physical = struct('Ms', Ms_ref, 'alpha', alpha_ref, 'a', a_ref);
     magnetic_parameters = MagneticParameters(data_curve, [], [], [], [], physical);
 
-    fprintf('\nRefined physical parameters ("reduce dof" unchecked):\n');
+    fprintf('\nRefined physical parameters ("Constrained by n data points" unchecked):\n');
     fprintf('   Ms    = %.6g A/m\n',   magnetic_parameters.Ms);
     fprintf('   a     = %.6g A/m\n',   magnetic_parameters.a);
     fprintf('   alpha = %.6g\n',       magnetic_parameters.alpha);

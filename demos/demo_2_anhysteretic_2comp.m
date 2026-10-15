@@ -14,7 +14,8 @@
 %     4. Fit the distribution parameters (Hcr_i, m_i(Hcr_i), Hx_1).
 %     5. Derive the physical magnetic parameters (Ms_i, a_i, alpha_i).
 %     6. OPTIONAL refinement: re-fit the PHYSICAL parameters directly,
-%        seeded from step 5 (the GUI's "reduce dof" UNCHECKED second stage).
+%        seeded from step 5 (the GUI's "Constrained by n data points" UNCHECKED
+%        second stage).
 %     7. Build the modeled curve on a GUI-style log field grid.
 %     8. Report the fit errors.
 %     9. Plot.
@@ -109,7 +110,7 @@ end
 fprintf('   Total chi_in = %.6g\n', magnetic_parameters.chi_in_total);
 
 %% --- 6) OPTIONAL: refine the fit over the physical parameters -----------
-% The GUI's "reduce dof" UNCHECKED second stage (see demo_1 for the full
+% The GUI's "Constrained by n data points" UNCHECKED second stage (see demo_1 for the full
 % explanation). Steps 4-5 fit the 5 distribution parameters, which pins the
 % modeled curve to the measured tip AND to the data at Hx_1 -- two
 % constraints that solve for Ms_1 and Ms_2 instead of fitting them.
@@ -149,7 +150,7 @@ if refine_physical
     physical = struct('Ms', Ms_ref, 'alpha', alpha_ref, 'a', a_ref);
     magnetic_parameters = MagneticParameters(data_curve, [], [], [], [], physical);
 
-    fprintf('\nRefined physical parameters ("reduce dof" unchecked):\n');
+    fprintf('\nRefined physical parameters ("Constrained by n data points" unchecked):\n');
     for i = 1:number_components
         fprintf('   Component %d: Ms = %.6g A/m , a = %.6g A/m , alpha = %.6g\n', ...
                 i, magnetic_parameters.Ms(i), magnetic_parameters.a(i), magnetic_parameters.alpha(i));

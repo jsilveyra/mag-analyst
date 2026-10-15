@@ -481,6 +481,12 @@ classdef ExportDialogUtils
                 t = table(transpose(mc.H), transpose(mc.M), transpose(mc.dMdH), transpose(mc.HdMdH));
                 t.Properties.VariableNames(:) = {'H [A/m]', M_label, dMdH_label, HdMdH_label};
             end
+            if AnhystereticUtils.linear_term_enabled(app) && ~isempty(mc.M0)
+                % component 0 (linear term), after the Langevin components
+                t.(char(ExportDialogUtils.indexed_label(M_label, 0))) = transpose(mc.M0);
+                t.(char(ExportDialogUtils.indexed_label(dMdH_label, 0))) = transpose(mc.dM0dH);
+                t.(char(ExportDialogUtils.indexed_label(HdMdH_label, 0))) = transpose(mc.HdM0dH);
+            end
             file_name = ExportDialogUtils.export_filename(app, 'modeled_anhysteretic_magnetization.csv');
             ExportUtils.write_table_csv(t, fullfile(folder, file_name));
             names = string(file_name);
@@ -496,6 +502,9 @@ classdef ExportDialogUtils
             lines = lines + nl + "-----------------";
             for i = 1:height(app.TableFittedParameters.Data)
                 name = app.subscript_to_number(string(app.TableFittedParameters.Data(i, 1)));
+                if i <= numel(app.component_row_types) && app.component_row_types(i) == "chi0"
+                    name = DisplayUnits.get_chi0_ascii_label(app);
+                end
                 value = str2double(app.TableFittedParameters.Data(i, 2));
                 lines = lines + nl + sprintf("  %-14s = %14.6g", name, value);
             end
@@ -511,9 +520,9 @@ classdef ExportDialogUtils
             lines = lines + nl + nl + "Model-retrieved parameters";
             lines = lines + nl + "--------------------------";
             for i = 1:height(app.TableParameters.Data)
-                Ms_value = str2double(app.TableParameters.Data(i, 2).Ms_col);
-                alpha_value = str2double(app.TableParameters.Data(i, 3).alpha_col);
-                a_value = str2double(app.TableParameters.Data(i, 4).a_col);
+                Ms_value = str2double(app.TableParameters.Data.Ms_col{i});
+                alpha_value = str2double(app.TableParameters.Data.alpha_col{i});
+                a_value = str2double(app.TableParameters.Data.a_col{i});
                 Ms_label = sprintf("%s%d%s", Ms_name, i, ExportDialogUtils.bracket_unit(Ms_unit));
                 alpha_label = sprintf("%s%d%s", alpha_name, i, ExportDialogUtils.bracket_unit(alpha_unit));
                 lines = lines + nl + sprintf("  Component %d", i);
@@ -534,11 +543,17 @@ classdef ExportDialogUtils
             end
             lines = lines + nl + nl + "Calculated quantities";
             lines = lines + nl + "---------------------";
-            for i = 1:height(app.TableQuantities.Data)
-                alpha_Ms_value = str2double(app.TableQuantities.Data(i, 2).dimensionless_alphaMs_col);
-                density_product_value = str2double(app.TableQuantities.Data(i, 3).density_product_col);
-                Hk_value = str2double(app.TableQuantities.Data(i, 4).Hk_col);
-                chi_in_value = str2double(app.TableQuantities.Data(i, 5).chi_in_col);
+            k0 = double(AnhystereticUtils.linear_term_enabled(app));
+            if k0
+                lines = lines + nl + "  Component 0 (linear term)";
+                lines = lines + nl + sprintf("    %-26s = %14.6g", DisplayUnits.get_chi0_ascii_label(app), app.magnetic_parameters.chi0);
+            end
+            for i = 1:height(app.TableQuantities.Data) - k0
+                r = i + k0;
+                alpha_Ms_value = str2double(app.TableQuantities.Data.dimensionless_alphaMs_col{r});
+                density_product_value = str2double(app.TableQuantities.Data.density_product_col{r});
+                Hk_value = str2double(app.TableQuantities.Data.Hk_col{r});
+                chi_in_value = str2double(app.TableQuantities.Data.chi_in_col{r});
                 lines = lines + nl + sprintf("  Component %d", i);
                 lines = lines + nl + sprintf("    %-26s = %14.6g", sprintf("%s (component %d)", alphaMs_name, i), alpha_Ms_value);
                 lines = lines + nl + sprintf("    %-26s = %14.6g", sprintf("N%d*kB*T [%s]", i, density_unit), density_product_value);
@@ -549,23 +564,27 @@ classdef ExportDialogUtils
             % --- Errors (all six error definitions) ---
             dc = app.data_curve;
             mc = app.modeled_curve;
-            err_specs = { ...
-                'Diagonal (H, sampled)',       DiagonalErrorCalculator(dc.H, dc.M, mc.H, mc.M, false, false); ...
-                'Diagonal (H, continuous)',    DiagonalErrorCalculator(dc.H, dc.M, mc.H, mc.M, false, true); ...
-                'Diagonal (logH, sampled)',    DiagonalErrorCalculator(dc.H, dc.M, mc.H, mc.M, true,  false); ...
-                'Diagonal (logH, continuous)', DiagonalErrorCalculator(dc.H, dc.M, mc.H, mc.M, true,  true); ...
-                'Vertical',                    VerticalErrorCalculator(dc.H, dc.M, mc.H, mc.M, true); ...
-                'Horizontal',                  HorizontalErrorCalculator(dc.H, dc.M, mc.H, mc.M, true)};
+            % Built through make_error_calculator, the dispatch the fit
+            % itself uses, so the exported values cannot drift from it.
+            err_specs = {'Diagonal (H, sampled)', 'Diagonal (H, continuous)', ...
+                'Diagonal (logH, sampled)', 'Diagonal (logH, continuous)', ...
+                'Vertical', 'Horizontal'};
             lines = lines + nl + nl + "Errors";
             lines = lines + nl + "------";
-            for k = 1:size(err_specs, 1)
-                val = err_specs{k, 2}.get_error();
-                lines = lines + nl + sprintf("  %-28s = %12.4e", err_specs{k, 1}, val);
+            for k = 1:numel(err_specs)
+                val = make_error_calculator(err_specs{k}, dc.H, dc.M, mc.H, mc.M).get_error();
+                lines = lines + nl + sprintf("  %-28s = %12.4e", err_specs{k}, val);
             end
 
             % --- Fitting conditions (error metric + solver) ---
             lines = lines + nl + nl + "Fitting conditions";
             lines = lines + nl + "------------------";
+            [mode_text, held] = ExportDialogUtils.anh_fit_mode(app);
+            lines = lines + nl + sprintf("  %-18s = %d", "Components (n)", app.number_components);
+            lines = lines + nl + sprintf("  %-18s = %s", "Fit mode", mode_text);
+            lines = lines + nl + sprintf("  %-18s = %s", "Linear term", ...
+                ExportDialogUtils.on_off(AnhystereticUtils.linear_term_enabled(app)));
+            lines = lines + nl + sprintf("  %-18s = %s", "Held parameters", held);
             lines = lines + nl + sprintf("  %-18s = %s", "Error metric", ...
                 strtrim(string(app.ErrorDropDown.Value)));
             lines = lines + nl + sprintf("  %-18s = %s", "Solver", ...
@@ -699,6 +718,12 @@ classdef ExportDialogUtils
                 lines = lines + nl + sprintf("  %-18s = %d", "Repetitions", ...
                     int32(app.RepetitionsEditField_3.Value));
             end
+            if HystereticUtils.k_constrained(app)
+                k_mode = "derived from the coercive point (Constrained by Hc)";
+            else
+                k_mode = "fitted";
+            end
+            lines = lines + nl + sprintf("  %-18s = %s", "k", k_mode);
             lines = lines + nl + sprintf("  %-18s = %s", "Error metric", ...
                 strtrim(string(app.ErrortominimizeDropDown_2.Value)));
             lines = lines + nl + sprintf("  %-18s = %s", "Solver", ...
@@ -842,6 +867,54 @@ classdef ExportDialogUtils
             file_name = ExportDialogUtils.export_filename(app, char(string(base) + string(fmt)));
             ExportUtils.save_axes_image(ax, fullfile(folder, file_name), 400);
             names = string(file_name);
+        end
+
+        function [mode_text, held] = anh_fit_mode(app)
+            %ANH_FIT_MODE Metadata export: which Anhysteretic fit mode the
+            %   exported parameters come from (the mode of the parameters on
+            %   display, not only the check box), and the parameters held at
+            %   their value (Fit unticked), as a comma-separated list or "none".
+            n = app.number_components;
+            physical = AnhystereticUtils.use_physical_parameters(app);
+            names = strings(0, 1);
+            t = app.TableFittedParameters.Data;
+            for i = 1:size(t, 1)
+                is_chi0 = i <= numel(app.component_row_types) && app.component_row_types(i) == "chi0";
+                if (is_chi0 || ~physical) && ~logical(t{i, 5})
+                    if is_chi0
+                        names(end+1, 1) = DisplayUnits.get_chi0_ascii_label(app); %#ok<AGROW>
+                    else
+                        names(end+1, 1) = strtrim(app.subscript_to_number(string(t{i, 1}))); %#ok<AGROW>
+                    end
+                end
+            end
+            if physical
+                mode_text = sprintf("free (3n = %d physical parameters)", 3*n);
+                if app.M_is_mass_based
+                    kinds = ["sigma_s", "rho*alpha", "a"];
+                else
+                    kinds = ["Ms", "alpha", "a"];
+                end
+                flags = reshape(AnhystereticUtils.physical_fit_flags(app), n, 3);
+                for k = 1:3
+                    for i = find(~flags(:, k)).'
+                        names(end+1, 1) = kinds(k) + i; %#ok<AGROW>
+                    end
+                end
+            else
+                mode_text = sprintf("constrained by n = %d data points (3n-1 = %d parameters)", n, 3*n - 1);
+            end
+            held = "none";
+            if ~isempty(names)
+                held = strjoin(names, ", ");
+            end
+        end
+
+        function txt = on_off(tf)
+            txt = "off";
+            if tf
+                txt = "on";
+            end
         end
 
         function txt = significant_digits_text(app, component)

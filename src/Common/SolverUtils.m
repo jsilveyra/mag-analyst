@@ -12,15 +12,18 @@ classdef SolverUtils
     methods (Static)
         function code = solver_code_from_dropdown(value)
             %SOLVER_CODE_FROM_DROPDOWN Map a SolverDropDown/SolverDropDown_2
-            %   Value string to "prima" or "nelder_mead". Falls back to
+            %   Value string to "prima", "nelder_mead" or "dfols" (DFO-LS,
+            %   offered only by the Hysteretic tab). Falls back to
             %   "prima" (the default: on the Jiles 1992 synthetic loop and
             %   the three published loops of the LMAG 2026 manuscript both
             %   solvers reached the same lattice points after polishing,
             %   BOBYQA in the shortest total time on every loop,
             %   2026-09-21) for any unrecognised value.
             switch string(value)
-                case "Nelder-Mead (minimize lib)"
+                case {"Nelder-Mead", "Nelder-Mead (minimize lib)"}
                     code = "nelder_mead";
+                case "DFO-LS"
+                    code = "dfols";
                 otherwise
                     code = "prima";
             end
@@ -57,7 +60,18 @@ classdef SolverUtils
             %   units), which follow a curved valley whose floor runs
             %   between lattice points. The search stops when a full sweep
             %   of all three finds nothing better (info.certified = true),
-            %   or at opts.max_evals evaluations (info.capped = true).
+            %   when the current value reaches opts.fmin, below which obj
+            %   cannot go (certified at once: no neighbour can be better),
+            %   or after opts.max_evals trial points (info.capped = true).
+            %
+            %   Every lattice point evaluated is cached, so a point that
+            %   comes back in a later neighbourhood (e.g. the previous
+            %   iterate, one step back) is not integrated again. The budget
+            %   counts trial points visited, cached or not (info.visits), so
+            %   the cache and the fmin stop change only the number of real
+            %   evaluations (info.evals), never the path of the search or
+            %   its result (2026-09-25; before that date both counts were
+            %   the same number).
             %
             %   This is the local search of Kodek and Steiglitz for
             %   finite-wordlength filter design (IEEE Trans. Circuits Syst.
@@ -75,7 +89,10 @@ classdef SolverUtils
             %   points it cannot evaluate; such points are never accepted.
             %   x0 is in the same (physical, unscaled) units as x: the
             %   lattice is defined on the values a user reads and types.
-            %   opts fields (all optional): max_evals (default 300),
+            %   opts fields (all optional): max_evals (default 300; trial
+            %   points visited, see above), fmin (default 0: every
+            %   objective in the app is a root-mean-square distance; pass
+            %   -Inf for an objective that can be negative),
             %   output_fcn (stop = output_fcn(x, optimValues, 'iter'), called
             %   after every accepted move; true aborts, info.stopped = true),
             %   extended (default true: poll the +/-2 pairs), fixed (logical
@@ -87,6 +104,7 @@ classdef SolverUtils
             if nargin < 4 || isempty(opts), opts = struct(); end
             t_polish = tic;
             max_evals = SolverUtils.opt(opts, 'max_evals', 300);
+            fmin = SolverUtils.opt(opts, 'fmin', 0);
             output_fcn = SolverUtils.opt(opts, 'output_fcn', []);
             extended = SolverUtils.opt(opts, 'extended', true);
             x0 = x0(:);
@@ -96,9 +114,14 @@ classdef SolverUtils
             ub = SolverUtils.opt(opts, 'ub', Inf(n, 1)); ub = ub(:);
             x = x0;
             x(~fixed) = SolverUtils.round_sig(x0(~fixed), n_sig);
+            % lattice values are canonical (round_sig after every step), so
+            % the printed digits identify a point exactly
+            cache = containers.Map('KeyType', 'char', 'ValueType', 'double');
+            key = @(v) sprintf('%.17g,', v);
             fval = obj(x);
+            cache(key(x)) = fval;
             info = struct('n_sig', n_sig, 'x_start', x, 'fval_start', fval, ...
-                'start_feasible', isfinite(fval), 'moves', 0, 'evals', 1, 'sweeps', 0, ...
+                'start_feasible', isfinite(fval), 'moves', 0, 'evals', 1, 'visits', 1, 'sweeps', 0, ...
                 'certified', false, 'capped', false, 'stopped', false, ...
                 'full', SolverUtils.opt(opts, 'full', struct('x', x0)));
             % neighbourhoods as integer offsets (rows), in last-digit units,
@@ -136,7 +159,12 @@ classdef SolverUtils
                 levels = {N1, N2};
             end
             while true
-                if info.evals >= max_evals
+                if isfinite(fval) && fval <= fmin
+                    % nothing on the lattice can be lower: certified as is
+                    info.certified = true;
+                    break;
+                end
+                if info.visits >= max_evals
                     info.capped = true;
                     break;
                 end
@@ -148,12 +176,19 @@ classdef SolverUtils
                     for r = 1:size(D, 1)
                         y = SolverUtils.lattice_step(x, D(r, :), n_sig);
                         if any(y < lb) || any(y > ub), continue; end
-                        fy = obj(y);
-                        info.evals = info.evals + 1;
+                        k = key(y);
+                        if isKey(cache, k)
+                            fy = cache(k);
+                        else
+                            fy = obj(y);
+                            cache(k) = fy;
+                            info.evals = info.evals + 1;
+                        end
+                        info.visits = info.visits + 1;
                         if isfinite(fy) && fy < best_f
                             best_f = fy; best_x = y;
                         end
-                        if info.evals >= max_evals, break; end
+                        if info.visits >= max_evals, break; end
                     end
                     if ~isempty(best_x)
                         x = best_x; fval = best_f; moved = true;
@@ -169,11 +204,11 @@ classdef SolverUtils
                         end
                         break;   % any move: back to the 1-change neighbourhood
                     end
-                    if info.evals >= max_evals, break; end
+                    if info.visits >= max_evals, break; end
                 end
                 if ~moved
-                    info.certified = isfinite(fval) && info.evals < max_evals;
-                    if info.evals >= max_evals, info.capped = true; end   % budget hit inside the last sweep
+                    info.certified = isfinite(fval) && info.visits < max_evals;
+                    if info.visits >= max_evals, info.capped = true; end   % budget hit inside the last sweep
                     break;
                 end
             end
@@ -272,6 +307,22 @@ classdef SolverUtils
                 n_evals = n_evals + 1;
                 y = obj(x_);
             end
+            function r_ = counted_res(x_)
+                n_evals = n_evals + 1;
+                r_ = solver_options.residual_fun(x_);
+            end
+            % "dfols": DFO-LS (src/Common/dfols_mat.m), a Gauss-Newton trust
+            % region on the vector of per-point residuals whose root mean
+            % square is obj -- solver_options.residual_fun, which every fit
+            % supplies since 2026-09-25 (JAFitter, fit.m, fit_physical.m:
+            % the metric's per-point residuals, ErrorCalculator.get_residuals).
+            % Without it (a caller that passes none) "dfols" runs BOBYQA.
+            if strcmp(solver, "dfols") && isfield(solver_options, 'residual_fun')
+                [x, fval] = dfols_mat(@counted_res, x0, lb, ub, output_fcn);
+                SolverUtils.last_eval_count(n_evals);
+                SolverUtils.note_eval_limit(n_evals, 400 * (numel(x0) + 1));   % dfols_mat's maxfun
+                return;
+            end
             if strcmp(solver, "nelder_mead")
                 % TolX acts on the seed-scaled variables (~1e-5 relative);
                 % TolFun is absolute on the objective (an RMS of normalized
@@ -287,6 +338,7 @@ classdef SolverUtils
                     options = optimset(options, 'OutputFcn', output_fcn);
                 end
                 [x, fval] = minimize(@counted_obj, x0, [], [], [], [], lb, ub, [], options);
+                SolverUtils.note_eval_limit(n_evals, optimget(options, 'MaxFunEvals'));
             else
                 % rhoend is relative to the seed-scaled variables. 1e-4
                 % since 2026-09-19 (was 1e-6): the objective is evaluated
@@ -321,8 +373,97 @@ classdef SolverUtils
                 end
                 [x, fval2] = bobyqa_mat_tuned(@(x_) counted_obj(x_).^2, x0, lb, ub, prima_options);
                 fval = sqrt(max(fval2, 0));
+                SolverUtils.note_eval_limit(n_evals, SolverUtils.opt(prima_options, 'maxfun', 400 * (numel(x0) + 1)));
             end
             SolverUtils.last_eval_count(n_evals);
+        end
+
+        function [x, fval] = minimize_bounded_free(obj, x0, lb, ub, free, output_fcn, solver, solver_options)
+            %MINIMIZE_BOUNDED_FREE  minimize_bounded over the FREE entries
+            %   of x0 only. free (logical, one entry per parameter) marks the
+            %   parameters to optimize; the others are held exactly at x0
+            %   and are not passed to the solver. obj, output_fcn and
+            %   solver_options.residual_fun keep seeing full vectors (same
+            %   orientation as x0), so callers and the fit-progress tracker
+            %   are unchanged. Before 2026-10-03 held parameters were passed
+            %   to the solver inside a +/-1e-4 box around the seed: DFO-LS
+            %   then never shrank its trust radius to rhoend and used its
+            %   whole 400(n+1) budget on every run (SnGe re-fits: the same
+            %   minimum in ~100 evaluations instead of 2-4 x 4000), the
+            %   held values drifted by up to 1e-4, and every solver carried
+            %   dead dimensions. x has the shape of x0.
+            if nargin < 6, output_fcn = []; end
+            if nargin < 7, solver = []; end
+            if nargin < 8 || isempty(solver_options), solver_options = struct(); end
+            free = logical(free(:));
+            if numel(free) ~= numel(x0)
+                error('free must have one entry per parameter.');
+            end
+            if all(free)
+                [x, fval] = SolverUtils.minimize_bounded(obj, x0, lb, ub, output_fcn, solver, solver_options);
+                return;
+            end
+            x_held = x0;
+            expand = @(z) SolverUtils.fill_free(x_held, free, z);
+            if ~any(free)                          % nothing to optimize
+                x = x0;
+                fval = obj(x0);
+                SolverUtils.last_eval_count(1);
+                return;
+            end
+            opts = solver_options;
+            if isfield(opts, 'residual_fun') && ~isempty(opts.residual_fun)
+                full_res = opts.residual_fun;
+                opts.residual_fun = @(z) full_res(expand(z));
+            end
+            out = [];
+            if ~isempty(output_fcn)
+                out = @(z, optimValues, state) output_fcn(expand(z), optimValues, state);
+            end
+            z0 = x0(free); zlb = lb(free); zub = ub(free);
+            [z, fval] = SolverUtils.minimize_bounded(@(z) obj(expand(z)), z0, zlb, zub, out, solver, opts);
+            x = expand(z);
+        end
+
+        function x = fill_free(x, free, z)
+            %FILL_FREE Full parameter vector x with its free entries set to z.
+            x(free) = z;
+        end
+
+        function info = eval_limit_info(set_value)
+            %EVAL_LIMIT_INFO Whether a solver run since the last reset stopped
+            %   because it used up its evaluation budget (struct with fields
+            %   hit, limit). The tabs reset it at the start of every Fit click
+            %   (SolverUtils.eval_limit_info(struct('hit', false, 'limit', 0)))
+            %   and read it afterwards through eval_limit_message; it is
+            %   sticky across the several solver calls one click can make
+            %   (e.g. the auto-root exploration). Set by note_eval_limit.
+            persistent stored
+            if nargin > 0
+                stored = set_value;
+            end
+            if isempty(stored)
+                stored = struct('hit', false, 'limit', 0);
+            end
+            info = stored;
+        end
+
+        function note_eval_limit(n_evals, limit)
+            %NOTE_EVAL_LIMIT Record a solver run that reached its budget.
+            if isfinite(limit) && limit > 0 && n_evals >= limit
+                SolverUtils.eval_limit_info(struct('hit', true, 'limit', limit));
+            end
+        end
+
+        function msg = eval_limit_message()
+            %EVAL_LIMIT_MESSAGE Activity-log note for a fit that stopped at
+            %   the solver's evaluation limit ("" otherwise).
+            info = SolverUtils.eval_limit_info();
+            msg = "";
+            if info.hit
+                msg = "The fit stopped at the solver's limit of " + info.limit + ...
+                      " evaluations, so the error may still decrease. Press Fit again until it stops dropping.";
+            end
         end
 
         function n = last_eval_count(set_value)
@@ -335,6 +476,25 @@ classdef SolverUtils
             end
             n = stored;
             if isempty(n), n = 0; end
+        end
+
+        function t = last_fit_time(set_value)
+            %LAST_FIT_TIME Elapsed time, in seconds, of the most recent
+            %   Fit/Refine/Polish click on either tab -- the same number the
+            %   Activity log's "... finished after X s" message reports,
+            %   i.e. the solver call itself (plus its own bookkeeping), but
+            %   excluding the cost of opening the fit-progress window (a new
+            %   uifigure, ~1 s) that a caller timing the whole
+            %   fit_parameters()/fit_ja_parameters() call from outside would
+            %   otherwise include. Set by AnhystereticUtils.fit_parameters_reduced
+            %   / fit_parameters_physical and HystereticUtils.fit_ja_parameters
+            %   right where they compute the message's own elapsed time.
+            persistent stored
+            if nargin > 0
+                stored = set_value;
+            end
+            t = stored;
+            if isempty(t), t = NaN; end
         end
     end
 end

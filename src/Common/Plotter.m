@@ -64,6 +64,7 @@ classdef Plotter
                 for i=1:size(obj.modeled_curve.Mi,1)
                     plot(ax, obj.modeled_curve.H, obj.modeled_curve.Mi(i,:), "Color", obj.Colors(i + 1,:));
                 end
+                obj.plot_linear(ax, obj.modeled_curve.M0, false);
             end
 
             % total modeled curve drawn last so it stays on top of the
@@ -97,6 +98,7 @@ classdef Plotter
                 for i=1:size(obj.modeled_curve.Mi,1)
                     semilogx(ax, obj.modeled_curve.H, obj.modeled_curve.Mi(i,:), "Color", obj.Colors(i + 1,:));
                 end
+                obj.plot_linear(ax, obj.modeled_curve.M0, true);
             end
 
             % total modeled curve drawn last so it stays on top of the
@@ -129,6 +131,7 @@ classdef Plotter
                 for i=1:size(obj.modeled_curve.dMidH,1)
                     plot(ax, obj.modeled_curve.H, obj.modeled_curve.dMidH(i,:), "Color", obj.Colors(i + 1,:));
                 end
+                obj.plot_linear(ax, obj.modeled_curve.dM0dH, false);
             end
 
             % total modeled curve drawn last so it stays on top of the
@@ -162,6 +165,7 @@ classdef Plotter
                 for i=1:size(obj.modeled_curve.dMidH,1)
                     semilogx(ax, obj.modeled_curve.H, obj.modeled_curve.dMidH(i,:), "Color", obj.Colors(i + 1,:));
                 end
+                obj.plot_linear(ax, obj.modeled_curve.dM0dH, true);
             end
 
             % total modeled curve drawn last so it stays on top of the
@@ -194,6 +198,7 @@ classdef Plotter
                 for i=1:size(obj.modeled_curve.HdMidH,1)
                     semilogx(ax, obj.modeled_curve.H, obj.modeled_curve.HdMidH(i,:), "Color", obj.Colors(i + 1,:));
                 end
+                obj.plot_linear(ax, obj.modeled_curve.HdM0dH, true);
             end
 
             % total modeled curve drawn last so it stays on top of the
@@ -225,6 +230,7 @@ classdef Plotter
                 for i=1:size(obj.modeled_curve.HdMidH, 1)
                     plot(ax, obj.modeled_curve.H, obj.modeled_curve.HdMidH(i,:), "Color", obj.Colors(i + 1,:));
                 end
+                obj.plot_linear(ax, obj.modeled_curve.HdM0dH, false);
             end
 
             % total modeled curve drawn last so it stays on top of the
@@ -237,6 +243,18 @@ classdef Plotter
             ylabel(ax, HdMdH_label, "Color",[0, 0, 0]);
             box(ax,'on');
             hold( ax, 'off' );
+        end
+
+        function plot_linear(obj, ax, y, log_x)
+            % Linear term (component 0, M0 = chi0*H), dashed, when present.
+            if isempty(y) || all(y(:) == 0)
+                return;
+            end
+            if log_x
+                semilogx(ax, obj.modeled_curve.H, y, "Color", AnhystereticUtils.LINEAR_COLOR, "LineStyle", "--");
+            else
+                plot(ax, obj.modeled_curve.H, y, "Color", AnhystereticUtils.LINEAR_COLOR, "LineStyle", "--");
+            end
         end
 
         function exponent = get_scientific_notation_exponent(~, tip)

@@ -6,10 +6,13 @@ classdef MagneticParameters
 %   alphaMs, Ms, alpha, Hk, chi_in, Js, initial_relative_magnetic_permeability,
 %   murin, chi_in_total, etc. Ms is solved so the modeled curve matches the
 %   measured tip (and, for multi-component fits, additional points at Hx).
-%   chi_in_total (= sum(chi_in)) is the reported total susceptibility; murin
+%   chi_in_total (= sum(chi_in) + chi0) is the reported total susceptibility; murin
 %   (= 1 + chi_in_total) is kept computed but currently unwired from the UI.
+%   chi0 is the optional linear term ("component 0", M0 = chi0*H; chi_m0 in
+%   mass mode), 0 when the tab's "Linear term" box is unchecked.
 
     properties
+        chi0 = 0
         a
         alphaMs
         Ms
@@ -26,7 +29,7 @@ classdef MagneticParameters
     end
 
     methods (Access = public)
-        function obj = MagneticParameters(data_curve, Hcr, mcr, Hx, select_a, physical)
+        function obj = MagneticParameters(data_curve, Hcr, mcr, Hx, select_a, physical, chi0)
             % Two construction modes:
             %  - Distribution mode (default): derive the physical quantities
             %    a/alphaMs/Ms/alpha from the fitted distribution parameters
@@ -35,10 +38,19 @@ classdef MagneticParameters
             %  - Physical mode: pass a `physical` struct with fields .Ms .alpha
             %    .a (each a 1-by-n vector) to set the physical quantities
             %    directly, bypassing the distribution->physical conversion.
-            %    Used by the "reduce dof" unchecked fit, which optimizes the
+            %    Used by the "Constrained by n data points" unchecked fit, which optimizes the
             %    physical parameters themselves. data_curve/Hcr/mcr/Hx may be []
             %    in this mode. alphaMs = alpha .* Ms.
+            %  chi0 (optional, default 0): the linear term. Distribution mode
+            %  subtracts chi0*H from the data at the tip/Hx constraint
+            %  points before solving for Ms; physical mode may instead pass
+            %  it as physical.chi0.
             obj.VACUUM_PERMEABILITY = 4 * pi * (10^-7);
+            if nargin >= 7 && ~isempty(chi0)
+                obj.chi0 = chi0;
+            elseif nargin >= 6 && isstruct(physical) && isfield(physical, 'chi0') && ~isempty(physical.chi0)
+                obj.chi0 = physical.chi0;
+            end
             if nargin >= 6 && ~isempty(physical)
                 obj.a = physical.a(:).';
                 obj.Ms = physical.Ms(:).';
@@ -64,7 +76,7 @@ classdef MagneticParameters
     methods (Access = private)
         function a = get_a(obj, Hcr, mcr, select_a)
             factors = ones(length(select_a));
-            select_a = select_a == "low";
+            select_a = select_a_root(select_a) == "low";   % 'auto (low)' counts as 'low'
             for i = 1:length(select_a)
                 if select_a(i)
                     factors(i) = -1;
@@ -96,6 +108,7 @@ classdef MagneticParameters
             end
 
             [HTip, MTip] = Utils().find_tip(data_curve.H, data_curve.M);
+            MTip = MTip - obj.chi0 * HTip;   % the Langevin components carry the rest
 
             if all_same_components
                 n = length(Hcr);
@@ -113,7 +126,7 @@ classdef MagneticParameters
             M_solve(1) = MTip;
             for i = 2:length(Hcr)
                 H_solve(i) = Hx(i-1);
-                M_solve(i) = interp1(data_curve.H, data_curve.M, H_solve(i), 'linear', 'extrap');
+                M_solve(i) = interp1(data_curve.H, data_curve.M, H_solve(i), 'linear', 'extrap') - obj.chi0 * H_solve(i);
             end
             A = zeros(length(Hcr), length(Hcr));
             
@@ -177,16 +190,12 @@ classdef MagneticParameters
         end
         
         function murin = get_murin(obj)
-            murin = 0;
-            chiin = 0;
-            for i = 1:length(obj.initial_relative_magnetic_permeability)
-                chiin = chiin + obj.Ms(i)/obj.Hk(i);
-            end
-            murin = 1 + chiin;
+            % Ms(i)/Hk(i) == chi_in(i); chi_in_total adds the linear term.
+            murin = 1 + obj.get_chi_in_total();
         end
 
         function chi_in_total = get_chi_in_total(obj)
-            chi_in_total = sum(obj.chi_in);
+            chi_in_total = sum(obj.chi_in) + obj.chi0;
         end
     end
 

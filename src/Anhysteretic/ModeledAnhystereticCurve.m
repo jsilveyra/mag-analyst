@@ -4,7 +4,9 @@ classdef ModeledAnhystereticCurve
 %   total magnetization M (and per-component Mi) plus their derivatives
 %   dMdH/dMidH and semilog derivatives HdMdH/HdMidH over the sample field H,
 %   using each component's a, alphaMs, Ms, alpha from a MagneticParameters
-%   object.
+%   object. The linear term chi0 (component 0) is included in the totals
+%   and kept apart in M0/dM0dH/HdM0dH (all zero when chi0 = 0), so Mi and
+%   friends still hold only the Langevin components 1..n.
 
     properties
         H
@@ -14,6 +16,9 @@ classdef ModeledAnhystereticCurve
         dMidH
         HdMdH
         HdMidH
+        M0
+        dM0dH
+        HdM0dH
     end
 
     methods (Access = public)
@@ -22,6 +27,16 @@ classdef ModeledAnhystereticCurve
             [obj.M, obj.Mi] = obj.get_M(H, magnetic_parameters.a, magnetic_parameters.alphaMs, magnetic_parameters.Ms);
             [obj.dMdH, obj.dMidH] = obj.get_dMdH(H, magnetic_parameters.alpha, magnetic_parameters.Ms, magnetic_parameters.a, magnetic_parameters.alphaMs);
             [obj.HdMdH, obj.HdMidH] = obj.get_HdMdH(H, obj.dMidH);
+            chi0 = 0;
+            if isprop(magnetic_parameters, 'chi0') && ~isempty(magnetic_parameters.chi0)
+                chi0 = magnetic_parameters.chi0;
+            end
+            obj.M0 = chi0 * H;
+            obj.dM0dH = chi0 * ones(size(H));
+            obj.HdM0dH = chi0 * H;
+            obj.M = obj.M + obj.M0;
+            obj.dMdH = obj.dMdH + obj.dM0dH;
+            obj.HdMdH = obj.HdMdH + obj.HdM0dH;
         end
     end
 
