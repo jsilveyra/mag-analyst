@@ -17,3 +17,7 @@ debug.log
 # versions are under publisher copyright. They live in to_organize/articles/;
 # citations and DOIs are in README.md and users-guide.md instead.
 /articles/
+
+# Default output folder of Project > Export... (FileDialogUtils); exported
+# results are per-session, not part of the toolbox
+/data/exported_data/
