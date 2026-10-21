@@ -421,7 +421,7 @@ classdef AnhystereticUtils
             %   follows: checked, the mathematical parameters (Hcr, m(Hcr),
             %   Hx); unchecked, the physical ones (Ms, alpha, a).
             if ~isfinite(AnhystereticUtils.significant_digits(app))
-                app.write_message("Set 'Signif. digits' to a number of significant digits before polishing ('Full precision' means no polish).");
+                app.write_message("Choose the number of significant digits before polishing ('Full precision' means no polish).");
                 return;
             end
             AnhystereticUtils.fit_parameters(app, true);
@@ -458,7 +458,7 @@ classdef AnhystereticUtils
         function write_polish_tip(app)
             %WRITE_POLISH_TIP After a refinement: the fit is full precision;
             %   polishing rounds it so the printed values reproduce it.
-            app.write_message("Tip: to report reproducible values, choose 'Signif. digits' and press Polish.");
+            app.write_message("Tip: to report reproducible values, choose the number of significant digits and press Polish.");
         end
 
         function fit_parameters_reduced(app, polish_only)

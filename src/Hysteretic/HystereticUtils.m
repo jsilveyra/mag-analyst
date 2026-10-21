@@ -13,6 +13,17 @@ classdef HystereticUtils
             ret = string(sprintf('%.6g', v));
         end
 
+        function txt = seed_text(label, value)
+            % "Ms [A/m]", "1.2e+06" -> "Ms=1.2e+06 [A/m]"; a label without
+            % a unit ("α", "c") -> "α=0.00013264".
+            label = string(label);
+            if contains(label, " [")
+                txt = extractBefore(label, " [") + "=" + value + " [" + extractAfter(label, " [");
+            else
+                txt = label + "=" + value;
+            end
+        end
+
         function [H_cycle, M_cycle] = build_ja_data_cycle(app)
             [H_cycle, M_cycle] = HystereticUtils.build_ja_data_cycle_core( ...
                 app.H_raw, app.M_raw, ...
@@ -520,18 +531,21 @@ classdef HystereticUtils
                     end
                 end
 
-                Ms_seed_label = DisplayUnits.get_Ms_scalar_label(app);
-                alpha_seed_label = DisplayUnits.get_alpha_scalar_label(app);
                 DisplayUnits.apply_ja_labels(app, app.Ms_JALabel, app.alpha_JALabel);
+                % name=value [unit] for every parameter, as for a and k (the
+                % field labels carry the unit as "Ms [A/m]")
+                seeds_text = "Jiles–Atherton seeds retrieved: " + ...
+                    HystereticUtils.seed_text(DisplayUnits.get_Ms_scalar_label(app), ms_display) + ", " + ...
+                    HystereticUtils.seed_text("a [A/m]", a_display) + ", " + ...
+                    HystereticUtils.seed_text(DisplayUnits.get_alpha_scalar_label(app), alpha_display) + ", " + ...
+                    HystereticUtils.seed_text("c", FormatUtils.format_short(c_seed)) + ", ";
+                app.c_JA.Value = c_seed;
                 if isfinite(k_value)
-                    k_display = HystereticUtils.format_k_seed_display(app, k_value);
                     app.k_JA.Value = k_value;
-                    app.c_JA.Value = c_seed;
-                    app.write_message("Jiles–Atherton seeds retrieved: " + Ms_seed_label + "=" + ms_display + ", a=" + a_display + " [A/m], " + alpha_seed_label + "=" + alpha_display + ", c=" + FormatUtils.format_short(c_seed) + ", k=" + k_display + " [A/m].");
+                    app.write_message(seeds_text + HystereticUtils.seed_text("k [A/m]", HystereticUtils.format_k_seed_display(app, k_value)) + ".");
                 else
                     CompatUtils.clear_value(app.k_JA);
-                    app.c_JA.Value = c_seed;
-                    app.write_message("Jiles–Atherton seeds retrieved: " + Ms_seed_label + "=" + ms_display + ", a=" + a_display + " [A/m], " + alpha_seed_label + "=" + alpha_display + ", c=" + FormatUtils.format_short(c_seed) + ", k=not available.");
+                    app.write_message(seeds_text + "k=not available.");
                 end
                 if app.number_components > 1
                     % The JA model has a single anhysteretic component, and
@@ -799,7 +813,7 @@ classdef HystereticUtils
             %   independently: with 'Constrained by Hc' checked k is derived
             %   and is not a lattice value; uncheck it to polish all five.
             if ~isfinite(HystereticUtils.significant_digits(app))
-                app.write_message("Set 'Signif. digits' to a number of significant digits before polishing ('Full precision' means no polish).");
+                app.write_message("Choose the number of significant digits before polishing ('Full precision' means no polish).");
                 return;
             end
             app.write_message("Polishing started");
