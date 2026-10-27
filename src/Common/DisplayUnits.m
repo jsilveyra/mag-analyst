@@ -185,7 +185,15 @@ classdef DisplayUnits
 
         function eq = get_lw_model_eq(app)
             % Anhysteretic tab's Langevin-Weiss model formulation (LWModel_eq).
-            if app.M_is_mass_based
+            % With the linear term on, the middle "sum of M_i(H)" step is
+            % dropped so the label stays about as wide as without it.
+            if AnhystereticUtils.linear_term_enabled(app)
+                if app.M_is_mass_based
+                    eq = '$\sigma(H) = \chi_{m0} H + \sum_{i}^{n} \sigma_{S,i} \mathcal{L}\left[(H + \rho\alpha_i \sigma_i) / a_i\right]$';
+                else
+                    eq = '$M(H) = \chi_0 H + \sum_{i}^{n} M_{S,i} \mathcal{L}\left[(H + \alpha_i M_i) / a_i\right]$';
+                end
+            elseif app.M_is_mass_based
                 eq = '$\sigma(H) = \sum_{i}^{n} \sigma_i(H) = \sum_{i}^{n} \sigma_{S,i} \mathcal{L}\left[(H + \rho\alpha_i \sigma_i) / a_i\right]$';
             else
                 eq = '$M(H) = \sum_{i}^{n} M_i(H) = \sum_{i}^{n} M_{S,i} \mathcal{L}\left[(H + \alpha_i M_i) / a_i\right]$';

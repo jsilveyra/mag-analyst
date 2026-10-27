@@ -107,6 +107,8 @@ classdef AnhystereticUtils
             end
             AnhystereticUtils.refresh_table_value_display(app);
             AnhystereticUtils.sync_reduce_dof_ui(app);
+            % plot() rewrites the equation too, but only once data is loaded.
+            app.LWModel_eq.Text = DisplayUnits.get_lw_model_eq(app);
             MenuUtils.mark_project_dirty(app);
             AnhystereticUtils.calculate_plot_and_refresh_hysteretic_live(app);
         end
@@ -285,6 +287,14 @@ classdef AnhystereticUtils
             if ~AnhystereticUtils.use_physical_parameters(app)
                 select_a = AnhystereticUtils.select_a_values(app);
                 app.magnetic_parameters = MagneticParameters(app.data_curve, app.Hcr, app.mcr, app.Hx, select_a, [], AnhystereticUtils.chi0_value(app));
+                % 'Constrained by n data points' unchecked: Ms/alpha/a are
+                % free parameters from here on. Freeze the ones just derived
+                % (the physical fit's seed) instead of waiting for a physical
+                % fit, or every chi0 edit would re-solve the tip/Hx
+                % constraints on M - chi0*H and move them.
+                if ~AnhystereticUtils.reduce_dof_enabled(app) && isprop(app, 'physical_fit_active')
+                    app.physical_fit_active = true;
+                end
             else
                 % Physical mode: keep Ms/alpha/a, but take chi0 from its
                 % (still editable) table row, so editing it or toggling the
@@ -749,9 +759,10 @@ classdef AnhystereticUtils
         end
 
         function on_reduce_dof_changed(app)
-            % "reduce dof" was just toggled. Unchecking only grays/ungrays
-            % controls (fit_parameters_physical is seeded from the CURRENT
-            % magnetic_parameters, whatever mode produced them). Re-checking,
+            % "reduce dof" was just toggled. Unchecking freezes the current
+            % Ms/alpha/a as free parameters (calculate_parameters sets
+            % physical_fit_active); fit_parameters_physical is seeded from
+            % them. Re-checking,
             % however, must revert to distribution mode: otherwise
             % use_physical_parameters(app) keeps reporting true (it reads
             % physical_fit_active, not the checkbox) and every downstream
